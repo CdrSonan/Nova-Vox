@@ -1,0 +1,26 @@
+This folder contains various files related to the official logo of the Nova-Vox vocal synthesizer project. I've made some notes here to help explain some things that might be confusing or not immediately apparent.
+
+**********
+* Colors *
+**********
+
+Light Purple - R:89 G:47 B:129 (#592F81)
+Dark Purple - R:0 G:5 B:59 (#000559)
+
+**********************************
+* License & Giving Proper Credit *
+**********************************
+
+The Nova-Vox logo is licensed under a Creative Commons BY-NC-SA license. In short, this means you can use the logo ONLY for non-commercial purposes, and any modifications to the logo must be distributed under the same license. Also, if the logo is used, credit must be given to the original creator (deeepiii), even if you make changes to it. If you want or need more details, please visit the official license page: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+***************
+* Other Notes *
+***************
+
+- I created this logo using Affinity Designer. However, this folder has the original vector files in a variety of formats. These were all exported directly from Affinity Designer, so I don't know 100% what they look like or how they will behave on your end. If you're an Adobe user, Affinity Designer won't let you export to .AI, so I had to use .PSD instead.
+
+- The font used for the "NOVA-VOX" text is Jost*, and is included inside this folder for your convienience (the font's license allows for this). More info can be found here: https://indestructibletype.com/Jost.html
+
+- The hyphen in the largest NOVA-VOX text was raised by 10pt so it looks better. Any smaller instances of that text were created by duplicating the original and resizing it so the hyphen stays in the same place. (If you were to type NOVA-VOX in a new box, the hyphen will be a lot lower, which doesn't look as good in my opinion.)
+
+If you have any questions, send me a message on Discord (deeepiii#2963). Happy creating!
