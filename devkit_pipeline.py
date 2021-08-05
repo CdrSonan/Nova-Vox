@@ -225,19 +225,20 @@ class SpecCrfAi(nn.Module):
         return AiState
     
 class Voicebank:
-    def __init__(self, filepath, newFile):
+    def __init__(self, filepath):
         self.filepath = filepath
         self.sampleRate = 48000
         self.phonemeDict = dict()
         self.crfAi = SpecCrfAi()
         self.parameters = []
-        if newFile:
-            self.save(self.filepath)
-        else:
+        self.wordDict = dict()
+        self.stagedTrainSamples = []
+        if filepath != None:
             self.loadSampleRate(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
             self.loadCrfWeights(self.filepath)
             self.loadParameters(self.filepath, False)
+            self.loadWordDict(self.filepath, False)
         
     def save(self, filepath):
         #torch.save(vb.crfAi.state_dict(), "CrossfadeWeights.dat")
@@ -245,7 +246,8 @@ class Voicebank:
             "sampleRate":self.sampleRate,
             "crfAiState":self.crfAi.getState(),
             "phonemeDict":self.phonemeDict,
-            "Parameters":self.parameters
+            "Parameters":self.parameters,
+            "wordDict":self.wordDict
             }, filepath)
         
     def loadSampleRate(self, filepath):
@@ -278,46 +280,47 @@ class Voicebank:
         else:
             pass
         
-"""class TempVB:
-    def __init__(self):
-        self.sampleRate = 48000
-        self.phonemeDict = dict([])
-        phonemeKeys = ["A", "E", "I", "O", "U", "G", "K", "N", "S", "T"]
-        for key in phonemeKeys:
-            self.phonemeDict[key] = AudioSample("Samples_rip/"+key+".wav")
-            self.sampleRate = self.phonemeDict[key].sampleRate
-            self.phonemeDict[key].CalculatePitch(249.)
-            self.phonemeDict[key].CalculateSpectra(iterations = 15)
-            self.phonemeDict[key].CalculateExcitation()
-        self.crfAi = SpecCrfAi(learningRate=1e-4)"""
+    def loadWordDict(self, filepath, additive):
+        if additive:
+            pass
+        else:
+            pass
         
-TrainingSamples = dict([])
-TrainingKeys = ["A_E", "A_G", "A_I", "A_K", "A_N", "A_O", "A_S", "A_T", "A_U",
-                   "E_A", "E_G", "E_I", "E_K", "E_N", "E_O", "E_S", "E_T", "E_U",
-                   "I_A", "I_E", "I_G", "I_K", "I_N", "I_O", "I_S", "I_T", "I_U",
-                   "O_A", "O_E", "O_G", "O_I", "O_K", "O_N", "O_S", "O_T", "O_U",
-                   "U_A", "U_E", "U_G", "U_I", "U_K", "U_N", "U_O", "U_S", "U_T",
-                   "G_A", "G_E", "G_I", "G_O", "G_U",
-                   "K_A", "K_E", "K_I", "K_O", "K_U",
-                   "N_A", "N_E", "N_I", "N_O", "N_U",
-                   "S_A", "S_E", "S_I", "S_O", "S_U",
-                   "T_A", "T_E", "T_I", "T_O", "T_U"
-                  ]
-
-for key in TrainingKeys:
-    TrainingSamples[key] = AudioSample("Samples_rip/"+key+".wav")
-    TrainingSamples[key].CalculatePitch(249.)
-    TrainingSamples[key].CalculateSpectra(iterations = 25)
-    TrainingSamples[key].CalculateExcitation()
+    def addPhoneme(self, key, filepath):
+        self.phonemeDict[key] = AudioSample(filepath)
     
-trainSpectra = []
-i = 0
-for key in TrainingKeys:
-    trainSpectra.append(torch.empty_like(TrainingSamples[key].spectra))
-    for j in range(TrainingSamples[key].spectra.size()[0]):
-        trainSpectra[i][j] = TrainingSamples[key].spectrum + TrainingSamples[key].spectra[j]
-    i += 1
-
-vb = TempVB()
-for i in range(70):
-    vb.crfAi.train(trainSpectra[i], epochs = 5)
+    def delPhoneme(self, key):
+        self.phonemeDict.pop(key)
+    
+    def changePhonemeKey(self, key, newKey):
+        self.phonemeDict[newKey] = self.phonemeDict.pop(key)
+    
+    def changePhonemeFile(self, key, filepath):
+        self.phonemeDict[key] = AudioSample(filepath)
+    
+    def finalizePhonemeDict(self):
+        for i in self.phonemeDict.keys:
+            if type(self.phonemeDict[i]).__name__ == "AudioSample":
+                self.phonemeDict[i].calculatePitch(249.)
+                self.phonemeDict[i].calculateSpectra(iterations = 15)
+                self.phonemeDict[i].calculateExcitation()
+                self.phonemeDict[i] = loadedAudioSample(self.phonemeDict[i])
+                print("staged phoneme " + i + " finalized")
+    
+    def addTrainSample(self, filepath):
+        self.stagedTrainSamples.append(AudioSample(filepath))
+    
+    def delTrainSample(self, index):
+        self.stagedTrainSamples.remove(index)
+    
+    def changeTrainSampleFile(self, index, filepath):
+        self.stagedTrainSamples[index] = AudioSample(filepath)
+    
+    def trainCrfAi(self, epochs, additive):
+        if additive == False:
+            self.crfAi = SpecCrfAi()
+        for i in range(len(self.stagedTrainSamples)):
+            self.stagedTrainSamples[i].calculatePitch(249.)
+            self.stagedTrainSamples[i].calculateSpectra(iterations = 25)
+            self.stagedTrainSamples[i] = self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra
+            self.crfAi.train(self.stagedTrainSamples, epochs = epochs)
