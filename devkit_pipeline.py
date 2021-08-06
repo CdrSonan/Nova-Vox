@@ -14,11 +14,15 @@ torchaudio.set_audio_backend("soundfile")
 import matplotlib.pyplot as plt
 
 class AudioSample:
-    def __init__(self, filepath):
+    def __init__(self, filepath, sampleRate):
         loadedData = torchaudio.load(filepath)
         self.waveform = loadedData[0][0]
         self.sampleRate = loadedData[1]
         del loadedData
+        transform = torch.resample(self.sampleRate, sampleRate)
+        self.waveform = transform(self.waveform)
+        del transform
+        self.sampleRate = sampleRate
         self.pitchDeltas = torch.tensor([], dtype = int)
         self.pitchBorders = torch.tensor([], dtype = int)
         self.pitch = torch.tensor([0], dtype = int)
@@ -185,56 +189,63 @@ class SpecCrfAi(nn.Module):
         return x
     
     def processData(self, spectrum1, spectrum2, factor):
+        self.eval()
         output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), factor)))
         return output
     
     def train(self, indata, epochs=1):
-        if (self.epoch == 0) or self.epoch == epochs:
-            self.epoch = epochs
-        else:
-            self.epoch = None
-        
-        for epoch in range(epochs):
-            for data in self.dataLoader(indata):
-                spectrum1 = data[0]
-                spectrum2 = data[-1]
-                indexList = np.arange(0, data.size()[0], 1)
-                np.random.shuffle(indexList)
-                for i in indexList:
-                    factor = i / float(data.size()[0])
-                    spectrumTarget = data[i]
-                    output = torch.squeeze(self(spectrum1, spectrum2, factor))
-                    loss = self.criterion(output, spectrumTarget)
-                    self.optimizer.zero_grad()
-                    loss.backward()
-                    self.optimizer.step()
-            print('epoch [{}/{}], loss:{:.4f}'
-                  .format(epoch + 1, epochs, loss.data))
-        
-        self.loss = loss
+        if indata != False:
+            if (self.epoch == 0) or self.epoch == epochs:
+                self.epoch = epochs
+            else:
+                self.epoch = None
+            
+            for epoch in range(epochs):
+                for data in self.dataLoader(indata):
+                    spectrum1 = data[0]
+                    spectrum2 = data[-1]
+                    indexList = np.arange(0, data.size()[0], 1)
+                    np.random.shuffle(indexList)
+                    for i in indexList:
+                        factor = i / float(data.size()[0])
+                        spectrumTarget = data[i]
+                        output = torch.squeeze(self(spectrum1, spectrum2, factor))
+                        loss = self.criterion(output, spectrumTarget)
+                        self.optimizer.zero_grad()
+                        loss.backward()
+                        self.optimizer.step()
+                print('epoch [{}/{}], loss:{:.4f}'
+                      .format(epoch + 1, epochs, loss.data))
+            
+            self.loss = loss
             
     def dataLoader(self, data):
         return torch.utils.data.DataLoader(dataset=data, shuffle=True)
     
     def getState(self):
-        AiState = {'epoch': self.crfAi.epoch,
-                 'model_state_dict': self.crfAi.state_dict(),
-                 'optimizer_state_dict': self.crfAi.optimizer.state_dict(),
-                 'loss': self.crfAi.loss
+        AiState = {'epoch': self.epoch,
+                 'model_state_dict': self.state_dict(),
+                 'optimizer_state_dict': self.optimizer.state_dict(),
+                 'loss': self.loss
                  }
         return AiState
     
+class VbMetadata:
+    def __init__(self):
+        self.name = ""
+        self.sampleRate = 48000
+    
 class Voicebank:
     def __init__(self, filepath):
+        self.metadata = VbMetadata()
         self.filepath = filepath
-        self.sampleRate = 48000
         self.phonemeDict = dict()
         self.crfAi = SpecCrfAi()
         self.parameters = []
         self.wordDict = dict()
         self.stagedTrainSamples = []
         if filepath != None:
-            self.loadSampleRate(self.filepath)
+            self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
             self.loadCrfWeights(self.filepath)
             self.loadParameters(self.filepath, False)
@@ -243,16 +254,16 @@ class Voicebank:
     def save(self, filepath):
         #torch.save(vb.crfAi.state_dict(), "CrossfadeWeights.dat")
         torch.save({
-            "sampleRate":self.sampleRate,
+            "metadata":self.metadata,
             "crfAiState":self.crfAi.getState(),
             "phonemeDict":self.phonemeDict,
             "Parameters":self.parameters,
             "wordDict":self.wordDict
             }, filepath)
         
-    def loadSampleRate(self, filepath):
+    def loadMetadata(self, filepath):
         data = torch.load(filepath)
-        return data["sampleRate"]
+        self.metadata = data["metadata"]
     
     def loadPhonemeDict(self, filepath, additive):
         data = torch.load(filepath)
