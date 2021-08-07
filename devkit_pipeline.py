@@ -11,7 +11,6 @@ import torch
 import torch.nn as nn
 import torchaudio
 torchaudio.set_audio_backend("soundfile")
-import matplotlib.pyplot as plt
 
 class AudioSample:
     def __init__(self, filepath, sampleRate):
@@ -19,7 +18,7 @@ class AudioSample:
         self.waveform = loadedData[0][0]
         self.sampleRate = loadedData[1]
         del loadedData
-        transform = torch.resample(self.sampleRate, sampleRate)
+        transform = torchaudio.transforms.Resample(self.sampleRate, sampleRate)
         self.waveform = transform(self.waveform)
         del transform
         self.sampleRate = sampleRate
@@ -32,9 +31,15 @@ class AudioSample:
         self.voicedExcitation = torch.tensor([], dtype = float)
         self.VoicedExcitations = torch.tensor([], dtype = float)
         
-    def CalculatePitch(self, expectedPitch, searchRange = 0.2):
-        batchSize = math.floor((1. + searchRange) * self.sampleRate / expectedPitch)
-        lowerSearchLimit = math.floor((1. - searchRange) * self.sampleRate / expectedPitch)
+        self.expectedPitch = 249.
+        self.searchRange = 0.2
+        self.filterWidth = 10
+        self.voicedIterations = 2
+        self.unvoicedIterations = 10
+        
+    def calculatePitch(self):
+        batchSize = math.floor((1. + self.searchRange) * self.sampleRate / self.expectedPitch)
+        lowerSearchLimit = math.floor((1. - self.searchRange) * self.sampleRate / self.expectedPitch)
         batchStart = 0
         while batchStart + batchSize <= self.waveform.size()[0] - batchSize:
             sample = torch.index_select(self.waveform, 0, torch.linspace(batchStart, batchStart + batchSize, batchSize, dtype = int))
@@ -43,7 +48,7 @@ class AudioSample:
                 if (sample[i-1] < 0) and (sample[i] > 0):
                     zeroTransitions = torch.cat([zeroTransitions, torch.tensor([i])], 0)
             error = math.inf
-            delta = math.floor(self.sampleRate / expectedPitch)
+            delta = math.floor(self.sampleRate / self.expectedPitch)
             for i in zeroTransitions:
                 shiftedSample = torch.index_select(self.waveform, 0, torch.linspace(batchStart + i.item(), batchStart + batchSize + i.item(), batchSize, dtype = int))
                 newError = torch.sum(torch.pow(sample - shiftedSample, 2))
@@ -68,7 +73,7 @@ class AudioSample:
         del newError
         del nBatches
         
-    def CalculateSpectra(self, iterations = 10, filterWidth = 10, preIterations = 2):
+    def calculateSpectra(self):
         tripleBatchSize = int(self.sampleRate / 25)
         BatchSize = int(self.sampleRate / 75)
         Window = torch.hann_window(tripleBatchSize)
@@ -81,12 +86,12 @@ class AudioSample:
         workingSpectra = torch.max(workingSpectra, torch.tensor([-100]))
         self.spectra = torch.full_like(workingSpectra, -float("inf"), dtype=torch.float)
         
-        for j in range(preIterations):
+        for j in range(self.voicedIterations):
             workingSpectra = torch.max(workingSpectra, self.spectra)
             self.spectra = workingSpectra
-            for i in range(filterWidth):
+            for i in range(self.filterWidth):
                 self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
-            self.spectra = self.spectra / (2 * filterWidth + 1)
+            self.spectra = self.spectra / (2 * self.filterWidth + 1)
         
         self.VoicedExcitations = torch.zeros_like(signals)
         for i in range(signals.size()[0]):
@@ -94,12 +99,12 @@ class AudioSample:
                 if torch.sqrt(signalsAbs[i][j]) > self.spectra[i][j]:
                     self.VoicedExcitations[i][j] = signals[i][j]
                 
-        for j in range(iterations):
+        for j in range(self.unvoicedIterations):
             workingSpectra = torch.max(workingSpectra, self.spectra)
             self.spectra = workingSpectra
-            for i in range(filterWidth):
+            for i in range(self.filterWidth):
                 self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
-            self.spectra = self.spectra / (2 * filterWidth + 1)
+            self.spectra = self.spectra / (2 * self.filterWidth + 1)
         
         self.spectrum = torch.mean(self.spectra, 0)
         for i in range(self.spectra.size()[0]):
@@ -109,7 +114,7 @@ class AudioSample:
         del signals
         del workingSpectra
         
-    def CalculateExcitation(self):
+    def calculateExcitation(self):
         tripleBatchSize = int(self.sampleRate / 25)
         BatchSize = int(self.sampleRate / 75)
         Window = torch.hann_window(tripleBatchSize)
@@ -298,7 +303,7 @@ class Voicebank:
             pass
         
     def addPhoneme(self, key, filepath):
-        self.phonemeDict[key] = AudioSample(filepath)
+        self.phonemeDict[key] = AudioSample(filepath, self.metadata.sampleRate)
     
     def delPhoneme(self, key):
         self.phonemeDict.pop(key)
@@ -309,14 +314,9 @@ class Voicebank:
     def changePhonemeFile(self, key, filepath):
         self.phonemeDict[key] = AudioSample(filepath)
     
-    def finalizePhonemeDict(self):
-        for i in self.phonemeDict.keys():
-            if type(self.phonemeDict[i]).__name__ == "AudioSample":
-                self.phonemeDict[i].calculatePitch(249.)
-                self.phonemeDict[i].calculateSpectra(iterations = 15)
-                self.phonemeDict[i].calculateExcitation()
-                self.phonemeDict[i] = loadedAudioSample(self.phonemeDict[i])
-                print("staged phoneme " + i + " finalized")
+    def finalizePhoneme(self, key):
+        self.phonemeDict[key] = loadedAudioSample(self.phonemeDict[key])
+        print("staged phoneme " + key + " finalized")
     
     def addTrainSample(self, filepath):
         self.stagedTrainSamples.append(AudioSample(filepath))
