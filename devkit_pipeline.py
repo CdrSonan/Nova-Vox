@@ -109,7 +109,7 @@ class AudioSample:
         del signals
         del workingSpectra
         
-    def CalculateExcitation(self, filterWidth = 10):
+    def CalculateExcitation(self):
         tripleBatchSize = int(self.sampleRate / 25)
         BatchSize = int(self.sampleRate / 75)
         Window = torch.hann_window(tripleBatchSize)
@@ -268,8 +268,8 @@ class Voicebank:
     def loadPhonemeDict(self, filepath, additive):
         data = torch.load(filepath)
         if additive:
-            for i in data["phonemeDict"].keys:
-                if i in self.phonemeDict.keys:
+            for i in data["phonemeDict"].keys():
+                if i in self.phonemeDict.keys():
                     self.phonemeDict[i + "#"] = data["phonemeDict"][i]
                     print("phoneme " + i + " is already present in voicebank; its key has been changed to " + i + "#")
                 else:
@@ -310,7 +310,7 @@ class Voicebank:
         self.phonemeDict[key] = AudioSample(filepath)
     
     def finalizePhonemeDict(self):
-        for i in self.phonemeDict.keys:
+        for i in self.phonemeDict.keys():
             if type(self.phonemeDict[i]).__name__ == "AudioSample":
                 self.phonemeDict[i].calculatePitch(249.)
                 self.phonemeDict[i].calculateSpectra(iterations = 15)

@@ -16,6 +16,8 @@ class RootUi(tkinter.Frame):
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
         
+        self.master.wm_title("no Voicebank loaded")
+        
     def createWidgets(self):
         self.infoDisplay = tkinter.Label(self)
         self.infoDisplay["text"] = "NovaVox Devkit ALPHA 0.1.0"
@@ -91,6 +93,7 @@ class RootUi(tkinter.Frame):
         if filepath != "":
             loadedVBPath = filepath
             loadedVB.save(filepath)
+            self.master.wm_title(loadedVBPath)
         
     def onOpenPress(self):
         global loadedVB
@@ -106,6 +109,7 @@ class RootUi(tkinter.Frame):
                 self.parameterButton["state"] = "active"
                 self.worddictButton["state"] = "active"
                 self.saveButton["state"] = "active"
+                self.master.wm_title(loadedVBPath)
     
     def onNewPress(self):
         global loadedVB
@@ -117,6 +121,7 @@ class RootUi(tkinter.Frame):
             self.parameterButton["state"] = "active"
             self.worddictButton["state"] = "active"
             self.saveButton["state"] = "active"
+            self.master.wm_title("unsaved Voicebank")
             
 class MetadataUi(tkinter.Frame):
     def __init__(self, master=None):
@@ -169,15 +174,97 @@ class PhonemedictUi(tkinter.Frame):
     def createWidgets(self):
         global loadedVB
         
+        self.phonemeList = tkinter.LabelFrame(self, text = "phoneme list")
+        self.phonemeList.list = tkinter.Frame(self.phonemeList)
+        self.phonemeList.list.lb = tkinter.Listbox(self.phonemeList.list)
+        self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
+        self.phonemeList.list.sb = tkinter.Scrollbar(self.phonemeList.list)
+        self.phonemeList.list.sb.pack(side = "left", fill = "y")
+        self.phonemeList.list.lb["yscrollcommand"] = self.phonemeList.list.sb.set
+        self.phonemeList.list.sb["command"] = self.phonemeList.list.lb.yview
+        self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
+        for i in loadedVB.phonemeDict.keys():
+            if type(self.phonemeDict[i]).__name__ == "AudioSample":
+                self.phonemeList.list.lb.insert("end", i + " (not finalized)")
+            else:
+                self.phonemeList.list.lb.insert("end", i)
+        
+        self.phonemeList.removeButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.removeButton["text"] = "remove"
+        self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
+        self.phonemeList.addButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.addButton["text"] = "add"
+        self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
+        
+        self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar = tkinter.LabelFrame(self, text = "per-phoneme settings")
+        self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
+        
+        self.sideBar.key = tkinter.Frame(self.sideBar)
+        self.sideBar.keyEntry = tkinter.Entry(self.sideBar.key)
+        self.sideBar.keyEntry.pack(side = "right", fill = "x")
+        self.sideBar.keyDisplay = tkinter.Label(self.sideBar.key)
+        self.sideBar.keyDisplay["text"] = "phoneme key:"
+        self.sideBar.keyDisplay.pack(side = "right", fill = "x")
+        self.sideBar.key.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.expPitch = tkinter.Frame(self.sideBar)
+        self.sideBar.expPitchEntry = tkinter.Entry(self.sideBar.expPitch)
+        self.sideBar.expPitchEntry.pack(side = "right", fill = "x")
+        self.sideBar.expPitchDisplay = tkinter.Label(self.sideBar.expPitch)
+        self.sideBar.expPitchDisplay["text"] = "estimated pitch:"
+        self.sideBar.expPitchDisplay.pack(side = "right", fill = "x")
+        self.sideBar.expPitch.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.pSearchRange = tkinter.Frame(self.sideBar)
+        self.sideBar.pSearchRangeEntry = tkinter.Spinbox(self.sideBar.pSearchRange, from_ = 0.05, to = 0.5, increment = 0.05)
+        self.sideBar.pSearchRangeEntry.pack(side = "right", fill = "x")
+        self.sideBar.pSearchRangeDisplay = tkinter.Label(self.sideBar.pSearchRange)
+        self.sideBar.pSearchRangeDisplay["text"] = "pitch search range:"
+        self.sideBar.pSearchRangeDisplay.pack(side = "right", fill = "x")
+        self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.fWidth = tkinter.Frame(self.sideBar)
+        self.sideBar.fWidthEntry = tkinter.Spinbox(self.sideBar.fWidth, from_ = 0, to = 100)
+        self.sideBar.fWidthEntry.pack(side = "right", fill = "x")
+        self.sideBar.fWidthDisplay = tkinter.Label(self.sideBar.fWidth)
+        self.sideBar.fWidthDisplay["text"] = "spectral filter width:"
+        self.sideBar.fWidthDisplay.pack(side = "right", fill = "x")
+        self.sideBar.fWidth.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
+        self.sideBar.voicedIterEntry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 0, to = 10)
+        self.sideBar.voicedIterEntry.pack(side = "right", fill = "x")
+        self.sideBar.voicedIterDisplay = tkinter.Label(self.sideBar.voicedIter)
+        self.sideBar.voicedIterDisplay["text"] = "voiced excitation filter iterations:"
+        self.sideBar.voicedIterDisplay.pack(side = "right", fill = "x")
+        self.sideBar.voicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
+        self.sideBar.unvoicedIterEntry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 0, to = 100)
+        self.sideBar.unvoicedIterEntry.pack(side = "right", fill = "x")
+        self.sideBar.unvoicedIterDisplay = tkinter.Label(self.sideBar.unvoicedIter)
+        self.sideBar.unvoicedIterDisplay["text"] = "unvoiced excitation filter iterations:"
+        self.sideBar.unvoicedIterDisplay.pack(side = "right", fill = "x")
+        self.sideBar.unvoicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.fileButton = tkinter.Button(self.sideBar)
+        self.sideBar.fileButton["text"] = "change file"
+        self.sideBar.fileButton["command"] = self.onFinalizePress
+        self.sideBar.fileButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+        
+        self.sideBar.finalizeButton = tkinter.Button(self.sideBar)
+        self.sideBar.finalizeButton["text"] = "Finalize"
+        self.sideBar.finalizeButton["command"] = self.onFinalizePress
+        self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+        
+        
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = "OK"
         self.okButton["command"] = self.onOkPress
-        self.okButton.pack(side = "right", fill = "x", expand = True, pady = 20)
+        self.okButton.pack(side = "top", fill = "x", expand = True, padx = 10, pady = 10)
         
-        self.finalizeButton = tkinter.Button(self)
-        self.finalizeButton["text"] = "Finalize"
-        self.finalizeButton["command"] = self.onFinalizePress
-        self.finalizeButton.pack(side = "right", fill = "x", expand = True, pady = 20)
         
     def onFinalizePress(self):
         global loadedVB
