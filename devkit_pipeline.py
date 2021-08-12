@@ -15,6 +15,7 @@ torchaudio.set_audio_backend("soundfile")
 class AudioSample:
     def __init__(self, filepath, sampleRate):
         loadedData = torchaudio.load(filepath)
+        self.filepath = filepath
         self.waveform = loadedData[0][0]
         self.sampleRate = loadedData[1]
         del loadedData
@@ -227,11 +228,61 @@ class SpecCrfAi(nn.Module):
     def dataLoader(self, data):
         return torch.utils.data.DataLoader(dataset=data, shuffle=True)
     
-    def getState(self):
+    def getState(self, final):
         AiState = {'epoch': self.epoch,
                  'model_state_dict': self.state_dict(),
                  'optimizer_state_dict': self.optimizer.state_dict(),
                  'loss': self.loss
+                 }
+        return AiState
+
+class SavedSpecCrfAi(nn.Module):
+    def __init__(self, SpecCrfAi, learningRate=1e-4):
+        super(SavedSpecCrfAi, self).__init__()
+        
+        self.layer1 = torch.nn.Linear(3843, 3843)
+        self.ReLu1 = nn.ReLU()
+        self.layer2 = torch.nn.Linear(3843, 5763)
+        self.ReLu2 = nn.ReLU()
+        self.layer3 = torch.nn.Linear(5763, 3842)
+        self.ReLu3 = nn.ReLU()
+        self.layer4 = torch.nn.Linear(3842, 1921)
+        
+        #self.learningRate = learningRate
+        #self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
+        #self.criterion = nn.L1Loss()
+        #self.criterion = RelLoss()
+        #self.epoch = 0
+        #self.loss = None
+        
+        self.epoch = SpecCrfAi.getState()['epoch']
+        self.load_state_dict(SpecCrfAi.getState()['model_state_dict'])
+        self.crfAi.eval()
+        
+    def forward(self, spectrum1, spectrum2, factor):
+        fac = torch.tensor([factor])
+        x = torch.cat((spectrum1, spectrum2, fac), dim = 0)
+        x = x.float()#.unsqueeze(0).unsqueeze(0)
+        x = self.layer1(x)
+        x = self.ReLu1(x)
+        x = self.layer2(x)
+        x = self.ReLu2(x)
+        x = self.layer3(x)
+        x = self.ReLu3(x)
+        x = self.layer4(x)
+        return x
+    
+    def processData(self, spectrum1, spectrum2, factor):
+        self.eval()
+        output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), factor)))
+        return output
+    
+    def dataLoader(self, data):
+        return torch.utils.data.DataLoader(dataset=data, shuffle=True)
+    
+    def getState(self, final):
+        AiState = {'epoch': self.epoch,
+                 'model_state_dict': self.state_dict()
                  }
         return AiState
     
@@ -286,8 +337,11 @@ class Voicebank:
         data = torch.load(filepath)
         self.crfAi.epoch = data["crfAiState"]['epoch']
         self.crfAi.load_state_dict(data["crfAiState"]['model_state_dict'])
-        self.crfAi.optimizer.load_state_dict(data["crfAiState"]['optimizer_state_dict'])
-        self.crfAi.loss = data["crfAiState"]['loss']
+        if "loss" in data["crfAiState"].keys():
+            self.crfAi.optimizer.load_state_dict(data["crfAiState"]['optimizer_state_dict'])
+            self.crfAi.loss = data["crfAiState"]['loss']
+        else:
+            self.crfAi = SavedSpecCrfAi(self.crfAi)
         self.crfAi.eval()
         
     def loadParameters(self, filepath, additive):
@@ -327,11 +381,16 @@ class Voicebank:
     def changeTrainSampleFile(self, index, filepath):
         self.stagedTrainSamples[index] = AudioSample(filepath)
     
-    def trainCrfAi(self, epochs, additive):
+    def trainCrfAi(self, epochs, additive, filterWidth, voicedIterations, unvoicedIterations):
         if additive == False:
             self.crfAi = SpecCrfAi()
         for i in range(len(self.stagedTrainSamples)):
-            self.stagedTrainSamples[i].calculatePitch(249.)
-            self.stagedTrainSamples[i].calculateSpectra(iterations = 25)
+            self.stagedTrainSamples[i].filterWidth = filterWidth
+            self.stagedTrainSamples[i].voicedIterations = voicedIterations
+            self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
+            self.stagedTrainSamples[i].calculateSpectra()
             self.stagedTrainSamples[i] = self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra
-            self.crfAi.train(self.stagedTrainSamples, epochs = epochs)
+        self.crfAi.train(self.stagedTrainSamples, epochs = epochs)
+        
+    def finalizCrfAi(self):
+        self.crfAi = SavedSpecCrfAi(self.crfAi)

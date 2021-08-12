@@ -421,12 +421,11 @@ class CrfaiUi(tkinter.Frame):
         self.createWidgets()
         
         self.master.wm_title("Phoneme Crossfade Ai editor")
-        self.disableButtons()
         
     def createWidgets(self):
         global loadedVB
         
-        self.phonemeList = tkinter.LabelFrame(self, text = "phoneme list")
+        self.phonemeList = tkinter.LabelFrame(self, text = "AI training sample list")
         self.phonemeList.list = tkinter.Frame(self.phonemeList)
         self.phonemeList.list.lb = tkinter.Listbox(self.phonemeList.list)
         self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
@@ -438,8 +437,8 @@ class CrfaiUi(tkinter.Frame):
         self.phonemeList.list.lb.bind("<FocusOut>", self.onListFocusOut)
         self.phonemeList.list.sb["command"] = self.phonemeList.list.lb.yview
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
-        for i in loadedVB.phonemeDict.keys():
-            self.phonemeList.list.lb.insert("end", i)
+        for i in loadedVB.stagedTrainSamples:
+            self.phonemeList.list.lb.insert("end", i.filepath)
         self.phonemeList.removeButton = tkinter.Button(self.phonemeList)
         self.phonemeList.removeButton["text"] = "remove"
         self.phonemeList.removeButton["command"] = self.onRemovePress
@@ -450,91 +449,124 @@ class CrfaiUi(tkinter.Frame):
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar = tkinter.LabelFrame(self, text = "per-phoneme settings")
+        self.sideBar = tkinter.LabelFrame(self, text = "Sample preprocessing and AI training settings")
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
-        self.sideBar.key = tkinter.Frame(self.sideBar)
-        self.sideBar.key.variable = tkinter.StringVar(self.sideBar.key)
-        self.sideBar.key.entry = tkinter.Entry(self.sideBar.key)
-        self.sideBar.key.entry["textvariable"] = self.sideBar.key.variable
-        self.sideBar.key.entry.bind("<FocusOut>", self.onKeyChange)
-        self.sideBar.key.entry.pack(side = "right", fill = "x")
-        self.sideBar.key.display = tkinter.Label(self.sideBar.key)
-        self.sideBar.key.display["text"] = "phoneme key:"
-        self.sideBar.key.display.pack(side = "right", fill = "x")
-        self.sideBar.key.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.sideBar.fWidth = tkinter.Frame(self.sideBar)
+        self.sideBar.fWidth.variable = tkinter.IntVar(self.sideBar.fWidth)
+        self.sideBar.fWidth.entry = tkinter.Spinbox(self.sideBar.fWidth, from_ = 0, to = 100)
+        self.sideBar.fWidth.entry["textvariable"] = self.sideBar.fWidth.variable
+        self.sideBar.fWidth.entry.pack(side = "right", fill = "x")
+        self.sideBar.fWidth.display = tkinter.Label(self.sideBar.fWidth)
+        self.sideBar.fWidth.display["text"] = "spectral filter width:"
+        self.sideBar.fWidth.display.pack(side = "right", fill = "x")
+        self.sideBar.fWidth.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
+        self.sideBar.voicedIter.variable = tkinter.IntVar(self.sideBar.voicedIter)
+        self.sideBar.voicedIter.entry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 0, to = 10)
+        self.sideBar.voicedIter.entry["textvariable"] = self.sideBar.voicedIter.variable
+        self.sideBar.voicedIter.entry.pack(side = "right", fill = "x")
+        self.sideBar.voicedIter.display = tkinter.Label(self.sideBar.voicedIter)
+        self.sideBar.voicedIter.display["text"] = "voiced excitation filter iterations:"
+        self.sideBar.voicedIter.display.pack(side = "right", fill = "x")
+        self.sideBar.voicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
+        self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter)
+        self.sideBar.unvoicedIter.entry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 0, to = 100)
+        self.sideBar.unvoicedIter.entry["textvariable"] = self.sideBar.unvoicedIter.variable
+        self.sideBar.unvoicedIter.entry.pack(side = "right", fill = "x")
+        self.sideBar.unvoicedIter.display = tkinter.Label(self.sideBar.unvoicedIter)
+        self.sideBar.unvoicedIter.display["text"] = "unvoiced excitation filter iterations:"
+        self.sideBar.unvoicedIter.display.pack(side = "right", fill = "x")
+        self.sideBar.unvoicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.epochs = tkinter.Frame(self.sideBar)
+        self.sideBar.epochs.variable = tkinter.IntVar(self.sideBar.epochs)
+        self.sideBar.epochs.entry = tkinter.Spinbox(self.sideBar.epochs, from_ = 1, to = 100)
+        self.sideBar.epochs.entry["textvariable"] = self.sideBar.epochs.variable
+        self.sideBar.epochs.entry.pack(side = "right", fill = "x")
+        self.sideBar.epochs.display = tkinter.Label(self.sideBar.fWidth)
+        self.sideBar.epochs.display["text"] = "AI training epochs:"
+        self.sideBar.epochs.display.pack(side = "right", fill = "x")
+        self.sideBar.epochs.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.trainButton = tkinter.Button(self.sideBar)
+        self.sideBar.trainButton["text"] = "change file"
+        self.sideBar.trainButton["command"] = self.onTrainPress
+        self.sideBar.trainButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+        
+        self.sideBar.finalizeButton = tkinter.Button(self.sideBar)
+        self.sideBar.finalizeButton["text"] = "finalize"
+        self.sideBar.finalizeButton["command"] = self.onFinalizePress
+        self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+        
+        
+        self.okButton = tkinter.Button(self)
+        self.okButton["text"] = "OK"
+        self.okButton["command"] = self.onOkPress
+        self.okButton.pack(side = "top", fill = "x", expand = True, padx = 10, pady = 10)
+        
+        if type(loadedVB.crfAi).__name__ == "SavedSpecCrfAi":
+            self.disableButtons()
         
     def onSelectionChange(self, event):
         global loadedVB
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
-            index = self.phonemeList.list.lastFocusedIndex
-            key = self.phonemeList.list.lb.get(index)
-            self.sideBar.key.variable.set(key)
-            if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
-                self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key].expectedPitch)
-                self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key].searchRange)
-                self.sideBar.fWidth.variable.set(loadedVB.phonemeDict[key].filterWidth)
-                self.sideBar.voicedIter.variable.set(loadedVB.phonemeDict[key].voicedIterations)
-                self.sideBar.unvoicedIter.variable.set(loadedVB.phonemeDict[key].unvoicedIterations)
-                self.enableButtons()
-            else:
-                self.sideBar.expPitch.variable.set(None)
-                self.sideBar.pSearchRange.variable.set(None)
-                self.sideBar.fWidth.variable.set(None)
-                self.sideBar.voicedIter.variable.set(None)
-                self.sideBar.unvoicedIter.variable.set(None)
-                self.disableButtons()
-                
+            
     def onListFocusOut(self, event):
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
-        
-    def disableButtons(self):
-        self.sideBar.expPitch.entry["state"] = "disabled"
-        self.sideBar.pSearchRange.entry["state"] = "disabled"
-        self.sideBar.fWidth.entry["state"] = "disabled"
-        self.sideBar.voicedIter.entry["state"] = "disabled"
-        self.sideBar.unvoicedIter.entry["state"] = "disabled"
-        self.sideBar.fileButton["state"] = "disabled"
-        self.sideBar.finalizeButton["state"] = "disabled"
-    
-    def enableButtons(self):
-        self.sideBar.expPitch.entry["state"] = "normal"
-        self.sideBar.pSearchRange.entry["state"] = "normal"
-        self.sideBar.fWidth.entry["state"] = "normal"
-        self.sideBar.voicedIter.entry["state"] = "normal"
-        self.sideBar.unvoicedIter.entry["state"] = "normal"
-        self.sideBar.fileButton["state"] = "normal"
-        self.sideBar.finalizeButton["state"] = "normal"
     
     def onAddPress(self):
         global loadedVB
-        key = tkinter.simpledialog.askstring("new Phoneme", "please select a key for the new phoneme:")
-        if (key != "") & (key != None):
-            if key in loadedVB.phonemeDict.keys():
-                key += "#"
-            filepath = tkinter.filedialog.askopenfilename(filetypes = (("wavesound audio files", ".wav"), ("All files", "*")))
-            if filepath != "":
-                loadedVB.addPhoneme(key, filepath)
-                loadedVB.phonemeDict[key].calculatePitch()
-                loadedVB.phonemeDict[key].calculateSpectra()
-                loadedVB.phonemeDict[key].calculateExcitation()
-                self.phonemeList.list.lb.insert("end", key)
+        filepath = tkinter.filedialog.askopenfilename(filetypes = (("wavesound audio files", ".wav"), ("All files", "*")))
+        if filepath != "":
+            loadedVB.addTrainSample(filepath)
+            self.phonemeList.list.lb.insert("end", filepath)
         
     def onRemovePress(self):
         global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
-            key = self.phonemeList.list.lb.get(index)
-            loadedVB.delPhoneme(key)
+            loadedVB.delTrainSample(index)
             self.phonemeList.list.lb.delete(index)
             if index == self.phonemeList.list.lb.size():
                 self.phonemeList.list.lb.selection_set(index - 1)
             else:
                 self.phonemeList.list.lb.selection_set(index)
-            if self.phonemeList.list.lb.size() == 0:
-                self.disableButtons()
+                
+    def onTrainPress(self):
+        global loadedVB
+        loadedVB.trainCrfAi(self.sideBar.epochs.variable, True, self.sideBar.fWidth.variable, self.sideBar.voicedIter.variable, self.sideBar.unvoicedIter.variable)
+        
+    def onFinalizePress(self):
+        global loadedVB
+        loadedVB.finalizCrfAi()
+        self.disableButtons()
+        
+    def disableButtons(self):
+        self.sideBar.fWidth.entry["state"] = "disabled"
+        self.sideBar.voicedIter.entry["state"] = "disabled"
+        self.sideBar.unvoicedIter.entry["state"] = "disabled"
+        self.sideBar.epochs.entry["state"] = "disabled"
+        self.sideBar.traineButton["state"] = "disabled"
+        self.sideBar.finalizeButton["state"] = "disabled"
+    
+    def enableButtons(self):
+        self.sideBar.fWidth.entry["state"] = "normal"
+        self.sideBar.voicedIter.entry["state"] = "normal"
+        self.sideBar.unvoicedIter.entry["state"] = "normal"
+        self.sideBar.epochs.entry["state"] = "normal"
+        self.sideBar.traineButton["state"] = "normal"
+        self.sideBar.finalizeButton["state"] = "normal"
+        
+    def onOkPress(self):
+        global loadedVB
+        self.master.destroy()
+        
 
 loadedVB = None
 loadedVBPath = None
