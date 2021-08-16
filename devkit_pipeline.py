@@ -166,13 +166,13 @@ class SpecCrfAi(nn.Module):
     def __init__(self, learningRate=1e-4):
         super(SpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(3843, 3843)
+        self.layer1 = torch.nn.Linear(1923, 1923)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(3843, 5763)
+        self.layer2 = torch.nn.Linear(1923, 3842)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(5763, 3842)
+        self.layer3 = torch.nn.Linear(3842, 1923)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(3842, 1921)
+        self.layer4 = torch.nn.Linear(1923, 961)
         
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
@@ -208,6 +208,7 @@ class SpecCrfAi(nn.Module):
             
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
+                    data = torch.squeeze(data)
                     spectrum1 = data[0]
                     spectrum2 = data[-1]
                     indexList = np.arange(0, data.size()[0], 1)
@@ -373,10 +374,10 @@ class Voicebank:
         print("staged phoneme " + key + " finalized")
     
     def addTrainSample(self, filepath):
-        self.stagedTrainSamples.append(AudioSample(filepath))
+        self.stagedTrainSamples.append(AudioSample(filepath, self.metadata.sampleRate))
     
     def delTrainSample(self, index):
-        self.stagedTrainSamples.remove(index)
+        del self.stagedTrainSamples[index]
     
     def changeTrainSampleFile(self, index, filepath):
         self.stagedTrainSamples[index] = AudioSample(filepath)

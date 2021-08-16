@@ -78,7 +78,8 @@ class RootUi(tkinter.Frame):
         phonemedictUi.mainloop()
     
     def onCrfaiPress(self):
-        pass
+        crfaiUi = CrfaiUi(tkinter.Tk())
+        crfaiUi.mainloop()
     
     def onParameterPress(self):
         pass
@@ -487,13 +488,13 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.epochs.entry = tkinter.Spinbox(self.sideBar.epochs, from_ = 1, to = 100)
         self.sideBar.epochs.entry["textvariable"] = self.sideBar.epochs.variable
         self.sideBar.epochs.entry.pack(side = "right", fill = "x")
-        self.sideBar.epochs.display = tkinter.Label(self.sideBar.fWidth)
+        self.sideBar.epochs.display = tkinter.Label(self.sideBar.epochs)
         self.sideBar.epochs.display["text"] = "AI training epochs:"
         self.sideBar.epochs.display.pack(side = "right", fill = "x")
         self.sideBar.epochs.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.trainButton = tkinter.Button(self.sideBar)
-        self.sideBar.trainButton["text"] = "change file"
+        self.sideBar.trainButton["text"] = "train AI"
         self.sideBar.trainButton["command"] = self.onTrainPress
         self.sideBar.trainButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
@@ -540,7 +541,10 @@ class CrfaiUi(tkinter.Frame):
                 
     def onTrainPress(self):
         global loadedVB
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable, True, self.sideBar.fWidth.variable, self.sideBar.voicedIter.variable, self.sideBar.unvoicedIter.variable)
+        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.fWidth.variable.get(), self.sideBar.voicedIter.variable.get(), self.sideBar.unvoicedIter.variable.get())
+        for i in range(self.phonemeList.list.lb.size()):
+            loadedVB.delTrainSample(i)
+            self.phonemeList.list.lb.delete(i)
         
     def onFinalizePress(self):
         global loadedVB
