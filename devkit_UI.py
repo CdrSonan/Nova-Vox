@@ -213,6 +213,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.key.entry = tkinter.Entry(self.sideBar.key)
         self.sideBar.key.entry["textvariable"] = self.sideBar.key.variable
         self.sideBar.key.entry.bind("<FocusOut>", self.onKeyChange)
+        self.sideBar.key.entry.bind("<KeyRelease-Return>", self.onKeyChange)
         self.sideBar.key.entry.pack(side = "right", fill = "x")
         self.sideBar.key.display = tkinter.Label(self.sideBar.key)
         self.sideBar.key.display["text"] = self.locale["phon_key"]
@@ -224,6 +225,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.expPitch.entry = tkinter.Entry(self.sideBar.expPitch)
         self.sideBar.expPitch.entry["textvariable"] = self.sideBar.expPitch.variable
         self.sideBar.expPitch.entry.bind("<FocusOut>", self.onPitchUpdateTrigger)
+        self.sideBar.expPitch.entry.bind("<KeyRelease-Return>", self.onPitchUpdateTrigger)
         self.sideBar.expPitch.entry.pack(side = "right", fill = "x")
         self.sideBar.expPitch.display = tkinter.Label(self.sideBar.expPitch)
         self.sideBar.expPitch.display["text"] = self.locale["est_pit"]
@@ -235,6 +237,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.pSearchRange.entry = tkinter.Spinbox(self.sideBar.pSearchRange, from_ = 0.05, to = 0.5, increment = 0.05)
         self.sideBar.pSearchRange.entry["textvariable"] = self.sideBar.pSearchRange.variable
         self.sideBar.pSearchRange.entry.bind("<FocusOut>", self.onPitchUpdateTrigger)
+        self.sideBar.pSearchRange.entry.bind("<KeyRelease-Return>", self.onPitchUpdateTrigger)
         self.sideBar.pSearchRange.entry.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.display = tkinter.Label(self.sideBar.pSearchRange)
         self.sideBar.pSearchRange.display["text"] = self.locale["psearchr"]
@@ -246,6 +249,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.fWidth.entry = tkinter.Spinbox(self.sideBar.fWidth, from_ = 0, to = 100)
         self.sideBar.fWidth.entry["textvariable"] = self.sideBar.fWidth.variable
         self.sideBar.fWidth.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        self.sideBar.fWidth.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.fWidth.entry.pack(side = "right", fill = "x")
         self.sideBar.fWidth.display = tkinter.Label(self.sideBar.fWidth)
         self.sideBar.fWidth.display["text"] = self.locale["fwidth"]
@@ -257,6 +261,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.voicedIter.entry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 0, to = 10)
         self.sideBar.voicedIter.entry["textvariable"] = self.sideBar.voicedIter.variable
         self.sideBar.voicedIter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        self.sideBar.voicedIter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.voicedIter.entry.pack(side = "right", fill = "x")
         self.sideBar.voicedIter.display = tkinter.Label(self.sideBar.voicedIter)
         self.sideBar.voicedIter.display["text"] = self.locale["viter"]
@@ -268,6 +273,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.unvoicedIter.entry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 0, to = 100)
         self.sideBar.unvoicedIter.entry["textvariable"] = self.sideBar.unvoicedIter.variable
         self.sideBar.unvoicedIter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        self.sideBar.unvoicedIter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.unvoicedIter.entry.pack(side = "right", fill = "x")
         self.sideBar.unvoicedIter.display = tkinter.Label(self.sideBar.unvoicedIter)
         self.sideBar.unvoicedIter.display["text"] = self.locale["uviter"]
@@ -367,28 +373,30 @@ class PhonemedictUi(tkinter.Frame):
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
         newKey = self.sideBar.key.variable.get()
-        loadedVB.changePhonemeKey(key, newKey)
-        self.phonemeList.list.lb.delete(index)
-        self.phonemeList.list.lb.insert(index, newKey)
-        print(key, newKey)
+        if key != newKey:
+            loadedVB.changePhonemeKey(key, newKey)
+            self.phonemeList.list.lb.delete(index)
+            self.phonemeList.list.lb.insert(index, newKey)
         
     def onPitchUpdateTrigger(self, event):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
-        loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
-        loadedVB.phonemeDict[key].calculatePitch()
+        if (loadedVB.phonemeDict[key].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key].searchRange != self.sideBar.pSearchRange.variable.get()):
+            loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
+            loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
+            loadedVB.phonemeDict[key].calculatePitch()
         
     def onSpectralUpdateTrigger(self, event):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        loadedVB.phonemeDict[key].filterWidth = self.sideBar.fWidth.variable.get()
-        loadedVB.phonemeDict[key].voicedIterations = self.sideBar.voicedIter.variable.get()
-        loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
-        loadedVB.phonemeDict[key].calculateSpectra()
-        loadedVB.phonemeDict[key].calculateExcitation()
+        if (loadedVB.phonemeDict[key].filterWidth != self.sideBar.fWidth.variable.get()) or (loadedVB.phonemeDict[key].voicedIterations != self.sideBar.voicedIter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
+            loadedVB.phonemeDict[key].filterWidth = self.sideBar.fWidth.variable.get()
+            loadedVB.phonemeDict[key].voicedIterations = self.sideBar.voicedIter.variable.get()
+            loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
+            loadedVB.phonemeDict[key].calculateSpectra()
+            loadedVB.phonemeDict[key].calculateExcitation()
         
     def onFilechangePress(self, event):
         global loadedVB
@@ -409,11 +417,19 @@ class PhonemedictUi(tkinter.Frame):
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)[0]
         loadedVB.finalizePhoneme(key)
+        self.sideBar.expPitch.variable.set(None)
+        self.sideBar.pSearchRange.variable.set(None)
+        self.sideBar.fWidth.variable.set(None)
+        self.sideBar.voicedIter.variable.set(None)
+        self.sideBar.unvoicedIter.variable.set(None)
         self.disableButtons()
         
         
     def onOkPress(self):
         global loadedVB
+        self.onKeyChange(None)
+        self.onPitchUpdateTrigger(None)
+        self.onSpectralUpdateTrigger(None)
         self.master.destroy()
         
 class CrfaiUi(tkinter.Frame):
