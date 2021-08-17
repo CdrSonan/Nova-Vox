@@ -9,3 +9,5 @@ sampleRate = 48000
 tickRate = 250
 batchSize = 192
 tripleBatchSize = 576
+
+language = "en"

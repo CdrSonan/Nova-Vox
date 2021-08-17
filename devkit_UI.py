@@ -9,76 +9,77 @@ import tkinter
 import tkinter.filedialog
 
 import devkit_pipeline
+import devkit_locale
 
 class RootUi(tkinter.Frame):
-    def __init__(self, master=None):
+    def __init__(self, locale, master=None):
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
+        self.locale = locale
         self.createWidgets()
-        
-        self.master.wm_title("no Voicebank loaded")
+        self.master.wm_title(self.locale["no_vb"])
         
     def createWidgets(self):
         self.infoDisplay = tkinter.Label(self)
-        self.infoDisplay["text"] = "NovaVox Devkit ALPHA 0.1.0"
+        self.infoDisplay["text"] = self.locale["version_label"]
         self.infoDisplay.pack(side = "top", fill = "x", padx = 20, pady = 20)
         
         self.metadataButton = tkinter.Button(self)
-        self.metadataButton["text"] = "edit Metadata"
+        self.metadataButton["text"] = self.locale["metadat_btn"]
         self.metadataButton["command"] = self.onMetadataPress
         self.metadataButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.metadataButton["state"] = "disabled"
         
         self.phonemedictButton = tkinter.Button(self)
-        self.phonemedictButton["text"] = "edit Phonemes"
+        self.phonemedictButton["text"] = self.locale["phon_btn"]
         self.phonemedictButton["command"] = self.onPhonemedictPress
         self.phonemedictButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.phonemedictButton["state"] = "disabled"
         
         self.crfaiButton = tkinter.Button(self)
-        self.crfaiButton["text"] = "edit Phoneme Crossfade Ai"
+        self.crfaiButton["text"] = self.locale["crfai_btn"]
         self.crfaiButton["command"] = self.onCrfaiPress
         self.crfaiButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.crfaiButton["state"] = "disabled"
         
         self.parameterButton = tkinter.Button(self)
-        self.parameterButton["text"] = "edit Ai-driven Parameters"
+        self.parameterButton["text"] = self.locale["param_btn"]
         self.parameterButton["command"] = self.onParameterPress
         self.parameterButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.parameterButton["state"] = "disabled"
         
         self.worddictButton = tkinter.Button(self)
-        self.worddictButton["text"] = "edit Dictionary"
+        self.worddictButton["text"] = self.locale["dict_btn"]
         self.worddictButton["command"] = self.onWorddictPress
         self.worddictButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.worddictButton["state"] = "disabled"
         
         self.saveButton = tkinter.Button(self)
-        self.saveButton["text"] = "Save as..."
+        self.saveButton["text"] = self.locale["save_as"]
         self.saveButton["command"] = self.onSavePress
         self.saveButton.pack(side = "right", expand = True)
         self.saveButton["state"] = "disabled"
         
         self.openButton = tkinter.Button(self)
-        self.openButton["text"] = "Open..."
+        self.openButton["text"] = self.locale["open"]
         self.openButton["command"] = self.onOpenPress
         self.openButton.pack(side = "right", expand = True)
         
         self.newButton = tkinter.Button(self)
-        self.newButton["text"] = "New..."
+        self.newButton["text"] = self.locale["new"]
         self.newButton["command"] = self.onNewPress
         self.newButton.pack(side = "right", expand = True)
         
     def onMetadataPress(self):
-        metadataUi = MetadataUi(tkinter.Tk())
+        metadataUi = MetadataUi(self.locale, tkinter.Tk())
         metadataUi.mainloop()
     
     def onPhonemedictPress(self):
-        phonemedictUi = PhonemedictUi(tkinter.Tk())
+        phonemedictUi = PhonemedictUi(self.locale, tkinter.Tk())
         phonemedictUi.mainloop()
     
     def onCrfaiPress(self):
-        crfaiUi = CrfaiUi(tkinter.Tk())
+        crfaiUi = CrfaiUi(self.locale, tkinter.Tk())
         crfaiUi.mainloop()
     
     def onParameterPress(self):
@@ -90,7 +91,7 @@ class RootUi(tkinter.Frame):
     def onSavePress(self):
         global loadedVB
         global loadedVBPath
-        filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".nvvb", filetypes = (("NovaVox Voicebanks", ".nvvb"), ("All files", "*")), initialfile = loadedVBPath)
+        filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".nvvb", filetypes = ((self.locale[".nvvb_desc"], ".nvvb"), (self.locale["all_files_desc"], "*")), initialfile = loadedVBPath)
         if filepath != "":
             loadedVBPath = filepath
             loadedVB.save(filepath)
@@ -99,8 +100,8 @@ class RootUi(tkinter.Frame):
     def onOpenPress(self):
         global loadedVB
         global loadedVBPath
-        if (loadedVB == None) or tkinter.messagebox.askokcancel("Warning", "Creating a new Voicebank will discard all unsaved changes to the currently opened one. Continue?", icon = "warning"):
-            filepath = tkinter.filedialog.askopenfilename(filetypes = (("NovaVox Voicebanks", ".nvvb"), ("All files", "*")), initialfile = loadedVBPath)
+        if (loadedVB == None) or tkinter.messagebox.askokcancel(self.locale["warning"], self.locale["vb_discard_msg"], icon = "warning"):
+            filepath = tkinter.filedialog.askopenfilename(filetypes = ((self.locale[".nvvb_desc"], ".nvvb"), (self.locale["all_files_desc"], "*")), initialfile = loadedVBPath)
             if filepath != "":
                 loadedVBPath = filepath
                 loadedVB = devkit_pipeline.Voicebank(filepath)
@@ -114,7 +115,7 @@ class RootUi(tkinter.Frame):
     
     def onNewPress(self):
         global loadedVB
-        if (loadedVB == None) or tkinter.messagebox.askokcancel("Warning", "Creating a new Voicebank will discard all unsaved changes to the currently opened one. Continue?", icon = "warning"):
+        if (loadedVB == None) or tkinter.messagebox.askokcancel(self.locale["warning"], self.locale["vb_discard_msg"], icon = "warning"):
             loadedVB = devkit_pipeline.Voicebank(None)
             self.metadataButton["state"] = "active"
             self.phonemedictButton["state"] = "active"
@@ -122,15 +123,15 @@ class RootUi(tkinter.Frame):
             self.parameterButton["state"] = "active"
             self.worddictButton["state"] = "active"
             self.saveButton["state"] = "active"
-            self.master.wm_title("unsaved Voicebank")
+            self.master.wm_title(self.locale["unsaved_vb"])
             
 class MetadataUi(tkinter.Frame):
-    def __init__(self, master=None):
+    def __init__(self, locale, master=None):
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20)
+        self.locale = locale
         self.createWidgets()
-        
-        self.master.wm_title("Metadata editor")
+        self.master.wm_title(self.locale["metadat_lbl"])
         
     def createWidgets(self):
         global loadedVB
@@ -141,7 +142,7 @@ class MetadataUi(tkinter.Frame):
         self.name.entry["textvariable"] = self.name.variable
         self.name.entry.pack(side = "right", fill = "x", expand = True)
         self.name.display = tkinter.Label(self.name)
-        self.name.display["text"] = "name:"
+        self.name.display["text"] = self.locale["name"]
         self.name.display.pack(side = "right", fill = "x")
         self.name.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
@@ -153,12 +154,12 @@ class MetadataUi(tkinter.Frame):
         self.sampleRate.entry["textvariable"] = self.sampleRate.variable
         self.sampleRate.entry.pack(side = "right", fill = "x", expand = True)
         self.sampleRate.display = tkinter.Label(self.sampleRate)
-        self.sampleRate.display["text"] = "sample rate:"
+        self.sampleRate.display["text"] = self.locale["smp_rate"]
         self.sampleRate.display.pack(side = "right", fill = "x")
         self.sampleRate.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.okButton = tkinter.Button(self)
-        self.okButton["text"] = "OK"
+        self.okButton["text"] = self.locale["ok"]
         self.okButton["command"] = self.onOkPress
         self.okButton.pack(side = "top", fill = "x", padx = 50, pady = 20)
         
@@ -169,18 +170,18 @@ class MetadataUi(tkinter.Frame):
         self.master.destroy()
         
 class PhonemedictUi(tkinter.Frame):
-    def __init__(self, master=None):
+    def __init__(self, locale, master=None):
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
+        self.locale = locale
         self.createWidgets()
-        
-        self.master.wm_title("Phoneme editor")
+        self.master.wm_title(self.locale["phon_lbl"])
         self.disableButtons()
         
     def createWidgets(self):
         global loadedVB
         
-        self.phonemeList = tkinter.LabelFrame(self, text = "phoneme list")
+        self.phonemeList = tkinter.LabelFrame(self, text = self.locale["phon_list"])
         self.phonemeList.list = tkinter.Frame(self.phonemeList)
         self.phonemeList.list.lb = tkinter.Listbox(self.phonemeList.list)
         self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
@@ -195,16 +196,16 @@ class PhonemedictUi(tkinter.Frame):
         for i in loadedVB.phonemeDict.keys():
             self.phonemeList.list.lb.insert("end", i)
         self.phonemeList.removeButton = tkinter.Button(self.phonemeList)
-        self.phonemeList.removeButton["text"] = "remove"
+        self.phonemeList.removeButton["text"] = self.locale["remove"]
         self.phonemeList.removeButton["command"] = self.onRemovePress
         self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.addButton = tkinter.Button(self.phonemeList)
-        self.phonemeList.addButton["text"] = "add"
+        self.phonemeList.addButton["text"] = self.locale["add"]
         self.phonemeList.addButton["command"] = self.onAddPress
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar = tkinter.LabelFrame(self, text = "per-phoneme settings")
+        self.sideBar = tkinter.LabelFrame(self, text = self.locale["per_ph_set"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
         self.sideBar.key = tkinter.Frame(self.sideBar)
@@ -214,7 +215,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.key.entry.bind("<FocusOut>", self.onKeyChange)
         self.sideBar.key.entry.pack(side = "right", fill = "x")
         self.sideBar.key.display = tkinter.Label(self.sideBar.key)
-        self.sideBar.key.display["text"] = "phoneme key:"
+        self.sideBar.key.display["text"] = self.locale["phon_key"]
         self.sideBar.key.display.pack(side = "right", fill = "x")
         self.sideBar.key.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
@@ -225,7 +226,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.expPitch.entry.bind("<FocusOut>", self.onPitchUpdateTrigger)
         self.sideBar.expPitch.entry.pack(side = "right", fill = "x")
         self.sideBar.expPitch.display = tkinter.Label(self.sideBar.expPitch)
-        self.sideBar.expPitch.display["text"] = "estimated pitch:"
+        self.sideBar.expPitch.display["text"] = self.locale["est_pit"]
         self.sideBar.expPitch.display.pack(side = "right", fill = "x")
         self.sideBar.expPitch.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
@@ -236,7 +237,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.pSearchRange.entry.bind("<FocusOut>", self.onPitchUpdateTrigger)
         self.sideBar.pSearchRange.entry.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.display = tkinter.Label(self.sideBar.pSearchRange)
-        self.sideBar.pSearchRange.display["text"] = "pitch search range:"
+        self.sideBar.pSearchRange.display["text"] = self.locale["psearchr"]
         self.sideBar.pSearchRange.display.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
@@ -247,7 +248,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.fWidth.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.fWidth.entry.pack(side = "right", fill = "x")
         self.sideBar.fWidth.display = tkinter.Label(self.sideBar.fWidth)
-        self.sideBar.fWidth.display["text"] = "spectral filter width:"
+        self.sideBar.fWidth.display["text"] = self.locale["fwidth"]
         self.sideBar.fWidth.display.pack(side = "right", fill = "x")
         self.sideBar.fWidth.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
@@ -258,7 +259,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.voicedIter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.voicedIter.entry.pack(side = "right", fill = "x")
         self.sideBar.voicedIter.display = tkinter.Label(self.sideBar.voicedIter)
-        self.sideBar.voicedIter.display["text"] = "voiced excitation filter iterations:"
+        self.sideBar.voicedIter.display["text"] = self.locale["viter"]
         self.sideBar.voicedIter.display.pack(side = "right", fill = "x")
         self.sideBar.voicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
@@ -269,23 +270,23 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.unvoicedIter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.unvoicedIter.entry.pack(side = "right", fill = "x")
         self.sideBar.unvoicedIter.display = tkinter.Label(self.sideBar.unvoicedIter)
-        self.sideBar.unvoicedIter.display["text"] = "unvoiced excitation filter iterations:"
+        self.sideBar.unvoicedIter.display["text"] = self.locale["uviter"]
         self.sideBar.unvoicedIter.display.pack(side = "right", fill = "x")
         self.sideBar.unvoicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.fileButton = tkinter.Button(self.sideBar)
-        self.sideBar.fileButton["text"] = "change file"
+        self.sideBar.fileButton["text"] = self.locale["cng_file"]
         self.sideBar.fileButton["command"] = self.onFilechangePress
         self.sideBar.fileButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.sideBar.finalizeButton = tkinter.Button(self.sideBar)
-        self.sideBar.finalizeButton["text"] = "finalize"
+        self.sideBar.finalizeButton["text"] = self.locale["finalize"]
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         
         self.okButton = tkinter.Button(self)
-        self.okButton["text"] = "OK"
+        self.okButton["text"] = self.locale["ok"]
         self.okButton["command"] = self.onOkPress
         self.okButton.pack(side = "top", fill = "x", expand = True, padx = 10, pady = 10)
         
@@ -335,11 +336,11 @@ class PhonemedictUi(tkinter.Frame):
     
     def onAddPress(self):
         global loadedVB
-        key = tkinter.simpledialog.askstring("new Phoneme", "please select a key for the new phoneme:")
+        key = tkinter.simpledialog.askstring(self.locale["new_phon"], self.locale["phon_key_sel"])
         if (key != "") & (key != None):
             if key in loadedVB.phonemeDict.keys():
                 key += "#"
-            filepath = tkinter.filedialog.askopenfilename(filetypes = (("wavesound audio files", ".wav"), ("All files", "*")))
+            filepath = tkinter.filedialog.askopenfilename(filetypes = ((self.locale[".wav_desc"], ".wav"), (self.locale["all_files_desc"], "*")))
             if filepath != "":
                 loadedVB.addPhoneme(key, filepath)
                 loadedVB.phonemeDict[key].calculatePitch()
@@ -393,7 +394,7 @@ class PhonemedictUi(tkinter.Frame):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        filepath = tkinter.filedialog.askopenfilename(filetypes = (("wavesound audio files", ".wav"), ("All files", "*")))
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((self.locale[".wav_desc"], ".wav"), (self.locale["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.changePhonemeFile(key, filepath)
             loadedVB.phonemeDict[key].calculatePitch()
@@ -416,17 +417,17 @@ class PhonemedictUi(tkinter.Frame):
         self.master.destroy()
         
 class CrfaiUi(tkinter.Frame):
-    def __init__(self, master=None):
+    def __init__(self, locale, master=None):
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
+        self.locale = locale
         self.createWidgets()
-        
-        self.master.wm_title("Phoneme Crossfade Ai editor")
+        self.master.wm_title(self.locale["crfai_lbl"])
         
     def createWidgets(self):
         global loadedVB
         
-        self.phonemeList = tkinter.LabelFrame(self, text = "AI training sample list")
+        self.phonemeList = tkinter.LabelFrame(self, text = self.locale["ai_samp_list"])
         self.phonemeList.list = tkinter.Frame(self.phonemeList)
         self.phonemeList.list.lb = tkinter.Listbox(self.phonemeList.list)
         self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
@@ -441,71 +442,75 @@ class CrfaiUi(tkinter.Frame):
         for i in loadedVB.stagedTrainSamples:
             self.phonemeList.list.lb.insert("end", i.filepath)
         self.phonemeList.removeButton = tkinter.Button(self.phonemeList)
-        self.phonemeList.removeButton["text"] = "remove"
+        self.phonemeList.removeButton["text"] = self.locale["remove"]
         self.phonemeList.removeButton["command"] = self.onRemovePress
         self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.addButton = tkinter.Button(self.phonemeList)
-        self.phonemeList.addButton["text"] = "add"
+        self.phonemeList.addButton["text"] = self.locale["add"]
         self.phonemeList.addButton["command"] = self.onAddPress
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar = tkinter.LabelFrame(self, text = "Sample preprocessing and AI training settings")
+        self.sideBar = tkinter.LabelFrame(self, text = self.locale["ai_settings"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
         self.sideBar.fWidth = tkinter.Frame(self.sideBar)
         self.sideBar.fWidth.variable = tkinter.IntVar(self.sideBar.fWidth)
+        self.sideBar.fWidth.variable.set(10)
         self.sideBar.fWidth.entry = tkinter.Spinbox(self.sideBar.fWidth, from_ = 0, to = 100)
         self.sideBar.fWidth.entry["textvariable"] = self.sideBar.fWidth.variable
         self.sideBar.fWidth.entry.pack(side = "right", fill = "x")
         self.sideBar.fWidth.display = tkinter.Label(self.sideBar.fWidth)
-        self.sideBar.fWidth.display["text"] = "spectral filter width:"
+        self.sideBar.fWidth.display["text"] = self.locale["fwidth"]
         self.sideBar.fWidth.display.pack(side = "right", fill = "x")
         self.sideBar.fWidth.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.voicedIter.variable = tkinter.IntVar(self.sideBar.voicedIter)
+        self.sideBar.voicedIter.variable.set(2)
         self.sideBar.voicedIter.entry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 0, to = 10)
         self.sideBar.voicedIter.entry["textvariable"] = self.sideBar.voicedIter.variable
         self.sideBar.voicedIter.entry.pack(side = "right", fill = "x")
         self.sideBar.voicedIter.display = tkinter.Label(self.sideBar.voicedIter)
-        self.sideBar.voicedIter.display["text"] = "voiced excitation filter iterations:"
+        self.sideBar.voicedIter.display["text"] = self.locale["viter"]
         self.sideBar.voicedIter.display.pack(side = "right", fill = "x")
         self.sideBar.voicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter)
+        self.sideBar.unvoicedIter.variable.set(10)
         self.sideBar.unvoicedIter.entry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 0, to = 100)
         self.sideBar.unvoicedIter.entry["textvariable"] = self.sideBar.unvoicedIter.variable
         self.sideBar.unvoicedIter.entry.pack(side = "right", fill = "x")
         self.sideBar.unvoicedIter.display = tkinter.Label(self.sideBar.unvoicedIter)
-        self.sideBar.unvoicedIter.display["text"] = "unvoiced excitation filter iterations:"
+        self.sideBar.unvoicedIter.display["text"] = self.locale["uviter"]
         self.sideBar.unvoicedIter.display.pack(side = "right", fill = "x")
         self.sideBar.unvoicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.epochs = tkinter.Frame(self.sideBar)
         self.sideBar.epochs.variable = tkinter.IntVar(self.sideBar.epochs)
+        self.sideBar.epochs.variable.set(1)
         self.sideBar.epochs.entry = tkinter.Spinbox(self.sideBar.epochs, from_ = 1, to = 100)
         self.sideBar.epochs.entry["textvariable"] = self.sideBar.epochs.variable
         self.sideBar.epochs.entry.pack(side = "right", fill = "x")
         self.sideBar.epochs.display = tkinter.Label(self.sideBar.epochs)
-        self.sideBar.epochs.display["text"] = "AI training epochs:"
+        self.sideBar.epochs.display["text"] = self.locale["epochs"]
         self.sideBar.epochs.display.pack(side = "right", fill = "x")
         self.sideBar.epochs.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.trainButton = tkinter.Button(self.sideBar)
-        self.sideBar.trainButton["text"] = "train AI"
+        self.sideBar.trainButton["text"] = self.locale["train"]
         self.sideBar.trainButton["command"] = self.onTrainPress
         self.sideBar.trainButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.sideBar.finalizeButton = tkinter.Button(self.sideBar)
-        self.sideBar.finalizeButton["text"] = "finalize"
+        self.sideBar.finalizeButton["text"] = self.locale["finalize"]
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         
         self.okButton = tkinter.Button(self)
-        self.okButton["text"] = "OK"
+        self.okButton["text"] = self.locale["ok"]
         self.okButton["command"] = self.onOkPress
         self.okButton.pack(side = "top", fill = "x", expand = True, padx = 10, pady = 10)
         
@@ -523,7 +528,7 @@ class CrfaiUi(tkinter.Frame):
     
     def onAddPress(self):
         global loadedVB
-        filepath = tkinter.filedialog.askopenfilename(filetypes = (("wavesound audio files", ".wav"), ("All files", "*")))
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((self.locale[".wav_desc"], ".wav"), (self.locale["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.addTrainSample(filepath)
             self.phonemeList.list.lb.insert("end", filepath)
@@ -571,8 +576,8 @@ class CrfaiUi(tkinter.Frame):
         global loadedVB
         self.master.destroy()
         
-
+loc = devkit_locale.LocaleDict("en").locale
 loadedVB = None
 loadedVBPath = None
-rootUi = RootUi(tkinter.Tk())
+rootUi = RootUi(loc, tkinter.Tk())
 rootUi.mainloop()
