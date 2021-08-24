@@ -7,7 +7,9 @@ Created on Sun Aug 22 22:14:32 2021
 
 import math
 import numpy as np
+import tkinter.filedialog
 import torch
+import torch.nn as nn
 import torchaudio
 torchaudio.set_audio_backend("soundfile")
 
@@ -251,19 +253,258 @@ class VocalSequence:
         self.synth.Synthesize(0, self.spectrum, self.excitation, self.voicedExcitation)
     def save(self):
         self.synth.save("Output_Demo.wav")
+
+class VbMetadata:
+    """Helper class for holding Voicebank metadata. To be expanded.
     
-class TempVB:
+    Attributes:
+        name: The name of the Voicebank
+        
+        sampleRate: the sample rate of the audio samples used by this Voicebank. !!!DO NOT MODIFY!!!
+        
+    Methods:
+        __init__: basic class constructor"""
+        
+        
     def __init__(self):
+        """basic class constructor.
+        
+        Attributes:
+            None
+            
+        Returns:
+            None"""
+            
+            
+        self.name = ""
         self.sampleRate = 48000
-        self.phonemeDict = dict([])
-        phonemeKeys = ["A", "E", "I", "O", "U", "G", "K", "N", "S", "T"]
-        for key in phonemeKeys:
-            self.phonemeDict[key] = AudioSample("Samples_rip/"+key+".wav")
-            self.sampleRate = self.phonemeDict[key].sampleRate
-            self.phonemeDict[key].CalculatePitch(249.)
-            self.phonemeDict[key].CalculateSpectra(iterations = 15)
-            self.phonemeDict[key].CalculateExcitation()
-        self.crfAi = SpecCrfAi(learningRate=1e-4)
+
+class SavedSpecCrfAi(nn.Module):
+    """A stripped down version of SpecCrfAi only holding the data required for synthesis.
+    
+    Attributes:
+        layer1-4, ReLu1-4: FC and Nonlinear layers of the NN.
+        
+        epoch: training epoch counter displayed in Metadata panels
+        
+    Methods:
+        __init__: Constructor initialising NN layers and prerequisite properties
+        
+        forward(): Forward NN pass with unprocessed in-and outputs
+        
+        processData(): forward NN pass with data pre-and postprocessing as expected by other classes
+        
+        getState() returns the state of the NN, its optimizer and their prerequisites in a Dictionary
+        
+    This version of the AI can only run data through the NN forward, backpropagation and, by extension, training, are not possible."""
+    
+    
+    def __init__(self, learningRate=1e-4):
+        """Constructor initialising NN layers and other attributes based on SpecCrfAi base object.
+        
+        Arguments:
+            specCrfAi: SpecCrfAi base object
+            
+        Returns:
+            None"""
+            
+            
+        super(SavedSpecCrfAi, self).__init__()
+        
+        self.layer1 = torch.nn.Linear(3843, 3843)
+        self.ReLu1 = nn.ReLU()
+        self.layer2 = torch.nn.Linear(3843, 5763)
+        self.ReLu2 = nn.ReLU()
+        self.layer3 = torch.nn.Linear(5763, 3842)
+        self.ReLu3 = nn.ReLU()
+        self.layer4 = torch.nn.Linear(3842, 1921)
+        
+        #self.learningRate = learningRate
+        #self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
+        #self.criterion = nn.L1Loss()
+        #self.criterion = RelLoss()
+        #self.epoch = 0
+        #self.loss = None
+        
+        self.epoch = 0
+        
+    def forward(self, spectrum1, spectrum2, factor):
+        """Forward NN pass with unprocessed in-and outputs.
+        
+        Arguments:
+            spectrum1, spectrum2: The two spectrum Tensors to perform the interpolation between
+            
+            factor: Float between 0 and 1 determining the "position" in the interpolation. A value of 0 matches spectrum 1, a values of 1 matches spectrum 2.
+            
+        Returns:
+            Tensor object representing the NN output
+            
+        When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
+        
+        
+        fac = torch.tensor([factor])
+        x = torch.cat((spectrum1, spectrum2, fac), dim = 0)
+        x = x.float()#.unsqueeze(0).unsqueeze(0)
+        x = self.layer1(x)
+        x = self.ReLu1(x)
+        x = self.layer2(x)
+        x = self.ReLu2(x)
+        x = self.layer3(x)
+        x = self.ReLu3(x)
+        x = self.layer4(x)
+        return x
+    
+    def processData(self, spectrum1, spectrum2, factor):
+        """forward NN pass with data pre-and postprocessing as expected by other classes
+        
+        Arguments:
+            spectrum1, spectrum2: The two spectrum Tensors to perform the interpolation between
+            
+            factor: Float between 0 and 1 determining the "position" in the interpolation. A value of 0 matches spectrum 1, a values of 1 matches spectrum 2.
+            
+        Returns:
+            Tensor object containing the interpolated audio spectrum
+            
+            
+        Other than when using forward() directly, this method applies a square root function to the input and squares the output to
+        improve overall performance, especially on the skewed datasets of vocal spectra."""
+        
+        
+        self.eval()
+        output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), factor)))
+        return output
+
+class Voicebank:
+    """Class for holding a Voicebank as handled by the devkit.
+    
+    Attributes:
+        metadata: VbMetadata object containing the Voicebank's metadata
+        
+        filepath: The filepath to the Voicebank's file
+        
+        phonemeDict: a Dictionary object containing the samples for the individual phonemes
+        
+        crfAi: The phoneme crossfade Ai of the Voicebank, including its training
+        
+        parameters: currently a placeholder. Will contain the Voicebank's Ai-driven parameters.
+        
+        wordDict: a Dictionary containing overrides for NovaVox's default dictionary
+        
+        stagedTrainSamples: a List object containing the samples staged to be used in Ai training
+        
+    Functions:
+        __init__: Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank
+        
+        save: saves the loaded Voicebank to a file
+        
+        loadMetadata: loads Voicebank Metadata from a Voicebank file
+        
+        loadPhonemeDict: loads Phoneme data from a Voicebank file
+        
+        loadCrfWeights: loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai
+        
+        loadParameters: currently placeholder
+        
+        loadWordDict: currently placeholder
+        
+        addPHoneme: adds a phoneme to the Voicebank's PhonemeDict
+        
+        delPhoneme: deletes a Phoneme from the vVoicebank's PhonemeDict
+        
+        changePhonemeKey: changes the key by which a phoneme in the Voicebank's phonemeDict can be accessed, but leaves the rest of its data unchanged
+        
+        changePhonemeFile: changes the audio file used for a phoneme in the Voicebank's PhonemeDict
+        
+        finalizePhoneme: finalizes a Phoneme, discarding any data related to it that's not strictly required for synthesis
+        
+        addTrainSample: stages an audio sample the phoneme crossfade Ai is to be trained with
+        
+        delTrainSampled: removes an audio sample from the list of staged training phonemes
+        
+        changeTrainSampleFile: currently unused method that changes the file of a staged phoneme crossfade Ai training sample
+        
+        trainCrfAi: initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings
+        
+        finalizeCrfAi: finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
+        
+        
+    def __init__(self, filepath):
+        """ Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank.
+        
+        Arguments:
+            filepath: a String representing the filepath of the Voicebank file to initialize the object with. If NONE is passed instead,
+            it will be initialised with an empty Voicebank.
+            
+        Returns:
+            None"""
+            
+            
+        self.metadata = VbMetadata()
+        self.filepath = filepath
+        self.phonemeDict = dict()
+        self.crfAi = SavedSpecCrfAi()
+        self.parameters = []
+        self.wordDict = dict()
+        self.stagedTrainSamples = []
+        if filepath != None:
+            self.loadMetadata(self.filepath)
+            self.loadPhonemeDict(self.filepath, False)
+            self.loadCrfWeights(self.filepath)
+            self.loadParameters(self.filepath, False)
+            self.loadWordDict(self.filepath, False)
+        
+    def loadMetadata(self, filepath):
+        """loads Voicebank Metadata from a Voicebank file"""
+        data = torch.load(filepath)
+        self.metadata = data["metadata"]
+    
+    def loadPhonemeDict(self, filepath, additive):
+        """loads Phoneme data from a Voicebank file.
+        
+        Arguments:
+            filepath: a String representing the filepath of the Voicebank file to load the phoneme dictionary from.
+            additive: a Bool defining whether the existing dictionary should be overwritten (False) or expanded (True) in the case of duplicate phoneme keys
+            
+        Returns:
+            None"""
+            
+            
+        data = torch.load(filepath)
+        if additive:
+            for i in data["phonemeDict"].keys():
+                if i in self.phonemeDict.keys():
+                    self.phonemeDict[i + "#"] = data["phonemeDict"][i]
+                    print("phoneme " + i + " is already present in voicebank; its key has been changed to " + i + "#")
+                else:
+                    self.phonemeDict[i] = data["phonemeDict"][i]
+        else:
+            self.phonemeDict = data["phonemeDict"]
+    
+    def loadCrfWeights(self, filepath):
+        """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
+        data = torch.load(filepath)
+        self.crfAi.epoch = data["crfAiState"]['epoch']
+        self.crfAi.load_state_dict(data["crfAiState"]['model_state_dict'])
+        if "loss" in data["crfAiState"].keys():
+            self.crfAi.optimizer.load_state_dict(data["crfAiState"]['optimizer_state_dict'])
+            self.crfAi.loss = data["crfAiState"]['loss']
+        else:
+            self.crfAi = SavedSpecCrfAi(self.crfAi)
+        self.crfAi.eval()
+        
+    def loadParameters(self, filepath, additive):
+        """currently placeholder"""
+        if additive:
+            pass
+        else:
+            pass
+        
+    def loadWordDict(self, filepath, additive):
+        """currently placeholder"""
+        if additive:
+            pass
+        else:
+            pass
 
 class Synthesizer:
     def __init__(self, sampleRate):
@@ -287,6 +528,7 @@ class Synthesizer:
     def save(self, filepath):
         torchaudio.save(filepath, torch.unsqueeze(self.returnSignal.detach(), 0), self.sampleRate, format="wav", encoding="PCM_S", bits_per_sample=32)
 
+vb = Voicebank(tkinter.filedialog.askopenfilename(filetypes = ((".nvvb Voicebanks", ".nvvb"), ("all_files", "*"))))
 borders = [0, 1, 2,
            35, 36, 37,
            40, 51, 52,
@@ -299,3 +541,5 @@ phonemes = ["A", "N", "A", "T", "A"]
 offsets = [0, 20, 20, 0, 13]
 
 sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets)
+
+sequence.save()
