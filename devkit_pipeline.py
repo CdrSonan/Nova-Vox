@@ -530,13 +530,13 @@ class SavedSpecCrfAi(nn.Module):
             
         super(SavedSpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(3843, 3843)
+        self.layer1 = torch.nn.Linear(1923, 1923)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(3843, 5763)
+        self.layer2 = torch.nn.Linear(1923, 3842)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(5763, 3842)
+        self.layer3 = torch.nn.Linear(3842, 1923)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(3842, 1921)
+        self.layer4 = torch.nn.Linear(1923, 961)
         
         #self.learningRate = learningRate
         #self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)

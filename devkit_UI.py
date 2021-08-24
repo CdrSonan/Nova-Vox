@@ -7,6 +7,7 @@ Created on Thu Aug  5 16:51:29 2021
 
 import tkinter
 import tkinter.filedialog
+import tkinter.simpledialog
 
 import devkit_pipeline
 import devkit_locale
@@ -295,6 +296,8 @@ class PhonemedictUi(tkinter.Frame):
         self.okButton["text"] = self.locale["ok"]
         self.okButton["command"] = self.onOkPress
         self.okButton.pack(side = "top", fill = "x", expand = True, padx = 10, pady = 10)
+
+        self.phonemeList.list.lastFocusedIndex = None
         
     def onSelectionChange(self, event):
         global loadedVB
@@ -427,9 +430,10 @@ class PhonemedictUi(tkinter.Frame):
         
     def onOkPress(self):
         global loadedVB
-        self.onKeyChange(None)
-        self.onPitchUpdateTrigger(None)
-        self.onSpectralUpdateTrigger(None)
+        if self.phonemeList.list.lastFocusedIndex != None:
+            self.onKeyChange(None)
+            self.onPitchUpdateTrigger(None)
+            self.onSpectralUpdateTrigger(None)
         self.master.destroy()
         
 class CrfaiUi(tkinter.Frame):

@@ -13,6 +13,8 @@ import torch.nn as nn
 import torchaudio
 torchaudio.set_audio_backend("soundfile")
 
+import devkit_pipeline
+
 class VocalSegment:
     def __init__(self, start1, start2, start3, end1, end2, end3, startCap, endCap, phonemeKey, vb, offset, repetititionSpacing, pitch, steadiness):
         self.start1 = start1
@@ -311,13 +313,13 @@ class SavedSpecCrfAi(nn.Module):
             
         super(SavedSpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(3843, 3843)
+        self.layer1 = torch.nn.Linear(1923, 1923)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(3843, 5763)
+        self.layer2 = torch.nn.Linear(1923, 3842)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(5763, 3842)
+        self.layer3 = torch.nn.Linear(3842, 1923)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(3842, 1921)
+        self.layer4 = torch.nn.Linear(1923, 961)
         
         #self.learningRate = learningRate
         #self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
@@ -452,6 +454,7 @@ class Voicebank:
             self.loadCrfWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
+        self.sampleRate = self.metadata.sampleRate
         
     def loadMetadata(self, filepath):
         """loads Voicebank Metadata from a Voicebank file"""
@@ -485,11 +488,6 @@ class Voicebank:
         data = torch.load(filepath)
         self.crfAi.epoch = data["crfAiState"]['epoch']
         self.crfAi.load_state_dict(data["crfAiState"]['model_state_dict'])
-        if "loss" in data["crfAiState"].keys():
-            self.crfAi.optimizer.load_state_dict(data["crfAiState"]['optimizer_state_dict'])
-            self.crfAi.loss = data["crfAiState"]['loss']
-        else:
-            self.crfAi = SavedSpecCrfAi(self.crfAi)
         self.crfAi.eval()
         
     def loadParameters(self, filepath, additive):
