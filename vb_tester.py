@@ -186,16 +186,16 @@ class VocalSequence:
         self.segments = []
         if len(phonemes)== 1:#rewrite border system to use tensor, implement pitch and steadiness
             self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5],
-                                             True, True, phonemes[0], vb, offsets[0], 0.8, 386, 0))
+                                             True, True, phonemes[0], vb, offsets[0], 0.8, 193, 0))
         else:
             self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5],
-                                             True, False, phonemes[0], vb, offsets[0], 0.8, 386, 0))
+                                             True, False, phonemes[0], vb, offsets[0], 0.8, 193, 0))
             for i in range(1, len(phonemes)-1):
                 self.segments.append(VocalSegment(borders[3*i], borders[3*i+1], borders[3*i+2], borders[3*i+3], borders[3*i+4], borders[3*i+5],
-                                                  False, False, phonemes[i], vb, offsets[i], 0.8, 386, 0))
+                                                  False, False, phonemes[i], vb, offsets[i], 0.8, 193, 0))
             endpoint = len(phonemes)-1
             self.segments.append(VocalSegment(borders[3*endpoint], borders[3*endpoint+1], borders[3*endpoint+2], borders[3*endpoint+3], borders[3*endpoint+4], borders[3*endpoint+5],
-                                             False, True, phonemes[-1], vb, offsets[-1], 0.8, 386, 0))
+                                             False, True, phonemes[-1], vb, offsets[-1], 0.8, 193, 0))
 
         self.requiresUpdate = np.ones(len(phonemes))
         self.update()
