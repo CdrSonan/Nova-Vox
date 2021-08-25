@@ -451,7 +451,7 @@ class SpecCrfAi(nn.Module):
             
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
-                    data = torch.squeeze(data)
+                    data = torch.squeeze(torch.sqrt(data))
                     spectrum1 = data[0]
                     spectrum2 = data[-1]
                     indexList = np.arange(0, data.size()[0], 1)
@@ -479,7 +479,7 @@ class SpecCrfAi(nn.Module):
             Iterable representing the same dataset, with the order of its elements shuffled"""
         
         
-        return torch.sqrt(torch.utils.data.DataLoader(dataset=data, shuffle=True)) #!!!ADDED sqrt()!!!
+        return torch.utils.data.DataLoader(dataset=data, shuffle=True)
     
     def getState(self):
         """returns the state of the NN, its optimizer and their prerequisites as well as its epoch attribute in a Dictionary.
@@ -833,13 +833,17 @@ class Voicebank:
             
         if additive == False:
             self.crfAi = SpecCrfAi()
+        print("sample preprocessing started")
         for i in range(len(self.stagedTrainSamples)):
             self.stagedTrainSamples[i].filterWidth = filterWidth
             self.stagedTrainSamples[i].voicedIterations = voicedIterations
             self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
             self.stagedTrainSamples[i].calculateSpectra()
             self.stagedTrainSamples[i] = self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra
+        print("sample preprocessing complete")
+        print("AI training started")
         self.crfAi.train(self.stagedTrainSamples, epochs = epochs)
+        print("AI training complete")
         
     def finalizCrfAi(self):
         """finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""

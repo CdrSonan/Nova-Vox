@@ -385,21 +385,23 @@ class PhonemedictUi(tkinter.Frame):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        if (loadedVB.phonemeDict[key].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key].searchRange != self.sideBar.pSearchRange.variable.get()):
-            loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
-            loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
-            loadedVB.phonemeDict[key].calculatePitch()
+        if type(loadedVB.phonemeDict[key]).__name__ == "loadedAudioSample":
+            if (loadedVB.phonemeDict[key].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key].searchRange != self.sideBar.pSearchRange.variable.get()):
+                loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
+                loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
+                loadedVB.phonemeDict[key].calculatePitch()
         
     def onSpectralUpdateTrigger(self, event):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        if (loadedVB.phonemeDict[key].filterWidth != self.sideBar.fWidth.variable.get()) or (loadedVB.phonemeDict[key].voicedIterations != self.sideBar.voicedIter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
-            loadedVB.phonemeDict[key].filterWidth = self.sideBar.fWidth.variable.get()
-            loadedVB.phonemeDict[key].voicedIterations = self.sideBar.voicedIter.variable.get()
-            loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
-            loadedVB.phonemeDict[key].calculateSpectra()
-            loadedVB.phonemeDict[key].calculateExcitation()
+        if type(loadedVB.phonemeDict[key]).__name__ == "loadedAudioSample":
+            if (loadedVB.phonemeDict[key].filterWidth != self.sideBar.fWidth.variable.get()) or (loadedVB.phonemeDict[key].voicedIterations != self.sideBar.voicedIter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
+                loadedVB.phonemeDict[key].filterWidth = self.sideBar.fWidth.variable.get()
+                loadedVB.phonemeDict[key].voicedIterations = self.sideBar.voicedIter.variable.get()
+                loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
+                loadedVB.phonemeDict[key].calculateSpectra()
+                loadedVB.phonemeDict[key].calculateExcitation()
         
     def onFilechangePress(self, event):
         global loadedVB
@@ -567,9 +569,10 @@ class CrfaiUi(tkinter.Frame):
     def onTrainPress(self):
         global loadedVB
         loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.fWidth.variable.get(), self.sideBar.voicedIter.variable.get(), self.sideBar.unvoicedIter.variable.get())
-        for i in range(self.phonemeList.list.lb.size()):
-            loadedVB.delTrainSample(i)
-            self.phonemeList.list.lb.delete(i)
+        numIter = self.phonemeList.list.lb.size()
+        for i in range(numIter):
+            loadedVB.delTrainSample(0)
+            self.phonemeList.list.lb.delete(0)
         
     def onFinalizePress(self):
         global loadedVB
