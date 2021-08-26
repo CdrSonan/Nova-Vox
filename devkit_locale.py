@@ -9,7 +9,7 @@ class LocaleDict:
     def __init__(self, lang):
         self.locale = dict()
         if lang == "en":
-            self.locale["version_label"] = "NovaVox Devkit ALPHA 0.1.0"
+            self.locale["version_label"] = "NovaVox Devkit PREALPHA 0.1.2"
             self.locale["no_vb"] = "no Voicebank loaded"
             self.locale["unsaved_vb"] = "unsaved Voicebank"
             self.locale["metadat_btn"] = "edit Metadata"
