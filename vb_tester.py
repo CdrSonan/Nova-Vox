@@ -157,19 +157,48 @@ class VocalSegment:
     def getVoicedExcitation(self):
         BatchSize = int(self.vb.sampleRate / 75)
         nativePitch = self.vb.phonemeDict[self.phonemeKey].pitch
+
+        voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, windowEnd, self.repetititionSpacing, math.ceil(nativePitch / 75.))[windowStart:windowEnd] #change
+
+        cursor = 0
+        voicedExcitationFourier = torch.Tensor((self.end3 - self.start1, int(self.vb.sampleRate / 25)))
+        for i in range(self.end3 - self.start1):
+            targetPitch = self.pitch[i]
+            cursor2 = 0
+            j = 0
+            while cursor2 <= i * int(self.vb.sampleRate / 75):
+                precisePitch = self.vb.phonemeDict[self.phonemeKey].pitchDeltas[j]
+                cursor2 += precisePitch
+                j += 1
+            nativePitchMod = nativePitch + (precisePitch * (1. - self.steadiness[i]))
+            windowStart = cursor + self.offset
+            windowEnd = windowStart + nativePitchMod
+            transform = torchaudio.transforms.Resample(orig_freq = nativePitchMod,
+                                                       new_freq = self.pitch,
+                                                       resampling_method = 'sinc_interpolation')
+            voicedExcitation = transform(voicedExcitation[cursor - nativePitchMod + self.offset:cursor + (2*nativePitchMod) + self.offset])[0:int(self.vb.sampleRate / 25)]
+            voicedExcitation = voicedExcitation * torch.minimum(torch.ones(length), self.breathiness)
+            window = torch.hann_window(int(self.vb.sampleRate / 25))
+            voicedExcitationFourier[i] = torch.fft(voicedExcitation)
+            cursor += nativePitchMod
+        voicedExcitation = torch.istft(voicedExcitationFourier, int(self.vb.sampleRate / 25), hop_length = int(self.vb.sampleRate / 75), win_length = int(self.vb.sampleRate / 25), window = window, onesided = True, length = (self.end3 - self.start1)*int(self.vb.sampleRate / 75))
+
+        
         #nativePitch = self.vb.phonemeDict[self.phonemeKey].pitches[...]
         #pitch = nativePitch + self.vb.phonemeDict[phonemeKey].pitches...
-        premul = self.pitch / nativePitch * self.vb.sampleRate / 75
-        windowStart = math.floor(self.offset * self.vb.sampleRate / 75)
-        windowEnd = math.ceil((self.end3 - self.start1) * premul + (self.offset * self.vb.sampleRate / 75))
+        #premul = self.pitch / nativePitch * self.vb.sampleRate / 75
+        #windowStart = math.floor(self.offset * self.vb.sampleRate / 75)
+        #windowEnd = math.ceil((self.end3 - self.start1) * premul + (self.offset * self.vb.sampleRate / 75))
         #windowStart = math.floor(self.offset)
         #windowEnd = math.ceil((self.end3 - self.start1) * premul + self.offset)
         #voicedExcitation = self.vb.phonemeDict[self.phonemeKey].voicedExcitation[windowStart:windowEnd]
-        voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, windowEnd, self.repetititionSpacing, math.ceil(nativePitch / 75.))[windowStart:windowEnd]
-        transform = torchaudio.transforms.Resample(orig_freq = nativePitch,
-                                                   new_freq = self.pitch,
-                                                   resampling_method = 'sinc_interpolation')
-        voicedExcitation = transform(voicedExcitation)
+        #voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, windowEnd, self.repetititionSpacing, math.ceil(nativePitch / 75.))[windowStart:windowEnd]
+        #transform = torchaudio.transforms.Resample(orig_freq = nativePitch,
+        #                                           new_freq = self.pitch,
+        #                                           resampling_method = 'sinc_interpolation')
+        #voicedExcitation = transform(voicedExcitation)
+        
+
         if self.startCap == False:
             slope = torch.linspace(0, 1, (self.start3 - self.start1) * int(self.vb.sampleRate / 75))
             voicedExcitation[0:(self.start3 - self.start1) * int(self.vb.sampleRate / 75)] *= slope
@@ -179,7 +208,6 @@ class VocalSegment:
         return voicedExcitation[0:(self.end3 - self.start1) * int(self.vb.sampleRate / 75)]
         #resample segments
         #individual fourier transform
-        #voicedExcitation = voicedExcitation * torch.minimum(torch.ones(length), self.breathiness)
         #istft
         #windowing adaptive to borders
 
