@@ -119,7 +119,7 @@ class VocalSegment:
         #spectra =  self.vb.phonemeDict[self.phonemeKey].spectra[windowStart:windowEnd]
         spectra = self.loopSamplerSpectrum(self.vb.phonemeDict[self.phonemeKey].spectra, windowEnd, self.repetititionSpacing)[windowStart:windowEnd]
         
-        return torch.square(spectrum + (torch.pow(1 - torch.unsqueeze(self.steadiness[windowStart:windowEnd], 1), 2) * spectra)) #!!!HERE!!!
+        return torch.square(spectrum + (torch.pow(1 - torch.unsqueeze(self.steadiness[windowStart-self.offset:windowEnd-self.offset], 1), 2) * spectra))
     
     def getExcitation(self):
         BatchSize = int(self.vb.sampleRate / 75)
@@ -144,10 +144,11 @@ class VocalSegment:
         excitation = self.vb.phonemeDict[self.phonemeKey].excitation[windowStart:windowEnd]
         excitation = torch.transpose(excitation, 0, 1)
         transform = torchaudio.transforms.TimeStretch(hop_length = int(self.vb.sampleRate / 75),
-                                                      n_freq = int(self.vb.sampleRate / 25 / 2) + 1, 
+                                                      n_freq = int(self.vb.sampleRate / 50) + 1, 
                                                       fixed_rate = premul)
         excitation = transform(torch.view_as_real(excitation))
-        excitation = torch.view_as_complex(excitation)
+        excitation = torch.view_as_complex(excitation)[:, 0:length]
+        #excitation = torch.transpose(excitation, 0, 1)
         excitation = excitation * torch.minimum(torch.ones(length), self.breathiness[brStart:brEnd])
         window = torch.hann_window(int(self.vb.sampleRate / 25))
         excitation = torch.istft(excitation, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = window, onesided = True, length = length*int(self.vb.sampleRate / 75))
@@ -163,31 +164,27 @@ class VocalSegment:
         voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, requiredSize, self.repetititionSpacing, math.ceil(nativePitch / 75.))
 
         cursor = 0
-        voicedExcitationFourier = torch.empty(int(self.vb.sampleRate / 50) + 1, self.end3 - self.start1)
-        print(voicedExcitationFourier.size())
+        voicedExcitationFourier = torch.empty(self.end3 - self.start1, int(self.vb.sampleRate / 50) + 1, dtype = torch.cdouble)
         window = torch.hann_window(int(self.vb.sampleRate / 25))
         for i in range(self.end3 - self.start1):
-            targetPitch = self.pitch[i]
             cursor2 = 0
             j = 0
             while cursor2 <= i * int(self.vb.sampleRate / 75):
-                precisePitch = self.vb.phonemeDict[self.phonemeKey].pitchDeltas[j]
+                precisePitch = self.vb.phonemeDict[self.phonemeKey].pitchDeltas[j]#implement correct looping
                 cursor2 += precisePitch
                 j += 1
-            nativePitchMod = int(nativePitch + (precisePitch * (1. - self.steadiness[i])))
-            windowStart = cursor + self.offset
-            windowEnd = windowStart + nativePitchMod
+            nativePitchMod = math.ceil(nativePitch + (precisePitch * (1. - self.steadiness[i])))
             transform = torchaudio.transforms.Resample(orig_freq = self.pitch[i],#nativePitchMod,
                                                        new_freq = nativePitchMod,#self.pitch[i],
                                                        resampling_method = 'sinc_interpolation')
-            if cursor == 0:
-                voicedExcitationPart = torch.cat((torch.zeros(nativePitchMod), voicedExcitation), 0)
+            if cursor < nativePitchMod:
+                voicedExcitationPart = torch.cat((torch.zeros(nativePitchMod - cursor), voicedExcitation), 0)
                 voicedExcitationPart = transform(voicedExcitationPart[self.offset:(3*nativePitchMod) + self.offset])[0:int(self.vb.sampleRate / 25)]
             else:
                 voicedExcitationPart = transform(voicedExcitation[cursor - nativePitchMod + self.offset:cursor + (2*nativePitchMod) + self.offset])[0:int(self.vb.sampleRate / 25)]
-            voicedExcitationFourier[:, i] = torch.fft.rfft(voicedExcitationPart * window)
+            voicedExcitationFourier[i] = torch.fft.rfft(voicedExcitationPart * window) #!!!HERE!!!
             cursor += nativePitchMod
-        voicedExcitationFourier = voicedExcitationFourier * torch.minimum(torch.ones(self.breathiness.size()[0]), self.breathiness)
+        voicedExcitationFourier = voicedExcitationFourier.transpose(0, 1) * torch.minimum(torch.ones(self.breathiness.size()[0]), self.breathiness)
         voicedExcitation = torch.istft(voicedExcitationFourier, int(self.vb.sampleRate / 25), hop_length = int(self.vb.sampleRate / 75), win_length = int(self.vb.sampleRate / 25), window = window, onesided = True, length = (self.end3 - self.start1)*int(self.vb.sampleRate / 75))
 
         
