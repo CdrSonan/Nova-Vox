@@ -53,7 +53,7 @@ class VocalSegment:
         alignPhase = inputTensor[batchRS][pitch].angle()
         finalPhase = inputTensor[1][pitch].angle()
         phaseDiff = (finalPhase - alignPhase)
-        requiredTensors = math.ceil((targetSize/BatchSize - batchRS) / (inputTensor.size()[1] - batchRS))
+        requiredTensors = max(math.ceil((targetSize/BatchSize - batchRS) / (inputTensor.size()[1] - batchRS)), 1)
         if requiredTensors == 1:
             outputTensor = inputTensor.clone()
             outputTensor = torch.istft(outputTensor, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*BatchSize)
@@ -118,8 +118,8 @@ class VocalSegment:
         spectrum =  self.vb.phonemeDict[self.phonemeKey].spectrum#implement looping
         #spectra =  self.vb.phonemeDict[self.phonemeKey].spectra[windowStart:windowEnd]
         spectra = self.loopSamplerSpectrum(self.vb.phonemeDict[self.phonemeKey].spectra, windowEnd, self.repetititionSpacing)[windowStart:windowEnd]
-        print(spectrum.size(), self.steadiness.size(), spectra.size())
-        return torch.square(spectrum + (torch.pow(1 - torch.unsqueeze(self.steadiness, 1), 2) * spectra))
+        
+        return torch.square(spectrum + (torch.pow(1 - torch.unsqueeze(self.steadiness[windowStart:windowEnd], 1), 2) * spectra)) #!!!HERE!!!
     
     def getExcitation(self):
         BatchSize = int(self.vb.sampleRate / 75)
@@ -158,10 +158,14 @@ class VocalSegment:
         BatchSize = int(self.vb.sampleRate / 75)
         nativePitch = self.vb.phonemeDict[self.phonemeKey].pitch
 
-        voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, windowEnd, self.repetititionSpacing, math.ceil(nativePitch / 75.))[windowStart:windowEnd] #change
+        requiredSize = torch.max(self.vb.phonemeDict[self.phonemeKey].pitchDeltas) * (self.end3 - self.start1) * math.ceil(nativePitch / 75.)
+
+        voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, requiredSize, self.repetititionSpacing, math.ceil(nativePitch / 75.))
 
         cursor = 0
-        voicedExcitationFourier = torch.Tensor((self.end3 - self.start1, int(self.vb.sampleRate / 25)))
+        voicedExcitationFourier = torch.empty(int(self.vb.sampleRate / 50) + 1, self.end3 - self.start1)
+        print(voicedExcitationFourier.size())
+        window = torch.hann_window(int(self.vb.sampleRate / 25))
         for i in range(self.end3 - self.start1):
             targetPitch = self.pitch[i]
             cursor2 = 0
@@ -170,17 +174,20 @@ class VocalSegment:
                 precisePitch = self.vb.phonemeDict[self.phonemeKey].pitchDeltas[j]
                 cursor2 += precisePitch
                 j += 1
-            nativePitchMod = nativePitch + (precisePitch * (1. - self.steadiness[i]))
+            nativePitchMod = int(nativePitch + (precisePitch * (1. - self.steadiness[i])))
             windowStart = cursor + self.offset
             windowEnd = windowStart + nativePitchMod
-            transform = torchaudio.transforms.Resample(orig_freq = nativePitchMod,
-                                                       new_freq = self.pitch,
+            transform = torchaudio.transforms.Resample(orig_freq = self.pitch[i],#nativePitchMod,
+                                                       new_freq = nativePitchMod,#self.pitch[i],
                                                        resampling_method = 'sinc_interpolation')
-            voicedExcitation = transform(voicedExcitation[cursor - nativePitchMod + self.offset:cursor + (2*nativePitchMod) + self.offset])[0:int(self.vb.sampleRate / 25)]
-            voicedExcitation = voicedExcitation * torch.minimum(torch.ones(length), self.breathiness)
-            window = torch.hann_window(int(self.vb.sampleRate / 25))
-            voicedExcitationFourier[i] = torch.fft(voicedExcitation)
+            if cursor == 0:
+                voicedExcitationPart = torch.cat((torch.zeros(nativePitchMod), voicedExcitation), 0)
+                voicedExcitationPart = transform(voicedExcitationPart[self.offset:(3*nativePitchMod) + self.offset])[0:int(self.vb.sampleRate / 25)]
+            else:
+                voicedExcitationPart = transform(voicedExcitation[cursor - nativePitchMod + self.offset:cursor + (2*nativePitchMod) + self.offset])[0:int(self.vb.sampleRate / 25)]
+            voicedExcitationFourier[:, i] = torch.fft.rfft(voicedExcitationPart * window)
             cursor += nativePitchMod
+        voicedExcitationFourier = voicedExcitationFourier * torch.minimum(torch.ones(self.breathiness.size()[0]), self.breathiness)
         voicedExcitation = torch.istft(voicedExcitationFourier, int(self.vb.sampleRate / 25), hop_length = int(self.vb.sampleRate / 75), win_length = int(self.vb.sampleRate / 25), window = window, onesided = True, length = (self.end3 - self.start1)*int(self.vb.sampleRate / 75))
 
         
@@ -224,13 +231,13 @@ class VocalSequence:
         
         self.segments = []
         if len(phonemes)== 1:#rewrite border system to use tensor, implement pitch and breathiness
-            self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5], True, True, phonemes[0], vb, offsets[0], repetititionSpacing[0], 193, steadiness[borders[0]:borders[5]], breathiness[borders[0]:borders[5]]))
+            self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5], True, True, phonemes[0], vb, offsets[0], repetititionSpacing[0], pitch[borders[0]:borders[5]], steadiness[borders[0]:borders[5]], breathiness[borders[0]:borders[5]]))
         else:
-            self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5], True, False, phonemes[0], vb, offsets[0], repetititionSpacing[0], 193, steadiness[borders[0]:borders[3]], breathiness[borders[0]:borders[5]]))
+            self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5], True, False, phonemes[0], vb, offsets[0], repetititionSpacing[0], pitch[borders[0]:borders[5]], steadiness[borders[0]:borders[5]], breathiness[borders[0]:borders[5]]))
             for i in range(1, len(phonemes)-1):
-                self.segments.append(VocalSegment(borders[3*i], borders[3*i+1], borders[3*i+2], borders[3*i+3], borders[3*i+4], borders[3*i+5], False, False, phonemes[i], vb, offsets[i], repetititionSpacing[i], 193, steadiness[borders[3*i+2]:borders[3*i+3]], breathiness[borders[3*i]:borders[3*i+5]]))
+                self.segments.append(VocalSegment(borders[3*i], borders[3*i+1], borders[3*i+2], borders[3*i+3], borders[3*i+4], borders[3*i+5], False, False, phonemes[i], vb, offsets[i], repetititionSpacing[i], pitch[borders[3*i]:borders[3*i+5]], steadiness[borders[3*i]:borders[3*i+5]], breathiness[borders[3*i]:borders[3*i+5]]))
             endpoint = len(phonemes)-1
-            self.segments.append(VocalSegment(borders[3*endpoint], borders[3*endpoint+1], borders[3*endpoint+2], borders[3*endpoint+3], borders[3*endpoint+4], borders[3*endpoint+5], False, True, phonemes[-1], vb, offsets[-1], repetititionSpacing[-1], 193, steadiness[borders[3*endpoint+2]:borders[3*endpoint+5]], breathiness[borders[3*endpoint]:borders[3*endpoint+5]]))
+            self.segments.append(VocalSegment(borders[3*endpoint], borders[3*endpoint+1], borders[3*endpoint+2], borders[3*endpoint+3], borders[3*endpoint+4], borders[3*endpoint+5], False, True, phonemes[-1], vb, offsets[-1], repetititionSpacing[-1], pitch[borders[3*endpoint]:borders[3*endpoint+5]], steadiness[borders[3*endpoint]:borders[3*endpoint+5]], breathiness[borders[3*endpoint]:borders[3*endpoint+5]]))
 
         self.requiresUpdate = np.ones(len(phonemes))
         self.update()
