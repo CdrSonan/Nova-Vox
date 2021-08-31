@@ -179,8 +179,8 @@ class VocalSegment:
             #    j += 1
             precisePitch = pitchDeltas[i]
             nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - self.steadiness[i])))
-            transform = torchaudio.transforms.Resample(orig_freq = self.pitch[i],#nativePitchMod,
-                                                       new_freq = nativePitchMod,#self.pitch[i],
+            transform = torchaudio.transforms.Resample(orig_freq = nativePitchMod,
+                                                       new_freq = self.pitch[i],
                                                        resampling_method = 'sinc_interpolation')
             buffer = 1000 #this is a terrible idea, but it seems to work
             if cursor < math.ceil(self.vb.sampleRate/75*nativePitchMod/self.pitch[i]):
@@ -285,6 +285,15 @@ class VocalSequence:
                 excitation[windowStart:windowEnd] = segment.getExcitation()
                 
                 self.spectrum[segment.start1:segment.end3] = spectrum
+                """pitchSlopeLength = 5
+                for i in range(segment.end3 - segment.start1):
+                    pitchBorder = math.ceil(1920 / segment.pitch[i])
+                    fourierPitchShift = math.ceil(1920 / self.vb.phonemeDict[segment.phonemeKey].pitch) - pitchBorder
+                    shiftedSpectrum = torch.roll(spectrum[i], fourierPitchShift)
+                    slope = torch.zeros(961)
+                    slope[pitchBorder:pitchBorder + pitchSlopeLength] = torch.linspace(0, 1, pitchSlopeLength)
+                    slope[pitchBorder + pitchSlopeLength:] = 1
+                    self.spectrum[i] = (slope * spectrum[i]) + ((1 - i) * shiftedSpectrum)"""
                 self.excitation[segment.start1*int(self.vb.sampleRate/75):segment.end3*int(self.vb.sampleRate/75)] = excitation
                 self.voicedExcitation[segment.start1*int(self.vb.sampleRate/75):segment.end3*int(self.vb.sampleRate/75)] = voicedExcitation
                 
@@ -583,9 +592,9 @@ repetititionSpacing = torch.full([400], 0.8)
 #pitch = torch.full([400], 193)
 pitch = torch.full([400], 150)
 
-steadiness = torch.full([400], 0)
+steadiness = torch.full([400], 0)#bugged
 
-breathiness = torch.full([400], 0)
+breathiness = torch.full([400], -1)
 
 sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
