@@ -147,17 +147,17 @@ class MetadataUi(tkinter.Frame):
         self.name.display.pack(side = "right", fill = "x")
         self.name.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sampleRate = tkinter.Frame(self)
-        self.sampleRate.variable = tkinter.IntVar(self.sampleRate)
-        self.sampleRate.variable.set(loadedVB.metadata.sampleRate)
-        self.sampleRate.entry = tkinter.Spinbox(self.sampleRate)
-        self.sampleRate.entry["values"] = (44100, 48000, 96000, 192000)
-        self.sampleRate.entry["textvariable"] = self.sampleRate.variable
-        self.sampleRate.entry.pack(side = "right", fill = "x", expand = True)
-        self.sampleRate.display = tkinter.Label(self.sampleRate)
-        self.sampleRate.display["text"] = self.locale["smp_rate"]
-        self.sampleRate.display.pack(side = "right", fill = "x")
-        self.sampleRate.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        #self.sampleRate = tkinter.Frame(self)
+        #self.sampleRate.variable = tkinter.IntVar(self.sampleRate)
+        #self.sampleRate.variable.set(loadedVB.metadata.sampleRate)
+        #self.sampleRate.entry = tkinter.Spinbox(self.sampleRate)
+        #self.sampleRate.entry["values"] = (44100, 48000, 96000, 192000)
+        #self.sampleRate.entry["textvariable"] = self.sampleRate.variable
+        #self.sampleRate.entry.pack(side = "right", fill = "x", expand = True)
+        #self.sampleRate.display = tkinter.Label(self.sampleRate)
+        #self.sampleRate.display["text"] = self.locale["smp_rate"]
+        #self.sampleRate.display.pack(side = "right", fill = "x")
+        #self.sampleRate.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = self.locale["ok"]
@@ -167,7 +167,7 @@ class MetadataUi(tkinter.Frame):
     def onOkPress(self):
         global loadedVB
         loadedVB.metadata.name = self.name.variable.get()
-        loadedVB.metadata.sampleRate = self.sampleRate.variable.get()
+        loadedVB.metadata.sampleRate = 49000#self.sampleRate.variable.get()
         self.master.destroy()
         
 class PhonemedictUi(tkinter.Frame):
@@ -245,17 +245,17 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.pSearchRange.display.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar.fWidth = tkinter.Frame(self.sideBar)
-        self.sideBar.fWidth.variable = tkinter.IntVar(self.sideBar.fWidth)
-        self.sideBar.fWidth.entry = tkinter.Spinbox(self.sideBar.fWidth, from_ = 0, to = 100)
-        self.sideBar.fWidth.entry["textvariable"] = self.sideBar.fWidth.variable
-        self.sideBar.fWidth.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
-        self.sideBar.fWidth.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
-        self.sideBar.fWidth.entry.pack(side = "right", fill = "x")
-        self.sideBar.fWidth.display = tkinter.Label(self.sideBar.fWidth)
-        self.sideBar.fWidth.display["text"] = self.locale["fwidth"]
-        self.sideBar.fWidth.display.pack(side = "right", fill = "x")
-        self.sideBar.fWidth.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        #self.sideBar.fWidth = tkinter.Frame(self.sideBar)
+        #self.sideBar.fWidth.variable = tkinter.IntVar(self.sideBar.fWidth)
+        #self.sideBar.fWidth.entry = tkinter.Spinbox(self.sideBar.fWidth, from_ = 0, to = 100)
+        #self.sideBar.fWidth.entry["textvariable"] = self.sideBar.fWidth.variable
+        #self.sideBar.fWidth.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        #self.sideBar.fWidth.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
+        #self.sideBar.fWidth.entry.pack(side = "right", fill = "x")
+        #self.sideBar.fWidth.display = tkinter.Label(self.sideBar.fWidth)
+        #self.sideBar.fWidth.display["text"] = self.locale["fwidth"]
+        #self.sideBar.fWidth.display.pack(side = "right", fill = "x")
+        #self.sideBar.fWidth.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.voicedIter.variable = tkinter.IntVar(self.sideBar.voicedIter)
@@ -309,14 +309,14 @@ class PhonemedictUi(tkinter.Frame):
             if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
                 self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key].expectedPitch)
                 self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key].searchRange)
-                self.sideBar.fWidth.variable.set(loadedVB.phonemeDict[key].filterWidth)
+                #self.sideBar.fWidth.variable.set(loadedVB.phonemeDict[key].filterWidth)
                 self.sideBar.voicedIter.variable.set(loadedVB.phonemeDict[key].voicedIterations)
                 self.sideBar.unvoicedIter.variable.set(loadedVB.phonemeDict[key].unvoicedIterations)
                 self.enableButtons()
             else:
                 self.sideBar.expPitch.variable.set(None)
                 self.sideBar.pSearchRange.variable.set(None)
-                self.sideBar.fWidth.variable.set(None)
+                #self.sideBar.fWidth.variable.set(None)
                 self.sideBar.voicedIter.variable.set(None)
                 self.sideBar.unvoicedIter.variable.set(None)
                 self.disableButtons()
@@ -328,7 +328,7 @@ class PhonemedictUi(tkinter.Frame):
     def disableButtons(self):
         self.sideBar.expPitch.entry["state"] = "disabled"
         self.sideBar.pSearchRange.entry["state"] = "disabled"
-        self.sideBar.fWidth.entry["state"] = "disabled"
+        #self.sideBar.fWidth.entry["state"] = "disabled"
         self.sideBar.voicedIter.entry["state"] = "disabled"
         self.sideBar.unvoicedIter.entry["state"] = "disabled"
         self.sideBar.fileButton["state"] = "disabled"
@@ -337,7 +337,7 @@ class PhonemedictUi(tkinter.Frame):
     def enableButtons(self):
         self.sideBar.expPitch.entry["state"] = "normal"
         self.sideBar.pSearchRange.entry["state"] = "normal"
-        self.sideBar.fWidth.entry["state"] = "normal"
+        #self.sideBar.fWidth.entry["state"] = "normal"
         self.sideBar.voicedIter.entry["state"] = "normal"
         self.sideBar.unvoicedIter.entry["state"] = "normal"
         self.sideBar.fileButton["state"] = "normal"
@@ -396,8 +396,9 @@ class PhonemedictUi(tkinter.Frame):
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
         if type(loadedVB.phonemeDict[key]).__name__ == "loadedAudioSample":
-            if (loadedVB.phonemeDict[key].filterWidth != self.sideBar.fWidth.variable.get()) or (loadedVB.phonemeDict[key].voicedIterations != self.sideBar.voicedIter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
-                loadedVB.phonemeDict[key].filterWidth = self.sideBar.fWidth.variable.get()
+            #loadedVB.phonemeDict[key].filterWidth != self.sideBar.fWidth.variable.get()) or 
+            if (loadedVB.phonemeDict[key].voicedIterations != self.sideBar.voicedIter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
+                loadedVB.phonemeDict[key].filterWidth = 10#self.sideBar.fWidth.variable.get()
                 loadedVB.phonemeDict[key].voicedIterations = self.sideBar.voicedIter.variable.get()
                 loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
                 loadedVB.phonemeDict[key].calculateSpectra()
@@ -424,7 +425,7 @@ class PhonemedictUi(tkinter.Frame):
         loadedVB.finalizePhoneme(key)
         self.sideBar.expPitch.variable.set(None)
         self.sideBar.pSearchRange.variable.set(None)
-        self.sideBar.fWidth.variable.set(None)
+        #self.sideBar.fWidth.variable.set(None)
         self.sideBar.voicedIter.variable.set(None)
         self.sideBar.unvoicedIter.variable.set(None)
         self.disableButtons()
@@ -432,7 +433,8 @@ class PhonemedictUi(tkinter.Frame):
         
     def onOkPress(self):
         global loadedVB
-        if self.phonemeList.list.lastFocusedIndex != None:
+        #if self.phonemeList.list.lastFocusedIndex != None:
+        if self.phonemeList.list.lb.size() > 0:
             self.onKeyChange(None)
             self.onPitchUpdateTrigger(None)
             self.onSpectralUpdateTrigger(None)
@@ -476,16 +478,16 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar = tkinter.LabelFrame(self, text = self.locale["ai_settings"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
-        self.sideBar.fWidth = tkinter.Frame(self.sideBar)
-        self.sideBar.fWidth.variable = tkinter.IntVar(self.sideBar.fWidth)
-        self.sideBar.fWidth.variable.set(10)
-        self.sideBar.fWidth.entry = tkinter.Spinbox(self.sideBar.fWidth, from_ = 0, to = 100)
-        self.sideBar.fWidth.entry["textvariable"] = self.sideBar.fWidth.variable
-        self.sideBar.fWidth.entry.pack(side = "right", fill = "x")
-        self.sideBar.fWidth.display = tkinter.Label(self.sideBar.fWidth)
-        self.sideBar.fWidth.display["text"] = self.locale["fwidth"]
-        self.sideBar.fWidth.display.pack(side = "right", fill = "x")
-        self.sideBar.fWidth.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        #self.sideBar.fWidth = tkinter.Frame(self.sideBar)
+        #self.sideBar.fWidth.variable = tkinter.IntVar(self.sideBar.fWidth)
+        #self.sideBar.fWidth.variable.set(10)
+        #self.sideBar.fWidth.entry = tkinter.Spinbox(self.sideBar.fWidth, from_ = 0, to = 100)
+        #self.sideBar.fWidth.entry["textvariable"] = self.sideBar.fWidth.variable
+        #self.sideBar.fWidth.entry.pack(side = "right", fill = "x")
+        #self.sideBar.fWidth.display = tkinter.Label(self.sideBar.fWidth)
+        #self.sideBar.fWidth.display["text"] = self.locale["fwidth"]
+        #self.sideBar.fWidth.display.pack(side = "right", fill = "x")
+        #self.sideBar.fWidth.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.voicedIter.variable = tkinter.IntVar(self.sideBar.voicedIter)
@@ -550,10 +552,11 @@ class CrfaiUi(tkinter.Frame):
     
     def onAddPress(self):
         global loadedVB
-        filepath = tkinter.filedialog.askopenfilename(filetypes = ((self.locale[".wav_desc"], ".wav"), (self.locale["all_files_desc"], "*")))
-        if filepath != "":
-            loadedVB.addTrainSample(filepath)
-            self.phonemeList.list.lb.insert("end", filepath)
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((self.locale[".wav_desc"], ".wav"), (self.locale["all_files_desc"], "*")), multiple = True)
+        if filepath != ():
+            for i in filepath:
+                loadedVB.addTrainSample(i)
+                self.phonemeList.list.lb.insert("end", i)
         
     def onRemovePress(self):
         global loadedVB
@@ -568,7 +571,7 @@ class CrfaiUi(tkinter.Frame):
                 
     def onTrainPress(self):
         global loadedVB
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.fWidth.variable.get(), self.sideBar.voicedIter.variable.get(), self.sideBar.unvoicedIter.variable.get())
+        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, 10, self.sideBar.voicedIter.variable.get(), self.sideBar.unvoicedIter.variable.get())
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             loadedVB.delTrainSample(0)
@@ -580,7 +583,7 @@ class CrfaiUi(tkinter.Frame):
         self.disableButtons()
         
     def disableButtons(self):
-        self.sideBar.fWidth.entry["state"] = "disabled"
+        #self.sideBar.fWidth.entry["state"] = "disabled"
         self.sideBar.voicedIter.entry["state"] = "disabled"
         self.sideBar.unvoicedIter.entry["state"] = "disabled"
         self.sideBar.epochs.entry["state"] = "disabled"
@@ -588,7 +591,7 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.finalizeButton["state"] = "disabled"
     
     def enableButtons(self):
-        self.sideBar.fWidth.entry["state"] = "normal"
+        #self.sideBar.fWidth.entry["state"] = "normal"
         self.sideBar.voicedIter.entry["state"] = "normal"
         self.sideBar.unvoicedIter.entry["state"] = "normal"
         self.sideBar.epochs.entry["state"] = "normal"
