@@ -167,7 +167,7 @@ class MetadataUi(tkinter.Frame):
     def onOkPress(self):
         global loadedVB
         loadedVB.metadata.name = self.name.variable.get()
-        loadedVB.metadata.sampleRate = 49000#self.sampleRate.variable.get()
+        loadedVB.metadata.sampleRate = 48000#self.sampleRate.variable.get()
         self.master.destroy()
         
 class PhonemedictUi(tkinter.Frame):

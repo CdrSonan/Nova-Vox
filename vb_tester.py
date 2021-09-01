@@ -594,7 +594,7 @@ pitch = torch.full([400], 150)
 
 steadiness = torch.full([400], 0)#bugged
 
-breathiness = torch.full([400], -1)
+breathiness = torch.full([400], 0)
 
 sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
