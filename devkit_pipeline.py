@@ -317,7 +317,7 @@ class RelLoss(nn.Module):
         inputs = inputs.view(-1)
         targets = targets.view(-1)
         differences = torch.abs(inputs - targets)
-        sums = torch.abs(inputs + targets)
+        sums = torch.max(torch.abs(inputs + targets), torch.abs(inputs), torch.abs(targets))
         out = (differences / sums).sum() / inputs.size()[0]
         return out
     
@@ -378,8 +378,8 @@ class SpecCrfAi(nn.Module):
         
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
-        self.criterion = nn.L1Loss()
-        #self.criterion = RelLoss()
+        #self.criterion = nn.L1Loss()
+        self.criterion = RelLoss()
         self.epoch = 0
         self.loss = None
         
@@ -547,7 +547,7 @@ class SavedSpecCrfAi(nn.Module):
         
         self.epoch = specCrfAi.getState()['epoch']
         self.load_state_dict(specCrfAi.getState()['model_state_dict'])
-        self.crfAi.eval()
+        self.eval()
         
     def forward(self, spectrum1, spectrum2, factor):
         """Forward NN pass with unprocessed in-and outputs.
@@ -595,7 +595,7 @@ class SavedSpecCrfAi(nn.Module):
         output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), factor)))
         return output
     
-    def getState(self, final):
+    def getState(self):
         """returns the state of the NN and its epoch attribute in a Dictionary.
         
         Arguments:

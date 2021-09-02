@@ -19,6 +19,7 @@ class RootUi(tkinter.Frame):
         self.locale = locale
         self.createWidgets()
         self.master.wm_title(self.locale["no_vb"])
+        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
     def createWidgets(self):
         self.infoDisplay = tkinter.Label(self)
@@ -133,6 +134,7 @@ class MetadataUi(tkinter.Frame):
         self.locale = locale
         self.createWidgets()
         self.master.wm_title(self.locale["metadat_lbl"])
+        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
     def createWidgets(self):
         global loadedVB
@@ -162,13 +164,24 @@ class MetadataUi(tkinter.Frame):
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = self.locale["ok"]
         self.okButton["command"] = self.onOkPress
-        self.okButton.pack(side = "top", fill = "x", padx = 50, pady = 20)
+        self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
+
+        self.loadButton = tkinter.Button(self)
+        self.loadButton["text"] = self.locale["load_other_VB"]
+        self.loadButton["command"] = self.onLoadPress
+        self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
         
     def onOkPress(self):
         global loadedVB
         loadedVB.metadata.name = self.name.variable.get()
         loadedVB.metadata.sampleRate = 48000#self.sampleRate.variable.get()
         self.master.destroy()
+
+    def onLoadPress(self):
+        global loadedVB
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((self.locale[".nvvb_desc"], ".nvvb"), (self.locale["all_files_desc"], "*")))
+        loadedVB.loadMetadata(filepath)
+        self.name.variable.set(loadedVB.metadata.name)
         
 class PhonemedictUi(tkinter.Frame):
     def __init__(self, locale, master=None):
@@ -177,6 +190,7 @@ class PhonemedictUi(tkinter.Frame):
         self.locale = locale
         self.createWidgets()
         self.master.wm_title(self.locale["phon_lbl"])
+        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         self.disableButtons()
         
     def createWidgets(self):
@@ -295,7 +309,12 @@ class PhonemedictUi(tkinter.Frame):
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = self.locale["ok"]
         self.okButton["command"] = self.onOkPress
-        self.okButton.pack(side = "top", fill = "x", expand = True, padx = 10, pady = 10)
+        self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
+
+        self.loadButton = tkinter.Button(self)
+        self.loadButton["text"] = self.locale["load_other_VB"]
+        self.loadButton["command"] = self.onLoadPress
+        self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
         self.phonemeList.list.lastFocusedIndex = None
         
@@ -385,7 +404,7 @@ class PhonemedictUi(tkinter.Frame):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        if type(loadedVB.phonemeDict[key]).__name__ == "loadedAudioSample":
+        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
             if (loadedVB.phonemeDict[key].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key].searchRange != self.sideBar.pSearchRange.variable.get()):
                 loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
                 loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
@@ -395,7 +414,7 @@ class PhonemedictUi(tkinter.Frame):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        if type(loadedVB.phonemeDict[key]).__name__ == "loadedAudioSample":
+        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
             #loadedVB.phonemeDict[key].filterWidth != self.sideBar.fWidth.variable.get()) or 
             if (loadedVB.phonemeDict[key].voicedIterations != self.sideBar.voicedIter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
                 loadedVB.phonemeDict[key].filterWidth = 10#self.sideBar.fWidth.variable.get()
@@ -436,9 +455,24 @@ class PhonemedictUi(tkinter.Frame):
         #if self.phonemeList.list.lastFocusedIndex != None:
         if self.phonemeList.list.lb.size() > 0:
             self.onKeyChange(None)
-            self.onPitchUpdateTrigger(None)
-            self.onSpectralUpdateTrigger(None)
+            index = self.phonemeList.list.lastFocusedIndex
+            key = self.phonemeList.list.lb.get(index)
+            if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
+                self.onPitchUpdateTrigger(None)
+                self.onSpectralUpdateTrigger(None)
         self.master.destroy()
+
+    def onLoadPress(self):
+        global loadedVB
+        additive =  tkinter.messagebox.askyesnocancel(self.locale["warning"], self.locale["additive_msg"], icon = "question")
+        if additive != None:
+            filepath = tkinter.filedialog.askopenfilename(filetypes = ((self.locale[".nvvb_desc"], ".nvvb"), (self.locale["all_files_desc"], "*")))
+            if filepath != "":
+                loadedVB.loadPhonemeDict(filepath, additive)
+                for i in range(self.phonemeList.list.lb.size()):
+                    self.phonemeList.list.lb.delete(0)
+                for i in loadedVB.phonemeDict.keys():
+                    self.phonemeList.list.lb.insert("end", i)
         
 class CrfaiUi(tkinter.Frame):
     def __init__(self, locale, master=None):
@@ -447,6 +481,7 @@ class CrfaiUi(tkinter.Frame):
         self.locale = locale
         self.createWidgets()
         self.master.wm_title(self.locale["crfai_lbl"])
+        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
     def createWidgets(self):
         global loadedVB
@@ -536,7 +571,12 @@ class CrfaiUi(tkinter.Frame):
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = self.locale["ok"]
         self.okButton["command"] = self.onOkPress
-        self.okButton.pack(side = "top", fill = "x", expand = True, padx = 10, pady = 10)
+        self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
+
+        self.loadButton = tkinter.Button(self)
+        self.loadButton["text"] = self.locale["load_other_VB"]
+        self.loadButton["command"] = self.onLoadPress
+        self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
         
         if type(loadedVB.crfAi).__name__ == "SavedSpecCrfAi":
             self.disableButtons()
@@ -587,7 +627,7 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.voicedIter.entry["state"] = "disabled"
         self.sideBar.unvoicedIter.entry["state"] = "disabled"
         self.sideBar.epochs.entry["state"] = "disabled"
-        self.sideBar.traineButton["state"] = "disabled"
+        self.sideBar.trainButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
     
     def enableButtons(self):
@@ -595,12 +635,18 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.voicedIter.entry["state"] = "normal"
         self.sideBar.unvoicedIter.entry["state"] = "normal"
         self.sideBar.epochs.entry["state"] = "normal"
-        self.sideBar.traineButton["state"] = "normal"
+        self.sideBar.trainButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"
         
     def onOkPress(self):
         global loadedVB
         self.master.destroy()
+
+    def onLoadPress(self):
+        global loadedVB
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((self.locale[".nvvb_desc"], ".nvvb"), (self.locale["all_files_desc"], "*")))
+        if filepath != "":
+            loadedVB.loadCrfWeights(filepath, additive)
         
 loc = devkit_locale.LocaleDict("en").locale
 loadedVB = None

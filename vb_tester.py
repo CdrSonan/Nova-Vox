@@ -158,12 +158,12 @@ class VocalSegment:
         voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, requiredSize, self.repetititionSpacing, math.ceil(nativePitch / 75.))
         cursor = 0
         cursor2 = 0
-        pitchDeltas = torch.empty([self.end3 - self.start1])
-        for i in range(self.end3 - self.start1):
-            if cursor2 >= self.vb.phonemeDict[self.phonemeKey].pitchDeltas[cursor]:
+        pitchDeltas = torch.empty(math.ceil(self.vb.phonemeDict[self.phonemeKey].pitchDeltas.sum() / int(self.vb.sampleRate / 75)))
+        for i in range(math.ceil(self.vb.phonemeDict[self.phonemeKey].pitchDeltas.sum() / int(self.vb.sampleRate / 75))):#(self.end3 - self.start1):
+            while cursor2 >= self.vb.phonemeDict[self.phonemeKey].pitchDeltas[cursor]:
                 cursor += 1
-                cursor2 = 0
-            cursor2 += 1
+                cursor2 -= self.vb.phonemeDict[self.phonemeKey].pitchDeltas[cursor]
+            cursor2 += int(self.vb.sampleRate / 75)
             pitchDeltas[i] = self.vb.phonemeDict[self.phonemeKey].pitchDeltas[cursor]
         pitchDeltas = torch.squeeze(self.loopSamplerSpectrum(torch.unsqueeze(pitchDeltas, 1), requiredSize, self.repetititionSpacing))
 
@@ -171,12 +171,6 @@ class VocalSegment:
         voicedExcitationFourier = torch.empty(self.end3 - self.start1, int(self.vb.sampleRate / 50) + 1, dtype = torch.cdouble)
         window = torch.hann_window(int(self.vb.sampleRate / 25))
         for i in range(self.end3 - self.start1):
-            #cursor2 = 0
-            #j = 0
-            #while cursor2 <= i * int(self.vb.sampleRate / 75):
-            #    precisePitch = self.vb.phonemeDict[self.phonemeKey].pitchDeltas[j]#implement correct looping
-            #    cursor2 += precisePitch
-            #    j += 1
             precisePitch = pitchDeltas[i]
             nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - self.steadiness[i])))
             transform = torchaudio.transforms.Resample(orig_freq = nativePitchMod,
@@ -575,27 +569,30 @@ class Synthesizer:
     def save(self, filepath):
         torchaudio.save(filepath, torch.unsqueeze(self.returnSignal.detach(), 0), self.sampleRate, format="wav", encoding="PCM_S", bits_per_sample=32)
 
-vb = Voicebank(tkinter.filedialog.askopenfilename(filetypes = ((".nvvb Voicebanks", ".nvvb"), ("all_files", "*"))))
-borders = [0, 1, 2,
-           35, 36, 37,
-           40, 51, 52,
-           75, 76, 79,
-           82, 83, 86,
-           328,329, 330
-          ]
-phonemes = ["A", "N", "A", "T", "E"]
-#offsets = [0, 5, 1, 1, 1]
-offsets = [0, 20, 20, 0, 13]
 
-repetititionSpacing = torch.full([400], 0.8)
+filepath = tkinter.filedialog.askopenfilename(filetypes = ((".nvvb Voicebanks", ".nvvb"), ("all_files", "*")))
+if filepath != "":
+    vb = Voicebank(filepath)
+    borders = [0, 1, 2,
+               35, 36, 37,
+               140, 151, 152,#1
+               175, 176, 179,#1
+               182, 183, 186,#1
+               328,329, 330
+              ]
+    phonemes = ["A", "N", "A", "T", "E"]
+    #offsets = [0, 5, 1, 1, 1]
+    offsets = [0, 20, 20, 0, 13]
 
-#pitch = torch.full([400], 193)
-pitch = torch.full([400], 150)
+    repetititionSpacing = torch.full([400], 0.8)
 
-steadiness = torch.full([400], 0)#bugged
+    #pitch = torch.full([400], 193)
+    pitch = torch.full([400], 159)
 
-breathiness = torch.full([400], 0)
+    steadiness = torch.full([400], 1)
 
-sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+    breathiness = torch.full([400], 0)
 
-sequence.save()
+    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+
+    sequence.save()

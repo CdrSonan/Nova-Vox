@@ -32,6 +32,8 @@ class LocaleDict:
             self.locale["all_files_desc"] = "All files"
             self.locale["name"] = "Name:"
             self.locale["smp_rate"] = "Sample Rate:"
+            self.locale["load_other_VB"] = "load from other VB"
+            self.locale["additive_msg"] = "load data in addition to existing data (yes) or overwrite existing data (no)?"
             self.locale["ok"] = "OK"
             self.locale["phon_list"] = "Phoneme List"
             self.locale["add"] = "add"
@@ -51,4 +53,5 @@ class LocaleDict:
             self.locale["ai_settings"] = "Sample preprocessing and AI training settings"
             self.locale["epochs"] = "AI training epochs:"
             self.locale["train"] = "train AI"
+
             
