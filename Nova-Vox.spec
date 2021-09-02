@@ -4,12 +4,14 @@ specpath = os.path.dirname(os.path.abspath(SPEC))
 
 common_excludes = ["pillow", "torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
+common_datas = [("icon/nova-vox-logo-black.ico", "icon")]
+
 block_cipher = None
 
 a_editor = Analysis(['vb_tester.py'],
                     pathex=[specpath],
                     binaries=[],
-                    datas=[],
+                    datas=common_datas,
                     hiddenimports=[],
                     hookspath=[],
                     hooksconfig={},
@@ -23,7 +25,7 @@ a_editor = Analysis(['vb_tester.py'],
 a_devkit = Analysis(['Devkit_UI.py'],
                     pathex=[specpath],
                     binaries=[],
-                    datas=[],
+                    datas=common_datas,
                     hiddenimports=[],
                     hookspath=[],
                     hooksconfig={},
