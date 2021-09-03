@@ -317,8 +317,8 @@ class RelLoss(nn.Module):
         inputs = inputs.view(-1)
         targets = targets.view(-1)
         differences = torch.abs(inputs - targets)
-        sums = torch.max(torch.abs(inputs + targets), torch.abs(inputs), torch.abs(targets))
-        out = (differences / sums).sum() / inputs.size()[0]
+        refs = torch.abs(targets)
+        out = (differences / refs).sum() / inputs.size()[0]
         return out
     
 class SpecCrfAi(nn.Module):
@@ -443,15 +443,17 @@ class SpecCrfAi(nn.Module):
         Like processData(), train() also takes the square root of the input internally before using the data for inference."""
         
         
+        #if type(indata).__name__ == "Tensor":
         if indata != False:
             if (self.epoch == 0) or self.epoch == epochs:
                 self.epoch = epochs
             else:
                 self.epoch = None
-            
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
-                    data = torch.squeeze(torch.sqrt(data))
+                    print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
+                    #data = torch.squeeze(torch.sqrt(data))
+                    data = torch.squeeze(data)
                     spectrum1 = data[0]
                     spectrum2 = data[-1]
                     indexList = np.arange(0, data.size()[0], 1)
@@ -464,8 +466,7 @@ class SpecCrfAi(nn.Module):
                         self.optimizer.zero_grad()
                         loss.backward()
                         self.optimizer.step()
-                print('epoch [{}/{}], loss:{:.4f}'
-                      .format(epoch + 1, epochs, loss.data))
+                        print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
             
             self.loss = loss
             

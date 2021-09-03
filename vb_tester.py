@@ -53,7 +53,7 @@ class VocalSegment:
         finalPhase = inputTensor[1][pitch].angle()
         phaseDiff = (finalPhase - alignPhase)
         requiredTensors = max(math.ceil((targetSize/BatchSize - batchRS) / (inputTensor.size()[1] - batchRS)), 1)
-        if requiredTensors == 1:
+        if requiredTensors <= 1:
             outputTensor = inputTensor.clone()
             outputTensor = torch.istft(outputTensor, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*BatchSize)
         else:
@@ -82,9 +82,10 @@ class VocalSegment:
     def loopSamplerSpectrum(self, inputTensor, targetSize, repetititionSpacing):
         repetititionSpacing = math.ceil(repetititionSpacing * inputTensor.size()[0] / 2)
         requiredTensors = math.ceil((targetSize - repetititionSpacing) / (inputTensor.size()[0] - repetititionSpacing))
-        if requiredTensors == 1:
+        if requiredTensors <= 1:
             outputTensor = inputTensor.clone()
         else:
+            #print("r", requiredTensors, repetititionSpacing, targetSize - repetititionSpacing, inputTensor.size()[0] - repetititionSpacing)
             outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[0] - repetititionSpacing) + repetititionSpacing, inputTensor.size()[1])
             workingTensor = inputTensor.clone()
             workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.unsqueeze(torch.linspace(1, 0, repetititionSpacing), 1)
@@ -159,7 +160,7 @@ class VocalSegment:
         cursor = 0
         cursor2 = 0
         pitchDeltas = torch.empty(math.ceil(self.vb.phonemeDict[self.phonemeKey].pitchDeltas.sum() / int(self.vb.sampleRate / 75)))
-        for i in range(math.ceil(self.vb.phonemeDict[self.phonemeKey].pitchDeltas.sum() / int(self.vb.sampleRate / 75))):#(self.end3 - self.start1):
+        for i in range(math.floor(self.vb.phonemeDict[self.phonemeKey].pitchDeltas.sum() / int(self.vb.sampleRate / 75))):#(self.end3 - self.start1):
             while cursor2 >= self.vb.phonemeDict[self.phonemeKey].pitchDeltas[cursor]:
                 cursor += 1
                 cursor2 -= self.vb.phonemeDict[self.phonemeKey].pitchDeltas[cursor]
@@ -174,7 +175,7 @@ class VocalSegment:
             precisePitch = pitchDeltas[i]
             nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - self.steadiness[i])))
             transform = torchaudio.transforms.Resample(orig_freq = nativePitchMod,
-                                                       new_freq = self.pitch[i],
+                                                       new_freq = int(self.pitch[i]),
                                                        resampling_method = 'sinc_interpolation')
             buffer = 1000 #this is a terrible idea, but it seems to work
             if cursor < math.ceil(self.vb.sampleRate/75*nativePitchMod/self.pitch[i]):
@@ -279,7 +280,7 @@ class VocalSequence:
                 excitation[windowStart:windowEnd] = segment.getExcitation()
                 
                 self.spectrum[segment.start1:segment.end3] = spectrum
-                """pitchSlopeLength = 5
+                pitchSlopeLength = 5
                 for i in range(segment.end3 - segment.start1):
                     pitchBorder = math.ceil(1920 / segment.pitch[i])
                     fourierPitchShift = math.ceil(1920 / self.vb.phonemeDict[segment.phonemeKey].pitch) - pitchBorder
@@ -287,7 +288,7 @@ class VocalSequence:
                     slope = torch.zeros(961)
                     slope[pitchBorder:pitchBorder + pitchSlopeLength] = torch.linspace(0, 1, pitchSlopeLength)
                     slope[pitchBorder + pitchSlopeLength:] = 1
-                    self.spectrum[i] = (slope * spectrum[i]) + ((1 - i) * shiftedSpectrum)"""
+                    self.spectrum[i + segment.start1] = (slope * spectrum[i]) + ((1 - slope) * shiftedSpectrum)
                 self.excitation[segment.start1*int(self.vb.sampleRate/75):segment.end3*int(self.vb.sampleRate/75)] = excitation
                 self.voicedExcitation[segment.start1*int(self.vb.sampleRate/75):segment.end3*int(self.vb.sampleRate/75)] = voicedExcitation
                 
@@ -296,8 +297,8 @@ class VocalSequence:
                 skipPrevious = False
             
         self.synth.Synthesize(0, self.spectrum, self.excitation, self.voicedExcitation)
-    def save(self):
-        self.synth.save("Output_Demo.wav")
+    def save(self, name):
+        self.synth.save(name)
 
 class VbMetadata:
     """Helper class for holding Voicebank metadata. To be expanded.
@@ -575,24 +576,121 @@ if filepath != "":
     vb = Voicebank(filepath)
     borders = [0, 1, 2,
                35, 36, 37,
-               140, 151, 152,#1
-               175, 176, 179,#1
-               182, 183, 186,#1
+               40, 51, 52,
+               75, 76, 79,
+               82, 83, 86,
                328,329, 330
               ]
-    phonemes = ["A", "N", "A", "T", "E"]
+    phonemes = ["A", "N", "A", "T", "A"]
+    #offsets = [0, 5, 1, 1, 1]
+    offsets = [0, 20, 20, 0, 13]
+
+    repetititionSpacing = torch.full([400], 0.8)
+
+    pitch = torch.full([400], 193)
+    #pitch = torch.full([400], 100)
+
+    steadiness = torch.full([400], 0)
+
+    breathiness = torch.full([400], 0)
+
+    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+
+    sequence.save("Anata test.wav")
+    
+    borders = [0, 1, 2,
+               35, 36, 37,
+               140, 151, 152,
+               175, 176, 179,
+               182, 183, 186,
+               328, 329, 330
+              ]
+    phonemes = ["A", "E", "I", "O", "U"]
     #offsets = [0, 5, 1, 1, 1]
     offsets = [0, 20, 20, 0, 13]
 
     repetititionSpacing = torch.full([400], 0.8)
 
     #pitch = torch.full([400], 193)
-    pitch = torch.full([400], 159)
+    pitch = torch.linspace(250, 100, 400)
 
-    steadiness = torch.full([400], 1)
+    steadiness = torch.full([400], 0)
 
     breathiness = torch.full([400], 0)
 
     sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
-    sequence.save()
+    sequence.save("Vowel Pitch test.wav")
+
+    borders = [0, 1, 2,
+               35, 36, 37,
+               40, 51, 52,
+               75, 76, 79,
+               82, 83, 86,
+               328, 329, 330
+              ]
+    phonemes = ["O", "K", "S", "G", "N"]
+    #offsets = [0, 5, 1, 1, 1]
+    offsets = [0, 20, 20, 0, 13]
+
+    repetititionSpacing = torch.full([400], 0.8)
+
+    pitch = torch.full([400], 193)
+    #pitch = torch.linspace(250, 100, 400)
+
+    steadiness = torch.full([400], 0)
+
+    breathiness = torch.linspace(-1, 1, 400)
+
+    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+
+    sequence.save("Consonant Breathiness test.wav")
+
+    borders = [0, 1, 2,
+               35, 36, 37,
+               140, 151, 152,
+               175, 176, 179,
+               185, 186, 188,
+               328, 329, 330
+              ]
+    phonemes = ["A", "E", "I", "O", "U"]
+    #offsets = [0, 5, 1, 1, 1]
+    offsets = [0, 20, 20, 0, 13]
+
+    repetititionSpacing = torch.full([400], 0.8)
+
+    #pitch = torch.full([400], 193)
+    pitch = torch.linspace(250, 100, 400)
+
+    steadiness = torch.full([400], 0)
+
+    breathiness = torch.full([400], 0)
+
+    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+
+    sequence.save("short Vowel Pitch test.wav")
+
+    borders = [0, 1, 2,
+               35, 36, 37,
+               40, 51, 52,
+               175, 176, 179,
+               182, 183, 186,
+               328, 329, 330
+              ]
+    phonemes = ["E", "K", "I", "K", "U"]
+    #offsets = [0, 5, 1, 1, 1]
+    offsets = [0, 20, 20, 0, 13]
+
+    repetititionSpacing = torch.full([400], 0.8)
+
+    pitch = torch.full([400], 193)
+    #pitch = torch.linspace(250, 100, 400)
+
+    steadiness = torch.linspace(1, -1, 400)
+
+    breathiness =torch.full([400], 0)
+
+    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+
+    sequence.save("Steadiness test.wav")
+    
