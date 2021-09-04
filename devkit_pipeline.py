@@ -12,6 +12,8 @@ import torch.nn as nn
 import torchaudio
 torchaudio.set_audio_backend("soundfile")
 
+import global_consts
+
 class AudioSample:
     """class for holding a single recording audio sample and processing it for usage in a Voicebank.
     
@@ -58,7 +60,7 @@ class AudioSample:
         calculateExcitation(): Method for calculating excitation signal data based on previously set attributes"""
         
         
-    def __init__(self, filepath, sampleRate):
+    def __init__(self, filepath):
         """Constructor for initialising an AudioSample based on an audio file and desired sample rate.
         
         Arguments:
@@ -78,10 +80,10 @@ class AudioSample:
         self.waveform = loadedData[0][0]
         self.sampleRate = loadedData[1]
         del loadedData
-        transform = torchaudio.transforms.Resample(self.sampleRate, sampleRate)
+        transform = torchaudio.transforms.Resample(self.sampleRate, global_consts.sampleRate)
         self.waveform = transform(self.waveform)
         del transform
-        self.sampleRate = sampleRate
+        del self.sampleRate
         self.pitchDeltas = torch.tensor([], dtype = int)
         self.pitchBorders = torch.tensor([], dtype = int)
         self.pitch = torch.tensor([0], dtype = int)
@@ -93,7 +95,6 @@ class AudioSample:
         
         self.expectedPitch = 249.
         self.searchRange = 0.2
-        self.filterWidth = 10
         self.voicedIterations = 2
         self.unvoicedIterations = 10
         
@@ -111,8 +112,8 @@ class AudioSample:
         The function fills the pitchDeltas, pitchBorders and pitch properties."""
         
         
-        batchSize = math.floor((1. + self.searchRange) * self.sampleRate / self.expectedPitch)
-        lowerSearchLimit = math.floor((1. - self.searchRange) * self.sampleRate / self.expectedPitch)
+        batchSize = math.floor((1. + self.searchRange) * global_consts.sampleRate / self.expectedPitch)
+        lowerSearchLimit = math.floor((1. - self.searchRange) * global_consts.sampleRate / self.expectedPitch)
         batchStart = 0
         while batchStart + batchSize <= self.waveform.size()[0] - batchSize:
             sample = torch.index_select(self.waveform, 0, torch.linspace(batchStart, batchStart + batchSize, batchSize, dtype = int))
@@ -121,7 +122,7 @@ class AudioSample:
                 if (sample[i-1] < 0) and (sample[i] > 0):
                     zeroTransitions = torch.cat([zeroTransitions, torch.tensor([i])], 0)
             error = math.inf
-            delta = math.floor(self.sampleRate / self.expectedPitch)
+            delta = math.floor(global_consts.sampleRate / self.expectedPitch)
             for i in zeroTransitions:
                 shiftedSample = torch.index_select(self.waveform, 0, torch.linspace(batchStart + i.item(), batchStart + batchSize + i.item(), batchSize, dtype = int))
                 newError = torch.sum(torch.pow(sample - shiftedSample, 2))
@@ -161,10 +162,8 @@ class AudioSample:
         The function fills the spectrum, spectra and VoicedExcitations properties."""
         
         
-        tripleBatchSize = int(self.sampleRate / 25)
-        BatchSize = int(self.sampleRate / 75)
-        Window = torch.hann_window(tripleBatchSize)
-        signals = torch.stft(self.waveform, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        Window = torch.hann_window(global_consts.tripleBatchSize)
+        signals = torch.stft(self.waveform, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         signals = torch.transpose(signals, 0, 1)
         signalsAbs = signals.abs()
         
@@ -176,9 +175,9 @@ class AudioSample:
         for j in range(self.voicedIterations):
             workingSpectra = torch.max(workingSpectra, self.spectra)
             self.spectra = workingSpectra
-            for i in range(self.filterWidth):
+            for i in range(global_consts.spectralFilterWidth):
                 self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
-            self.spectra = self.spectra / (2 * self.filterWidth + 1)
+            self.spectra = self.spectra / (2 * global_consts.spectralFilterWidth + 1)
         
         self.VoicedExcitations = torch.zeros_like(signals)
         for i in range(signals.size()[0]):
@@ -189,9 +188,9 @@ class AudioSample:
         for j in range(self.unvoicedIterations):
             workingSpectra = torch.max(workingSpectra, self.spectra)
             self.spectra = workingSpectra
-            for i in range(self.filterWidth):
+            for i in range(global_consts.spectralFilterWidth):
                 self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
-            self.spectra = self.spectra / (2 * self.filterWidth + 1)
+            self.spectra = self.spectra / (2 * global_consts.spectralFilterWidth + 1)
         
         self.spectrum = torch.mean(self.spectra, 0)
         for i in range(self.spectra.size()[0]):
@@ -214,10 +213,8 @@ class AudioSample:
         The function fills the excitation and voicedExcitation properties."""
         
         
-        tripleBatchSize = int(self.sampleRate / 25)
-        BatchSize = int(self.sampleRate / 75)
-        Window = torch.hann_window(tripleBatchSize)
-        signals = torch.stft(self.waveform, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        Window = torch.hann_window(global_consts.tripleBatchSize)
+        signals = torch.stft(self.waveform, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         signals = torch.transpose(signals, 0, 1)
         excitations = torch.empty_like(signals)
         for i in range(excitations.size()[0]):
@@ -226,14 +223,13 @@ class AudioSample:
         
         VoicedExcitations = torch.transpose(self.VoicedExcitations, 0, 1)
         excitations = torch.transpose(excitations, 0, 1)
-        self.excitation = torch.istft(excitations, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = Window, onesided = True)
-        self.voicedExcitation = torch.istft(VoicedExcitations, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = Window, onesided = True)
+        self.excitation = torch.istft(excitations, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided = True)
+        self.voicedExcitation = torch.istft(VoicedExcitations, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided = True)
         
         self.excitation = self.excitation - self.voicedExcitation
-        self.excitation = torch.stft(self.excitation, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = Window, return_complex = True, onesided = True)
-        self.voicedExcitation = torch.stft(self.voicedExcitation, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        self.excitation = torch.stft(self.excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        self.voicedExcitation = torch.stft(self.voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         self.excitation = torch.transpose(self.excitation, 0, 1)
-        #self.voicedExcitation = torch.transpose(self.voicedExcitation, 0, 1)
         
         del Window
         del signals
@@ -368,13 +364,13 @@ class SpecCrfAi(nn.Module):
             
         super(SpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(1923, 1923)
+        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(1923, 3842)
+        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(3842, 1923)
+        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(1923, 961)
+        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1)
         
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
@@ -399,7 +395,7 @@ class SpecCrfAi(nn.Module):
         
         fac = torch.tensor([factor])
         x = torch.cat((spectrum1, spectrum2, fac), dim = 0)
-        x = x.float()#.unsqueeze(0).unsqueeze(0)
+        x = x.float()
         x = self.layer1(x)
         x = self.ReLu1(x)
         x = self.layer2(x)
@@ -443,7 +439,6 @@ class SpecCrfAi(nn.Module):
         Like processData(), train() also takes the square root of the input internally before using the data for inference."""
         
         
-        #if type(indata).__name__ == "Tensor":
         if indata != False:
             if (self.epoch == 0) or self.epoch == epochs:
                 self.epoch = epochs
@@ -452,7 +447,7 @@ class SpecCrfAi(nn.Module):
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
                     print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
-                    #data = torch.squeeze(torch.sqrt(data))
+                    #data = torch.sqrt(data)
                     data = torch.squeeze(data)
                     spectrum1 = data[0]
                     spectrum2 = data[-1]
@@ -531,20 +526,13 @@ class SavedSpecCrfAi(nn.Module):
             
         super(SavedSpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(1923, 1923)
+        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(1923, 3842)
+        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(3842, 1923)
+        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(1923, 961)
-        
-        #self.learningRate = learningRate
-        #self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
-        #self.criterion = nn.L1Loss()
-        #self.criterion = RelLoss()
-        #self.epoch = 0
-        #self.loss = None
+        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1)
         
         self.epoch = specCrfAi.getState()['epoch']
         self.load_state_dict(specCrfAi.getState()['model_state_dict'])
@@ -566,7 +554,7 @@ class SavedSpecCrfAi(nn.Module):
         
         fac = torch.tensor([factor])
         x = torch.cat((spectrum1, spectrum2, fac), dim = 0)
-        x = x.float()#.unsqueeze(0).unsqueeze(0)
+        x = x.float()
         x = self.layer1(x)
         x = self.ReLu1(x)
         x = self.layer2(x)
@@ -634,7 +622,6 @@ class VbMetadata:
             
             
         self.name = ""
-        self.sampleRate = 48000
     
 class Voicebank:
     """Class for holding a Voicebank as handled by the devkit.
@@ -787,7 +774,7 @@ class Voicebank:
             filepath: a String representing the filepath to the .wav audio file of the phoneme sample"""
             
             
-        self.phonemeDict[key] = AudioSample(filepath, self.metadata.sampleRate)
+        self.phonemeDict[key] = AudioSample(filepath)
     
     def delPhoneme(self, key):
         """deletes a phoneme from the Voicebank's PhonemeDict"""
@@ -808,7 +795,7 @@ class Voicebank:
     
     def addTrainSample(self, filepath):
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
-        self.stagedTrainSamples.append(AudioSample(filepath, self.metadata.sampleRate))
+        self.stagedTrainSamples.append(AudioSample(filepath))
     
     def delTrainSample(self, index):
         """removes an audio sample from the list of staged training phonemes"""
@@ -836,7 +823,6 @@ class Voicebank:
             self.crfAi = SpecCrfAi()
         print("sample preprocessing started")
         for i in range(len(self.stagedTrainSamples)):
-            self.stagedTrainSamples[i].filterWidth = filterWidth
             self.stagedTrainSamples[i].voicedIterations = voicedIterations
             self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
             self.stagedTrainSamples[i].calculateSpectra()

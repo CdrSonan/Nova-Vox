@@ -14,6 +14,7 @@ import torchaudio
 torchaudio.set_audio_backend("soundfile")
 
 import devkit_pipeline
+import global_consts
 
 class VocalSegment:
     def __init__(self, start1, start2, start3, end1, end2, end3, startCap, endCap, phonemeKey, vb, offset, repetititionSpacing, pitch, steadiness, breathiness):
@@ -34,50 +35,45 @@ class VocalSegment:
         self.breathiness = breathiness
         
     def phaseShift(self, inputTensor, pitch, phase):
-        #factor = torch.exp(-j * phase / pitch * torch.unsqueeze(torch.arange(inputTensor.size()[0]), 1))
-        #return factor * inputTensor
         absolutes = inputTensor.abs()
         phases = inputTensor.angle()
         phaseOffsets = torch.full(phases.size(), phase / pitch)
         phases += phaseOffsets
-        #phases = torch.fmod(phases, 2 * math.pi)
         return torch.polar(absolutes, phases)
         
     def loopSamplerVoicedExcitation(self, inputTensor, targetSize, repetititionSpacing, pitch):
         batchRS = math.ceil(repetititionSpacing * inputTensor.size()[1] / 2)
-        BatchSize = int(self.vb.sampleRate / 75)
-        tripleBatchSize = int(self.vb.sampleRate / 25)
-        repetititionSpacing = int(repetititionSpacing * BatchSize * math.ceil(inputTensor.size()[1] / 2))
-        window = torch.hann_window(tripleBatchSize)
+        repetititionSpacing = int(repetititionSpacing * global_consts.batchSize * math.ceil(inputTensor.size()[1] / 2))
+        window = torch.hann_window(global_consts.tripleBatchSize)
         alignPhase = inputTensor[batchRS][pitch].angle()
         finalPhase = inputTensor[1][pitch].angle()
         phaseDiff = (finalPhase - alignPhase)
-        requiredTensors = max(math.ceil((targetSize/BatchSize - batchRS) / (inputTensor.size()[1] - batchRS)), 1)
+        requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[1] - batchRS)), 1)
         if requiredTensors <= 1:
             outputTensor = inputTensor.clone()
-            outputTensor = torch.istft(outputTensor, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*BatchSize)
+            outputTensor = torch.istft(outputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
         else:
-            outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[1] * BatchSize - repetititionSpacing) + repetititionSpacing)
+            outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing) + repetititionSpacing)
             
             workingTensor = inputTensor.clone()
-            workingTensor = torch.istft(workingTensor, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*BatchSize)
+            workingTensor = torch.istft(workingTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
             workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.linspace(1, 0, repetititionSpacing)
-            outputTensor[0:inputTensor.size()[1] * BatchSize] += workingTensor
+            outputTensor[0:inputTensor.size()[1] * global_consts.batchSize] += workingTensor
 
             for i in range(1, requiredTensors - 1):
                 workingTensor = inputTensor.clone()
                 workingTensor = self.phaseShift(workingTensor, pitch, i * phaseDiff)
-                workingTensor = torch.istft(workingTensor, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*BatchSize)
+                workingTensor = torch.istft(workingTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
                 workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.linspace(0, 1, repetititionSpacing)
                 workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.linspace(1, 0, repetititionSpacing)
-                outputTensor[i * (inputTensor.size()[1] * BatchSize - repetititionSpacing):i * (inputTensor.size()[1] * BatchSize - repetititionSpacing) + inputTensor.size()[1] * BatchSize] += workingTensor
+                outputTensor[i * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing):i * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing) + inputTensor.size()[1] * global_consts.batchSize] += workingTensor
 
             workingTensor = inputTensor.clone()
             workingTensor = self.phaseShift(workingTensor, pitch, (requiredTensors - 1) * phaseDiff)
-            workingTensor = torch.istft(workingTensor, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*BatchSize)
+            workingTensor = torch.istft(workingTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
             workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.linspace(0, 1, repetititionSpacing)
-            outputTensor[(requiredTensors - 1) * (inputTensor.size()[1] * BatchSize - repetititionSpacing):] += workingTensor
-        return outputTensor[0:targetSize * BatchSize]
+            outputTensor[(requiredTensors - 1) * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing):] += workingTensor
+        return outputTensor[0:targetSize * global_consts.batchSize]
     
     def loopSamplerSpectrum(self, inputTensor, targetSize, repetititionSpacing):
         repetititionSpacing = math.ceil(repetititionSpacing * inputTensor.size()[0] / 2)
@@ -85,7 +81,6 @@ class VocalSegment:
         if requiredTensors <= 1:
             outputTensor = inputTensor.clone()
         else:
-            #print("r", requiredTensors, repetititionSpacing, targetSize - repetititionSpacing, inputTensor.size()[0] - repetititionSpacing)
             outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[0] - repetititionSpacing) + repetititionSpacing, inputTensor.size()[1])
             workingTensor = inputTensor.clone()
             workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.unsqueeze(torch.linspace(1, 0, repetititionSpacing), 1)
@@ -120,8 +115,6 @@ class VocalSegment:
         return torch.square(spectrum + (torch.pow(1 - torch.unsqueeze(self.steadiness[windowStart-self.offset:windowEnd-self.offset], 1), 2) * spectra))
     
     def getExcitation(self):
-        BatchSize = int(self.vb.sampleRate / 75)
-        tripleBatchSize = int(self.vb.sampleRate / 25)
         premul = self.vb.phonemeDict[self.phonemeKey].excitation.size()[0] / (self.end3 - self.start1 + 1)
         if self.startCap:
             windowStart = 0
@@ -141,75 +134,60 @@ class VocalSegment:
             length += self.end2
         excitation = self.vb.phonemeDict[self.phonemeKey].excitation[windowStart:windowEnd]
         excitation = torch.transpose(excitation, 0, 1)
-        transform = torchaudio.transforms.TimeStretch(hop_length = int(self.vb.sampleRate / 75),
-                                                      n_freq = int(self.vb.sampleRate / 50) + 1, 
+        transform = torchaudio.transforms.TimeStretch(hop_length = global_consts.batchSize,
+                                                      n_freq = global_consts.halfTripleBatchSize + 1, 
                                                       fixed_rate = premul)
         excitation = transform(torch.view_as_real(excitation))
         excitation = torch.view_as_complex(excitation)[:, 0:length]
         excitation = excitation * torch.minimum(torch.ones(length), 1. + self.breathiness[brStart:brEnd])
-        window = torch.hann_window(int(self.vb.sampleRate / 25))
-        excitation = torch.istft(excitation, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = window, onesided = True, length = length*int(self.vb.sampleRate / 75))
-        return excitation[0:length*int(self.vb.sampleRate / 75)]
+        window = torch.hann_window(global_consts.tripleBatchSize)
+        excitation = torch.istft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = length*global_consts.batchSize)
+        return excitation[0:length*global_consts.batchSize]
     
     def getVoicedExcitation(self):
-        BatchSize = int(self.vb.sampleRate / 75)
         nativePitch = self.vb.phonemeDict[self.phonemeKey].pitch
 
-        requiredSize = math.ceil(torch.max(self.vb.phonemeDict[self.phonemeKey].pitchDeltas) / torch.min(self.pitch) * (self.end3 - self.start1) * int(self.vb.sampleRate / 75))
-        voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, requiredSize, self.repetititionSpacing, math.ceil(nativePitch / 75.))
+        requiredSize = math.ceil(torch.max(self.vb.phonemeDict[self.phonemeKey].pitchDeltas) / torch.min(self.pitch) * (self.end3 - self.start1) * global_consts.batchSize)
+        voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, requiredSize, self.repetititionSpacing, math.ceil(nativePitch / global_consts.tickRate))
         cursor = 0
         cursor2 = 0
-        pitchDeltas = torch.empty(math.ceil(self.vb.phonemeDict[self.phonemeKey].pitchDeltas.sum() / int(self.vb.sampleRate / 75)))
-        for i in range(math.floor(self.vb.phonemeDict[self.phonemeKey].pitchDeltas.sum() / int(self.vb.sampleRate / 75))):#(self.end3 - self.start1):
+        pitchDeltas = torch.empty(math.ceil(self.vb.phonemeDict[self.phonemeKey].pitchDeltas.sum() / global_consts.batchSize))
+        for i in range(math.floor(self.vb.phonemeDict[self.phonemeKey].pitchDeltas.sum() / global_consts.batchSize)):
             while cursor2 >= self.vb.phonemeDict[self.phonemeKey].pitchDeltas[cursor]:
                 cursor += 1
                 cursor2 -= self.vb.phonemeDict[self.phonemeKey].pitchDeltas[cursor]
-            cursor2 += int(self.vb.sampleRate / 75)
+            cursor2 += global_consts.batchSize
             pitchDeltas[i] = self.vb.phonemeDict[self.phonemeKey].pitchDeltas[cursor]
         pitchDeltas = torch.squeeze(self.loopSamplerSpectrum(torch.unsqueeze(pitchDeltas, 1), requiredSize, self.repetititionSpacing))
 
         cursor = 0
-        voicedExcitationFourier = torch.empty(self.end3 - self.start1, int(self.vb.sampleRate / 50) + 1, dtype = torch.cdouble)
-        window = torch.hann_window(int(self.vb.sampleRate / 25))
+        voicedExcitationFourier = torch.empty(self.end3 - self.start1, global_consts.halfTripleBatchSize + 1, dtype = torch.cdouble)
+        window = torch.hann_window(global_consts.tripleBatchSize)
         for i in range(self.end3 - self.start1):
             precisePitch = pitchDeltas[i]
             nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - self.steadiness[i])))
-            transform = torchaudio.transforms.Resample(orig_freq = nativePitchMod,
-                                                       new_freq = int(self.pitch[i]),
+            transform = torchaudio.transforms.Resample(orig_freq = 1000 * nativePitchMod,
+                                                       new_freq = int(1000 * self.pitch[i]),
                                                        resampling_method = 'sinc_interpolation')
             buffer = 1000 #this is a terrible idea, but it seems to work
-            if cursor < math.ceil(self.vb.sampleRate/75*nativePitchMod/self.pitch[i]):
-                voicedExcitationPart = torch.cat((torch.zeros(math.ceil(self.vb.sampleRate/75*nativePitchMod/self.pitch[i]) - cursor), voicedExcitation), 0)
-                voicedExcitationPart = transform(voicedExcitationPart[self.offset:(3*math.ceil(self.vb.sampleRate/75*nativePitchMod/self.pitch[i])) + self.offset + buffer])[0:int(self.vb.sampleRate / 25)]
+            if cursor < math.ceil(global_consts.batchSize*nativePitchMod/self.pitch[i]):
+                voicedExcitationPart = torch.cat((torch.zeros(math.ceil(global_consts.batchSize*nativePitchMod/self.pitch[i]) - cursor), voicedExcitation), 0)
+                voicedExcitationPart = transform(voicedExcitationPart[self.offset:(3*math.ceil(global_consts.batchSize*nativePitchMod/self.pitch[i])) + self.offset + buffer])[0:global_consts.tripleBatchSize]
             else:
-                voicedExcitationPart = transform(voicedExcitation[cursor - math.ceil(self.vb.sampleRate/75*nativePitchMod/self.pitch[i]) + self.offset:cursor + (2*math.ceil(self.vb.sampleRate/75*nativePitchMod/self.pitch[i])) + self.offset + buffer])[0:int(self.vb.sampleRate / 25)]
-            voicedExcitationFourier[i] = torch.fft.rfft(voicedExcitationPart * window) #!!!HERE!!!
-            cursor += math.ceil((self.vb.sampleRate/75) * (nativePitchMod/self.pitch[i]))
+                voicedExcitationPart = transform(voicedExcitation[cursor - math.ceil(global_consts.batchSize*nativePitchMod/self.pitch[i]) + self.offset:cursor + (2*math.ceil(global_consts.batchSize*nativePitchMod/self.pitch[i])) + self.offset + buffer])[0:global_consts.tripleBatchSize]
+            voicedExcitationFourier[i] = torch.fft.rfft(voicedExcitationPart * window)
+            cursor += math.ceil(global_consts.batchSize * (nativePitchMod/self.pitch[i]))
         voicedExcitationFourier = voicedExcitationFourier.transpose(0, 1) * torch.minimum(torch.ones(self.breathiness.size()[0]), 1. - self.breathiness)
-        voicedExcitation = torch.istft(voicedExcitationFourier, int(self.vb.sampleRate / 25), hop_length = int(self.vb.sampleRate / 75), win_length = int(self.vb.sampleRate / 25), window = window, onesided = True, length = (self.end3 - self.start1)*int(self.vb.sampleRate / 75))
-        
-        #nativePitch = self.vb.phonemeDict[self.phonemeKey].pitches[...]
-        #pitch = nativePitch + self.vb.phonemeDict[phonemeKey].pitches...
-        #premul = self.pitch / nativePitch * self.vb.sampleRate / 75
-        #windowStart = math.floor(self.offset * self.vb.sampleRate / 75)
-        #windowEnd = math.ceil((self.end3 - self.start1) * premul + (self.offset * self.vb.sampleRate / 75))
-        #windowStart = math.floor(self.offset)
-        #windowEnd = math.ceil((self.end3 - self.start1) * premul + self.offset)
-        #voicedExcitation = self.vb.phonemeDict[self.phonemeKey].voicedExcitation[windowStart:windowEnd]
-        #voicedExcitation = self.loopSamplerVoicedExcitation(self.vb.phonemeDict[self.phonemeKey].voicedExcitation, windowEnd, self.repetititionSpacing, math.ceil(nativePitch / 75.))[windowStart:windowEnd]
-        #transform = torchaudio.transforms.Resample(orig_freq = nativePitch,
-        #                                           new_freq = self.pitch,
-        #                                           resampling_method = 'sinc_interpolation')
-        #voicedExcitation = transform(voicedExcitation)
+        voicedExcitation = torch.istft(voicedExcitationFourier, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = (self.end3 - self.start1)*global_consts.batchSize)
         
 
         if self.startCap == False:
-            slope = torch.linspace(0, 1, (self.start3 - self.start1) * int(self.vb.sampleRate / 75))
-            voicedExcitation[0:(self.start3 - self.start1) * int(self.vb.sampleRate / 75)] *= slope
+            slope = torch.linspace(0, 1, (self.start3 - self.start1) * global_consts.batchSize)
+            voicedExcitation[0:(self.start3 - self.start1) * global_consts.batchSize] *= slope
         if self.endCap == False:
-            slope = torch.linspace(1, 0, (self.end3 - self.end1) * int(self.vb.sampleRate / 75))
-            voicedExcitation[(self.end1 - self.start1) * int(self.vb.sampleRate / 75):(self.end3 - self.start1) * int(self.vb.sampleRate / 75)] *= slope
-        return voicedExcitation[0:(self.end3 - self.start1) * int(self.vb.sampleRate / 75)]
+            slope = torch.linspace(1, 0, (self.end3 - self.end1) * global_consts.batchSize)
+            voicedExcitation[(self.end1 - self.start1) * global_consts.batchSize:(self.end3 - self.start1) * global_consts.batchSize] *= slope
+        return voicedExcitation[0:(self.end3 - self.start1) * global_consts.batchSize]
 
 class VocalSequence:
     def __init__(self, start, end, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness):
@@ -218,9 +196,9 @@ class VocalSequence:
         self.vb = vb
         self.synth = Synthesizer(self.vb.sampleRate)
         
-        self.spectrum = torch.zeros((self.end - self.start, int(self.vb.sampleRate / 25 / 2) + 1))
-        self.excitation = torch.zeros((self.end - self.start) * int(self.vb.sampleRate / 75))
-        self.voicedExcitation = torch.zeros((self.end - self.start) * int(self.vb.sampleRate / 75))
+        self.spectrum = torch.zeros((self.end - self.start, global_consts.halfTripleBatchSize + 1))
+        self.excitation = torch.zeros((self.end - self.start) * global_consts.batchSize)
+        self.voicedExcitation = torch.zeros((self.end - self.start) * global_consts.batchSize)
         
         self.segments = []
         if len(phonemes)== 1:#rewrite border system to use tensor
@@ -239,58 +217,58 @@ class VocalSequence:
             if self.requiresUpdate[i] == 1:
                 print(i)
                 segment = self.segments[i]
-                spectrum = torch.zeros((segment.end3 - segment.start1, int(self.vb.sampleRate / 25 / 2) + 1))
-                excitation = torch.zeros((segment.end3 - segment.start1) * int(self.vb.sampleRate / 75))
-                voicedExcitation = torch.zeros((segment.end3 - segment.start1) * int(self.vb.sampleRate / 75))
+                spectrum = torch.zeros((segment.end3 - segment.start1, global_consts.halfTripleBatchSize + 1))
+                excitation = torch.zeros((segment.end3 - segment.start1) * global_consts.batchSize)
+                voicedExcitation = torch.zeros((segment.end3 - segment.start1) * global_consts.batchSize)
                 if segment.startCap:
                     windowStart = 0
                 else:
                     windowStart = segment.start3 - segment.start1
                     previousSpectrum = self.segments[i-1].getSpectrum()[-1]
-                    previousVoicedExcitation = self.segments[i-1].getVoicedExcitation()[(self.segments[i-1].end1-self.segments[i-1].end3)*int(self.vb.sampleRate/75):]
+                    previousVoicedExcitation = self.segments[i-1].getVoicedExcitation()[(self.segments[i-1].end1-self.segments[i-1].end3)*global_consts.batchSize:]
                 if segment.endCap:
                     windowEnd = segment.end3 - segment.start1
                 else:
                     windowEnd = segment.end1 - segment.start1
                     nextSpectrum = self.segments[i+1].getSpectrum()[0]
-                    nextVoicedExcitation = self.segments[i+1].getVoicedExcitation()[0:(self.segments[i+1].start3-self.segments[i+1].start1)*int(self.vb.sampleRate/75)]
+                    nextVoicedExcitation = self.segments[i+1].getVoicedExcitation()[0:(self.segments[i+1].start3-self.segments[i+1].start1)*global_consts.batchSize]
                 
                 spectrum[windowStart:windowEnd] = segment.getSpectrum()
                 voicedExcitation = segment.getVoicedExcitation()
                 if segment.startCap == False:
                     for j in range(segment.start3 - segment.start1):
                         spectrum[j] = self.vb.crfAi.processData(previousSpectrum, spectrum[windowStart], j / (segment.start3 - segment.start1))
-                    voicedExcitation[0:(segment.start3-segment.start1)*int(self.vb.sampleRate/75)] += previousVoicedExcitation
+                    voicedExcitation[0:(segment.start3-segment.start1)*global_consts.batchSize] += previousVoicedExcitation
                 if segment.endCap == False:
                     for j in range(segment.end1 - segment.start1, segment.end3 - segment.start1):
                         spectrum[j] = self.vb.crfAi.processData(spectrum[windowEnd], nextSpectrum, (j - segment.start1) / (segment.end3 - segment.end1))
-                    voicedExcitation[(segment.end1-segment.end3)*int(self.vb.sampleRate/75):] += nextVoicedExcitation
+                    voicedExcitation[(segment.end1-segment.end3)*global_consts.batchSize:] += nextVoicedExcitation
                 if segment.startCap:
                     windowStart = 0
                 else:
-                    windowStart = (segment.start2 - segment.start1) * int(self.vb.sampleRate / 75)
-                    previousExcitation = self.segments[i-1].getExcitation()[(segment.start1-segment.start2)*int(self.vb.sampleRate/75):]
+                    windowStart = (segment.start2 - segment.start1) * global_consts.batchSize
+                    previousExcitation = self.segments[i-1].getExcitation()[(segment.start1-segment.start2)*global_consts.batchSize:]
                     excitation[0:windowStart] = previousExcitation
                 if segment.endCap:
-                    windowEnd = (segment.end3 - segment.start1) * int(self.vb.sampleRate / 75)
+                    windowEnd = (segment.end3 - segment.start1) * global_consts.batchSize
                 else:
-                    windowEnd = (segment.end2 - segment.start1) * int(self.vb.sampleRate / 75)
-                    nextExcitation = self.segments[i+1].getExcitation()[0:(segment.end3-segment.end2)*int(self.vb.sampleRate/75)]
+                    windowEnd = (segment.end2 - segment.start1) * global_consts.batchSize
+                    nextExcitation = self.segments[i+1].getExcitation()[0:(segment.end3-segment.end2)*global_consts.batchSize]
                     excitation[windowEnd:] = nextExcitation
                 excitation[windowStart:windowEnd] = segment.getExcitation()
                 
                 self.spectrum[segment.start1:segment.end3] = spectrum
                 pitchSlopeLength = 5
                 for i in range(segment.end3 - segment.start1):
-                    pitchBorder = math.ceil(1920 / segment.pitch[i])
-                    fourierPitchShift = math.ceil(1920 / self.vb.phonemeDict[segment.phonemeKey].pitch) - pitchBorder
+                    pitchBorder = math.ceil(global_consts.tripleBatchSize / segment.pitch[i])
+                    fourierPitchShift = math.ceil(global_consts.tripleBatchSize / self.vb.phonemeDict[segment.phonemeKey].pitch) - pitchBorder
                     shiftedSpectrum = torch.roll(spectrum[i], fourierPitchShift)
-                    slope = torch.zeros(961)
+                    slope = torch.zeros(global_consts.halfTripleBatchSize + 1)
                     slope[pitchBorder:pitchBorder + pitchSlopeLength] = torch.linspace(0, 1, pitchSlopeLength)
                     slope[pitchBorder + pitchSlopeLength:] = 1
                     self.spectrum[i + segment.start1] = (slope * spectrum[i]) + ((1 - slope) * shiftedSpectrum)
-                self.excitation[segment.start1*int(self.vb.sampleRate/75):segment.end3*int(self.vb.sampleRate/75)] = excitation
-                self.voicedExcitation[segment.start1*int(self.vb.sampleRate/75):segment.end3*int(self.vb.sampleRate/75)] = voicedExcitation
+                self.excitation[segment.start1*global_consts.batchSize:segment.end3*global_consts.batchSize] = excitation
+                self.voicedExcitation[segment.start1*global_consts.batchSize:segment.end3*global_consts.batchSize] = voicedExcitation
                 
                 skipPrevious = True#implement skipPrevious
             else:
@@ -323,7 +301,6 @@ class VbMetadata:
             
             
         self.name = ""
-        self.sampleRate = 48000
 
 class SavedSpecCrfAi(nn.Module):
     """A stripped down version of SpecCrfAi only holding the data required for synthesis.
@@ -357,20 +334,13 @@ class SavedSpecCrfAi(nn.Module):
             
         super(SavedSpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(1923, 1923)
+        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(1923, 3842)
+        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(3842, 1923)
+        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(1923, 961)
-        
-        #self.learningRate = learningRate
-        #self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
-        #self.criterion = nn.L1Loss()
-        #self.criterion = RelLoss()
-        #self.epoch = 0
-        #self.loss = None
+        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1)
         
         self.epoch = 0
         
@@ -390,7 +360,7 @@ class SavedSpecCrfAi(nn.Module):
         
         fac = torch.tensor([factor])
         x = torch.cat((spectrum1, spectrum2, fac), dim = 0)
-        x = x.float()#.unsqueeze(0).unsqueeze(0)
+        x = x.float()
         x = self.layer1(x)
         x = self.ReLu1(x)
         x = self.layer2(x)
@@ -554,21 +524,17 @@ class Synthesizer:
         self.returnSignal = torch.tensor([], dtype = float)
         
     def Synthesize(self, steadiness, spectrum, Excitation, VoicedExcitation):
-        tripleBatchSize = int(self.sampleRate / 25)
-        BatchSize = int(self.sampleRate / 75)
-        Window = torch.hann_window(tripleBatchSize)
+        Window = torch.hann_window(global_consts.tripleBatchSize)
         
-        #HERE + VoicedExcitation
-        
-        self.returnSignal = torch.stft(Excitation + VoicedExcitation , tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = Window, return_complex = True, onesided = True)
-        self.returnSignal = torch.transpose(self.returnSignal, 0, 1)[0:-1]
+        self.returnSignal = torch.stft(Excitation + VoicedExcitation , global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        self.returnSignal = torch.transpose(self.returnSignal, 0, 1)[0:-1]#Huh?
         self.returnSignal = self.returnSignal * spectrum
         self.returnSignal = torch.transpose(self.returnSignal, 0, 1)
-        self.returnSignal = torch.istft(self.returnSignal, tripleBatchSize, hop_length = BatchSize, win_length = tripleBatchSize, window = Window, onesided=True)
+        self.returnSignal = torch.istft(self.returnSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided=True)
         del Window
         
     def save(self, filepath):
-        torchaudio.save(filepath, torch.unsqueeze(self.returnSignal.detach(), 0), self.sampleRate, format="wav", encoding="PCM_S", bits_per_sample=32)
+        torchaudio.save(filepath, torch.unsqueeze(self.returnSignal.detach(), 0), global_consts.sampleRate, format="wav", encoding="PCM_S", bits_per_sample=32)
 
 
 filepath = tkinter.filedialog.askopenfilename(filetypes = ((".nvvb Voicebanks", ".nvvb"), ("all_files", "*")))

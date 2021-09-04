@@ -22,7 +22,7 @@ a_editor = Analysis(['vb_tester.py'],
                     cipher=block_cipher,
                     noarchive=False)
 
-a_devkit = Analysis(['Devkit_UI.py'],
+a_devkit = Analysis(['Devkit_runtime.py'],
                     pathex=[specpath],
                     binaries=[],
                     datas=common_datas,
@@ -36,7 +36,7 @@ a_devkit = Analysis(['Devkit_UI.py'],
                     cipher=block_cipher,
                     noarchive=False)
 
-MERGE( (a_editor, 'vb_tester', 'Nova-Vox Editor'), (a_devkit, 'Devkit_UI', 'Nova-Vox VB Devkit') )
+MERGE( (a_editor, 'vb_tester', 'Nova-Vox Editor'), (a_devkit, 'Devkit_runtime', 'Nova-Vox VB Devkit') )
 
 pyz_editor = PYZ(a_editor.pure, a_editor.zipped_data, cipher=block_cipher)
 
