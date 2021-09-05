@@ -17,6 +17,41 @@ import devkit_pipeline
 import global_consts
 
 class VocalSegment:
+    """Class representing the segment covered by a single phoneme within a VocalSequence.
+    
+    Attributes:
+        start1-3, end1-3: timing borders of the segment
+        
+        startCap, endCap: Whether there is a transition from the previous, and to the next phoneme
+        
+        phonemeKey: The key of the phoneme of the sequence
+        
+        vb: The Voicebank to use data from
+        
+        offset: The offset applied to the audio before sampling. Non-zero values discard the beginning of the audio.
+        
+        repetititionSpacing: The amout of overlap applied when looping the sample
+        
+        pitch: relevant part of the pitch parameter curve
+        
+        steadiness: relevant part of the steadiness parameter curve
+        
+        breathiness: relevant part of the breathiness parameter curve
+        
+    Methods:
+        phaseShift: helper function for phase shifting audio by a certain phase at a certain pitch
+        
+        loopSamplerVoicedExcitation: helper function for looping the voiced excitation signal
+        
+        loopSamplerSpectrum: helper function for looping time sequences of spectra
+        
+        getSpectrum: samples the time sequence of spectra for the segment
+        
+        getExcitation: samples the unvoiced excitation signal of the segment
+        
+        getVoicedExcitation: samples the voiced excitation signal of the segment"""
+
+
     def __init__(self, start1, start2, start3, end1, end2, end3, startCap, endCap, phonemeKey, vb, offset, repetititionSpacing, pitch, steadiness, breathiness):
         self.start1 = start1
         self.start2 = start2
@@ -190,6 +225,7 @@ class VocalSegment:
         return voicedExcitation[0:(self.end3 - self.start1) * global_consts.batchSize]
 
 class VocalSequence:
+    """temporary class for combining several VocalSegments into a sequence. Currently no acceleration structure"""
     def __init__(self, start, end, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness):
         self.start = start
         self.end = end
@@ -284,8 +320,6 @@ class VbMetadata:
     Attributes:
         name: The name of the Voicebank
         
-        sampleRate: the sample rate of the audio samples used by this Voicebank. !!!DO NOT MODIFY!!!
-        
     Methods:
         __init__: basic class constructor"""
         
@@ -313,11 +347,11 @@ class SavedSpecCrfAi(nn.Module):
     Methods:
         __init__: Constructor initialising NN layers and prerequisite properties
         
-        forward(): Forward NN pass with unprocessed in-and outputs
+        forward: Forward NN pass with unprocessed in-and outputs
         
-        processData(): forward NN pass with data pre-and postprocessing as expected by other classes
+        processData: forward NN pass with data pre-and postprocessing as expected by other classes
         
-        getState() returns the state of the NN, its optimizer and their prerequisites in a Dictionary
+        getState: returns the state of the NN, its optimizer and their prerequisites in a Dictionary
         
     This version of the AI can only run data through the NN forward, backpropagation and, by extension, training, are not possible."""
     
@@ -411,8 +445,6 @@ class Voicebank:
     Functions:
         __init__: Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank
         
-        save: saves the loaded Voicebank to a file
-        
         loadMetadata: loads Voicebank Metadata from a Voicebank file
         
         loadPhonemeDict: loads Phoneme data from a Voicebank file
@@ -421,27 +453,7 @@ class Voicebank:
         
         loadParameters: currently placeholder
         
-        loadWordDict: currently placeholder
-        
-        addPHoneme: adds a phoneme to the Voicebank's PhonemeDict
-        
-        delPhoneme: deletes a Phoneme from the vVoicebank's PhonemeDict
-        
-        changePhonemeKey: changes the key by which a phoneme in the Voicebank's phonemeDict can be accessed, but leaves the rest of its data unchanged
-        
-        changePhonemeFile: changes the audio file used for a phoneme in the Voicebank's PhonemeDict
-        
-        finalizePhoneme: finalizes a Phoneme, discarding any data related to it that's not strictly required for synthesis
-        
-        addTrainSample: stages an audio sample the phoneme crossfade Ai is to be trained with
-        
-        delTrainSampled: removes an audio sample from the list of staged training phonemes
-        
-        changeTrainSampleFile: currently unused method that changes the file of a staged phoneme crossfade Ai training sample
-        
-        trainCrfAi: initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings
-        
-        finalizeCrfAi: finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
+        loadWordDict: currently placeholder"""
         
         
     def __init__(self, filepath):

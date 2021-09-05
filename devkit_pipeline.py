@@ -22,8 +22,6 @@ class AudioSample:
         
         waveform: original audio waveform
         
-        sampleRate: sample rate of the sample. Can be set in the constructor, and the loaded audio will be resampled accordingly.
-        
         pitchDeltas: duration of each vocal chord vibration in data points
         
         pitchBorders: borders between each vocal chord vibration in data points measured from sample start
@@ -38,7 +36,7 @@ class AudioSample:
         
         voicedExcitation: voiced excitation signal
         
-        VoicedExcitations: please do not access. Temp container used during excitation signal calculation
+        _voicedExcitations: please do not access. Temp container used during excitation signal calculation
         
         expectedPitch: estimated pitch of the sample in Hz. Must be manually filled and is used during calculatePitch() calls.
         
@@ -51,7 +49,7 @@ class AudioSample:
         unvoicedIterations: spectral filtering iterations used for unvoiced component. Must be manually filled with a positive Integer and is used during calculateSpectra() calls.
     
     Methods:
-        __init__: Constructor for initialising an AudioSample based on an audio file and desired sample rate.
+        __init__: Constructor for initialising an AudioSample based on an audio file
         
         calculatePitch(): Method for calculating pitch data based on previously set attributes
         
@@ -65,8 +63,6 @@ class AudioSample:
         
         Arguments:
             filepath: Expects a String that can be interpreted as a filepath to a .wav audio file. Determines the audio file to be loaded into the object.
-            
-            sampleRate: Sets the sample rate of the contained audio file. Files using a different sample rate will be resampled accordingly. Should be set to the sample rate of the Voicebank.
             
         Returns:
             None
@@ -91,7 +87,7 @@ class AudioSample:
         self.spectrum = torch.tensor([], dtype = float)
         self.excitation = torch.tensor([], dtype = float)
         self.voicedExcitation = torch.tensor([], dtype = float)
-        self.VoicedExcitations = torch.tensor([], dtype = float)
+        self._voicedExcitations = torch.tensor([], dtype = float)
         
         self.expectedPitch = 249.
         self.searchRange = 0.2
@@ -157,9 +153,9 @@ class AudioSample:
             None
             
         The spectral calculation uses an adaptation of the True Envelope Estimator. It works with a fixed smoothing range determined by filterWidth (inta fourier space data points).
-        The algorithm first runs an amount of filtering iterations determined by voicedIterations, selectively saves the peaking frequencies of the signal into VoicedExcitations, 
+        The algorithm first runs an amount of filtering iterations determined by voicedIterations, selectively saves the peaking frequencies of the signal into _voicedExcitations, 
         then runs the filtering algorithm again a number of iterations determined by unvoicedIterations.
-        The function fills the spectrum, spectra and VoicedExcitations properties."""
+        The function fills the spectrum, spectra and _voicedExcitations properties."""
         
         
         Window = torch.hann_window(global_consts.tripleBatchSize)
@@ -179,11 +175,11 @@ class AudioSample:
                 self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
             self.spectra = self.spectra / (2 * global_consts.spectralFilterWidth + 1)
         
-        self.VoicedExcitations = torch.zeros_like(signals)
+        self._voicedExcitations = torch.zeros_like(signals)
         for i in range(signals.size()[0]):
             for j in range(signals.size()[1]):
                 if torch.sqrt(signalsAbs[i][j]) > self.spectra[i][j]:
-                    self.VoicedExcitations[i][j] = signals[i][j]
+                    self._voicedExcitations[i][j] = signals[i][j]
                 
         for j in range(self.unvoicedIterations):
             workingSpectra = torch.max(workingSpectra, self.spectra)
@@ -195,7 +191,6 @@ class AudioSample:
         self.spectrum = torch.mean(self.spectra, 0)
         for i in range(self.spectra.size()[0]):
             self.spectra[i] = self.spectra[i] - self.spectrum
-        #return torch.log(signalsAbs)
         del Window
         del signals
         del workingSpectra
@@ -209,7 +204,7 @@ class AudioSample:
         Returns:
             None
             
-        The excitation is calculated from the original waveform, calculated spectra and VoicedExcitations property only.
+        The excitation is calculated from the original waveform, calculated spectra and _voicedExcitations property only.
         The function fills the excitation and voicedExcitation properties."""
         
         
@@ -219,12 +214,12 @@ class AudioSample:
         excitations = torch.empty_like(signals)
         for i in range(excitations.size()[0]):
             excitations[i] = signals[i] / torch.square(self.spectrum + self.spectra[i])
-            self.VoicedExcitations[i] = self.VoicedExcitations[i] / torch.square(self.spectrum + self.spectra[i])
+            self._voicedExcitations[i] = self._voicedExcitations[i] / torch.square(self.spectrum + self.spectra[i])
         
-        VoicedExcitations = torch.transpose(self.VoicedExcitations, 0, 1)
+        voicedExcitations = torch.transpose(self._voicedExcitations, 0, 1)
         excitations = torch.transpose(excitations, 0, 1)
         self.excitation = torch.istft(excitations, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided = True)
-        self.voicedExcitation = torch.istft(VoicedExcitations, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided = True)
+        self.voicedExcitation = torch.istft(voicedExcitations, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided = True)
         
         self.excitation = self.excitation - self.voicedExcitation
         self.excitation = torch.stft(self.excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
@@ -273,7 +268,7 @@ class loadedAudioSample:
         self.voicedExcitation = audioSample.voicedExcitation
         
 class RelLoss(nn.Module):
-    """currently unused function for calculating relative loss values to be used with AI optimisers.
+    """function for calculating relative loss values between target and actual Tensor objects. Designed to be used with AI optimizers.
     
     Attributes:
         None
@@ -336,15 +331,15 @@ class SpecCrfAi(nn.Module):
     Methods:
         __init__: Constructor initialising NN layers and prerequisite properties
         
-        forward(): Forward NN pass with unprocessed in-and outputs
+        forward: Forward NN pass with unprocessed in-and outputs
         
-        processData(): forward NN pass with data pre-and postprocessing as expected by other classes
+        processData: forward NN pass with data pre-and postprocessing as expected by other classes
         
-        train(): NN training with forward and backward passes, Loss criterion and optimizer runs based on a dataset of spectral transition samples
+        train: NN training with forward and backward passes, Loss criterion and optimizer runs based on a dataset of spectral transition samples
         
-        dataLoader(): helper method for shuffled data loading from an arbitrary dataset
+        dataLoader: helper method for shuffled data loading from an arbitrary dataset
         
-        getState() returns the state of the NN, its optimizer and their prerequisites in a Dictionary
+        getState: returns the state of the NN, its optimizer and their prerequisites in a Dictionary
         
     The structure of the NN is a forward-feed fully connected NN with ReLU nonlinear activation functions.
     It is designed to process non-negative data. Negative data can still be processed, but may negatively impact performance.
@@ -356,7 +351,7 @@ class SpecCrfAi(nn.Module):
         """Constructor initialising NN layers and prerequisite attributes.
         
         Arguments:
-            learningRate: desired learning rate of the NN as float
+            learningRate: desired learning rate of the NN as float. supports scientific format.
             
         Returns:
             None"""
@@ -417,7 +412,7 @@ class SpecCrfAi(nn.Module):
             Tensor object containing the interpolated audio spectrum
             
             
-        Other than when using forward() directly, this method applies a square root function to the input and squares the output to
+        Other than when using forward() directly, this method sets the NN to evaluation mode and applies a square root function to the input and squares the output to
         improve overall performance, especially on the skewed datasets of vocal spectra."""
         
         
@@ -429,7 +424,7 @@ class SpecCrfAi(nn.Module):
         """NN training with forward and backward passes, Loss criterion and optimizer runs based on a dataset of spectral transition samples.
         
         Arguments:
-            indata: Tensor, List or other Iterable containing a set of stft-like spectra. Each element should represent a phoneme transition.
+            indata: Tensor, List or other Iterable containing sets of stft-like spectra. Each element should represent a phoneme transition.
             
             epochs: number of epochs to use for training as Integer.
             
@@ -505,11 +500,11 @@ class SavedSpecCrfAi(nn.Module):
     Methods:
         __init__: Constructor initialising NN layers and prerequisite properties
         
-        forward(): Forward NN pass with unprocessed in-and outputs
+        forward: Forward NN pass with unprocessed in-and outputs
         
-        processData(): forward NN pass with data pre-and postprocessing as expected by other classes
+        processData: forward NN pass with data pre-and postprocessing as expected by other classes
         
-        getState() returns the state of the NN, its optimizer and their prerequisites in a Dictionary
+        getState: returns the state of the NN and its epoch attribute in a Dictionary
         
     This version of the AI can only run data through the NN forward, backpropagation and, by extension, training, are not possible."""
     
@@ -576,7 +571,7 @@ class SavedSpecCrfAi(nn.Module):
             Tensor object containing the interpolated audio spectrum
             
             
-        Other than when using forward() directly, this method applies a square root function to the input and squares the output to
+        Other than when using forward() directly, this method sets the NN to evaluation mode and applies a square root function to the input and squares the output to
         improve overall performance, especially on the skewed datasets of vocal spectra."""
         
         
@@ -605,8 +600,6 @@ class VbMetadata:
     Attributes:
         name: The name of the Voicebank
         
-        sampleRate: the sample rate of the audio samples used by this Voicebank. !!!DO NOT MODIFY!!!
-        
     Methods:
         __init__: basic class constructor"""
         
@@ -614,7 +607,7 @@ class VbMetadata:
     def __init__(self):
         """basic class constructor.
         
-        Attributes:
+        Arguments:
             None
             
         Returns:
@@ -637,7 +630,7 @@ class Voicebank:
         
         parameters: currently a placeholder. Will contain the Voicebank's Ai-driven parameters.
         
-        wordDict: a Dictionary containing overrides for NovaVox's default dictionary
+        wordDict: a Dictionary containing overrides for Nova-Vox's default dictionary
         
         stagedTrainSamples: a List object containing the samples staged to be used in Ai training
         
@@ -742,6 +735,7 @@ class Voicebank:
     def loadCrfWeights(self, filepath):
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
         data = torch.load(filepath)
+        self.crfAi = SpecCrfAi()
         self.crfAi.epoch = data["crfAiState"]['epoch']
         self.crfAi.load_state_dict(data["crfAiState"]['model_state_dict'])
         if "loss" in data["crfAiState"].keys():
