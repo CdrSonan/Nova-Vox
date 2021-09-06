@@ -111,7 +111,7 @@ class RootUi(tkinter.Frame):
         """Saves the currently loaded Voicebank to a .nvvb file"""
         global loadedVB
         global loadedVBPath
-        filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".nvvb", filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")), initialfile = loadedVBPath)
+        filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".nvvb", filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
             loadedVBPath = filepath
             loadedVB.save(filepath)

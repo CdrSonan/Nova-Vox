@@ -6,10 +6,10 @@ Created on Tue Aug 17 08:47:26 2021
 """
 
 sampleRate = 48000
-tickRate = 75#250
-batchSize = 640#192
-tripleBatchSize = 1920#576
-halfTripleBatchSize = 960#288
+tickRate = 250#75
+batchSize = 192#640
+tripleBatchSize = 576#1920
+halfTripleBatchSize = 288#960
 
 spectralFilterWidth = 10
 
