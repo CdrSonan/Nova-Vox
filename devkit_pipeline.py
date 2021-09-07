@@ -164,22 +164,28 @@ class AudioSample:
         signalsAbs = signals.abs()
         
         workingSpectra = torch.sqrt(signalsAbs)
-        
-        workingSpectra = torch.max(workingSpectra, torch.tensor([-100]))
-        self.spectra = torch.full_like(workingSpectra, -float("inf"), dtype=torch.float)
+        #workingSpectra = torch.max(workingSpectra, torch.tensor([-100]))
+        self.spectra = workingSpectra.clone()
         
         for j in range(self.voicedIterations):
-            workingSpectra = torch.max(workingSpectra, self.spectra)
-            self.spectra = workingSpectra
             for i in range(global_consts.spectralFilterWidth):
                 self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
             self.spectra = self.spectra / (2 * global_consts.spectralFilterWidth + 1)
+            workingSpectra = torch.min(workingSpectra, self.spectra)
+            self.spectra = workingSpectra
         
-        self._voicedExcitations = torch.zeros_like(signals)
+        self._voicedExcitations = signals.clone()# * (signalsAbs - self.spectra)
+        self._voicedExcitations *= torch.gt(signalsAbs, self.spectra)
+
+        """self._voicedExcitations = torch.zeros_like(signals)
         for i in range(signals.size()[0]):
             for j in range(signals.size()[1]):
                 if torch.sqrt(signalsAbs[i][j]) > self.spectra[i][j]:
-                    self._voicedExcitations[i][j] = signals[i][j]
+                    self._voicedExcitations[i][j] = signals[i][j]"""
+
+        workingSpectra = torch.sqrt(signalsAbs)
+        #workingSpectra = torch.max(workingSpectra, torch.tensor([-100]))
+        self.spectra = torch.full_like(workingSpectra, -float("inf"), dtype=torch.float)
                 
         for j in range(self.unvoicedIterations):
             workingSpectra = torch.max(workingSpectra, self.spectra)

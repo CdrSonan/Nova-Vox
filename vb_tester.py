@@ -200,12 +200,9 @@ class VocalSegment:
         for i in range(self.end3 - self.start1):
             precisePitch = pitchDeltas[i]
             nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - self.steadiness[i])))
-            print("start", i)
-            print(nativePitchMod, self.pitch[i])
             transform = torchaudio.transforms.Resample(orig_freq = nativePitchMod,
                                                        new_freq = int(self.pitch[i]),
                                                        resampling_method = 'sinc_interpolation')
-            print("stop")
             buffer = 1000 #this is a terrible idea, but it seems to work
             if cursor < math.ceil(global_consts.batchSize*nativePitchMod/self.pitch[i]):
                 voicedExcitationPart = torch.cat((torch.zeros(math.ceil(global_consts.batchSize*nativePitchMod/self.pitch[i]) - cursor), voicedExcitation), 0)
@@ -574,30 +571,6 @@ if filepath != "":
     sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
     sequence.save("Anata test.wav")
-    
-    borders = [0, 1, 2,
-               35, 36, 37,
-               140, 151, 152,
-               175, 176, 179,
-               182, 183, 186,
-               328, 329, 330
-              ]
-    phonemes = ["A", "E", "I", "O", "U"]
-    #offsets = [0, 5, 1, 1, 1]
-    offsets = [0, 20, 20, 0, 13]
-
-    repetititionSpacing = torch.full([400], 0.8)
-
-    #pitch = torch.full([400], 193)
-    pitch = torch.linspace(250, 100, 400)
-
-    steadiness = torch.full([400], 0)
-
-    breathiness = torch.full([400], 0)
-
-    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
-
-    sequence.save("Vowel Pitch test.wav")
 
     borders = [0, 1, 2,
                35, 36, 37,
@@ -641,7 +614,7 @@ if filepath != "":
 
     steadiness = torch.full([400], 0)
 
-    breathiness = torch.full([400], 0)
+    breathiness = torch.full([400], 1)
 
     sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
