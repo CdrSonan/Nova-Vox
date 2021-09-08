@@ -14,6 +14,8 @@ torchaudio.set_audio_backend("soundfile")
 
 import global_consts
 
+import matplotlib.pyplot as plt
+
 class AudioSample:
     """class for holding a single recording audio sample and processing it for usage in a Voicebank.
     
@@ -91,7 +93,7 @@ class AudioSample:
         
         self.expectedPitch = 249.
         self.searchRange = 0.2
-        self.voicedIterations = 2
+        self.voicedIterations = 10
         self.unvoicedIterations = 10
         
     def calculatePitch(self):
@@ -164,35 +166,30 @@ class AudioSample:
         signalsAbs = signals.abs()
         
         workingSpectra = torch.sqrt(signalsAbs)
-        #workingSpectra = torch.max(workingSpectra, torch.tensor([-100]))
         self.spectra = workingSpectra.clone()
-        
+
+        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize / self.pitch), torch.Tensor([1])).int()
+        print(spectralFilterWidth)
+
         for j in range(self.voicedIterations):
-            for i in range(global_consts.spectralFilterWidth):
+            for i in range(spectralFilterWidth):
                 self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
-            self.spectra = self.spectra / (2 * global_consts.spectralFilterWidth + 1)
+            self.spectra = self.spectra / (2 * spectralFilterWidth + 1)
             workingSpectra = torch.min(workingSpectra, self.spectra)
             self.spectra = workingSpectra
         
-        self._voicedExcitations = signals.clone()# * (signalsAbs - self.spectra)
+        self._voicedExcitations = signals.clone()
         self._voicedExcitations *= torch.gt(signalsAbs, self.spectra)
 
-        """self._voicedExcitations = torch.zeros_like(signals)
-        for i in range(signals.size()[0]):
-            for j in range(signals.size()[1]):
-                if torch.sqrt(signalsAbs[i][j]) > self.spectra[i][j]:
-                    self._voicedExcitations[i][j] = signals[i][j]"""
-
         workingSpectra = torch.sqrt(signalsAbs)
-        #workingSpectra = torch.max(workingSpectra, torch.tensor([-100]))
         self.spectra = torch.full_like(workingSpectra, -float("inf"), dtype=torch.float)
                 
         for j in range(self.unvoicedIterations):
             workingSpectra = torch.max(workingSpectra, self.spectra)
             self.spectra = workingSpectra
-            for i in range(global_consts.spectralFilterWidth):
+            for i in range(spectralFilterWidth):
                 self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
-            self.spectra = self.spectra / (2 * global_consts.spectralFilterWidth + 1)
+            self.spectra = self.spectra / (2 * spectralFilterWidth + 1)
         
         self.spectrum = torch.mean(self.spectra, 0)
         for i in range(self.spectra.size()[0]):
@@ -230,6 +227,8 @@ class AudioSample:
         self.excitation = self.excitation - self.voicedExcitation
         self.excitation = torch.stft(self.excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         self.voicedExcitation = torch.stft(self.voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize / self.pitch), torch.Tensor([1])).int()
+        self.excitation[0:2*spectralFilterWidth] = 0 #please work
         self.excitation = torch.transpose(self.excitation, 0, 1)
         
         del Window

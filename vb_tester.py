@@ -16,6 +16,8 @@ torchaudio.set_audio_backend("soundfile")
 import devkit_pipeline
 import global_consts
 
+import matplotlib.pyplot as plt
+
 class VocalSegment:
     """Class representing the segment covered by a single phoneme within a VocalSequence.
     
@@ -172,8 +174,9 @@ class VocalSegment:
         transform = torchaudio.transforms.TimeStretch(hop_length = global_consts.batchSize,
                                                       n_freq = global_consts.halfTripleBatchSize + 1, 
                                                       fixed_rate = premul)
-        excitation = transform(torch.view_as_real(excitation))
-        excitation = torch.view_as_complex(excitation)[:, 0:length]
+        excitation = transform(excitation)[:, 0:length]
+        #phaseAdvance = torch.linspace(0, math.pi * global_consts.batchSize,  global_consts.halfTripleBatchSize + 1)[..., None]
+        #excitation = torchaudio.functional.phase_vocoder(excitation, premul, phaseAdvance)[:, 0:length]
         excitation = excitation * torch.minimum(torch.ones(length), 1. + self.breathiness[brStart:brEnd])
         window = torch.hann_window(global_consts.tripleBatchSize)
         excitation = torch.istft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = length*global_consts.batchSize)

@@ -14,6 +14,8 @@ import devkit_pipeline
 import devkit_locale
 loc = devkit_locale.getLocale()
 
+import matplotlib.pyplot as plt
+
 class RootUi(tkinter.Frame):
     """Class of the Devkit main window"""
     def __init__(self, master=tkinter.Tk()):
@@ -415,6 +417,8 @@ class PhonemedictUi(tkinter.Frame):
                 loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
                 loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
                 loadedVB.phonemeDict[key].calculatePitch()
+                loadedVB.phonemeDict[key].calculateSpectra()
+                loadedVB.phonemeDict[key].calculateExcitation()
         
     def onSpectralUpdateTrigger(self, event):
         """UI Frontend function for updating the spectral and excitation data of a phoneme"""
@@ -423,11 +427,17 @@ class PhonemedictUi(tkinter.Frame):
         key = self.phonemeList.list.lb.get(index)
         if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
             if (loadedVB.phonemeDict[key].voicedIterations != self.sideBar.voicedIter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
-                loadedVB.phonemeDict[key].filterWidth = global_consts.spectralFilterWidth
+                #loadedVB.phonemeDict[key].filterWidth = global_consts.spectralFilterWidth
                 loadedVB.phonemeDict[key].voicedIterations = self.sideBar.voicedIter.variable.get()
                 loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
                 loadedVB.phonemeDict[key].calculateSpectra()
                 loadedVB.phonemeDict[key].calculateExcitation()
+                print(loadedVB.phonemeDict[key].excitation.size())
+                print(loadedVB.phonemeDict[key].voicedExcitation.size())
+                plt.plot(loadedVB.phonemeDict[key].excitation[5].abs() * loadedVB.phonemeDict[key].spectrum)
+                plt.plot(loadedVB.phonemeDict[key].voicedExcitation[:, 5].abs() * loadedVB.phonemeDict[key].spectrum)
+                plt.plot(loadedVB.phonemeDict[key].spectrum)
+                plt.show()
         
     def onFilechangePress(self, event):
         """UI Frontend function for changing the file associated with a phoneme"""
