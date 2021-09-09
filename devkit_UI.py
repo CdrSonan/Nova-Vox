@@ -277,7 +277,7 @@ class PhonemedictUi(tkinter.Frame):
         
         self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.voicedIter.variable = tkinter.IntVar(self.sideBar.voicedIter)
-        self.sideBar.voicedIter.entry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 0, to = 10)
+        self.sideBar.voicedIter.entry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 1, to = 50)
         self.sideBar.voicedIter.entry["textvariable"] = self.sideBar.voicedIter.variable
         self.sideBar.voicedIter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.voicedIter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
@@ -289,7 +289,7 @@ class PhonemedictUi(tkinter.Frame):
         
         self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter)
-        self.sideBar.unvoicedIter.entry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 0, to = 100)
+        self.sideBar.unvoicedIter.entry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 1, to = 100)
         self.sideBar.unvoicedIter.entry["textvariable"] = self.sideBar.unvoicedIter.variable
         self.sideBar.unvoicedIter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.unvoicedIter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)

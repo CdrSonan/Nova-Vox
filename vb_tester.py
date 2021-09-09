@@ -551,30 +551,29 @@ class Synthesizer:
 filepath = tkinter.filedialog.askopenfilename(filetypes = ((".nvvb Voicebanks", ".nvvb"), ("all_files", "*")))
 if filepath != "":
     vb = Voicebank(filepath)
-    borders = [0, 1, 2,
-               35, 36, 37,
-               40, 51, 52,
-               75, 76, 79,
-               82, 83, 86,
-               328,329, 330
+    borders = [0, 2, 4,
+               70, 72, 74,
+               80, 102, 104,
+               150, 152, 156,
+               164, 166, 172,
+               656,657, 658
               ]
     phonemes = ["A", "N", "A", "T", "A"]
     #offsets = [0, 5, 1, 1, 1]
     offsets = [0, 20, 20, 0, 13]
 
-    repetititionSpacing = torch.full([400], 0.8)
+    repetititionSpacing = torch.full([700], 0.8)
 
-    pitch = torch.full([400], 193)
-    #pitch = torch.full([400], 100)
+    pitch = torch.full([700], 193)
 
-    steadiness = torch.full([400], 0)
+    steadiness = torch.full([700], 0)
 
-    breathiness = torch.full([400], 0)
+    breathiness = torch.full([700], 1)
 
-    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+    sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
     sequence.save("Anata test.wav")
-
+    """
     borders = [0, 1, 2,
                35, 36, 37,
                40, 51, 52,
@@ -617,7 +616,7 @@ if filepath != "":
 
     steadiness = torch.full([400], 0)
 
-    breathiness = torch.full([400], -1)
+    breathiness = torch.full([400], 0)
 
     sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
@@ -646,4 +645,4 @@ if filepath != "":
     sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
     sequence.save("Steadiness test.wav")
-    
+    """
