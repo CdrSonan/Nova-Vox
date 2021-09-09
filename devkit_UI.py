@@ -432,12 +432,6 @@ class PhonemedictUi(tkinter.Frame):
                 loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
                 loadedVB.phonemeDict[key].calculateSpectra()
                 loadedVB.phonemeDict[key].calculateExcitation()
-                print(loadedVB.phonemeDict[key].excitation.size())
-                print(loadedVB.phonemeDict[key].voicedExcitation.size())
-                plt.plot(loadedVB.phonemeDict[key].excitation[5].abs() * loadedVB.phonemeDict[key].spectrum)
-                plt.plot(loadedVB.phonemeDict[key].voicedExcitation[:, 5].abs() * loadedVB.phonemeDict[key].spectrum)
-                plt.plot(loadedVB.phonemeDict[key].spectrum)
-                plt.show()
         
     def onFilechangePress(self, event):
         """UI Frontend function for changing the file associated with a phoneme"""
