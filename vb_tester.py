@@ -537,11 +537,12 @@ class Synthesizer:
     def Synthesize(self, steadiness, spectrum, Excitation, VoicedExcitation):
         Window = torch.hann_window(global_consts.tripleBatchSize)
         
-        self.returnSignal = torch.stft(Excitation + VoicedExcitation , global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        self.returnSignal = torch.stft(VoicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         self.returnSignal = torch.transpose(self.returnSignal, 0, 1)[0:-1]#Huh?
         self.returnSignal = self.returnSignal * spectrum
         self.returnSignal = torch.transpose(self.returnSignal, 0, 1)
         self.returnSignal = torch.istft(self.returnSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided=True)
+        self.returnSignal = self.returnSignal + Excitation[0:self.returnSignal.size()[0]]
         del Window
         
     def save(self, filepath):
@@ -568,81 +569,81 @@ if filepath != "":
 
     steadiness = torch.full([700], 0)
 
-    breathiness = torch.full([700], 1)
+    breathiness = torch.full([700], 0)
 
     sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
     sequence.save("Anata test.wav")
-    """
-    borders = [0, 1, 2,
-               35, 36, 37,
-               40, 51, 52,
-               75, 76, 79,
-               82, 83, 86,
-               328, 329, 330
+    
+    borders = [0, 2, 4,
+               70, 72, 74,
+               80, 102, 104,
+               150, 152, 156,
+               164, 166, 172,
+               656,657, 658
               ]
     phonemes = ["O", "K", "S", "G", "N"]
     #offsets = [0, 5, 1, 1, 1]
     offsets = [0, 20, 20, 0, 13]
 
-    repetititionSpacing = torch.full([400], 0.8)
+    repetititionSpacing = torch.full([700], 0.8)
 
-    pitch = torch.full([400], 193)
-    #pitch = torch.linspace(250, 100, 400)
+    pitch = torch.full([700], 193)
+    #pitch = torch.linspace(250, 100, 700)
 
-    steadiness = torch.full([400], 0)
+    steadiness = torch.full([700], 0)
 
-    breathiness = torch.linspace(-1, 1, 400)
+    breathiness = torch.linspace(-1, 1, 700)
 
-    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+    sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
     sequence.save("Consonant Breathiness test.wav")
 
-    borders = [0, 1, 2,
-               35, 36, 37,
-               140, 151, 152,
-               175, 176, 179,
-               185, 186, 188,
-               328, 329, 330
+    borders = [0, 2, 4,
+               70, 72, 74,
+               80, 102, 104,
+               150, 152, 156,
+               164, 166, 172,
+               656,657, 658
               ]
     phonemes = ["A", "E", "I", "O", "U"]
     #offsets = [0, 5, 1, 1, 1]
     offsets = [0, 20, 20, 0, 13]
 
-    repetititionSpacing = torch.full([400], 0.8)
+    repetititionSpacing = torch.full([700], 0.8)
 
-    #pitch = torch.full([400], 193)
-    pitch = torch.linspace(250, 100, 400)
+    #pitch = torch.full([700], 193)
+    pitch = torch.linspace(250, 100, 700)
 
-    steadiness = torch.full([400], 0)
+    steadiness = torch.full([700], 0)
 
-    breathiness = torch.full([400], 0)
+    breathiness = torch.full([700], 0)
 
-    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+    sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
     sequence.save("short Vowel Pitch test.wav")
 
-    borders = [0, 1, 2,
-               35, 36, 37,
-               40, 51, 52,
-               175, 176, 179,
-               182, 183, 186,
-               328, 329, 330
+    borders = [0, 2, 4,
+               70, 72, 74,
+               80, 102, 104,
+               150, 152, 156,
+               164, 166, 172,
+               656,657, 658
               ]
     phonemes = ["E", "K", "I", "K", "U"]
     #offsets = [0, 5, 1, 1, 1]
     offsets = [0, 20, 20, 0, 13]
 
-    repetititionSpacing = torch.full([400], 0.8)
+    repetititionSpacing = torch.full([700], 0.8)
 
-    pitch = torch.full([400], 193)
-    #pitch = torch.linspace(250, 100, 400)
+    pitch = torch.full([700], 193)
+    #pitch = torch.linspace(250, 100, 700)
 
-    steadiness = torch.linspace(1, -1, 400)
+    steadiness = torch.linspace(1, -1, 700)
 
-    breathiness =torch.full([400], 0)
+    breathiness =torch.full([700], 0)
 
-    sequence = VocalSequence(0, 400, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+    sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
     sequence.save("Steadiness test.wav")
-    """
+    

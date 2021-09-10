@@ -159,16 +159,18 @@ class AudioSample:
         then runs the filtering algorithm again a number of iterations determined by unvoicedIterations.
         The function fills the spectrum, spectra and _voicedExcitations properties."""
         
+
+        multiplier = 2
         
-        Window = torch.hann_window(global_consts.tripleBatchSize)
-        signals = torch.stft(self.waveform, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        window = torch.hann_window(global_consts.tripleBatchSize * multiplier)
+        signals = torch.stft(self.waveform, global_consts.tripleBatchSize * multiplier, hop_length = global_consts.batchSize * multiplier, win_length = global_consts.tripleBatchSize * multiplier, window = window, return_complex = True, onesided = True)
         signals = torch.transpose(signals, 0, 1)
         signalsAbs = signals.abs()
         
         workingSpectra = torch.sqrt(signalsAbs)
         self.spectra = workingSpectra.clone()
 
-        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize / self.pitch), torch.Tensor([1])).int()
+        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * multiplier / self.pitch), torch.Tensor([1])).int()
         
         for j in range(self.voicedIterations):
             for i in range(spectralFilterWidth):
@@ -179,6 +181,22 @@ class AudioSample:
         
         self._voicedExcitations = signals.clone()
         self._voicedExcitations *= torch.gt(torch.sqrt(signalsAbs), self.spectra)
+
+        excitationAbs = signalsAbs
+        voicedExcitationAbs = self._voicedExcitations.abs()
+        self.excitation = torch.transpose(signals * (excitationAbs - voicedExcitationAbs), 0, 1)
+        self.voicedExcitation = torch.transpose(self._voicedExcitations, 0, 1)
+        self.excitation = torch.istft(self.excitation, global_consts.tripleBatchSize * multiplier, hop_length = global_consts.batchSize * multiplier, win_length = global_consts.tripleBatchSize * multiplier, window = window, onesided = True)
+        self.voicedExcitation = torch.istft(self.voicedExcitation, global_consts.tripleBatchSize * multiplier, hop_length = global_consts.batchSize * multiplier, win_length = global_consts.tripleBatchSize * multiplier, window = window, onesided = True)
+
+        window = torch.hann_window(global_consts.tripleBatchSize)
+
+        self.excitation = torch.stft(self.excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
+        self.voicedExcitation = torch.stft(self.voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
+
+        signals = torch.stft(self.waveform, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
+        signals = torch.transpose(signals, 0, 1)
+        signalsAbs = signals.abs()
 
         workingSpectra = torch.sqrt(signalsAbs)
         self.spectra = torch.full_like(workingSpectra, -float("inf"), dtype=torch.float)
@@ -193,7 +211,11 @@ class AudioSample:
         self.spectrum = torch.mean(self.spectra, 0)
         for i in range(self.spectra.size()[0]):
             self.spectra[i] = self.spectra[i] - self.spectrum
-        del Window
+
+        self.voicedExcitation = self.voicedExcitation / torch.transpose(torch.square(self.spectrum + self.spectra)[0:self.voicedExcitation.size()[1]], 0, 1)
+        self.excitation = torch.transpose(self.excitation, 0, 1)
+
+        del window
         del signals
         del workingSpectra
         
@@ -209,7 +231,7 @@ class AudioSample:
         The excitation is calculated from the original waveform, calculated spectra and _voicedExcitations property only.
         The function fills the excitation and voicedExcitation properties."""
         
-        
+        """
         window = torch.hann_window(global_consts.tripleBatchSize)
         signals = torch.stft(self.waveform, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
         signals = torch.transpose(signals, 0, 1)
@@ -236,6 +258,8 @@ class AudioSample:
         del window
         del signals
         del excitations
+        """
+        pass
         
 class loadedAudioSample:
     """A stripped down version of AudioSample only holding the data required for synthesis.
