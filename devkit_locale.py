@@ -59,4 +59,5 @@ def getLocale():
         locale["vExcitation"] = "voiced Excitation"
         locale["spectrum"] = "Spectrum"
         locale["diag_lbl"] = "Phoneme Analysis"
+        locale["pitch"] = "Pitch"
     return locale

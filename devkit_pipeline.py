@@ -164,12 +164,22 @@ class AudioSample:
         signals = torch.stft(self.waveform, global_consts.tripleBatchSize * multiplier, hop_length = global_consts.batchSize * multiplier, win_length = global_consts.tripleBatchSize * multiplier, window = window, return_complex = True, onesided = True)
         signals = torch.transpose(signals, 0, 1)
         signalsAbs = signals.abs()
+
+        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * multiplier / self.pitch), torch.Tensor([1])).int()
+
+        """
+        workingSpectra = torch.sqrt(signalsAbs)
+        self.spectra = torch.full_like(workingSpectra, -float("inf"), dtype=torch.float) 
+        for j in range(self.voicedIterations):
+            workingSpectra = torch.max(workingSpectra, self.spectra)
+            self.spectra = workingSpectra
+            for i in range(spectralFilterWidth):
+                self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
+            self.spectra = self.spectra / (2 * spectralFilterWidth + 1)
+        """
         
         workingSpectra = torch.sqrt(signalsAbs)
         self.spectra = workingSpectra.clone()
-
-        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * multiplier / self.pitch), torch.Tensor([1])).int()
-        
         for j in range(self.voicedIterations):
             for i in range(spectralFilterWidth):
                 self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
@@ -177,12 +187,13 @@ class AudioSample:
             workingSpectra = torch.min(workingSpectra, self.spectra)
             self.spectra = workingSpectra
         
+
         self._voicedExcitations = signals.clone()
         self._voicedExcitations *= torch.gt(torch.sqrt(signalsAbs), self.spectra)
 
         excitationAbs = signalsAbs
         voicedExcitationAbs = self._voicedExcitations.abs()
-        self.excitation = torch.transpose(signals * (excitationAbs - voicedExcitationAbs), 0, 1)
+        self.excitation = torch.transpose(torch.sqrt(signals) * (excitationAbs - voicedExcitationAbs), 0, 1)
         self.voicedExcitation = torch.transpose(self._voicedExcitations, 0, 1)
         self.excitation = torch.istft(self.excitation, global_consts.tripleBatchSize * multiplier, hop_length = global_consts.batchSize * multiplier, win_length = global_consts.tripleBatchSize * multiplier, window = window, onesided = True)
         self.voicedExcitation = torch.istft(self.voicedExcitation, global_consts.tripleBatchSize * multiplier, hop_length = global_consts.batchSize * multiplier, win_length = global_consts.tripleBatchSize * multiplier, window = window, onesided = True)

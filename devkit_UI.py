@@ -222,7 +222,7 @@ class PhonemedictUi(tkinter.Frame):
         self.diagram = tkinter.LabelFrame(self, text = loc["diag_lbl"])
         self.diagram.fig = Figure(figsize=(4, 4))
         self.diagram.ax = self.diagram.fig.add_axes([0.1, 0.1, 0.8, 0.8])
-        self.diagram.ax.set_xlim([0, 48000])
+        self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
         self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
         self.diagram.canvas = FigureCanvasTkAgg(self.diagram.fig, self.diagram)
@@ -424,11 +424,11 @@ class PhonemedictUi(tkinter.Frame):
         spectrum = torch.square(loadedVB.phonemeDict[key].spectrum + loadedVB.phonemeDict[key].spectra[value])
         voicedExcitation = torch.abs(loadedVB.phonemeDict[key].voicedExcitation[:, value]) * spectrum
         excitation = torch.abs(loadedVB.phonemeDict[key].excitation[value]) * spectrum
-        xScale = torch.linspace(0, 48000, global_consts.halfTripleBatchSize + 1)
+        xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
         self.diagram.ax.plot(xScale, excitation, label = loc["excitation"])
         self.diagram.ax.plot(xScale, voicedExcitation, label = loc["vExcitation"])
         self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"])
-        self.diagram.ax.set_xlim([0, 48000])
+        self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
         self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
         self.diagram.ax.legend(loc = "upper right", fontsize = 8)

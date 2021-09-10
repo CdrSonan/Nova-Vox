@@ -568,7 +568,7 @@ if filepath != "":
 
     steadiness = torch.full([700], 0)
 
-    breathiness = torch.full([700], -1)
+    breathiness = torch.full([700], 1)
 
     sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
