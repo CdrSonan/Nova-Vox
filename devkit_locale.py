@@ -53,4 +53,10 @@ def getLocale():
         locale["ai_settings"] = "Sample preprocessing and AI training settings"
         locale["epochs"] = "AI training epochs:"
         locale["train"] = "train AI"
+        locale["freq_lbl"] = "Frequency (Hz)"
+        locale["amp_lbl"] = "Signal Amplitude"
+        locale["excitation"] = "unvoiced Excitation"
+        locale["vExcitation"] = "voiced Excitation"
+        locale["spectrum"] = "Spectrum"
+        locale["diag_lbl"] = "Phoneme Analysis"
     return locale

@@ -55,9 +55,7 @@ class AudioSample:
         
         calculatePitch(): Method for calculating pitch data based on previously set attributes
         
-        calculateSpectra(): Method for calculating spectral data based on previously set attributes
-        
-        calculateExcitation(): Method for calculating excitation signal data based on previously set attributes"""
+        calculateSpectra(): Method for calculating spectral and excitation data based on previously set attributes"""
         
         
     def __init__(self, filepath):
@@ -213,53 +211,11 @@ class AudioSample:
             self.spectra[i] = self.spectra[i] - self.spectrum
 
         self.voicedExcitation = self.voicedExcitation / torch.transpose(torch.square(self.spectrum + self.spectra)[0:self.voicedExcitation.size()[1]], 0, 1)
-        self.excitation = torch.transpose(self.excitation, 0, 1)
+        self.excitation = torch.transpose(self.excitation, 0, 1) / torch.square(self.spectrum + self.spectra)[0:self.excitation.size()[1]]
 
         del window
         del signals
         del workingSpectra
-        
-    def calculateExcitation(self):
-        """Method for calculating excitation signal data.
-        
-        Arguments:
-            None
-            
-        Returns:
-            None
-            
-        The excitation is calculated from the original waveform, calculated spectra and _voicedExcitations property only.
-        The function fills the excitation and voicedExcitation properties."""
-        
-        """
-        window = torch.hann_window(global_consts.tripleBatchSize)
-        signals = torch.stft(self.waveform, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
-        signals = torch.transpose(signals, 0, 1)
-        excitations = torch.empty_like(signals)
-        for i in range(excitations.size()[0]):
-            excitations[i] = signals[i] / torch.square(self.spectrum + self.spectra[i])
-            self._voicedExcitations[i] = self._voicedExcitations[i] / torch.square(self.spectrum + self.spectra[i])
-
-        voicedExcitations = torch.transpose(self._voicedExcitations, 0, 1)
-        excitations = torch.transpose(excitations, 0, 1)
-        excitationAbs = excitations.abs()
-        voicedExcitationAbs = voicedExcitations.abs()
-        self.excitation = excitations * (excitationAbs - voicedExcitationAbs)
-        print(excitationAbs - voicedExcitationAbs)
-        self.voicedExcitation = voicedExcitations
-        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize / self.pitch), torch.Tensor([1])).int()
-        self.excitation[0:2*spectralFilterWidth] = 0
-
-        outputSignal = torch.istft(self.excitation * torch.unsqueeze(torch.square(self.spectrum), 1), global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True)
-        torchaudio.save("Test3.wav", torch.unsqueeze(outputSignal.detach(), 0), global_consts.sampleRate, format="wav", encoding="PCM_S", bits_per_sample=32)
-
-        self.excitation = torch.transpose(self.excitation, 0, 1)
-
-        del window
-        del signals
-        del excitations
-        """
-        pass
         
 class loadedAudioSample:
     """A stripped down version of AudioSample only holding the data required for synthesis.

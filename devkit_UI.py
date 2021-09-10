@@ -9,12 +9,19 @@ import tkinter
 import tkinter.filedialog
 import tkinter.simpledialog
 
+import torch
+
 import global_consts
 import devkit_pipeline
 import devkit_locale
 loc = devkit_locale.getLocale()
 
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+
 
 class RootUi(tkinter.Frame):
     """Class of the Devkit main window"""
@@ -211,6 +218,18 @@ class PhonemedictUi(tkinter.Frame):
     def createWidgets(self):
         """Initializes all widgets of the Phoneme Dict UI window."""
         global loadedVB
+
+        self.diagram = tkinter.LabelFrame(self, text = loc["diag_lbl"])
+        self.diagram.fig = Figure(figsize=(4, 4))
+        self.diagram.ax = self.diagram.fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        self.diagram.ax.set_xlim([0, 48000])
+        self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
+        self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
+        self.diagram.canvas = FigureCanvasTkAgg(self.diagram.fig, self.diagram)
+        self.diagram.canvas.get_tk_widget().pack(side = "top", fill = "both", expand = True)
+        self.diagram.timeSlider = tkinter.Scale(self.diagram, from_ = 0, to = 0, orient = "horizontal", length = 600, command = self.onSliderMove)
+        self.diagram.timeSlider.pack(side = "left", fill = "both", expand = True, padx = 5, pady = 2)
+        self.diagram.pack(side = "right", fill = "y", padx = 5, pady = 2)
         
         self.phonemeList = tkinter.LabelFrame(self, text = loc["phon_list"])
         self.phonemeList.list = tkinter.Frame(self.phonemeList)
@@ -342,6 +361,8 @@ class PhonemedictUi(tkinter.Frame):
                 self.sideBar.voicedIter.variable.set(None)
                 self.sideBar.unvoicedIter.variable.set(None)
                 self.disableButtons()
+            self.updateSlider()
+            self.onSliderMove(0)
                 
     def onListFocusOut(self, event):
         """Helper function for retaining information about the last focused element of the Phoneme list when Phoneme list loses entry focus"""
@@ -378,7 +399,6 @@ class PhonemedictUi(tkinter.Frame):
                 loadedVB.addPhoneme(key, filepath)
                 loadedVB.phonemeDict[key].calculatePitch()
                 loadedVB.phonemeDict[key].calculateSpectra()
-                loadedVB.phonemeDict[key].calculateExcitation()
                 self.phonemeList.list.lb.insert("end", key)
         
     def onRemovePress(self):
@@ -395,6 +415,34 @@ class PhonemedictUi(tkinter.Frame):
                 self.phonemeList.list.lb.selection_set(index)
             if self.phonemeList.list.lb.size() == 0:
                 self.disableButtons()
+
+    def onSliderMove(self, value):
+        global loadedVB
+        value = int(value)
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        spectrum = torch.square(loadedVB.phonemeDict[key].spectrum + loadedVB.phonemeDict[key].spectra[value])
+        voicedExcitation = torch.abs(loadedVB.phonemeDict[key].voicedExcitation[:, value]) * spectrum
+        excitation = torch.abs(loadedVB.phonemeDict[key].excitation[value]) * spectrum
+        xScale = torch.linspace(0, 48000, global_consts.halfTripleBatchSize + 1)
+        self.diagram.ax.plot(xScale, excitation, label = loc["excitation"])
+        self.diagram.ax.plot(xScale, voicedExcitation, label = loc["vExcitation"])
+        self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"])
+        self.diagram.ax.set_xlim([0, 48000])
+        self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
+        self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
+        self.diagram.ax.legend(loc = "upper right", fontsize = 8)
+        self.diagram.canvas.draw()
+        self.diagram.ax.clear()
+
+    def updateSlider(self):
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        maxValue = loadedVB.phonemeDict[key].spectra.size()[0] - 2
+        self.diagram.timeSlider.destroy()
+        self.diagram.timeSlider = tkinter.Scale(self.diagram, from_ = 0, to = maxValue, orient = "horizontal", length = 600, command = self.onSliderMove)
+        self.diagram.timeSlider.pack(side = "left", fill = "both", expand = True, padx = 5, pady = 2)
             
     def onKeyChange(self, event):
         """UI Frontend function for changing the key of a phoneme"""
@@ -418,7 +466,6 @@ class PhonemedictUi(tkinter.Frame):
                 loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
                 loadedVB.phonemeDict[key].calculatePitch()
                 loadedVB.phonemeDict[key].calculateSpectra()
-                loadedVB.phonemeDict[key].calculateExcitation()
         
     def onSpectralUpdateTrigger(self, event):
         """UI Frontend function for updating the spectral and excitation data of a phoneme"""
@@ -427,11 +474,10 @@ class PhonemedictUi(tkinter.Frame):
         key = self.phonemeList.list.lb.get(index)
         if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
             if (loadedVB.phonemeDict[key].voicedIterations != self.sideBar.voicedIter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
-                #loadedVB.phonemeDict[key].filterWidth = global_consts.spectralFilterWidth
                 loadedVB.phonemeDict[key].voicedIterations = self.sideBar.voicedIter.variable.get()
                 loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
                 loadedVB.phonemeDict[key].calculateSpectra()
-                loadedVB.phonemeDict[key].calculateExcitation()
+                self.onSliderMove(self.diagram.timeSlider.get())
         
     def onFilechangePress(self, event):
         """UI Frontend function for changing the file associated with a phoneme"""
@@ -443,7 +489,6 @@ class PhonemedictUi(tkinter.Frame):
             loadedVB.changePhonemeFile(key, filepath)
             loadedVB.phonemeDict[key].calculatePitch()
             loadedVB.phonemeDict[key].calculateSpectra()
-            loadedVB.phonemeDict[key].calculateExcitation()
             self.phonemeList.list.lb.delete(index)
             self.phonemeList.list.lb.insert(index, key)
             

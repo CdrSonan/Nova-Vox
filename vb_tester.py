@@ -534,15 +534,14 @@ class Synthesizer:
         self.sampleRate = sampleRate
         self.returnSignal = torch.tensor([], dtype = float)
         
-    def Synthesize(self, steadiness, spectrum, Excitation, VoicedExcitation):
+    def Synthesize(self, steadiness, spectrum, excitation, voicedExcitation):
         Window = torch.hann_window(global_consts.tripleBatchSize)
         
-        self.returnSignal = torch.stft(VoicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        self.returnSignal = torch.stft(excitation + voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         self.returnSignal = torch.transpose(self.returnSignal, 0, 1)[0:-1]#Huh?
         self.returnSignal = self.returnSignal * spectrum
         self.returnSignal = torch.transpose(self.returnSignal, 0, 1)
         self.returnSignal = torch.istft(self.returnSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided=True)
-        self.returnSignal = self.returnSignal + Excitation[0:self.returnSignal.size()[0]]
         del Window
         
     def save(self, filepath):
@@ -553,15 +552,15 @@ filepath = tkinter.filedialog.askopenfilename(filetypes = ((".nvvb Voicebanks", 
 if filepath != "":
     vb = Voicebank(filepath)
     borders = [0, 2, 4,
-               70, 72, 74,
-               80, 102, 104,
+               65, 70, 75,
+               90, 102, 104,
                150, 152, 156,
                164, 166, 172,
                656,657, 658
               ]
     phonemes = ["A", "N", "A", "T", "A"]
     #offsets = [0, 5, 1, 1, 1]
-    offsets = [0, 20, 20, 0, 13]
+    offsets = [0, 40, 20, 0, 13]
 
     repetititionSpacing = torch.full([700], 0.8)
 
@@ -569,7 +568,7 @@ if filepath != "":
 
     steadiness = torch.full([700], 0)
 
-    breathiness = torch.full([700], 0)
+    breathiness = torch.full([700], -1)
 
     sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
@@ -625,9 +624,9 @@ if filepath != "":
 
     borders = [0, 2, 4,
                70, 72, 74,
-               80, 102, 104,
+               80, 82, 104,
                150, 152, 156,
-               164, 166, 172,
+               164, 171, 172,
                656,657, 658
               ]
     phonemes = ["E", "K", "I", "K", "U"]
