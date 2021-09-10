@@ -11,9 +11,11 @@ batchSize = 192#640
 tripleBatchSize = 576#1920
 halfTripleBatchSize = 288#960
 
-spectralFilterWidth = 10
+filterBSMult = 2
 
 pitchShiftSpectralRolloff = 10
+
+breCompPremul = 0.66
 
 language = "en"
 version = "Prealpha 0.2.1"

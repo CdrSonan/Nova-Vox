@@ -177,7 +177,8 @@ class VocalSegment:
         excitation = transform(excitation)[:, 0:length]
         #phaseAdvance = torch.linspace(0, math.pi * global_consts.batchSize,  global_consts.halfTripleBatchSize + 1)[..., None]
         #excitation = torchaudio.functional.phase_vocoder(excitation, premul, phaseAdvance)[:, 0:length]
-        excitation = excitation * torch.minimum(torch.ones(length), 1. + self.breathiness[brStart:brEnd])
+        breathinessMod = 1. + self.breathiness[brStart:brEnd] + torch.gt(self.breathiness[brStart:brEnd], 0) * self.breathiness[brStart:brEnd] * (self.vb.phonemeDict[self.phonemeKey].breathinessCompensation - 1.)
+        excitation = excitation * breathinessMod
         window = torch.hann_window(global_consts.tripleBatchSize)
         excitation = torch.istft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = length*global_consts.batchSize)
         return excitation[0:length*global_consts.batchSize]
@@ -219,10 +220,14 @@ class VocalSegment:
         voicedExcitation = torch.istft(voicedExcitationFourier, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = (self.end3 - self.start1)*global_consts.batchSize)
 
         if self.startCap == False:
+            factor = math.log(0.5, (self.start2 - self.start1) / (self.start3 - self.start1))
             slope = torch.linspace(0, 1, (self.start3 - self.start1) * global_consts.batchSize)
+            slope = torch.pow(slope, factor)
             voicedExcitation[0:(self.start3 - self.start1) * global_consts.batchSize] *= slope
         if self.endCap == False:
+            factor = math.log(0.5, (self.end3 - self.end2) / (self.end3 - self.end1))
             slope = torch.linspace(1, 0, (self.end3 - self.end1) * global_consts.batchSize)
+            slope = torch.pow(slope, factor)
             voicedExcitation[(self.end1 - self.start1) * global_consts.batchSize:(self.end3 - self.start1) * global_consts.batchSize] *= slope
         return voicedExcitation[0:(self.end3 - self.start1) * global_consts.batchSize]
 

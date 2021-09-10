@@ -88,6 +88,7 @@ class AudioSample:
         self.excitation = torch.tensor([], dtype = float)
         self.voicedExcitation = torch.tensor([], dtype = float)
         self._voicedExcitations = torch.tensor([], dtype = float)
+        self.breathinessCompensation = 1.
         
         self.expectedPitch = 249.
         self.searchRange = 0.2
@@ -157,26 +158,13 @@ class AudioSample:
         then runs the filtering algorithm again a number of iterations determined by unvoicedIterations.
         The function fills the spectrum, spectra and _voicedExcitations properties."""
         
-
-        multiplier = 2
         
-        window = torch.hann_window(global_consts.tripleBatchSize * multiplier)
-        signals = torch.stft(self.waveform, global_consts.tripleBatchSize * multiplier, hop_length = global_consts.batchSize * multiplier, win_length = global_consts.tripleBatchSize * multiplier, window = window, return_complex = True, onesided = True)
+        window = torch.hann_window(global_consts.tripleBatchSize * global_consts.filterBSMult)
+        signals = torch.stft(self.waveform, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, return_complex = True, onesided = True)
         signals = torch.transpose(signals, 0, 1)
         signalsAbs = signals.abs()
 
-        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * multiplier / self.pitch), torch.Tensor([1])).int()
-
-        """
-        workingSpectra = torch.sqrt(signalsAbs)
-        self.spectra = torch.full_like(workingSpectra, -float("inf"), dtype=torch.float) 
-        for j in range(self.voicedIterations):
-            workingSpectra = torch.max(workingSpectra, self.spectra)
-            self.spectra = workingSpectra
-            for i in range(spectralFilterWidth):
-                self.spectra = torch.roll(workingSpectra, -i, dims = 1) + self.spectra + torch.roll(workingSpectra, i, dims = 1)
-            self.spectra = self.spectra / (2 * spectralFilterWidth + 1)
-        """
+        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * global_consts.filterBSMult / self.pitch), torch.Tensor([1])).int()
         
         workingSpectra = torch.sqrt(signalsAbs)
         self.spectra = workingSpectra.clone()
@@ -195,8 +183,11 @@ class AudioSample:
         voicedExcitationAbs = self._voicedExcitations.abs()
         self.excitation = torch.transpose(torch.sqrt(signals) * (excitationAbs - voicedExcitationAbs), 0, 1)
         self.voicedExcitation = torch.transpose(self._voicedExcitations, 0, 1)
-        self.excitation = torch.istft(self.excitation, global_consts.tripleBatchSize * multiplier, hop_length = global_consts.batchSize * multiplier, win_length = global_consts.tripleBatchSize * multiplier, window = window, onesided = True)
-        self.voicedExcitation = torch.istft(self.voicedExcitation, global_consts.tripleBatchSize * multiplier, hop_length = global_consts.batchSize * multiplier, win_length = global_consts.tripleBatchSize * multiplier, window = window, onesided = True)
+
+        self.breathinessCompensation = torch.sum(torch.abs(self.voicedExcitation)) / torch.sum(torch.abs(self.excitation)) * global_consts.breCompPremul
+
+        self.excitation = torch.istft(self.excitation, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, onesided = True)
+        self.voicedExcitation = torch.istft(self.voicedExcitation, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, onesided = True)
 
         window = torch.hann_window(global_consts.tripleBatchSize)
 
@@ -264,6 +255,7 @@ class loadedAudioSample:
         self.spectrum = audioSample.spectrum
         self.excitation = audioSample.excitation
         self.voicedExcitation = audioSample.voicedExcitation
+        self.breathinessCompensation = 1.
         
 class RelLoss(nn.Module):
     """function for calculating relative loss values between target and actual Tensor objects. Designed to be used with AI optimizers.
