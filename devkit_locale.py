@@ -60,4 +60,8 @@ def getLocale():
         locale["spectrum"] = "Spectrum"
         locale["diag_lbl"] = "Phoneme Analysis"
         locale["pitch"] = "Pitch"
+        locale["varying"] = "varying"
+        locale["AI_stat_1"] = "AI trained with "
+        locale["AI_stat_2"] = " epochs and "
+        locale["AI_stat_3"] = " samples"
     return locale

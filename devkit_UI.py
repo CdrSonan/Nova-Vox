@@ -572,16 +572,16 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar = tkinter.LabelFrame(self, text = loc["ai_settings"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
-        self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
-        self.sideBar.voicedIter.variable = tkinter.IntVar(self.sideBar.voicedIter)
-        self.sideBar.voicedIter.variable.set(2)
-        self.sideBar.voicedIter.entry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 0, to = 10)
-        self.sideBar.voicedIter.entry["textvariable"] = self.sideBar.voicedIter.variable
-        self.sideBar.voicedIter.entry.pack(side = "right", fill = "x")
-        self.sideBar.voicedIter.display = tkinter.Label(self.sideBar.voicedIter)
-        self.sideBar.voicedIter.display["text"] = loc["viter"]
-        self.sideBar.voicedIter.display.pack(side = "right", fill = "x")
-        self.sideBar.voicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        #self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
+        #self.sideBar.voicedIter.variable = tkinter.IntVar(self.sideBar.voicedIter)
+        #self.sideBar.voicedIter.variable.set(2)
+        #self.sideBar.voicedIter.entry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 0, to = 10)
+        #self.sideBar.voicedIter.entry["textvariable"] = self.sideBar.voicedIter.variable
+        #self.sideBar.voicedIter.entry.pack(side = "right", fill = "x")
+        #self.sideBar.voicedIter.display = tkinter.Label(self.sideBar.voicedIter)
+        #self.sideBar.voicedIter.display["text"] = loc["viter"]
+        #self.sideBar.voicedIter.display.pack(side = "right", fill = "x")
+        #self.sideBar.voicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter)
@@ -615,7 +615,14 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
-        
+        if loadedVB.crfAi.epoch == None:
+            epoch = loc["varying"]
+        else:
+            epoch = str(loadedVB.crfAi.epoch)
+        self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.crfAi.sampleCount) + loc["AI_stat_3"])
+        self.statusLabel = tkinter.Label(self, textvariable = self.statusVar)
+        self.statusLabel.pack(side = "top", fill = "x", expand = True, padx = 5)
+
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
         self.okButton["command"] = self.onOkPress
@@ -664,11 +671,12 @@ class CrfaiUi(tkinter.Frame):
     def onTrainPress(self):
         """UI Frontend function for training the AI with the specified settings and samples"""
         global loadedVB
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, global_consts.spectralFilterWidth, self.sideBar.voicedIter.variable.get(), self.sideBar.unvoicedIter.variable.get())
+        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, global_consts.spectralFilterWidth, 1, self.sideBar.unvoicedIter.variable.get())
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             loadedVB.delTrainSample(0)
             self.phonemeList.list.lb.delete(0)
+        self.sidebar.statusVar.set("AI trained with " + loadedVB.crfAi.epoch + " epochs and " + loadedVB.crfAi.samples + " samples")
         
     def onFinalizePress(self):
         """UI Frontend function for finalizing the phoneme crossfade AI"""
@@ -703,4 +711,5 @@ class CrfaiUi(tkinter.Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.loadCrfWeights(filepath, additive)
+            self.sidebar.statusVar.set("AI trained with " + loadedVB.crfAi.epoch + " epochs and " + loadedVB.crfAi.samples + " samples")
 

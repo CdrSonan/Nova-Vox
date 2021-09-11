@@ -184,7 +184,8 @@ class AudioSample:
         self.excitation = torch.transpose(torch.sqrt(signals) * (excitationAbs - voicedExcitationAbs), 0, 1)
         self.voicedExcitation = torch.transpose(self._voicedExcitations, 0, 1)
 
-        self.breathinessCompensation = torch.sum(torch.abs(self.voicedExcitation)) / torch.sum(torch.abs(self.excitation)) * global_consts.breCompPremul
+        #self.breathinessCompensation = torch.sum(torch.abs(self.voicedExcitation), 0) / torch.sum(torch.abs(self.excitation), 0) * global_consts.breCompPremul
+        #print(self.breathinessCompensation.size())
 
         self.excitation = torch.istft(self.excitation, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, onesided = True)
         self.voicedExcitation = torch.istft(self.voicedExcitation, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, onesided = True)
@@ -362,6 +363,7 @@ class SpecCrfAi(nn.Module):
         #self.criterion = nn.L1Loss()
         self.criterion = RelLoss()
         self.epoch = 0
+        self.sampleCount = 0
         self.loss = None
         
     def forward(self, spectrum1, spectrum2, factor):
@@ -447,7 +449,7 @@ class SpecCrfAi(nn.Module):
                         loss.backward()
                         self.optimizer.step()
                         print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
-            
+            self.sampleCount += len(indata)
             self.loss = loss
             
     def dataLoader(self, data):
@@ -475,7 +477,8 @@ class SpecCrfAi(nn.Module):
         AiState = {'epoch': self.epoch,
                  'model_state_dict': self.state_dict(),
                  'optimizer_state_dict': self.optimizer.state_dict(),
-                 'loss': self.loss
+                 'loss': self.loss,
+                 'sampleCount': self.sampleCount
                  }
         return AiState
 
@@ -520,6 +523,7 @@ class SavedSpecCrfAi(nn.Module):
         self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1)
         
         self.epoch = specCrfAi.getState()['epoch']
+        self.sampleCount = specCrfAi.getState()['sampleCount']
         self.load_state_dict(specCrfAi.getState()['model_state_dict'])
         self.eval()
         

@@ -54,7 +54,7 @@ class VocalSegment:
         getVoicedExcitation: samples the voiced excitation signal of the segment"""
 
 
-    def __init__(self, start1, start2, start3, end1, end2, end3, startCap, endCap, phonemeKey, vb, offset, repetititionSpacing, pitch, steadiness, breathiness):
+    def __init__(self, start1, start2, start3, end1, end2, end3, startCap, endCap, phonemeKey, vb, offset, repetititionSpacing, pitch, steadiness):
         self.start1 = start1
         self.start2 = start2
         self.start3 = start3
@@ -69,7 +69,6 @@ class VocalSegment:
         self.repetititionSpacing = repetititionSpacing
         self.pitch = pitch
         self.steadiness = steadiness
-        self.breathiness = breathiness
         
     def phaseShift(self, inputTensor, pitch, phase):
         absolutes = inputTensor.abs()
@@ -177,8 +176,6 @@ class VocalSegment:
         excitation = transform(excitation)[:, 0:length]
         #phaseAdvance = torch.linspace(0, math.pi * global_consts.batchSize,  global_consts.halfTripleBatchSize + 1)[..., None]
         #excitation = torchaudio.functional.phase_vocoder(excitation, premul, phaseAdvance)[:, 0:length]
-        breathinessMod = 1. + self.breathiness[brStart:brEnd] + torch.gt(self.breathiness[brStart:brEnd], 0) * self.breathiness[brStart:brEnd] * (self.vb.phonemeDict[self.phonemeKey].breathinessCompensation - 1.)
-        excitation = excitation * breathinessMod
         window = torch.hann_window(global_consts.tripleBatchSize)
         excitation = torch.istft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = length*global_consts.batchSize)
         return excitation[0:length*global_consts.batchSize]
@@ -216,7 +213,7 @@ class VocalSegment:
 
             voicedExcitationFourier[i] = torch.fft.rfft(voicedExcitationPart * window)
             cursor += math.ceil(global_consts.batchSize * (nativePitchMod/self.pitch[i]))
-        voicedExcitationFourier = voicedExcitationFourier.transpose(0, 1) * torch.minimum(torch.ones(self.breathiness.size()[0]), 1. - self.breathiness)
+        voicedExcitationFourier = voicedExcitationFourier.transpose(0, 1)
         voicedExcitation = torch.istft(voicedExcitationFourier, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = (self.end3 - self.start1)*global_consts.batchSize)
 
         if self.startCap == False:
@@ -240,18 +237,21 @@ class VocalSequence:
         self.synth = Synthesizer(self.vb.sampleRate)
         
         self.spectrum = torch.zeros((self.end - self.start, global_consts.halfTripleBatchSize + 1))
+        self.unvoicedSpectrum = torch.zeros((self.end - self.start, global_consts.halfTripleBatchSize + 1))
         self.excitation = torch.zeros((self.end - self.start) * global_consts.batchSize)
         self.voicedExcitation = torch.zeros((self.end - self.start) * global_consts.batchSize)
+
+        self.breathiness = breathiness
         
         self.segments = []
         if len(phonemes)== 1:#rewrite border system to use tensor
-            self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5], True, True, phonemes[0], vb, offsets[0], repetititionSpacing[0], pitch[borders[0]:borders[5]], steadiness[borders[0]:borders[5]], breathiness[borders[0]:borders[5]]))
+            self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5], True, True, phonemes[0], vb, offsets[0], repetititionSpacing[0], pitch[borders[0]:borders[5]], steadiness[borders[0]:borders[5]]))
         else:
-            self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5], True, False, phonemes[0], vb, offsets[0], repetititionSpacing[0], pitch[borders[0]:borders[5]], steadiness[borders[0]:borders[5]], breathiness[borders[0]:borders[5]]))
+            self.segments.append(VocalSegment(borders[0], borders[1], borders[2], borders[3], borders[4], borders[5], True, False, phonemes[0], vb, offsets[0], repetititionSpacing[0], pitch[borders[0]:borders[5]], steadiness[borders[0]:borders[5]]))
             for i in range(1, len(phonemes)-1):
-                self.segments.append(VocalSegment(borders[3*i], borders[3*i+1], borders[3*i+2], borders[3*i+3], borders[3*i+4], borders[3*i+5], False, False, phonemes[i], vb, offsets[i], repetititionSpacing[i], pitch[borders[3*i]:borders[3*i+5]], steadiness[borders[3*i]:borders[3*i+5]], breathiness[borders[3*i]:borders[3*i+5]]))
+                self.segments.append(VocalSegment(borders[3*i], borders[3*i+1], borders[3*i+2], borders[3*i+3], borders[3*i+4], borders[3*i+5], False, False, phonemes[i], vb, offsets[i], repetititionSpacing[i], pitch[borders[3*i]:borders[3*i+5]], steadiness[borders[3*i]:borders[3*i+5]]))
             endpoint = len(phonemes)-1
-            self.segments.append(VocalSegment(borders[3*endpoint], borders[3*endpoint+1], borders[3*endpoint+2], borders[3*endpoint+3], borders[3*endpoint+4], borders[3*endpoint+5], False, True, phonemes[-1], vb, offsets[-1], repetititionSpacing[-1], pitch[borders[3*endpoint]:borders[3*endpoint+5]], steadiness[borders[3*endpoint]:borders[3*endpoint+5]], breathiness[borders[3*endpoint]:borders[3*endpoint+5]]))
+            self.segments.append(VocalSegment(borders[3*endpoint], borders[3*endpoint+1], borders[3*endpoint+2], borders[3*endpoint+3], borders[3*endpoint+4], borders[3*endpoint+5], False, True, phonemes[-1], vb, offsets[-1], repetititionSpacing[-1], pitch[borders[3*endpoint]:borders[3*endpoint+5]], steadiness[borders[3*endpoint]:borders[3*endpoint+5]]))
 
         self.requiresUpdate = np.ones(len(phonemes))
         self.update()
@@ -314,7 +314,7 @@ class VocalSequence:
             else:
                 skipPrevious = False
             
-        self.synth.Synthesize(0, self.spectrum, self.excitation, self.voicedExcitation)
+        self.synth.synthesize(self.breathiness, self.spectrum, self.excitation, self.voicedExcitation)
     def save(self, name):
         self.synth.save(name)
 
@@ -539,14 +539,22 @@ class Synthesizer:
         self.sampleRate = sampleRate
         self.returnSignal = torch.tensor([], dtype = float)
         
-    def Synthesize(self, steadiness, spectrum, excitation, voicedExcitation):
+    def synthesize(self, breathiness, spectrum, excitation, voicedExcitation):
         Window = torch.hann_window(global_consts.tripleBatchSize)
         
-        self.returnSignal = torch.stft(excitation + voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
-        self.returnSignal = torch.transpose(self.returnSignal, 0, 1)[0:-1]#Huh?
-        self.returnSignal = self.returnSignal * spectrum
-        self.returnSignal = torch.transpose(self.returnSignal, 0, 1)
+        self.returnSignal = torch.stft(voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        unvoicedSignal = torch.stft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
+        
+        breathinessCompensation = torch.sum(torch.abs(self.returnSignal), 0) / torch.sum(torch.abs(unvoicedSignal), 0) * global_consts.breCompPremul
+        breathinessUnvoiced = 1. + breathiness * breathinessCompensation[0:-1] * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
+        breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
+        self.returnSignal = self.returnSignal[:, 0:-1] * torch.transpose(spectrum, 0, 1) * breathinessVoiced
+        unvoicedSignal = unvoicedSignal[:, 0:-1] * torch.transpose(spectrum, 0, 1) * breathinessUnvoiced
+
         self.returnSignal = torch.istft(self.returnSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided=True)
+        unvoicedSignal = torch.istft(unvoicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, onesided=True)
+        self.returnSignal += unvoicedSignal
+
         del Window
         
     def save(self, filepath):
@@ -556,6 +564,12 @@ class Synthesizer:
 filepath = tkinter.filedialog.askopenfilename(filetypes = ((".nvvb Voicebanks", ".nvvb"), ("all_files", "*")))
 if filepath != "":
     vb = Voicebank(filepath)
+    filepath = tkinter.filedialog.askopenfilename(filetypes = (("text files", ".txt"), ("all_files", "*")))
+    if filepath != "":
+        with open(filepath, 'r') as f:
+            exec(f.read())
+
+    """
     borders = [0, 2, 4,
                65, 70, 75,
                90, 102, 104,
@@ -650,4 +664,4 @@ if filepath != "":
     sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
     sequence.save("Steadiness test.wav")
-    
+    """

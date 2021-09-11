@@ -15,7 +15,7 @@ filterBSMult = 2
 
 pitchShiftSpectralRolloff = 10
 
-breCompPremul = 0.66
+breCompPremul = 0.4
 
 language = "en"
 version = "Prealpha 0.2.1"
