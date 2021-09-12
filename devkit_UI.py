@@ -572,17 +572,6 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar = tkinter.LabelFrame(self, text = loc["ai_settings"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
-        #self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
-        #self.sideBar.voicedIter.variable = tkinter.IntVar(self.sideBar.voicedIter)
-        #self.sideBar.voicedIter.variable.set(2)
-        #self.sideBar.voicedIter.entry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 0, to = 10)
-        #self.sideBar.voicedIter.entry["textvariable"] = self.sideBar.voicedIter.variable
-        #self.sideBar.voicedIter.entry.pack(side = "right", fill = "x")
-        #self.sideBar.voicedIter.display = tkinter.Label(self.sideBar.voicedIter)
-        #self.sideBar.voicedIter.display["text"] = loc["viter"]
-        #self.sideBar.voicedIter.display.pack(side = "right", fill = "x")
-        #self.sideBar.voicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
-        
         self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter)
         self.sideBar.unvoicedIter.variable.set(10)
@@ -686,7 +675,6 @@ class CrfaiUi(tkinter.Frame):
         
     def disableButtons(self):
         """disables the AI settings buttons"""
-        self.sideBar.voicedIter.entry["state"] = "disabled"
         self.sideBar.unvoicedIter.entry["state"] = "disabled"
         self.sideBar.epochs.entry["state"] = "disabled"
         self.sideBar.trainButton["state"] = "disabled"
@@ -694,7 +682,6 @@ class CrfaiUi(tkinter.Frame):
     
     def enableButtons(self):
         """enables the AI settings buttons"""
-        self.sideBar.voicedIter.entry["state"] = "normal"
         self.sideBar.unvoicedIter.entry["state"] = "normal"
         self.sideBar.epochs.entry["state"] = "normal"
         self.sideBar.trainButton["state"] = "normal"
