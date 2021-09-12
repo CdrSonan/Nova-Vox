@@ -184,9 +184,6 @@ class AudioSample:
         self.excitation = torch.transpose(torch.sqrt(signals) * (excitationAbs - voicedExcitationAbs), 0, 1)
         self.voicedExcitation = torch.transpose(self._voicedExcitations, 0, 1)
 
-        #self.breathinessCompensation = torch.sum(torch.abs(self.voicedExcitation), 0) / torch.sum(torch.abs(self.excitation), 0) * global_consts.breCompPremul
-        #print(self.breathinessCompensation.size())
-
         self.excitation = torch.istft(self.excitation, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, onesided = True)
         self.voicedExcitation = torch.istft(self.voicedExcitation, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, onesided = True)
 
@@ -256,7 +253,6 @@ class loadedAudioSample:
         self.spectrum = audioSample.spectrum
         self.excitation = audioSample.excitation
         self.voicedExcitation = audioSample.voicedExcitation
-        self.breathinessCompensation = 1.
         
 class RelLoss(nn.Module):
     """function for calculating relative loss values between target and actual Tensor objects. Designed to be used with AI optimizers.
