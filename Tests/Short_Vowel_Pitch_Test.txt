@@ -16,7 +16,7 @@ pitch = torch.linspace(250, 100, 700)
 
 steadiness = torch.full([700], 0)
 
-breathiness = torch.full([700], 0)
+breathiness = torch.full([700], 0.5)
 
 sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
