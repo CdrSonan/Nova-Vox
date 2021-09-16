@@ -1,0 +1,2 @@
+def resamplerProcess(statusControl):
+    pass
