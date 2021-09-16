@@ -1,6 +1,10 @@
+import torch
+import torchaudio
+torchaudio.set_audio_backend("soundfile")
+import global_consts
+
 class Synthesizer:
-    def __init__(self, sampleRate):
-        self.sampleRate = sampleRate
+    def __init__(self):
         self.returnSignal = torch.tensor([], dtype = float)
         
     def synthesize(self, breathiness, spectrum, excitation, voicedExcitation):

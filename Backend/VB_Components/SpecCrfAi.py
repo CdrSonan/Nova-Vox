@@ -1,3 +1,8 @@
+import numpy as np
+import torch
+import torch.nn as nn
+import global_consts
+
 class SpecCrfAi(nn.Module):
     """class for generating crossphades between the spectra of different phonemes using AI.
     
@@ -177,7 +182,7 @@ class SpecCrfAi(nn.Module):
                  }
         return AiState
 
-class SavedSpecCrfAi(nn.Module):
+class LiteSpecCrfAi(nn.Module):
     """A stripped down version of SpecCrfAi only holding the data required for synthesis.
     
     Attributes:
@@ -197,7 +202,7 @@ class SavedSpecCrfAi(nn.Module):
     This version of the AI can only run data through the NN forward, backpropagation and, by extension, training, are not possible."""
     
     
-    def __init__(self, specCrfAi, learningRate=1e-4):
+    def __init__(self, specCrfAi):
         """Constructor initialising NN layers and other attributes based on SpecCrfAi base object.
         
         Arguments:
@@ -207,7 +212,7 @@ class SavedSpecCrfAi(nn.Module):
             None"""
             
             
-        super(SavedSpecCrfAi, self).__init__()
+        super(LiteSpecCrfAi, self).__init__()
         
         self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3)
         self.ReLu1 = nn.ReLU()
@@ -282,3 +287,48 @@ class SavedSpecCrfAi(nn.Module):
                  'model_state_dict': self.state_dict()
                  }
         return AiState
+
+class RelLoss(nn.Module):
+    """function for calculating relative loss values between target and actual Tensor objects. Designed to be used with AI optimizers.
+    
+    Attributes:
+        None
+        
+    Methods:
+        __init__: basic class constructor
+        
+        forward: calculates relative loss based on input and target tensors after successful initialisation."""
+    
+    
+    def __init__(self, weight=None, size_average=True):
+        """basic class constructor.
+        
+        Arguments:
+            weight: required by PyTorch in some situations. Unused.
+            
+            size_average: required by PyTorch in some situations. Unused.
+            
+        Returns:
+            None"""
+        
+        
+        super(RelLoss, self).__init__()
+ 
+    def forward(self, inputs, targets):  
+        """calculates relative loss based on input and target tensors after successful initialisation.
+        
+        Arguments:
+            inputs: AI-generated input Tensor
+            
+            targets: target Tensor
+            
+        Returns:
+            Relative error value calculated from the difference between input and target Tensor as Float"""
+        
+        
+        inputs = inputs.view(-1)
+        targets = targets.view(-1)
+        differences = torch.abs(inputs - targets)
+        refs = torch.abs(targets)
+        out = (differences / refs).sum() / inputs.size()[0]
+        return out

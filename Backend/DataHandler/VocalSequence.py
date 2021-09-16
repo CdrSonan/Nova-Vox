@@ -1,10 +1,25 @@
+from Backend.Resampler.Resamplers import getExcitation, getSpectrum, getVoicedExcitation
+import torch
+import math
+import numpy as np
+import global_consts
+
+import Backend.DataHandler.VocalSegment
+VocalSegment = Backend.DataHandler.VocalSegment.VocalSegment
+import Backend.ESPER.ParametricSynthesizer
+Synthesizer = Backend.ESPER.ParametricSynthesizer.Synthesizer
+import Backend.Resampler.Resamplers
+getSpectrum = Backend.Resampler.Resamplers.getSpectrum
+getExcitation = Backend.Resampler.Resamplers.getExcitation
+getVoicedExcitation = Backend.Resampler.Resamplers.getVoicedExcitation
+
 class VocalSequence:
     """temporary class for combining several VocalSegments into a sequence. Currently no acceleration structure"""
     def __init__(self, start, end, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness):
         self.start = start
         self.end = end
         self.vb = vb
-        self.synth = Synthesizer(self.vb.sampleRate)
+        self.synth = Synthesizer()
         
         self.spectrum = torch.zeros((self.end - self.start, global_consts.halfTripleBatchSize + 1))
         self.unvoicedSpectrum = torch.zeros((self.end - self.start, global_consts.halfTripleBatchSize + 1))
@@ -37,16 +52,16 @@ class VocalSequence:
                     windowStart = 0
                 else:
                     windowStart = segment.start3 - segment.start1
-                    previousSpectrum = self.segments[i-1].getSpectrum()[-1]
-                    previousVoicedExcitation = self.segments[i-1].getVoicedExcitation()[(self.segments[i-1].end1-self.segments[i-1].end3)*global_consts.batchSize:]
+                    previousSpectrum = getSpectrum(self.segments[i-1])[-1]
+                    previousVoicedExcitation = getVoicedExcitation(self.segments[i-1])[(self.segments[i-1].end1-self.segments[i-1].end3)*global_consts.batchSize:]
                 if segment.endCap:
                     windowEnd = segment.end3 - segment.start1
                 else:
                     windowEnd = segment.end1 - segment.start1
-                    nextSpectrum = self.segments[i+1].getSpectrum()[0]
-                    nextVoicedExcitation = self.segments[i+1].getVoicedExcitation()[0:(self.segments[i+1].start3-self.segments[i+1].start1)*global_consts.batchSize]
-                spectrum[windowStart:windowEnd] = segment.getSpectrum()
-                voicedExcitation = segment.getVoicedExcitation()
+                    nextSpectrum = getSpectrum(self.segments[i+1])[0]
+                    nextVoicedExcitation = getVoicedExcitation(self.segments[i+1])[0:(self.segments[i+1].start3-self.segments[i+1].start1)*global_consts.batchSize]
+                spectrum[windowStart:windowEnd] = getSpectrum(segment)
+                voicedExcitation = getVoicedExcitation(segment)
                 if segment.startCap == False:
                     for j in range(segment.start3 - segment.start1):
                         spectrum[j] = self.vb.crfAi.processData(previousSpectrum, spectrum[windowStart], j / (segment.start3 - segment.start1))
@@ -59,15 +74,15 @@ class VocalSequence:
                     windowStart = 0
                 else:
                     windowStart = (segment.start2 - segment.start1) * global_consts.batchSize
-                    previousExcitation = self.segments[i-1].getExcitation()[(segment.start1-segment.start2)*global_consts.batchSize:]
+                    previousExcitation = getExcitation(self.segments[i-1])[(segment.start1-segment.start2)*global_consts.batchSize:]
                     excitation[0:windowStart] = previousExcitation
                 if segment.endCap:
                     windowEnd = (segment.end3 - segment.start1) * global_consts.batchSize
                 else:
                     windowEnd = (segment.end2 - segment.start1) * global_consts.batchSize
-                    nextExcitation = self.segments[i+1].getExcitation()[0:(segment.end3-segment.end2)*global_consts.batchSize]
+                    nextExcitation = getExcitation(self.segments[i+1])[0:(segment.end3-segment.end2)*global_consts.batchSize]
                     excitation[windowEnd:] = nextExcitation
-                excitation[windowStart:windowEnd] = segment.getExcitation()
+                excitation[windowStart:windowEnd] = getExcitation(segment)
                 self.spectrum[segment.start1:segment.end3] = spectrum
                 pitchSlopeLength = 5
                 for i in range(segment.end3 - segment.start1):

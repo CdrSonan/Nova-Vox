@@ -1,3 +1,14 @@
+import torch
+
+import Backend.VB_Components.VbMetadata
+VbMetadata = Backend.VB_Components.VbMetadata.VbMetadata
+import Backend.VB_Components.SpecCrfAi
+SpecCrfAi = Backend.VB_Components.SpecCrfAi.SpecCrfAi
+LiteSpecCrfAi = Backend.VB_Components.SpecCrfAi.LiteSpecCrfAi
+import Backend.AudioSample
+AudioSample = Backend.AudioSample.AudioSample
+LiteAudioSample = Backend.AudioSample.LiteAudioSample
+
 class Voicebank:
     """Class for holding a Voicebank as handled by the devkit.
     
@@ -124,7 +135,7 @@ class Voicebank:
             self.crfAi.optimizer.load_state_dict(data["crfAiState"]['optimizer_state_dict'])
             self.crfAi.loss = data["crfAiState"]['loss']
         else:
-            self.crfAi = SavedSpecCrfAi(self.crfAi)
+            self.crfAi = LiteSpecCrfAi(self.crfAi)
         self.crfAi.eval()
         
     def loadParameters(self, filepath, additive):
@@ -166,7 +177,7 @@ class Voicebank:
     
     def finalizePhoneme(self, key):
         """finalizes a Phoneme, discarding any data related to it that's not strictly required for synthesis"""
-        self.phonemeDict[key] = loadedAudioSample(self.phonemeDict[key])
+        self.phonemeDict[key] = LiteAudioSample(self.phonemeDict[key])
         print("staged phoneme " + key + " finalized")
     
     def addTrainSample(self, filepath):
@@ -210,9 +221,9 @@ class Voicebank:
         
     def finalizCrfAi(self):
         """finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
-        self.crfAi = SavedSpecCrfAi(self.crfAi)
+        self.crfAi = LiteSpecCrfAi(self.crfAi)
 
-class Voicebank:
+class LiteVoicebank:
     """Class for holding a Voicebank as handled by the devkit.
     
     Attributes:
@@ -258,7 +269,7 @@ class Voicebank:
         self.metadata = VbMetadata()
         self.filepath = filepath
         self.phonemeDict = dict()
-        self.crfAi = SavedSpecCrfAi()
+        self.crfAi = LiteSpecCrfAi()
         self.parameters = []
         self.wordDict = dict()
         self.stagedTrainSamples = []

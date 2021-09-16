@@ -8,13 +8,12 @@ Created on Thu Aug  5 16:51:29 2021
 import tkinter
 import tkinter.filedialog
 import tkinter.simpledialog
-
 import torch
-
 import global_consts
-import devkit_pipeline
-import devkit_locale
-loc = devkit_locale.getLocale()
+import Backend.VB_Components.Voicebank
+Voicebank = Backend.VB_Components.Voicebank.Voicebank
+import Locale.devkit_locale
+loc = Locale.devkit_locale.getLocale()
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -136,7 +135,7 @@ class RootUi(tkinter.Frame):
             filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")), initialfile = loadedVBPath)
             if filepath != "":
                 loadedVBPath = filepath
-                loadedVB = devkit_pipeline.Voicebank(filepath)
+                loadedVB = Voicebank(filepath)
                 self.metadataButton["state"] = "active"
                 self.phonemedictButton["state"] = "active"
                 self.crfaiButton["state"] = "active"
@@ -149,7 +148,7 @@ class RootUi(tkinter.Frame):
         """creates a new, empty Voicebank object in memory"""
         global loadedVB
         if ("loadedVB" not in globals()) or tkinter.messagebox.askokcancel(loc["warning"], loc["vb_discard_msg"], icon = "warning"):
-            loadedVB = devkit_pipeline.Voicebank(None)
+            loadedVB = Voicebank(None)
             self.metadataButton["state"] = "active"
             self.phonemedictButton["state"] = "active"
             self.crfaiButton["state"] = "active"
@@ -697,6 +696,5 @@ class CrfaiUi(tkinter.Frame):
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
-            loadedVB.loadCrfWeights(filepath, additive)
+            loadedVB.loadCrfWeights(filepath)
             self.sidebar.statusVar.set("AI trained with " + loadedVB.crfAi.epoch + " epochs and " + loadedVB.crfAi.samples + " samples")
-
