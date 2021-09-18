@@ -1,2 +1,0 @@
-def synthProcess(statusControl):
-    pass

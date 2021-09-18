@@ -2,23 +2,17 @@ from multiprocessing import Manager
 import torch
 import torch.multiprocessing as mp
 import global_consts
-import NV_Multiprocessing.ResamplerProcess
-import NV_Multiprocessing.AiParamProcess
-import NV_Multiprocessing.SynthProcess
+import NV_Multiprocessing.RenderProcess
 import VocalSequence
 
 class SequenceStatusControl:
     def __init__(self):
-        self.resamplerVersions = torch.zeros(0)
-        self.aiParamVersions = torch.zeros(0)
-        self.synthVersions = torch.zeros(0)
-        self.identities = torch.arange(0)
+        self.ai = torch.zeros(0)
+        self.rs = torch.zeros(0)
     def __init__(self, sequence):
         phonemeLength = sequence.phonemeLength
-        self.resamplerVersions = torch.zeros(phonemeLength)
-        self.aiParamVersions = torch.zeros(phonemeLength)
-        self.synthVersions = torch.zeros(phonemeLength)
-        self.identities = torch.arange(phonemeLength)
+        self.ai = torch.zeros(phonemeLength)
+        self.rs = torch.zeros(phonemeLength)
 
 class Inputs:
     def __init__(self):
@@ -44,22 +38,6 @@ class Inputs:
         self.breathiness = sequence.breathiness
         self.aiParamStack = sequence.aiParamStack
 
-class FirstIntermediates:
-    def __init__(self):
-        self.spectrum = torch.Tensor([[]])
-        self.excitation = torch.Tensor([])
-        self.voicedExcitation = torch.Tensor([])
-    def __init__(self, sequence):
-        self.spectrum = torch.zeros((sequence.length, global_consts.halfTripleBatchSize + 1))
-        self.excitation = torch.zeros(sequence.length * global_consts.batchSize)
-        self.voicedExcitation = torch.zeros(sequence.length * global_consts.batchSize)
-
-class SecondIntermediates:
-    def __init__(self):
-        self.spectrum = torch.Tensor([[]])
-    def __init__(self, sequence):
-        self.spectrum = torch.zeros((sequence.length, global_consts.halfTripleBatchSize + 1))
-
 class Outputs:
     def __init__(self):
         self.waveform = torch.zeros(0)
@@ -71,12 +49,10 @@ if __name__ == '__main__':
     mp.freeze_support()
 
     sequenceList = []
-
+    rerenderFlag = mp.Event
     with mp.Manager() as manager:
         statusControl = manager.list()
         inputList = manager.list()
-        firstInterList = manager.list()
-        secondInterList = manager.list()
         outputList = manager.list()
         for i in sequenceList:
             statusControl.append(SequenceStatusControl(i))
@@ -84,9 +60,5 @@ if __name__ == '__main__':
             outputList.append(Outputs(i.timeLength))
 
 
-        resamplerProcess = mp.Process(target=NV_Multiprocessing.ResamplerProcess.resamplerProcess, args=(statusControl, inputList, firstInterList), daemon = True)
-        resamplerProcess.start()
-        aiParamProcess = mp.Process(target=NV_Multiprocessing.AiParamProcess.aiParamProcess, args=(statusControl, inputList, firstInterList, secondInterList), daemon = True)
-        aiParamProcess.start()
-        synthProcess = mp.Process(target=NV_Multiprocessing.SynthProcess.synthProcess, args=(statusControl, firstInterList, secondInterList, outputList), daemon = True)
-        synthProcess.start()
+        renderProcess = mp.Process(target=NV_Multiprocessing.RenderProcess.renderProcess, args=(statusControl, inputList, outputList, rerenderFlag), daemon = True)
+        renderProcess.start()

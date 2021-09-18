@@ -1,2 +1,0 @@
-def aiParamProcess(statusControl):
-    pass
