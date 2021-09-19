@@ -44,9 +44,9 @@ def getExcitation(vocalSegment):
     excitation = transform(excitation)[:, 0:length]
     #phaseAdvance = torch.linspace(0, math.pi * global_consts.batchSize,  global_consts.halfTripleBatchSize + 1)[..., None]
     #excitation = torchaudio.functional.phase_vocoder(excitation, premul, phaseAdvance)[:, 0:length]
-    window = torch.hann_window(global_consts.tripleBatchSize)
-    excitation = torch.istft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = length*global_consts.batchSize)
-    return excitation[0:length*global_consts.batchSize]
+    #window = torch.hann_window(global_consts.tripleBatchSize)
+    #excitation = torch.istft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = length*global_consts.batchSize)
+    return excitation.transpose(0, 1)
     
 def getVoicedExcitation(vocalSegment):
     nativePitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch
