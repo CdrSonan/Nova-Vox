@@ -226,6 +226,29 @@ class LiteSpecCrfAi(nn.Module):
         self.sampleCount = specCrfAi.getState()['sampleCount']
         self.load_state_dict(specCrfAi.getState()['model_state_dict'])
         self.eval()
+
+    def __init__(self):
+        """Constructor initialising NN layers and other attributes based on SpecCrfAi base object.
+        
+        Arguments:
+            specCrfAi: SpecCrfAi base object
+            
+        Returns:
+            None"""
+            
+            
+        super(LiteSpecCrfAi, self).__init__()
+        
+        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3)
+        self.ReLu1 = nn.ReLU()
+        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize)
+        self.ReLu2 = nn.ReLU()
+        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3)
+        self.ReLu3 = nn.ReLU()
+        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1)
+        
+        self.epoch = 0
+        self.sampleCount = 0
         
     def forward(self, spectrum1, spectrum2, factor):
         """Forward NN pass with unprocessed in-and outputs.

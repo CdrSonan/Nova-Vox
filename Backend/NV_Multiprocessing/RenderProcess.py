@@ -2,7 +2,7 @@ import math
 import torch
 import copy
 import global_consts
-import Resampler.Resamplers as rs
+import Backend.Resampler.Resamplers as rs
 from Backend.DataHandler.VocalSegment import VocalSegment
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, outputList, rerenderFlag):
     window = torch.hann_window(global_consts.tripleBatchSize)
@@ -34,7 +34,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
             
             aiActive = False
             #reset recurrent AI Tensors
-            for j in len(internalStatusControl.ai):
+            for j in len(internalStatusControl.ai) + 1:
                 if j > 0:
                     if (aiActive == False) & internalStatusControl.ai[j - 1] == 1:
                         aiActive = True
@@ -42,6 +42,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                         #execute AI code
                         #processedSpectrum[:] = spectrum[:]
                         internalStatusControl.ai[j - 1] = 0
+                        outputList[i].status[j - 1] = 4
 
                 previousSpectrum = currentSpectrum
                 previousExcitation = currentExcitation
@@ -52,7 +53,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                 nextSpectrum = None
                 nextExcitation = None
                 nextVoicedExcitation = None
-                if internalStatusControl.rs[j] == 1:
+                if (internalStatusControl.rs[j] == 1) & (j < len(internalStatusControl.ai)):
                     if (internalInputs.startCaps[j] == False) and (previousSpectrum == None):
                         section = VocalSegment(internalInputs, voicebank, j - 1)
                         previousSpectrum = rs.getSpectrum(section)
@@ -68,6 +69,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                         nextSpectrum = rs.getSpectrum(section)
                         nextExcitation = rs.getExcitation(section)
                         nextVoicedExcitation = rs.getVoicedExcitation(section)
+
+                    outputList[i].status[j] = 1
 
                     excitation[windowStartEx:windowEndEx] = currentExcitation
                     voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = currentVoicedExcitation
@@ -93,6 +96,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                             spectrum[k] = voicebank.crfAi.processData(currentSpectrum[-1], nextSpectrum[0], (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
                     spectrum[windowStart:windowEnd] = currentSpectrum
 
+                    outputList[i].status[j] = 2
+
                     for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
                         pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
                         fourierPitchShift = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch) - pitchBorder
@@ -104,26 +109,27 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
 
                     internalStatusControl.ai[j] = 1
                     internalStatusControl.rs[j] = 0
+                    outputList[i].status[j] = 3
 
                 if j > 0:
                     if aiActive:
         
-                        internalOutputs.waveform[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 5]] = torch.stft(voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
+                        internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]] = torch.stft(voicedExcitation[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
                         #unvoicedSignal = torch.stft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         
-                        breathiness = internalInputs.breathiness[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 5]]
+                        breathiness = internalInputs.breathiness[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]]
                         breathinessCompensation = torch.sum(torch.abs(internalOutputs.waveform), 0) / torch.sum(torch.abs(excitation), 0) * global_consts.breCompPremul#transpose excitation?
                         breathinessUnvoiced = 1. + breathiness * breathinessCompensation[0:-1] * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                         breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
-                        internalOutputs.waveform[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 5]] = internalOutputs.waveform[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 5]][0:-1] * torch.transpose(spectrum, 0, 1) * breathinessVoiced
-                        excitationSignal = torch.transpose(excitation[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 5]][0:-1] * spectrum, 0, 1) * breathinessUnvoiced
+                        internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]] = internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]][0:-1] * torch.transpose(spectrum, 0, 1) * breathinessVoiced
+                        excitationSignal = torch.transpose(excitation[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]][0:-1] * spectrum, 0, 1) * breathinessUnvoiced
 
-                        internalOutputs.waveform[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = torch.istft(internalOutputs.waveform[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 5]], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True)
+                        internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = torch.istft(internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True)
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True)
-                        internalOutputs.waveform[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] += excitationSignal
+                        internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] += excitationSignal
 
-                        outputList[i][internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = internalOutputs.waveform[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize]
-
+                        outputList[i].waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize]
+                        outputList[i].status[j - 1] = 5
                 if (aiActive == True) & internalInputs.endCaps[j - 1] == True:
                         aiActive = False
                         #reset recurrent AI Tensors

@@ -3,7 +3,7 @@ borders = [0, 2, 4,
            90, 102, 104,
            150, 152, 156,
            164, 166, 172,
-           656,657, 658
+           656,657, 700
           ]
 
 phonemes = ["A", "N", "A", "T", "A"]
@@ -18,6 +18,6 @@ steadiness = torch.full([700], 0)
 
 breathiness = torch.full([700], 0)
 
-sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+sequence = VocalSequence(700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
 sequence.save("Anata test.wav")

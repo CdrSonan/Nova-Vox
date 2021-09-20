@@ -1,9 +1,7 @@
-from multiprocessing import Manager
 import torch
 import torch.multiprocessing as mp
 import global_consts
-import NV_Multiprocessing.RenderProcess
-import VocalSequence
+import Backend.NV_Multiprocessing.RenderProcess
 
 class AiParamStack:
     def __init__(self):
@@ -45,27 +43,24 @@ class Inputs:
 class Outputs:
     def __init__(self):
         self.waveform = torch.zeros(0)
+        self.status = torch.zeros(0)
     def __init__(self, sequence):
         self.waveform = torch.zeros(sequence.length * global_consts.batchSize)
+        self.status = torch.zeros(sequence.length)
 
+class RenderManager:
+    def __init__(self, sequenceList, voicebankList, aiParamStackList):
+        if __name__ == '__main__':
+            mp.freeze_support()
+            with mp.Manager() as manager:
+                self.statusControl = manager.list()
+                self.inputList = manager.list()
+                self.outputList = manager.list()
+                self.rerenderFlag = manager.Event()
+                for i in sequenceList:
+                    self.statusControl.append(SequenceStatusControl(i))
+                    self.inputList.append(Inputs(i))
+                    self.outputList.append(Outputs(i.timeLength))
 
-if __name__ == '__main__':
-    mp.freeze_support()
-
-    sequenceList = []
-    voicebankList = []
-    aiParamStackList = []
-    with mp.Manager() as manager:
-        statusControl = manager.list()
-        inputList = manager.list()
-        outputList = manager.list()
-        rerenderFlag = manager.Event()
-        for i in sequenceList:
-            statusControl.append(SequenceStatusControl(i))
-            inputList.append(Inputs(i))
-            voicebankList.append(i.voicebank)
-            aiParamStackList.append(i.aiParamStack)
-            outputList.append(Outputs(i.timeLength))
-
-        renderProcess = mp.Process(target=NV_Multiprocessing.RenderProcess.renderProcess, args=(statusControl, inputList, voicebankList, aiParamStackList, outputList, rerenderFlag), name = "Nova-Vox rendering backend", daemon = True)
-        renderProcess.start()
+                renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, self.inputList, voicebankList, aiParamStackList, self.outputList, self.rerenderFlag), name = "Nova-Vox rendering backend", daemon = True)
+                renderProcess.start()
