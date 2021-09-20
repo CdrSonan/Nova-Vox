@@ -8,6 +8,10 @@ LiteSpecCrfAi = Backend.VB_Components.SpecCrfAi.LiteSpecCrfAi
 import Backend.AudioSample
 AudioSample = Backend.AudioSample.AudioSample
 LiteAudioSample = Backend.AudioSample.LiteAudioSample
+import Backend.ESPER.PitchCalculator
+calculatePitch = Backend.ESPER.PitchCalculator.calculatePitch
+import Backend.ESPER.SpectralCalculator
+calculateSpectra = Backend.ESPER.SpectralCalculator.calculateSpectra
 
 class Voicebank:
     """Class for holding a Voicebank as handled by the devkit.
@@ -162,6 +166,8 @@ class Voicebank:
             
             
         self.phonemeDict[key] = AudioSample(filepath)
+        calculatePitch(self.phonemeDict[key])
+        calculateSpectra(self.phonemeDict[key])
     
     def delPhoneme(self, key):
         """deletes a phoneme from the Voicebank's PhonemeDict"""
@@ -192,7 +198,7 @@ class Voicebank:
         """currently unused method that changes the file of a staged phoneme crossfade Ai training sample"""
         self.stagedTrainSamples[index] = AudioSample(filepath)
     
-    def trainCrfAi(self, epochs, additive, filterWidth, voicedIterations, unvoicedIterations):
+    def trainCrfAi(self, epochs, additive, unvoicedIterations):
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
         
         Arguments:
@@ -210,9 +216,9 @@ class Voicebank:
             self.crfAi = SpecCrfAi()
         print("sample preprocessing started")
         for i in range(len(self.stagedTrainSamples)):
-            self.stagedTrainSamples[i].voicedIterations = voicedIterations
+            self.stagedTrainSamples[i].voicedIterations = 1
             self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
-            self.stagedTrainSamples[i].calculateSpectra()
+            calculateSpectra(self.stagedTrainSamples[i])
             self.stagedTrainSamples[i] = self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra
         print("sample preprocessing complete")
         print("AI training started")
@@ -279,7 +285,6 @@ class LiteVoicebank:
             self.loadCrfWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
-        self.sampleRate = self.metadata.sampleRate
         
     def loadMetadata(self, filepath):
         """loads Voicebank Metadata from a Voicebank file"""
