@@ -31,6 +31,8 @@ class Inputs:
     def __init__(self, sequence):
         self.borders = sequence.borders
         self.phonemes = sequence.phonemes
+        self.startCaps = sequence.startCaps
+        self.endCaps = sequence.endCaps
         self.offsets = sequence.offsets
         self.repetititionSpacing = sequence.repetititionSpacing
         self.pitch = sequence.pitch
@@ -59,5 +61,8 @@ class RenderManager:
             self.statusControl.append(SequenceStatusControl(i))
             self.inputList.append(Inputs(i))
             self.outputList.append(Outputs(i))
-        renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, self.inputList, voicebankList, aiParamStackList, self.outputList, self.rerenderFlag), name = "Nova-Vox rendering process", daemon = True)
-        renderProcess.start()
+        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, aiParamStackList, self.inputList, self.outputList, self.rerenderFlag), name = "Nova-Vox rendering process", daemon = True)
+        self.renderProcess.start()
+
+    def stop(self):
+        self.renderProcess.terminate()

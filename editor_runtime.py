@@ -28,9 +28,12 @@ if __name__ == '__main__':
                 while True:
                     userInput = input("command?")
                     if userInput == "quit":
+                        manager.stop()
                         break
                     elif userInput == "status":
-                        print(manager.statusControl)
+                        print(manager.statusControl[0].rs)
+                        print(manager.statusControl[0].ai)
+                        print(manager.outputList[0].status)
                     elif userInput == "render":
                         manager.statusControl[0].rs *= 0
                         manager.statusControl[0].ai *= 0

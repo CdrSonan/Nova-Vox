@@ -15,10 +15,10 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
             voicebank = voicebankList[i]
             aiParamStack = aiParamStackList[i]
 
-            length = internalStatusControl.ai.size()[0]
+            length = internalInputs.pitch.size()[0]
 
             spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1))
-            processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
+            processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1))
             excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
             voicedExcitation = torch.zeros(length * global_consts.batchSize)
 
@@ -33,15 +33,18 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
             nextVoicedExcitation = None
             
             aiActive = False
+            #reverse iterator to set internalStatusControl.ai based on internalStatusControl.rs
             #reset recurrent AI Tensors
             for j in range(len(internalStatusControl.ai) + 1):
                 if j > 0:
-                    if (aiActive == False) & (internalStatusControl.ai[j - 1].item() == 1):
+                    if (aiActive == False) & (internalStatusControl.ai[j - 1].item() == 0):
                         aiActive = True
                     if aiActive:
                         #execute AI code
-                        #processedSpectrum[:] = spectrum[:]
-                        internalStatusControl.ai[j - 1] = 0
+                        processedSpectrum[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 3]] = spectrum[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 3]]
+                        if internalInputs.endCaps[j - 1]:
+                            processedSpectrum[internalInputs.borders[3 * (j - 1) + 3]:internalInputs.borders[3 * (j - 1) + 5]] = spectrum[internalInputs.borders[3 * (j - 1) + 3]:internalInputs.borders[3 * (j - 1) + 5]]
+                        internalStatusControl.ai[j - 1] = 1
                         outputList[i].status[j - 1] = 4
 
                 previousSpectrum = currentSpectrum
@@ -53,67 +56,68 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                 nextSpectrum = None
                 nextExcitation = None
                 nextVoicedExcitation = None
-                if (j < len(internalStatusControl.ai)) & (internalStatusControl.rs[j].item() == 1):
-                    if (internalInputs.startCaps[j] == False) and (previousSpectrum == None):
-                        section = VocalSegment(internalInputs, voicebank, j - 1)
-                        previousSpectrum = rs.getSpectrum(section)
-                        previousExcitation = rs.getExcitation(section)
-                        previousVoicedExcitation = rs.getVoicedExcitation(section)
-                    if currentSpectrum == None:
-                        section = VocalSegment(internalInputs, voicebank, j)
-                        currentSpectrum = rs.getSpectrum(section)
-                        currentExcitation = rs.getExcitation(section)
-                        currentVoicedExcitation = rs.getVoicedExcitation(section)
-                    if (internalInputs.startCaps[j] == False) and (previousSpectrum == None):
-                        section = VocalSegment(internalInputs, voicebank, j + 1)
-                        nextSpectrum = rs.getSpectrum(section)
-                        nextExcitation = rs.getExcitation(section)
-                        nextVoicedExcitation = rs.getVoicedExcitation(section)
+                if j < len(internalStatusControl.ai):
+                    if internalStatusControl.rs[j].item() == 0:
+                        if (internalInputs.startCaps[j] == False) and (previousSpectrum == None):
+                            section = VocalSegment(internalInputs, voicebank, j - 1)
+                            previousSpectrum = rs.getSpectrum(section)
+                            previousExcitation = rs.getExcitation(section)
+                            previousVoicedExcitation = rs.getVoicedExcitation(section)
+                        if currentSpectrum == None:
+                            section = VocalSegment(internalInputs, voicebank, j)
+                            currentSpectrum = rs.getSpectrum(section)
+                            currentExcitation = rs.getExcitation(section)
+                            currentVoicedExcitation = rs.getVoicedExcitation(section)
+                        if (internalInputs.endCaps[j] == False) and (nextSpectrum == None):
+                            section = VocalSegment(internalInputs, voicebank, j + 1)
+                            nextSpectrum = rs.getSpectrum(section)
+                            nextExcitation = rs.getExcitation(section)
+                            nextVoicedExcitation = rs.getVoicedExcitation(section)
 
-                    outputList[i].status[j] = 1
+                        outputList[i].status[j] = 1
 
-                    excitation[windowStartEx:windowEndEx] = currentExcitation
-                    voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = currentVoicedExcitation
-                    if internalInputs.startCaps[j]:
-                        windowStart = internalInputs.borders[3 * j]
-                        windowStartEx = internalInputs.borders[3 * j]
-                    else:
-                        voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 2]*global_consts.batchSize] += previousVoicedExcitation[(internalInputs.borders[3 * j]-internalInputs.borders[3 * j + 2])*global_consts.batchSize:]
-                        windowStart = internalInputs.borders[3 * j + 2]
-                        windowStartEx = internalInputs.borders[3 * j + 1]
-                        excitation[internalInputs.borders[3 * j]:windowStartEx] = previousExcitation[internalInputs.borders[3 * j] - windowStartEx:]
-                        for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2]):
-                            spectrum[k] = voicebank.crfAi.processData(previousSpectrum[-1], currentSpectrum[0], (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]))
-                    if internalInputs.endCaps[j]:
-                        windowEnd = internalInputs.borders[3 * j + 5]
-                        windowEndEx = internalInputs.borders[3 * j + 5]
-                    else:
-                        voicedExcitation[internalInputs.borders[3 * j + 3]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] += nextVoicedExcitation[0:(internalInputs.borders[3 * j + 5]-internalInputs.borders[3 * j + 3])*global_consts.batchSize]
-                        windowEnd = internalInputs.borders[3 * j + 3]
-                        windowEndEx = internalInputs.borders[3 * j + 4]
-                        excitation[windowEndEx:internalInputs.borders[3 * j + 5]] = nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx]
-                        for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
-                            spectrum[k] = voicebank.crfAi.processData(currentSpectrum[-1], nextSpectrum[0], (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
-                    spectrum[windowStart:windowEnd] = currentSpectrum
+                        voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = currentVoicedExcitation
+                        if internalInputs.startCaps[j]:
+                            windowStart = internalInputs.borders[3 * j]
+                            windowStartEx = internalInputs.borders[3 * j]
+                        else:
+                            voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 2]*global_consts.batchSize] += previousVoicedExcitation[(internalInputs.borders[3 * j]-internalInputs.borders[3 * j + 2])*global_consts.batchSize:]
+                            windowStart = internalInputs.borders[3 * j + 2]
+                            windowStartEx = internalInputs.borders[3 * j + 1]
+                            excitation[internalInputs.borders[3 * j]:windowStartEx] = previousExcitation[internalInputs.borders[3 * j] - windowStartEx:]
+                            for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2]):
+                                spectrum[k] = voicebank.crfAi.processData(previousSpectrum[-1], currentSpectrum[0], (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]))
+                        if internalInputs.endCaps[j]:
+                            windowEnd = internalInputs.borders[3 * j + 5]
+                            windowEndEx = internalInputs.borders[3 * j + 5]
+                        else:
+                            voicedExcitation[internalInputs.borders[3 * j + 3]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] += nextVoicedExcitation[0:(internalInputs.borders[3 * j + 5]-internalInputs.borders[3 * j + 3])*global_consts.batchSize]
+                            windowEnd = internalInputs.borders[3 * j + 3]
+                            windowEndEx = internalInputs.borders[3 * j + 4]
+                            excitation[windowEndEx:internalInputs.borders[3 * j + 5]] = nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx]
+                            for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
+                                spectrum[k] = voicebank.crfAi.processData(currentSpectrum[-1], nextSpectrum[0], (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
+                        spectrum[windowStart:windowEnd] = currentSpectrum
+                        excitation[windowStartEx:windowEndEx] = currentExcitation
 
-                    outputList[i].status[j] = 2
+                        outputList[i].status[j] = 2
 
-                    for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
-                        pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
-                        fourierPitchShift = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch) - pitchBorder
-                        shiftedSpectrum = torch.roll(spectrum[k], fourierPitchShift)
-                        slope = torch.zeros(global_consts.halfTripleBatchSize + 1)
-                        slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
-                        slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
-                        spectrum[k] = (slope * spectrum[k]) + ((1 - slope) * shiftedSpectrum)
+                        for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
+                            pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
+                            fourierPitchShift = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch) - pitchBorder
+                            shiftedSpectrum = torch.roll(spectrum[k], fourierPitchShift)
+                            slope = torch.zeros(global_consts.halfTripleBatchSize + 1)
+                            slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
+                            slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
+                            spectrum[k] = (slope * spectrum[k]) + ((1 - slope) * shiftedSpectrum)
 
-                    internalStatusControl.ai[j] = 1
-                    internalStatusControl.rs[j] = 0
-                    outputList[i].status[j] = 3
+                        internalStatusControl.ai[j] = 0
+                        internalStatusControl.rs[j] = 1
+                        outputList[i].status[j] = 3
 
                 if j > 0:
                     if aiActive:
-        
+                        print(voicedExcitation[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], voicedExcitation[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize].size(), voicedExcitation[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize].dtype)
                         internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]] = torch.stft(voicedExcitation[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
                         #unvoicedSignal = torch.stft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         
@@ -139,6 +143,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
             else:
                 continue
             break
+        print("arrived!")
         rerenderFlag.wait()
         rerenderFlag.clear()
 

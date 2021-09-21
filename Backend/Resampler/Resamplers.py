@@ -3,6 +3,7 @@ import torch
 import torchaudio
 torchaudio.set_audio_backend("soundfile")
 import global_consts
+import Backend.Resampler.Loop as Loop
 
 def getSpectrum(vocalSegment):
     if vocalSegment.startCap:
@@ -14,7 +15,7 @@ def getSpectrum(vocalSegment):
     else:
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + vocalSegment.offset
     spectrum =  vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectrum
-    spectra = vocalSegment.loopSamplerSpectrum(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra, windowEnd, vocalSegment.repetititionSpacing)[windowStart:windowEnd]
+    spectra = Loop.loopSamplerSpectrum(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra, windowEnd, vocalSegment.repetititionSpacing)[windowStart:windowEnd]
         
     return torch.square(spectrum + (torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-vocalSegment.offset:windowEnd-vocalSegment.offset], 1), 2) * spectra))
     
@@ -51,7 +52,7 @@ def getExcitation(vocalSegment):
 def getVoicedExcitation(vocalSegment):
     nativePitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch
     requiredSize = math.ceil(torch.max(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas) / torch.min(vocalSegment.pitch) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize)
-    voicedExcitation = vocalSegment.loopSamplerVoicedExcitation(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].voicedExcitation, requiredSize, vocalSegment.repetititionSpacing, math.ceil(nativePitch / global_consts.tickRate))
+    voicedExcitation = Loop.loopSamplerVoicedExcitation(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].voicedExcitation, requiredSize, vocalSegment.repetititionSpacing, math.ceil(nativePitch / global_consts.tickRate))
     cursor = 0
     cursor2 = 0
     pitchDeltas = torch.empty(math.ceil(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas.sum() / global_consts.batchSize))
@@ -61,7 +62,7 @@ def getVoicedExcitation(vocalSegment):
             cursor2 -= vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas[cursor]
         cursor2 += global_consts.batchSize
         pitchDeltas[i] = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas[cursor]
-    pitchDeltas = torch.squeeze(vocalSegment.loopSamplerSpectrum(torch.unsqueeze(pitchDeltas, 1), requiredSize, vocalSegment.repetititionSpacing))
+    pitchDeltas = torch.squeeze(Loop.loopSamplerSpectrum(torch.unsqueeze(pitchDeltas, 1), requiredSize, vocalSegment.repetititionSpacing))
 
     cursor = 0
     voicedExcitationFourier = torch.empty(vocalSegment.end3 - vocalSegment.start1, global_consts.halfTripleBatchSize + 1, dtype = torch.cdouble)

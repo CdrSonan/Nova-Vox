@@ -50,6 +50,7 @@ class VocalSegment:
         self.pitch = inputs.pitch[self.start1:self.end3]
         self.steadiness = inputs.steadiness[self.start1:self.end3]
 
+    """
     def __init__(self, start1, start2, start3, end1, end2, end3, startCap, endCap, phonemeKey, vb, offset, repetititionSpacing, pitch, steadiness):
         self.start1 = start1
         self.start2 = start2
@@ -65,3 +66,4 @@ class VocalSegment:
         self.repetititionSpacing = repetititionSpacing
         self.pitch = pitch
         self.steadiness = steadiness
+    """
