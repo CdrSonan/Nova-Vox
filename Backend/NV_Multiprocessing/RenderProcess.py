@@ -7,7 +7,7 @@ from Backend.DataHandler.VocalSegment import VocalSegment
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, outputList, rerenderFlag):
     window = torch.hann_window(global_consts.tripleBatchSize)
     while True:
-        for i in len(statusControl):
+        for i in range(len(statusControl)):
             internalStatusControl = copy.copy(statusControl[i])
             internalInputs = copy.copy(inputList[i])
             internalOutputs = copy.copy(outputList[i])
@@ -15,7 +15,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
             voicebank = voicebankList[i]
             aiParamStack = aiParamStackList[i]
 
-            length = internalStatusControl.size()[0]
+            length = internalStatusControl.ai.size()[0]
 
             spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1))
             processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
@@ -34,9 +34,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
             
             aiActive = False
             #reset recurrent AI Tensors
-            for j in len(internalStatusControl.ai) + 1:
+            for j in range(len(internalStatusControl.ai) + 1):
                 if j > 0:
-                    if (aiActive == False) & internalStatusControl.ai[j - 1] == 1:
+                    if (aiActive == False) & (internalStatusControl.ai[j - 1].item() == 1):
                         aiActive = True
                     if aiActive:
                         #execute AI code
@@ -53,7 +53,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                 nextSpectrum = None
                 nextExcitation = None
                 nextVoicedExcitation = None
-                if (internalStatusControl.rs[j] == 1) & (j < len(internalStatusControl.ai)):
+                if (j < len(internalStatusControl.ai)) & (internalStatusControl.rs[j].item() == 1):
                     if (internalInputs.startCaps[j] == False) and (previousSpectrum == None):
                         section = VocalSegment(internalInputs, voicebank, j - 1)
                         previousSpectrum = rs.getSpectrum(section)
@@ -130,9 +130,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
 
                         outputList[i].waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize]
                         outputList[i].status[j - 1] = 5
-                if (aiActive == True) & internalInputs.endCaps[j - 1] == True:
-                        aiActive = False
-                        #reset recurrent AI Tensors
+                        if internalInputs.endCaps[j - 1] == True:
+                            aiActive = False
+                            #reset recurrent AI Tensors
 
                 if rerenderFlag.is_set():
                     break

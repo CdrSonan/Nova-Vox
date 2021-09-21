@@ -46,21 +46,18 @@ class Outputs:
     """
     def __init__(self, sequence):
         self.waveform = torch.zeros(sequence.length * global_consts.batchSize)
-        self.status = torch.zeros(sequence.length)
+        self.status = torch.zeros(sequence.phonemeLength)
 
 class RenderManager:
     def __init__(self, sequenceList, voicebankList, aiParamStackList):
-        if __name__ == '__main__':
-            mp.freeze_support()
-            with mp.Manager() as manager:
-                self.statusControl = manager.list()
-                self.inputList = manager.list()
-                self.outputList = manager.list()
-                self.rerenderFlag = manager.Event()
-                for i in sequenceList:
-                    self.statusControl.append(SequenceStatusControl(i))
-                    self.inputList.append(Inputs(i))
-                    self.outputList.append(Outputs(i.timeLength))
-
-                renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, self.inputList, voicebankList, aiParamStackList, self.outputList, self.rerenderFlag), name = "Nova-Vox rendering backend", daemon = True)
-                renderProcess.start()
+        self.manager = mp.Manager()
+        self.statusControl = self.manager.list()
+        self.inputList = self.manager.list()
+        self.outputList = self.manager.list()
+        self.rerenderFlag = self.manager.Event()
+        for i in sequenceList:
+            self.statusControl.append(SequenceStatusControl(i))
+            self.inputList.append(Inputs(i))
+            self.outputList.append(Outputs(i))
+        renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, self.inputList, voicebankList, aiParamStackList, self.outputList, self.rerenderFlag), name = "Nova-Vox rendering process", daemon = True)
+        renderProcess.start()

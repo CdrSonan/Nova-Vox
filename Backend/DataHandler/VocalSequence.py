@@ -10,3 +10,5 @@ class VocalSequence:
         self.pitch = pitch
         self.steadiness = steadiness
         self.breathiness = breathiness
+
+        self.aiParamInputs = []
