@@ -1,4 +1,4 @@
-import torch #required for file reading
+import torch
 import torch.multiprocessing as mp
 import torchaudio
 import tkinter.filedialog
