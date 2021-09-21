@@ -200,34 +200,8 @@ class LiteSpecCrfAi(nn.Module):
         getState: returns the state of the NN and its epoch attribute in a Dictionary
         
     This version of the AI can only run data through the NN forward, backpropagation and, by extension, training, are not possible."""
-    
-    
-    def __init__(self, specCrfAi):
-        """Constructor initialising NN layers and other attributes based on SpecCrfAi base object.
-        
-        Arguments:
-            specCrfAi: SpecCrfAi base object
-            
-        Returns:
-            None"""
-            
-            
-        super(LiteSpecCrfAi, self).__init__()
-        
-        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3)
-        self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize)
-        self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3)
-        self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1)
-        
-        self.epoch = specCrfAi.getState()['epoch']
-        self.sampleCount = specCrfAi.getState()['sampleCount']
-        self.load_state_dict(specCrfAi.getState()['model_state_dict'])
-        self.eval()
 
-    def __init__(self):
+    def __init__(self, specCrfAi = None):
         """Constructor initialising NN layers and other attributes based on SpecCrfAi base object.
         
         Arguments:
@@ -247,8 +221,14 @@ class LiteSpecCrfAi(nn.Module):
         self.ReLu3 = nn.ReLU()
         self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1)
         
-        self.epoch = 0
-        self.sampleCount = 0
+        if specCrfAi == None:
+            self.epoch = 0
+            self.sampleCount = 0
+        else:
+            self.epoch = specCrfAi.getState()['epoch']
+            self.sampleCount = specCrfAi.getState()['sampleCount']
+            self.load_state_dict(specCrfAi.getState()['model_state_dict'])
+            self.eval()
         
     def forward(self, spectrum1, spectrum2, factor):
         """Forward NN pass with unprocessed in-and outputs.

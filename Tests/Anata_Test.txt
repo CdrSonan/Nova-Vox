@@ -18,6 +18,4 @@ steadiness = torch.full([700], 0)
 
 breathiness = torch.full([700], 0)
 
-sequence = VocalSequence(700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
-
-sequence.save("Anata test.wav")
+sequence = VocalSequence(700, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)

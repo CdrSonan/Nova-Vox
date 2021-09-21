@@ -1,3 +1,5 @@
+import torch #required for file reading
+import torchaudio
 import tkinter.filedialog
 import Backend.VB_Components.Voicebank
 Voicebank = Backend.VB_Components.Voicebank.LiteVoicebank
@@ -17,4 +19,18 @@ if filepath != "":
             sequenceList = [sequence]
             voicebankList = [vb]
             aiParamStackList = [None]
-            Manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
+            manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
+
+            while True:
+                userInput = input("command?")
+                if userInput == "quit":
+                    break
+                elif userInput == "status":
+                    print(manager.statusControl)
+                elif userInput == "render":
+                    manager.statusControl[0].rs *= 0
+                    manager.statusControl[0].ai *= 0
+                    manager.outputList[0].status *= 0
+                    manager.rerenderFlag.set()
+                elif userInput == "save":
+                    torchaudio.save("output.wav", torch.unsqueeze(manager.outputList[0].waveform.detach(), 0), global_consts.sampleRate, format="wav", encoding="PCM_S", bits_per_sample=32)

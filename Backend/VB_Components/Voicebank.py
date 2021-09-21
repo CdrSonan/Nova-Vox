@@ -218,6 +218,7 @@ class Voicebank:
         for i in range(len(self.stagedTrainSamples)):
             self.stagedTrainSamples[i].voicedIterations = 1
             self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
+            calculatePitch(self.stagedTrainSamples[i])
             calculateSpectra(self.stagedTrainSamples[i])
             self.stagedTrainSamples[i] = self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra
         print("sample preprocessing complete")

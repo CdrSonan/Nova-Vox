@@ -147,7 +147,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
 
 
 
-
+"""
 class Synthesizer:
     def __init__(self, sampleRate):
         self.sampleRate = sampleRate
@@ -170,6 +170,4 @@ class Synthesizer:
         self.returnSignal += excitation
 
         del Window
-        
-    #def save(self, filepath):
-    #    torchaudio.save(filepath, torch.unsqueeze(self.returnSignal.detach(), 0), global_consts.sampleRate, format="wav", encoding="PCM_S", bits_per_sample=32)
+    """

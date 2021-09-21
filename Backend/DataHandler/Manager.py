@@ -3,22 +3,19 @@ import torch.multiprocessing as mp
 import global_consts
 import Backend.NV_Multiprocessing.RenderProcess
 
-class AiParamStack:
-    def __init__(self):
-        pass
-    def __init__(self, sequence):
-        pass
-
 class SequenceStatusControl:
+    """
     def __init__(self):
         self.ai = torch.zeros(0)
         self.rs = torch.zeros(0)
+    """
     def __init__(self, sequence):
         phonemeLength = sequence.phonemeLength
         self.ai = torch.zeros(phonemeLength)
         self.rs = torch.zeros(phonemeLength)
 
 class Inputs:
+    """
     def __init__(self):
         self.borders = torch.Tensor([0, 1, 2])
         self.startCaps = torch.zeros(0, dtype = torch.bool)
@@ -30,6 +27,7 @@ class Inputs:
         self.steadiness = torch.zeros(0)
         self.breathiness = torch.zeros(0)
         self.aiParamInputs = []
+    """
     def __init__(self, sequence):
         self.borders = sequence.borders
         self.phonemes = sequence.phonemes
@@ -41,9 +39,11 @@ class Inputs:
         self.aiParamInputs = sequence.aiParamInputs
 
 class Outputs:
+    """
     def __init__(self):
         self.waveform = torch.zeros(0)
         self.status = torch.zeros(0)
+    """
     def __init__(self, sequence):
         self.waveform = torch.zeros(sequence.length * global_consts.batchSize)
         self.status = torch.zeros(sequence.length)

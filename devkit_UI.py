@@ -663,12 +663,12 @@ class CrfaiUi(tkinter.Frame):
     def onTrainPress(self):
         """UI Frontend function for training the AI with the specified settings and samples"""
         global loadedVB
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, global_consts.spectralFilterWidth, 1, self.sideBar.unvoicedIter.variable.get())
+        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get())
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             loadedVB.delTrainSample(0)
             self.phonemeList.list.lb.delete(0)
-        self.sidebar.statusVar.set("AI trained with " + loadedVB.crfAi.epoch + " epochs and " + loadedVB.crfAi.samples + " samples")
+        self.statusVar.set("AI trained with " + str(loadedVB.crfAi.epoch) + " epochs and " + str(loadedVB.crfAi.sampleCount) + " samples")
         
     def onFinalizePress(self):
         """UI Frontend function for finalizing the phoneme crossfade AI"""
