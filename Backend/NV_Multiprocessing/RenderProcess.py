@@ -5,6 +5,19 @@ import global_consts
 import Backend.Resampler.Resamplers as rs
 from Backend.DataHandler.VocalSegment import VocalSegment
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, outputList, rerenderFlag):
+    settings = {}
+    with open("settings.ini", 'r') as f:
+        for line in f:
+            line = line.strip()
+            line = line.split(" ")
+            settings[line[0]] = line[1]
+    if settings["intermediateOutputs"] == "enabled":
+        interOutput = True
+    elif settings["intermediateOutputs"] == "disabled":
+        interOutput = False
+    else:
+        print("could not read intermediate output setting. Intermediate outputs have been disabled by default.")
+        interOutput = False
     window = torch.hann_window(global_consts.tripleBatchSize)
     while True:
         for i in range(len(statusControl)):
@@ -101,7 +114,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                         excitation[windowStartEx:windowEndEx] = currentExcitation
 
                         outputList[i].status[j] = 2
-
+                        
                         for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
                             pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
                             fourierPitchShift = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch) - pitchBorder
@@ -114,8 +127,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                         internalStatusControl.ai[j] = 0
                         internalStatusControl.rs[j] = 1
                         outputList[i].status[j] = 3
-
-                if j > 0:
+                        
+                if ((j > 0) & interOutput):
                     if aiActive:
                         voicedSignal = torch.stft(voicedExcitation[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
                         #unvoicedSignal = torch.stft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
@@ -142,7 +155,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
             else:
                 continue
             break
-        print("arrived!")
+        print("rendering finished!")
         rerenderFlag.wait()
         rerenderFlag.clear()
 

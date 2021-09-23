@@ -20,6 +20,6 @@ pitch = torch.full([700], 193)
 
 steadiness = torch.full([700], 0)
 
-breathiness = torch.full([700], 0)
+breathiness = torch.full([700], -1)
 
 sequence = VocalSequence(700, borders, phonemes, startCaps, endCaps, offsets, repetititionSpacing, pitch, steadiness, breathiness)
