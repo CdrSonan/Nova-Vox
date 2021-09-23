@@ -130,21 +130,21 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                         
                 if ((j > 0) & interOutput):
                     if aiActive:
-                        voicedSignal = torch.stft(voicedExcitation[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
+                        voicedSignal = torch.stft(voicedExcitation[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
                         #unvoicedSignal = torch.stft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         
-                        breathiness = internalInputs.breathiness[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]]
-                        breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.sum(torch.abs(excitation[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]]), 1) * global_consts.breCompPremul
+                        breathiness = internalInputs.breathiness[0:internalInputs.borders[3 * (j - 1) + 5]]
+                        breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.sum(torch.abs(excitation[0:internalInputs.borders[3 * (j - 1) + 5]]), 1) * global_consts.breCompPremul
                         breathinessUnvoiced = 1. + breathiness * breathinessCompensation * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                         breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
-                        voicedSignal = voicedSignal[:, 0:-1] * torch.transpose(processedSpectrum[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessVoiced
-                        excitationSignal = torch.transpose(excitation[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]] * processedSpectrum[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessUnvoiced
+                        voicedSignal = voicedSignal[:, 0:-1] * torch.transpose(processedSpectrum[0:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessVoiced
+                        excitationSignal = torch.transpose(excitation[0:internalInputs.borders[3 * (j - 1) + 5]] * processedSpectrum[0:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessUnvoiced
 
-                        internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = (internalInputs.borders[3 * (j - 1) + 5] - internalInputs.borders[3 * (j - 1)]) * global_consts.batchSize)
-                        excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = (internalInputs.borders[3 * (j - 1) + 5] - internalInputs.borders[3 * (j - 1)]) * global_consts.batchSize)
-                        internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] += excitationSignal
+                        internalOutputs.waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
+                        excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
+                        internalOutputs.waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] += excitationSignal
 
-                        outputList[i].waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = internalOutputs.waveform[internalInputs.borders[3 * (j - 1)]*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize]
+                        outputList[i].waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = internalOutputs.waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize]
                         outputList[i].status[j - 1] = 5
                         if internalInputs.endCaps[j - 1] == True:
                             aiActive = False
