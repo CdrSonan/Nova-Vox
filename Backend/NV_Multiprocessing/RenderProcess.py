@@ -18,6 +18,19 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
     else:
         print("could not read intermediate output setting. Intermediate outputs have been disabled by default.")
         interOutput = False
+    if settings["accelerator"] == "CPU":
+        device_rs = torch.device("cpu")
+        device_ai = torch.device("cpu")
+    elif settings["accelerator"] == "Hybrid":
+        device_rs = torch.device("cpu")
+        device_ai = torch.device("cuda")
+    elif settings["accelerator"] == "GPU":
+        device_rs = torch.device("cuda")
+        device_ai = torch.device("cuda")
+    else:
+        print("could not read accelerator setting. Accelerator has been set to CPU by default.")
+        device_rs = torch.device("cpu")
+        device_ai = torch.device("cpu")
     window = torch.hann_window(global_consts.tripleBatchSize)
     while True:
         for i in range(len(statusControl)):
@@ -30,10 +43,10 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
 
             length = internalInputs.pitch.size()[0]
 
-            spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1))
-            processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1))
-            excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
-            voicedExcitation = torch.zeros(length * global_consts.batchSize)
+            spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
+            processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
+            excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
+            voicedExcitation = torch.zeros(length * global_consts.batchSize, device = device_rs)
 
             previousSpectrum = None
             previousExcitation = None
@@ -72,20 +85,20 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                 if j < len(internalStatusControl.ai):
                     if internalStatusControl.rs[j].item() == 0:
                         if (internalInputs.startCaps[j] == False) and (previousSpectrum == None):
-                            section = VocalSegment(internalInputs, voicebank, j - 1)
-                            previousSpectrum = rs.getSpectrum(section)
-                            previousExcitation = rs.getExcitation(section)
-                            previousVoicedExcitation = rs.getVoicedExcitation(section)
+                            section = VocalSegment(internalInputs, voicebank, j - 1, device_rs)
+                            previousSpectrum = rs.getSpectrum(section, device_rs)
+                            previousExcitation = rs.getExcitation(section, device_rs)
+                            previousVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
                         if currentSpectrum == None:
-                            section = VocalSegment(internalInputs, voicebank, j)
-                            currentSpectrum = rs.getSpectrum(section)
-                            currentExcitation = rs.getExcitation(section)
-                            currentVoicedExcitation = rs.getVoicedExcitation(section)
+                            section = VocalSegment(internalInputs, voicebank, j, device_rs)
+                            currentSpectrum = rs.getSpectrum(section, device_rs)
+                            currentExcitation = rs.getExcitation(section, device_rs)
+                            currentVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
                         if (internalInputs.endCaps[j] == False) and (nextSpectrum == None):
-                            section = VocalSegment(internalInputs, voicebank, j + 1)
-                            nextSpectrum = rs.getSpectrum(section)
-                            nextExcitation = rs.getExcitation(section)
-                            nextVoicedExcitation = rs.getVoicedExcitation(section)
+                            section = VocalSegment(internalInputs, voicebank, j + 1, device_rs)
+                            nextSpectrum = rs.getSpectrum(section, device_rs)
+                            nextExcitation = rs.getExcitation(section, device_rs)
+                            nextVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
 
                         outputList[i].status[j] = 1
 
@@ -140,9 +153,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                         voicedSignal = voicedSignal[:, 0:-1] * torch.transpose(processedSpectrum[0:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessVoiced
                         excitationSignal = torch.transpose(excitation[0:internalInputs.borders[3 * (j - 1) + 5]] * processedSpectrum[0:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessUnvoiced
 
-                        internalOutputs.waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
+                        internalOutputs.waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize).to(device = torch.device("cpu"))
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
-                        internalOutputs.waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] += excitationSignal
+                        internalOutputs.waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] += excitationSignal.to(device = torch.device("cpu"))
 
                         outputList[i].waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize] = internalOutputs.waveform[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize]
                         outputList[i].status[j - 1] = 5
