@@ -67,7 +67,7 @@ class Voicebank:
         finalizeCrfAi: finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
         
         
-    def __init__(self, filepath):
+    def __init__(self, filepath, device = None):
         """ Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank.
         
         Arguments:
@@ -81,7 +81,7 @@ class Voicebank:
         self.metadata = VbMetadata()
         self.filepath = filepath
         self.phonemeDict = dict()
-        self.crfAi = SpecCrfAi()
+        self.crfAi = SpecCrfAi(device)
         self.parameters = []
         self.wordDict = dict()
         self.stagedTrainSamples = []
@@ -91,6 +91,8 @@ class Voicebank:
             self.loadCrfWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
+
+        self.device = device
         
     def save(self, filepath):
         """saves the loaded Voicebank to a file"""
@@ -132,14 +134,14 @@ class Voicebank:
     def loadCrfWeights(self, filepath):
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
         data = torch.load(filepath)
-        self.crfAi = SpecCrfAi()
+        self.crfAi = SpecCrfAi(self.device)
         self.crfAi.epoch = data["crfAiState"]['epoch']
         self.crfAi.load_state_dict(data["crfAiState"]['model_state_dict'])
         if "loss" in data["crfAiState"].keys():
             self.crfAi.optimizer.load_state_dict(data["crfAiState"]['optimizer_state_dict'])
             self.crfAi.loss = data["crfAiState"]['loss']
         else:
-            self.crfAi = LiteSpecCrfAi(self.crfAi)
+            self.crfAi = LiteSpecCrfAi(self.crfAi, self.device)
         self.crfAi.eval()
         
     def loadParameters(self, filepath, additive):
@@ -220,7 +222,7 @@ class Voicebank:
             self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
             calculatePitch(self.stagedTrainSamples[i])
             calculateSpectra(self.stagedTrainSamples[i])
-            self.stagedTrainSamples[i] = self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra
+            self.stagedTrainSamples[i] = (self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra).to(device = self.device)
         print("sample preprocessing complete")
         print("AI training started")
         self.crfAi.train(self.stagedTrainSamples, epochs = epochs)
@@ -228,7 +230,7 @@ class Voicebank:
         
     def finalizCrfAi(self):
         """finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
-        self.crfAi = LiteSpecCrfAi(self.crfAi)
+        self.crfAi = LiteSpecCrfAi(self.crfAi, self.device)
 
 class LiteVoicebank:
     """Class for holding a Voicebank as handled by the devkit.

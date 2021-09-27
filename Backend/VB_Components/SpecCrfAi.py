@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from torch._C import device
 import torch.nn as nn
 import global_consts
 
@@ -38,7 +39,7 @@ class SpecCrfAi(nn.Module):
     Since network performance deteriorates with skewed data, it internally passes the input through a square root function and squares the output."""
         
         
-    def __init__(self, learningRate=1e-4):
+    def __init__(self, device = None, learningRate=1e-4):
         """Constructor initialising NN layers and prerequisite attributes.
         
         Arguments:
@@ -50,13 +51,15 @@ class SpecCrfAi(nn.Module):
             
         super(SpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3)
+        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize)
+        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize, device = device)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3)
+        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1)
+        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1, device = device)
+        
+        self.device = device
         
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
@@ -80,7 +83,7 @@ class SpecCrfAi(nn.Module):
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
         
         
-        fac = torch.tensor([factor])
+        fac = torch.tensor([factor], device = self.device)
         x = torch.cat((spectrum1, spectrum2, fac), dim = 0)
         x = x.float()
         x = self.layer1(x)
@@ -134,7 +137,7 @@ class SpecCrfAi(nn.Module):
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
                     print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
-                    #data = torch.sqrt(data)
+                    data = torch.sqrt(data.to(device = self.device))
                     data = torch.squeeze(data)
                     spectrum1 = data[0]
                     spectrum2 = data[-1]
@@ -201,7 +204,7 @@ class LiteSpecCrfAi(nn.Module):
         
     This version of the AI can only run data through the NN forward, backpropagation and, by extension, training, are not possible."""
 
-    def __init__(self, specCrfAi = None):
+    def __init__(self, specCrfAi = None, device = None):
         """Constructor initialising NN layers and other attributes based on SpecCrfAi base object.
         
         Arguments:
@@ -213,14 +216,16 @@ class LiteSpecCrfAi(nn.Module):
             
         super(LiteSpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3)
+        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize)
+        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize, device = device)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3)
+        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1)
+        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1, device = device)
         
+        self.device = device
+
         if specCrfAi == None:
             self.epoch = 0
             self.sampleCount = 0
@@ -244,7 +249,7 @@ class LiteSpecCrfAi(nn.Module):
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
         
         
-        fac = torch.tensor([factor])
+        fac = torch.tensor([factor], device = self.device)
         x = torch.cat((spectrum1, spectrum2, fac), dim = 0)
         x = x.float()
         x = self.layer1(x)
@@ -287,6 +292,7 @@ class LiteSpecCrfAi(nn.Module):
             
             
         AiState = {'epoch': self.epoch,
+                 'sampleCount': self.sampleCount,
                  'model_state_dict': self.state_dict()
                  }
         return AiState

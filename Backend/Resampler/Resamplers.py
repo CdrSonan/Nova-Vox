@@ -41,7 +41,7 @@ def getExcitation(vocalSegment, device):
     excitation = torch.transpose(excitation, 0, 1)
     transform = torchaudio.transforms.TimeStretch(hop_length = global_consts.batchSize,
                                                   n_freq = global_consts.halfTripleBatchSize + 1, 
-                                                  fixed_rate = premul)
+                                                  fixed_rate = premul).to(device = device)
     excitation = transform(excitation)[:, 0:length]
     #phaseAdvance = torch.linspace(0, math.pi * global_consts.batchSize,  global_consts.halfTripleBatchSize + 1)[..., None]
     #excitation = torchaudio.functional.phase_vocoder(excitation, premul, phaseAdvance)[:, 0:length]
@@ -62,7 +62,7 @@ def getVoicedExcitation(vocalSegment, device):
             cursor2 -= vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas[cursor]
         cursor2 += global_consts.batchSize
         pitchDeltas[i] = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas[cursor].to(device = device)
-    pitchDeltas = torch.squeeze(Loop.loopSamplerSpectrum(torch.unsqueeze(pitchDeltas, 1), requiredSize, vocalSegment.repetititionSpacing))
+    pitchDeltas = torch.squeeze(Loop.loopSamplerSpectrum(torch.unsqueeze(pitchDeltas, 1), requiredSize, vocalSegment.repetititionSpacing, device = device))
 
     cursor = 0
     voicedExcitationFourier = torch.empty(vocalSegment.end3 - vocalSegment.start1, global_consts.halfTripleBatchSize + 1, dtype = torch.cdouble, device = device)
@@ -72,7 +72,7 @@ def getVoicedExcitation(vocalSegment, device):
         nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - vocalSegment.steadiness[i])))
         transform = torchaudio.transforms.Resample(orig_freq = nativePitchMod,
                                                    new_freq = int(vocalSegment.pitch[i]),
-                                                   resampling_method = 'sinc_interpolation')
+                                                   resampling_method = 'sinc_interpolation').to(device = device)
         buffer = 1000 #this is a terrible idea, but it seems to work
         if cursor < math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]):
             voicedExcitationPart = torch.cat((torch.zeros(math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]) - cursor).to(device = device), voicedExcitation), 0)

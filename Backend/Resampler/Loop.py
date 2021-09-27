@@ -6,9 +6,7 @@ phaseShift = Backend.Resampler.PhaseShift.phaseShift
 
 def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pitch, device):
     inputTensor = inputTensor.to(device = device)
-    targetSize = targetSize.to(device = device)
     repetititionSpacing = repetititionSpacing.to(device = device)
-    pitch = pitch.to(device = device)
     batchRS = math.ceil(repetititionSpacing * inputTensor.size()[1] / 2)
     repetititionSpacing = int(repetititionSpacing * global_consts.batchSize * math.ceil(inputTensor.size()[1] / 2))
     window = torch.hann_window(global_consts.tripleBatchSize, device = device)
@@ -29,14 +27,14 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
 
         for i in range(1, requiredTensors - 1):
             workingTensor = inputTensor.clone()
-            workingTensor = phaseShift(workingTensor, pitch, i * phaseDiff)
+            workingTensor = phaseShift(workingTensor, pitch, i * phaseDiff, device = device)
             workingTensor = torch.istft(workingTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
             workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.linspace(0, 1, repetititionSpacing, device = device)
             workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.linspace(1, 0, repetititionSpacing, device = device)
             outputTensor[i * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing):i * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing) + inputTensor.size()[1] * global_consts.batchSize] += workingTensor
 
         workingTensor = inputTensor.clone()
-        workingTensor = phaseShift(workingTensor, pitch, (requiredTensors - 1) * phaseDiff)
+        workingTensor = phaseShift(workingTensor, pitch, (requiredTensors - 1) * phaseDiff, device = device)
         workingTensor = torch.istft(workingTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
         workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.linspace(0, 1, repetititionSpacing, device = device)
         outputTensor[(requiredTensors - 1) * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing):] += workingTensor

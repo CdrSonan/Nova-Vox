@@ -35,6 +35,22 @@ class RootUi(tkinter.Frame):
         self.createWidgets()
         self.master.wm_title(loc["no_vb"])
         self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+
+        settings = {}
+        with open("settings.ini", 'r') as f:
+            for line in f:
+                line = line.strip()
+                line = line.split(" ")
+                settings[line[0]] = line[1]
+        if settings["accelerator"] == "CPU":
+            self.device = torch.device("cpu")
+        elif settings["accelerator"] == "Hybrid":
+            self.device = torch.device("cuda")
+        elif settings["accelerator"] == "GPU":
+            self.device = torch.device("cuda")
+        else:
+            print("could not read accelerator setting. Accelerator has been set to CPU by default.")
+            self.device = torch.device("cpu")
         
     def createWidgets(self):
         """Initialize all widgets of the main window. Called once during main window initialization."""
@@ -139,7 +155,7 @@ class RootUi(tkinter.Frame):
             filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")), initialfile = loadedVBPath)
             if filepath != "":
                 loadedVBPath = filepath
-                loadedVB = Voicebank(filepath)
+                loadedVB = Voicebank(filepath, self.device)
                 self.metadataButton["state"] = "active"
                 self.phonemedictButton["state"] = "active"
                 self.crfaiButton["state"] = "active"
@@ -152,7 +168,7 @@ class RootUi(tkinter.Frame):
         """creates a new, empty Voicebank object in memory"""
         global loadedVB
         if ("loadedVB" not in globals()) or tkinter.messagebox.askokcancel(loc["warning"], loc["vb_discard_msg"], icon = "warning"):
-            loadedVB = Voicebank(None)
+            loadedVB = Voicebank(None, self.device)
             self.metadataButton["state"] = "active"
             self.phonemedictButton["state"] = "active"
             self.crfaiButton["state"] = "active"
