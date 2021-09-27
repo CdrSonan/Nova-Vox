@@ -40,3 +40,13 @@ def calculatePitch(audioSample):
         for i in range(nBatches):
             audioSample.pitchBorders[i+1] = audioSample.pitchBorders[i] + audioSample.pitchDeltas[i]
         audioSample.pitch = torch.mean(audioSample.pitchDeltas.float()).int()
+
+        cursor = 0
+        cursor2 = 0
+        pitchDeltas = torch.empty(math.ceil(audioSample.pitchDeltas.sum() / global_consts.batchSize))
+        for i in range(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize)):
+            while cursor2 >= audioSample.pitchDeltas[cursor]:
+                cursor += 1
+                cursor2 -= audioSample.pitchDeltas[cursor]
+            cursor2 += global_consts.batchSize
+            pitchDeltas[i] = audioSample.pitchDeltas[cursor]

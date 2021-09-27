@@ -138,12 +138,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                             slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
                             slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
                             spectrum[k] = (slope * spectrum[k]) + ((1 - slope) * shiftedSpectrum)
-
+                        
                         internalStatusControl.ai[j] = 0
                         internalStatusControl.rs[j] = 1
                         outputList[i].status[j] = 3
                         
-                if ((j > 0) & interOutput):
+                if ((j > 0) & interOutput) or (j == len(internalStatusControl.ai)):
                     if aiActive:
                         voicedSignal = torch.stft(voicedExcitation[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
                         #unvoicedSignal = torch.stft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)

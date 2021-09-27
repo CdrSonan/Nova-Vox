@@ -85,14 +85,13 @@ class Voicebank:
         self.parameters = []
         self.wordDict = dict()
         self.stagedTrainSamples = []
+        self.device = device
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
             self.loadCrfWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
-
-        self.device = device
         
     def save(self, filepath):
         """saves the loaded Voicebank to a file"""
