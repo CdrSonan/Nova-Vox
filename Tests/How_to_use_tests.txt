@@ -18,6 +18,14 @@ Next, you declare the phonemes. Phonemes can be accessed with the keys specified
 Example:
 phonemes = ["A", "N", "A", "T", "A"]
 
+For sequences without glottal stops, startCaps and endCaps are always the same:
+
+startCaps = torch.zeros(5)
+
+endCaps = torch.zeros(5)
+
+(5 is the number of phonemes)
+
 The offsets are declared in the same way as the borders. Their number needs to match the number of phonemes, and they describe how much of the beginning of each phoneme's audio sample to discard before using it.
 This can be useful when the sample is used in the middle of a word and you don't want the beginning of the recording to cause a gap. Too high values might cause crashes.
 Example:
@@ -46,6 +54,3 @@ and the rest should be left as it is.
 Example:
 sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
-The final line is used for saving the result as a .wav file. The file name for the new file needs to be put in quotation marks, and the .wav extension must be explicitely included.
-Example:
-sequence.save("Anata test.wav")

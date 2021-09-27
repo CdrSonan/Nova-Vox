@@ -8,6 +8,10 @@ borders = [0, 2, 4,
 
 phonemes = ["A", "E", "I", "O", "U"]
 
+startCaps = torch.zeros(5)
+
+endCaps = torch.zeros(5)
+
 offsets = [0, 20, 20, 0, 13]
 
 repetititionSpacing = torch.full([5], 0.8)
@@ -18,6 +22,5 @@ steadiness = torch.full([700], 0)
 
 breathiness = torch.full([700], 0.5)
 
-sequence = VocalSequence(0, 700, vb, borders, phonemes, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+sequence = VocalSequence(700, borders, phonemes, startCaps, endCaps, offsets, repetititionSpacing, pitch, steadiness, breathiness)
 
-sequence.save("short Vowel Pitch test.wav")

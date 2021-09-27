@@ -18,4 +18,4 @@ pitchShiftSpectralRolloff = 10
 breCompPremul = 0.4
 
 language = "en"
-version = "Prealpha 0.3.0"
+version = "Prealpha 0.4.0"

@@ -4,15 +4,15 @@ specpath = os.path.dirname(os.path.abspath(SPEC))
 
 common_excludes = ["pillow", "torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
-common_datas = [("icon/nova-vox-logo-black.ico", "icon")]
+common_datas = [("settings.ini", "."), ("icon/*", "icon")]
 
 block_cipher = None
 
-a_editor = Analysis(['vb_tester.py'],
+a_editor = Analysis(['editor_runtime.py'],
                     pathex=[specpath],
                     binaries=[],
                     datas=common_datas,
-                    hiddenimports=["matplotlib", "matplotlib.pyplot", "matplotlib.backends.backend_tkagg", "matplotlib.figure"],
+                    hiddenimports=["matplotlib", "matplotlib.pyplot", "matplotlib.backends.backend_tkagg", "matplotlib.figure", "Backend"],
                     hookspath=[],
                     hooksconfig={},
                     runtime_hooks=[],
@@ -22,7 +22,7 @@ a_editor = Analysis(['vb_tester.py'],
                     cipher=block_cipher,
                     noarchive=False)
 
-a_devkit = Analysis(['Devkit_runtime.py'],
+a_devkit = Analysis(['devkit_runtime.py'],
                     pathex=[specpath],
                     binaries=[],
                     datas=common_datas,
@@ -36,7 +36,7 @@ a_devkit = Analysis(['Devkit_runtime.py'],
                     cipher=block_cipher,
                     noarchive=False)
 
-MERGE( (a_editor, 'vb_tester', 'Nova-Vox Editor'), (a_devkit, 'Devkit_runtime', 'Nova-Vox VB Devkit') )
+MERGE( (a_editor, 'editor_runtime', 'Nova-Vox Editor'), (a_devkit, 'devkit_runtime', 'Nova-Vox Devkit') )
 
 pyz_editor = PYZ(a_editor.pure, a_editor.zipped_data, cipher=block_cipher)
 
