@@ -46,10 +46,6 @@ def getExcitation(vocalSegment, device):
                                                   n_freq = global_consts.halfTripleBatchSize + 1, 
                                                   fixed_rate = premul).to(device = device)
     excitation = transform(excitation)[:, 0:length]
-    #phaseAdvance = torch.linspace(0, math.pi * global_consts.batchSize,  global_consts.halfTripleBatchSize + 1)[..., None]
-    #excitation = torchaudio.functional.phase_vocoder(excitation, premul, phaseAdvance)[:, 0:length]
-    #window = torch.hann_window(global_consts.tripleBatchSize)
-    #excitation = torch.istft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = length*global_consts.batchSize)
     return excitation.transpose(0, 1)
     
 def getVoicedExcitation(vocalSegment, device):
@@ -61,30 +57,19 @@ def getVoicedExcitation(vocalSegment, device):
     cursor = 0
     voicedExcitationFourier = torch.empty(vocalSegment.end3 - vocalSegment.start1, global_consts.halfTripleBatchSize + 1, dtype = torch.cdouble, device = device)
     window = torch.hann_window(global_consts.tripleBatchSize, device = device)
-    print("start")
     for i in range(vocalSegment.end3 - vocalSegment.start1):
-        print(i)
         precisePitch = pitchDeltas[i]
         nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - vocalSegment.steadiness[i])))
-        #print("transform build")
-        """
-        transform = torchaudio.transforms.Resample(orig_freq = nativePitchMod,
-                                                   new_freq = int(vocalSegment.pitch[i]),
-                                                   resampling_method = 'sinc_interpolation').to(device = device)
-        """
         rescale_factor = float(vocalSegment.pitch[i] / nativePitchMod)
         buffer = 10 #this is a terrible idea, but it seems to work
-        #print("transform apply")
         if cursor < math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]):
             voicedExcitationPart = torch.cat((torch.zeros(math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]) - cursor).to(device = device), voicedExcitation), 0)
-            #voicedExcitationPart = transform(voicedExcitationPart[vocalSegment.offset:(3*math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i])) + vocalSegment.offset + buffer])[0:global_consts.tripleBatchSize]
             length = (3*math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i])) + buffer
             voicedExcitationPart = voicedExcitationPart[vocalSegment.offset:length + vocalSegment.offset]
             x = torch.linspace(0, 1, length, device = device)
             xs = torch.linspace(0, 1, int(length * rescale_factor), device = device)
             voicedExcitationPart = interpolate(x, voicedExcitationPart, xs)[0:global_consts.tripleBatchSize]
         else:
-            #voicedExcitationPart = transform(voicedExcitation[cursor - math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]) + vocalSegment.offset:cursor + (2*math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i])) + vocalSegment.offset + buffer])[0:global_consts.tripleBatchSize]
             length = math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i])
             voicedExcitationPart = voicedExcitation[cursor - length + vocalSegment.offset:cursor + (2*length) + vocalSegment.offset + buffer]
             x = torch.linspace(0, 1, 3 * length + buffer, device = device)
@@ -92,7 +77,6 @@ def getVoicedExcitation(vocalSegment, device):
             voicedExcitationPart = interpolate(x, voicedExcitationPart, xs)[0:global_consts.tripleBatchSize]
         voicedExcitationFourier[i] = torch.fft.rfft(voicedExcitationPart * window)
         cursor += math.ceil(global_consts.batchSize * (nativePitchMod/vocalSegment.pitch[i]))
-    print("end")
     voicedExcitationFourier = voicedExcitationFourier.transpose(0, 1)
     voicedExcitation = torch.istft(voicedExcitationFourier, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = (vocalSegment.end3 - vocalSegment.start1)*global_consts.batchSize)
 

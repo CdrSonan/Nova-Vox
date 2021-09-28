@@ -38,10 +38,19 @@ a_devkit = Analysis(['devkit_runtime.py'],
 
 MERGE( (a_editor, 'editor_runtime', 'Nova-Vox Editor'), (a_devkit, 'devkit_runtime', 'Nova-Vox Devkit') )
 
+splash = Splash('icon/splash.png',
+                binaries=a_editor.binaries,
+                datas=a_editor.datas,
+                text_pos=(600, 50),
+                text_size=12,
+                text_color='black')
+
 pyz_editor = PYZ(a_editor.pure, a_editor.zipped_data, cipher=block_cipher)
 
 exe_editor = EXE(pyz_editor,
                  a_editor.scripts, 
+                 splash,
+                 splash.binaries,
                  [],
                  exclude_binaries=True,
                  name='Nova-Vox Editor',
