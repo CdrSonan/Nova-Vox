@@ -2,10 +2,12 @@ import math
 import torch
 import copy
 import global_consts
+import logging
 import Backend.Resampler.Resamplers as rs
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.VB_Components.SpecCrfAi import LiteSpecCrfAi
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, outputList, rerenderFlag):
+    logging.info("render process started, reading settings")
     settings = {}
     with open("settings.ini", 'r') as f:
         for line in f:
@@ -32,9 +34,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
         print("could not read accelerator setting. Accelerator has been set to CPU by default.")
         device_rs = torch.device("cpu")
         device_ai = torch.device("cpu")
+
     window = torch.hann_window(global_consts.tripleBatchSize, device = device_rs)
     while True:
+        logging.info("starting new rendering iteration")
         for i in range(len(statusControl)):
+            logging.info("starting new sequence rendering iteration, copying data from main process")
             internalStatusControl = copy.copy(statusControl[i])
             internalInputs = copy.copy(inputList[i])
             internalOutputs = copy.copy(outputList[i])
@@ -45,6 +50,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
 
             length = internalInputs.pitch.size()[0]
 
+            logging.info("setting up local data structures")
             spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
             processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
             excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
@@ -64,10 +70,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
             #reverse iterator to set internalStatusControl.ai based on internalStatusControl.rs
             #reset recurrent AI Tensors
             for j in range(len(internalStatusControl.ai) + 1):
+                logging.info("starting new segment rendering iteration")
                 if j > 0:
                     if (aiActive == False) & (internalStatusControl.ai[j - 1].item() == 0):
                         aiActive = True
                     if aiActive:
+                        logging.info("applying AI params to spectrum of sample " + str(j - 1) + ", sequence " + str(i))
                         #execute AI code
                         processedSpectrum[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 3]] = spectrum[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 3]]
                         if internalInputs.endCaps[j - 1]:
@@ -75,6 +83,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                         internalStatusControl.ai[j - 1] = 1
                         outputList[i].status[j - 1] = 4
 
+                logging.info("shifting internal data backwards")
                 previousSpectrum = currentSpectrum
                 previousExcitation = currentExcitation
                 previousVoicedExcitation = currentVoicedExcitation
@@ -86,6 +95,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                 nextVoicedExcitation = None
                 if j < len(internalStatusControl.ai):
                     if internalStatusControl.rs[j].item() == 0:
+                        logging.info("calling resamplers for sample " + str(j) + ", sequence " + str(i))
                         if (internalInputs.startCaps[j] == False) and (previousSpectrum == None):
                             section = VocalSegment(internalInputs, voicebank, j - 1, device_rs)
                             previousSpectrum = rs.getSpectrum(section, device_rs)
@@ -104,6 +114,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
 
                         outputList[i].status[j] = 1
 
+                        logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
                         voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = currentVoicedExcitation
                         if internalInputs.startCaps[j]:
                             windowStart = internalInputs.borders[3 * j]
@@ -130,6 +141,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
 
                         outputList[i].status[j] = 2
                         
+                        logging.info("applying partial pitch shift to spectrum of sample " + str(j) + ", sequence " + str(i))
                         for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
                             pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
                             fourierPitchShift = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch) - pitchBorder
@@ -144,9 +156,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                         outputList[i].status[j] = 3
                         
                 if ((j > 0) & interOutput) or (j == len(internalStatusControl.ai)):
+                    logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
                     if aiActive:
                         voicedSignal = torch.stft(voicedExcitation[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
-                        #unvoicedSignal = torch.stft(excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = Window, return_complex = True, onesided = True)
         
                         breathiness = internalInputs.breathiness[0:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
                         breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.sum(torch.abs(excitation[0:internalInputs.borders[3 * (j - 1) + 5]]), 1) * global_consts.breCompPremul
@@ -165,12 +177,18 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                             aiActive = False
                             #reset recurrent AI Tensors
 
+                if (j > 0) & (interOutput == False):
+                    outputList[i].status[j - 1] = 5
+
                 if rerenderFlag.is_set():
                     break
             else:
                 continue
             break
+        logging.info("rendering process finished for all sequences, waiting for render semaphore")
+        print("")
         print("rendering finished!")
+        print("command? >>>")
         rerenderFlag.wait()
         rerenderFlag.clear()
 

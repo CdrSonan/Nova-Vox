@@ -8,6 +8,7 @@ Created on Thu Aug  5 16:51:29 2021
 import tkinter
 import tkinter.filedialog
 import tkinter.simpledialog
+import logging
 import torch
 import global_consts
 import Backend.VB_Components.Voicebank
@@ -30,6 +31,7 @@ class RootUi(tkinter.Frame):
     """Class of the Devkit main window"""
     def __init__(self, master=tkinter.Tk()):
         """Initialize a new main window. Called once during devkit startup"""
+        logging.info("initializing Root UI")
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
@@ -108,26 +110,30 @@ class RootUi(tkinter.Frame):
         
     def onMetadataPress(self):
         """opens Metadata UI window when Metadata button in the main window is pressed"""
+        logging.info("Metadata button callback")
         self.metadataUi = MetadataUi(tkinter.Tk())
         self.metadataUi.mainloop()
     
     def onPhonemedictPress(self):
         """opens Phoneme Dict UI window when Phoneme Dict button in the main window is pressed"""
+        logging.info("PhonemeDict button callback")
         self.phonemedictUi = PhonemedictUi(tkinter.Tk())
         self.phonemedictUi.mainloop()
     
     def onCrfaiPress(self):
         """opens Phoneme Crossfade AI UI window when Phoneme Crossfade AI button in the main window is pressed"""
+        logging.info("Crfai button callback")
         self.crfaiUi = CrfaiUi(tkinter.Tk())
         self.crfaiUi.mainloop()
     
     def onParameterPress(self):
-        pass
+        logging.info("Parameter button callback")
     
     def onWorddictPress(self):
-        pass
+        logging.info("Worddict button callback")
 
     def onDestroy(self, event):
+        logging.info("Root UI destroyed")
         if hasattr(self, 'metadataUi'):
             self.metadataUi.master.destroy()
         if hasattr(self, 'phonemedictUi'):
@@ -137,6 +143,7 @@ class RootUi(tkinter.Frame):
     
     def onSavePress(self):
         """Saves the currently loaded Voicebank to a .nvvb file"""
+        logging.info("save button callback")
         global loadedVB
         global loadedVBPath
         filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".nvvb", filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
@@ -147,6 +154,7 @@ class RootUi(tkinter.Frame):
         
     def onOpenPress(self):
         """opens a Voicebank and loads all of its data"""
+        logging.info("open button callback")
         global loadedVB
         global loadedVBPath
         if "loadedVB" not in globals():
@@ -166,6 +174,7 @@ class RootUi(tkinter.Frame):
     
     def onNewPress(self):
         """creates a new, empty Voicebank object in memory"""
+        logging.info("new button callback")
         global loadedVB
         if ("loadedVB" not in globals()) or tkinter.messagebox.askokcancel(loc["warning"], loc["vb_discard_msg"], icon = "warning"):
             loadedVB = Voicebank(None, self.device)
@@ -180,6 +189,7 @@ class RootUi(tkinter.Frame):
 class MetadataUi(tkinter.Frame):
     """Class of the Metadata window"""
     def __init__(self, master=None):
+        logging.info("Initializing Metadata UI")
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20)
         self.createWidgets()
@@ -211,6 +221,7 @@ class MetadataUi(tkinter.Frame):
         self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
         
     def onOkPress(self):
+        logging.info("Metadata OK button callback")
         """Applies all changes and closes the window when the OK button is pressed"""
         global loadedVB
         loadedVB.metadata.name = self.name.variable.get()
@@ -218,6 +229,7 @@ class MetadataUi(tkinter.Frame):
         self.master.destroy()
 
     def onLoadPress(self):
+        logging.info("Metadata load button callback")
         """Opens a file browser, and loads the Voicebank metadata from a specified .nvvb file"""
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
@@ -227,6 +239,7 @@ class MetadataUi(tkinter.Frame):
 class PhonemedictUi(tkinter.Frame):
     """Class of the phoneme dictionnary UI window"""
     def __init__(self, master=None):
+        logging.info("Initializing Phonemedict UI")
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
@@ -362,6 +375,7 @@ class PhonemedictUi(tkinter.Frame):
         
     def onSelectionChange(self, event):
         """Adjusts the per-phoneme part of the UI to display the correct values when the selected Phoneme in the Phoneme list changes"""
+        logging.info("Phonemedict selection change callback")
         global loadedVB
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
@@ -385,6 +399,7 @@ class PhonemedictUi(tkinter.Frame):
                 
     def onListFocusOut(self, event):
         """Helper function for retaining information about the last focused element of the Phoneme list when Phoneme list loses entry focus"""
+        logging.info("Phonemedict list focus loss callback")
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
         
@@ -408,6 +423,7 @@ class PhonemedictUi(tkinter.Frame):
     
     def onAddPress(self):
         """UI Frontend function for adding a phoneme to the Voicebank"""
+        logging.info("Phonemedict add button callback")
         global loadedVB
         key = tkinter.simpledialog.askstring(loc["new_phon"], loc["phon_key_sel"])
         if (key != "") & (key != None):
@@ -422,6 +438,7 @@ class PhonemedictUi(tkinter.Frame):
         
     def onRemovePress(self):
         """UI Frontend function for removing a phoneme from the Voicebank"""
+        logging.info("Phonemedict remove button callback")
         global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
@@ -436,6 +453,7 @@ class PhonemedictUi(tkinter.Frame):
                 self.disableButtons()
 
     def onSliderMove(self, value):
+        logging.info("Phonemedict slider movement callback")
         global loadedVB
         value = int(value)
         index = self.phonemeList.list.lastFocusedIndex
@@ -455,6 +473,7 @@ class PhonemedictUi(tkinter.Frame):
         self.diagram.ax.clear()
 
     def updateSlider(self):
+        logging.info("Phonemedict slider properties update callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
@@ -465,6 +484,7 @@ class PhonemedictUi(tkinter.Frame):
             
     def onKeyChange(self, event):
         """UI Frontend function for changing the key of a phoneme"""
+        logging.info("Phonemedict key change callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
@@ -476,6 +496,7 @@ class PhonemedictUi(tkinter.Frame):
         
     def onPitchUpdateTrigger(self, event):
         """UI Frontend function for updating the pitch of a phoneme"""
+        logging.info("Phonemedict pitch update callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
@@ -488,6 +509,7 @@ class PhonemedictUi(tkinter.Frame):
         
     def onSpectralUpdateTrigger(self, event):
         """UI Frontend function for updating the spectral and excitation data of a phoneme"""
+        logging.info("Phonemedict spectral update callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
@@ -500,6 +522,7 @@ class PhonemedictUi(tkinter.Frame):
         
     def onFilechangePress(self, event):
         """UI Frontend function for changing the file associated with a phoneme"""
+        logging.info("Phonemedict file change button callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
@@ -514,6 +537,7 @@ class PhonemedictUi(tkinter.Frame):
         
     def onFinalizePress(self):
         """UI Frontend function for finalizing a phoneme"""
+        logging.info("Phonemedict finalize button callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)[0]
@@ -527,6 +551,7 @@ class PhonemedictUi(tkinter.Frame):
         
     def onOkPress(self):
         """Updates the last selected phoneme and closes the Phoneme Dict UI window when the OK button is pressed"""
+        logging.info("Phonemedict OK button callback")
         global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
@@ -540,6 +565,7 @@ class PhonemedictUi(tkinter.Frame):
 
     def onLoadPress(self):
         """UI Frontend function for loading the phoneme dict of a different Voicebank"""
+        logging.info("Phonemedict load button callback")
         global loadedVB
         additive =  tkinter.messagebox.askyesnocancel(loc["warning"], loc["additive_msg"], icon = "question")
         if additive != None:
@@ -554,6 +580,7 @@ class PhonemedictUi(tkinter.Frame):
 class CrfaiUi(tkinter.Frame):
     """Class of the Spectral Crossfade AI UI window"""
     def __init__(self, master=None):
+        logging.info("Initializing Crfai UI")
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
@@ -646,17 +673,20 @@ class CrfaiUi(tkinter.Frame):
         
     def onSelectionChange(self, event):
         """Helper function for retaining information about the last selected transition sample when the selected item in the transition sample list changes"""
+        logging.info("Crfai selection change callback")
         global loadedVB
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
             
     def onListFocusOut(self, event):
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""
+        logging.info("Crfai list focus loss callback")
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
     
     def onAddPress(self):
         """UI Frontend function for adding a new transition sample to the list of staged AI training samples"""
+        logging.info("Crfai add button callback")
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")), multiple = True)
         if filepath != ():
@@ -666,6 +696,7 @@ class CrfaiUi(tkinter.Frame):
         
     def onRemovePress(self):
         """UI Frontend function for removing a transition sample from the list of staged AI training samples"""
+        logging.info("Crfai remove button callback")
         global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
@@ -678,6 +709,7 @@ class CrfaiUi(tkinter.Frame):
                 
     def onTrainPress(self):
         """UI Frontend function for training the AI with the specified settings and samples"""
+        logging.info("Crfai train button callback")
         global loadedVB
         loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get())
         numIter = self.phonemeList.list.lb.size()
@@ -685,9 +717,11 @@ class CrfaiUi(tkinter.Frame):
             loadedVB.delTrainSample(0)
             self.phonemeList.list.lb.delete(0)
         self.statusVar.set("AI trained with " + str(loadedVB.crfAi.epoch) + " epochs and " + str(loadedVB.crfAi.sampleCount) + " samples")
+        logging.info("Crfai train button callback completed")
         
     def onFinalizePress(self):
         """UI Frontend function for finalizing the phoneme crossfade AI"""
+        logging.info("Crfai finalize button callback")
         global loadedVB
         loadedVB.finalizCrfAi()
         self.disableButtons()
@@ -708,11 +742,13 @@ class CrfaiUi(tkinter.Frame):
         
     def onOkPress(self):
         """closes the window when the OK button is pressed"""
+        logging.info("Crfai OK button callback")
         global loadedVB
         self.master.destroy()
 
     def onLoadPress(self):
         """UI Frontend function for loading the AI state from the Phoneme Crossfade AI of a different Voicebank"""
+        logging.info("Crfai load button callback")
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
