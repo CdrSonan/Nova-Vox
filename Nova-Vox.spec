@@ -43,7 +43,9 @@ splash = Splash('icon/splash.png',
                 datas=a_editor.datas,
                 text_pos=(600, 50),
                 text_size=12,
-                text_color='black')
+                text_color='purple',
+                text_default='loading Bootstrapper...',
+                max_img_size=None)
 
 pyz_editor = PYZ(a_editor.pure, a_editor.zipped_data, cipher=block_cipher)
 
