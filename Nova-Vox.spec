@@ -41,11 +41,11 @@ MERGE( (a_editor, 'editor_runtime', 'Nova-Vox Editor'), (a_devkit, 'devkit_runti
 splash = Splash('icon/splash.png',
                 binaries=a_editor.binaries,
                 datas=a_editor.datas,
-                text_pos=(600, 50),
-                text_size=12,
+                text_pos=(248, 167),
+                text_size=18,
                 text_color='purple',
                 text_default='loading Bootstrapper...',
-                max_img_size=None)
+                max_img_size=(667,200))
 
 pyz_editor = PYZ(a_editor.pure, a_editor.zipped_data, cipher=block_cipher)
 
