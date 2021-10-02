@@ -326,17 +326,17 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.pSearchRange.display.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar.voicedIter = tkinter.Frame(self.sideBar)
-        self.sideBar.voicedIter.variable = tkinter.IntVar(self.sideBar.voicedIter)
-        self.sideBar.voicedIter.entry = tkinter.Spinbox(self.sideBar.voicedIter, from_ = 1, to = 50)
-        self.sideBar.voicedIter.entry["textvariable"] = self.sideBar.voicedIter.variable
-        self.sideBar.voicedIter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
-        self.sideBar.voicedIter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
-        self.sideBar.voicedIter.entry.pack(side = "right", fill = "x")
-        self.sideBar.voicedIter.display = tkinter.Label(self.sideBar.voicedIter)
-        self.sideBar.voicedIter.display["text"] = loc["viter"]
-        self.sideBar.voicedIter.display.pack(side = "right", fill = "x")
-        self.sideBar.voicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.sideBar.voicedFilter = tkinter.Frame(self.sideBar)
+        self.sideBar.voicedFilter.variable = tkinter.DoubleVar(self.sideBar.voicedFilter)
+        self.sideBar.voicedFilter.entry = tkinter.Spinbox(self.sideBar.voicedFilter, from_ = 0, to = 5, increment = 0.05)
+        self.sideBar.voicedFilter.entry["textvariable"] = self.sideBar.voicedFilter.variable
+        self.sideBar.voicedFilter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        self.sideBar.voicedFilter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
+        self.sideBar.voicedFilter.entry.pack(side = "right", fill = "x")
+        self.sideBar.voicedFilter.display = tkinter.Label(self.sideBar.voicedFilter)
+        self.sideBar.voicedFilter.display["text"] = loc["viter"]
+        self.sideBar.voicedFilter.display.pack(side = "right", fill = "x")
+        self.sideBar.voicedFilter.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter)
@@ -385,13 +385,13 @@ class PhonemedictUi(tkinter.Frame):
             if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
                 self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key].expectedPitch)
                 self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key].searchRange)
-                self.sideBar.voicedIter.variable.set(loadedVB.phonemeDict[key].voicedIterations)
+                self.sideBar.voicedFilter.variable.set(loadedVB.phonemeDict[key].voicedFilter)
                 self.sideBar.unvoicedIter.variable.set(loadedVB.phonemeDict[key].unvoicedIterations)
                 self.enableButtons()
             else:
                 self.sideBar.expPitch.variable.set(None)
                 self.sideBar.pSearchRange.variable.set(None)
-                self.sideBar.voicedIter.variable.set(None)
+                self.sideBar.voicedFilter.variable.set(None)
                 self.sideBar.unvoicedIter.variable.set(None)
                 self.disableButtons()
             self.updateSlider()
@@ -407,7 +407,7 @@ class PhonemedictUi(tkinter.Frame):
         """Disables the per-phoneme settings buttons"""
         self.sideBar.expPitch.entry["state"] = "disabled"
         self.sideBar.pSearchRange.entry["state"] = "disabled"
-        self.sideBar.voicedIter.entry["state"] = "disabled"
+        self.sideBar.voicedFilter.entry["state"] = "disabled"
         self.sideBar.unvoicedIter.entry["state"] = "disabled"
         self.sideBar.fileButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
@@ -416,7 +416,7 @@ class PhonemedictUi(tkinter.Frame):
         """Enables the per-phoneme settings buttons"""
         self.sideBar.expPitch.entry["state"] = "normal"
         self.sideBar.pSearchRange.entry["state"] = "normal"
-        self.sideBar.voicedIter.entry["state"] = "normal"
+        self.sideBar.voicedFilter.entry["state"] = "normal"
         self.sideBar.unvoicedIter.entry["state"] = "normal"
         self.sideBar.fileButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"
@@ -458,7 +458,7 @@ class PhonemedictUi(tkinter.Frame):
         value = int(value)
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        spectrum = torch.square(loadedVB.phonemeDict[key].spectrum + loadedVB.phonemeDict[key].spectra[value])
+        spectrum = loadedVB.phonemeDict[key].spectrum + loadedVB.phonemeDict[key].spectra[value]
         voicedExcitation = torch.abs(loadedVB.phonemeDict[key].voicedExcitation[:, value]) * spectrum
         excitation = torch.abs(loadedVB.phonemeDict[key].excitation[value]) * spectrum
         xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
@@ -514,8 +514,8 @@ class PhonemedictUi(tkinter.Frame):
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
         if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
-            if (loadedVB.phonemeDict[key].voicedIterations != self.sideBar.voicedIter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
-                loadedVB.phonemeDict[key].voicedIterations = self.sideBar.voicedIter.variable.get()
+            if (loadedVB.phonemeDict[key].voicedFilter != self.sideBar.voicedFilter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
+                loadedVB.phonemeDict[key].voicedFilter = self.sideBar.voicedFilter.variable.get()
                 loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
                 calculateSpectra(loadedVB.phonemeDict[key])
                 self.onSliderMove(self.diagram.timeSlider.get())
@@ -544,7 +544,7 @@ class PhonemedictUi(tkinter.Frame):
         loadedVB.finalizePhoneme(key)
         self.sideBar.expPitch.variable.set(None)
         self.sideBar.pSearchRange.variable.set(None)
-        self.sideBar.voicedIter.variable.set(None)
+        self.sideBar.voicedFilter.variable.set(None)
         self.sideBar.unvoicedIter.variable.set(None)
         self.disableButtons()
         

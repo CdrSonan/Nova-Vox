@@ -18,10 +18,11 @@ def calculateSpectra(audioSample):
         
         
         window = torch.hann_window(global_consts.tripleBatchSize * global_consts.filterBSMult)
+        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * global_consts.filterBSMult * global_consts.filterTEEMult / audioSample.pitch), torch.Tensor([1])).int().item()
         signals = torch.stft(audioSample.waveform, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, return_complex = True, onesided = True)
         signals = torch.transpose(signals, 0, 1)
         signalsAbs = signals.abs()
-
+        """
         spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * global_consts.filterBSMult / audioSample.pitch), torch.Tensor([1])).int().item()
         workingSpectra = torch.sqrt(signalsAbs)
         audioSample.spectra = workingSpectra.clone()
@@ -31,10 +32,19 @@ def calculateSpectra(audioSample):
             audioSample.spectra = audioSample.spectra / (2 * spectralFilterWidth + 1)
             workingSpectra = torch.min(workingSpectra, audioSample.spectra)
             audioSample.spectra = workingSpectra
+        """
+        signalsAbs = torch.sqrt(signalsAbs)
+        audioSample.spectra = signalsAbs.clone()
+
+        audioSample.spectra = torch.fft.rfft(audioSample.spectra, dim = 1)
+        cutoffWindow = torch.zeros(audioSample.spectra.size()[1])
+        cutoffWindow[0:spectralFilterWidth] = 1.
+        cutoffWindow[spectralFilterWidth] = 0.5
+        audioSample.spectra = torch.fft.irfft(cutoffWindow * audioSample.spectra, dim = 1, n = global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1)
         
 
         audioSample._voicedExcitations = signals.clone()
-        audioSample._voicedExcitations *= torch.gt(torch.sqrt(signalsAbs), audioSample.spectra)
+        audioSample._voicedExcitations *= torch.gt(signalsAbs, audioSample.spectra * audioSample.voicedFilter)
 
         excitationAbs = signalsAbs
         voicedExcitationAbs = audioSample._voicedExcitations.abs()
@@ -49,21 +59,20 @@ def calculateSpectra(audioSample):
         audioSample.excitation = torch.stft(audioSample.excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
         audioSample.voicedExcitation = torch.stft(audioSample.voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
 
-        spectralFilterWidth *= global_consts.filterTEEMult
+        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * global_consts.filterTEEMult / audioSample.pitch), torch.Tensor([1])).int().item()
 
         signals = torch.stft(audioSample.waveform, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
         signals = torch.transpose(signals, 0, 1)
         signalsAbs = signals.abs()
         signalsAbs = torch.sqrt(signalsAbs)
-        #signalsAbs = torch.maximum(torch.log(signalsAbs), torch.tensor([-100]))
         audioSample.spectra = signalsAbs.clone()
         for j in range(audioSample.unvoicedIterations):
+            audioSample.spectra = torch.maximum(audioSample.spectra, signalsAbs)
             audioSample.spectra = torch.fft.rfft(audioSample.spectra, dim = 1)
             cutoffWindow = torch.zeros(audioSample.spectra.size()[1])
             cutoffWindow[0:spectralFilterWidth] = 1.
             cutoffWindow[spectralFilterWidth] = 0.5
             audioSample.spectra = torch.fft.irfft(cutoffWindow * audioSample.spectra, dim = 1, n = global_consts.halfTripleBatchSize + 1)
-            audioSample.spectra = torch.maximum(audioSample.spectra, signalsAbs)
 
         audioSample.spectrum = torch.mean(audioSample.spectra, 0)
         for i in range(audioSample.spectra.size()[0]):
