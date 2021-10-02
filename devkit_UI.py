@@ -160,7 +160,7 @@ class RootUi(tkinter.Frame):
         if "loadedVB" not in globals():
             loadedVBPath = None
         if ("loadedVB" not in globals()) or tkinter.messagebox.askokcancel(loc["warning"], loc["vb_discard_msg"], icon = "warning"):
-            filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")), initialfile = loadedVBPath)
+            filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
             if filepath != "":
                 loadedVBPath = filepath
                 loadedVB = Voicebank(filepath, self.device)

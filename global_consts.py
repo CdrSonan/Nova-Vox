@@ -12,7 +12,7 @@ tripleBatchSize = 576
 halfTripleBatchSize = 288
 
 filterBSMult = 4
-filterTEEMult = 8
+filterTEEMult = 24
 
 pitchShiftSpectralRolloff = 10
 
