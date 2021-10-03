@@ -50,14 +50,16 @@ class SpecCrfAi(nn.Module):
             
             
         super(SpecCrfAi, self).__init__()
-        
-        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
+
+        self.layer1 = torch.nn.Linear(4 * global_consts.batchSize + 4, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize, device = device)
+        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3, device = device)
+        self.layer3 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize, device = device)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1, device = device)
+        self.layer4 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3, device = device)
+        self.ReLu4 = nn.ReLU()
+        self.layer5 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1, device = device)
         
         self.device = device
         
@@ -84,7 +86,8 @@ class SpecCrfAi(nn.Module):
         
         
         fac = torch.tensor([factor], device = self.device)
-        x = torch.cat((spectrum1, spectrum2, fac), dim = 0)
+        interpolated = (spectrum1 * (1. - fac)) + (spectrum2 * fac)
+        x = torch.cat((spectrum1, spectrum2, interpolated, fac), dim = 0)
         x = x.float()
         x = self.layer1(x)
         x = self.ReLu1(x)
@@ -93,6 +96,8 @@ class SpecCrfAi(nn.Module):
         x = self.layer3(x)
         x = self.ReLu3(x)
         x = self.layer4(x)
+        x = self.ReLu4(x)
+        x = self.layer5(x)
         return x
     
     def processData(self, spectrum1, spectrum2, factor):
@@ -216,13 +221,15 @@ class LiteSpecCrfAi(nn.Module):
             
         super(LiteSpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
+        self.layer1 = torch.nn.Linear(4 * global_consts.batchSize + 4, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize, device = device)
+        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3, device = device)
+        self.layer3 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize, device = device)
         self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1, device = device)
+        self.layer4 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3, device = device)
+        self.ReLu4 = nn.ReLU()
+        self.layer5 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1, device = device)
         
         self.device = device
 
@@ -250,7 +257,8 @@ class LiteSpecCrfAi(nn.Module):
         
         
         fac = torch.tensor([factor], device = self.device)
-        x = torch.cat((spectrum1, spectrum2, fac), dim = 0)
+        interpolated = (spectrum1 * (1. - fac)) + (spectrum2 * fac)
+        x = torch.cat((spectrum1, spectrum2, interpolated, fac), dim = 0)
         x = x.float()
         x = self.layer1(x)
         x = self.ReLu1(x)
@@ -259,6 +267,8 @@ class LiteSpecCrfAi(nn.Module):
         x = self.layer3(x)
         x = self.ReLu3(x)
         x = self.layer4(x)
+        x = self.ReLu4(x)
+        x = self.layer5(x)
         return x
     
     def processData(self, spectrum1, spectrum2, factor):
