@@ -51,7 +51,7 @@ class SpecCrfAi(nn.Module):
             
         super(SpecCrfAi, self).__init__()
 
-        self.layer1 = torch.nn.Linear(4 * global_consts.batchSize + 4, global_consts.tripleBatchSize + 3, device = device)
+        self.layer1 = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu1 = nn.ReLU()
         self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu2 = nn.ReLU()
@@ -221,7 +221,7 @@ class LiteSpecCrfAi(nn.Module):
             
         super(LiteSpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(4 * global_consts.batchSize + 4, global_consts.tripleBatchSize + 3, device = device)
+        self.layer1 = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu1 = nn.ReLU()
         self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
         self.ReLu2 = nn.ReLU()

@@ -8040,3 +8040,39 @@
 2021-10-03 15:12:48,832:13896:INFO:save button callback
 2021-10-03 15:14:18,078:13896:INFO:save button callback
 2021-10-03 15:14:23,519:13896:INFO:Root UI destroyed
+2021-10-03 19:37:47,865:14224:INFO:logging service started
+2021-10-03 19:37:47,865:14224:INFO:initializing Root UI
+2021-10-03 19:37:56,247:14224:INFO:new button callback
+2021-10-03 19:37:57,202:14224:INFO:PhonemeDict button callback
+2021-10-03 19:37:57,249:14224:INFO:Initializing Phonemedict UI
+2021-10-03 19:37:58,612:14224:INFO:Phonemedict load button callback
+2021-10-03 19:38:12,061:14224:INFO:Phonemedict OK button callback
+2021-10-03 19:38:13,462:14224:INFO:Crfai button callback
+2021-10-03 19:38:13,510:14224:INFO:Initializing Crfai UI
+2021-10-03 19:38:14,767:14224:INFO:Crfai add button callback
+2021-10-03 19:38:37,680:14224:INFO:Crfai train button callback
+2021-10-03 19:43:24,129:9068:INFO:logging service started
+2021-10-03 19:43:24,129:9068:INFO:initializing Root UI
+2021-10-03 19:43:29,798:9068:INFO:new button callback
+2021-10-03 19:43:30,836:9068:INFO:PhonemeDict button callback
+2021-10-03 19:43:30,884:9068:INFO:Initializing Phonemedict UI
+2021-10-03 19:43:32,906:9068:INFO:Phonemedict load button callback
+2021-10-03 19:43:39,245:9068:INFO:Phonemedict selection change callback
+2021-10-03 19:43:39,246:9068:INFO:Phonemedict slider properties update callback
+2021-10-03 19:43:39,247:9068:INFO:Phonemedict slider movement callback
+2021-10-03 19:43:39,627:9068:INFO:Phonemedict selection change callback
+2021-10-03 19:43:39,627:9068:INFO:Phonemedict slider properties update callback
+2021-10-03 19:43:39,628:9068:INFO:Phonemedict slider movement callback
+2021-10-03 19:43:41,469:9068:INFO:Phonemedict OK button callback
+2021-10-03 19:43:41,470:9068:INFO:Phonemedict key change callback
+2021-10-03 19:43:41,470:9068:INFO:Phonemedict pitch update callback
+2021-10-03 19:43:41,470:9068:INFO:Phonemedict spectral update callback
+2021-10-03 19:43:43,980:9068:INFO:save button callback
+2021-10-03 19:43:48,257:9068:INFO:Crfai button callback
+2021-10-03 19:43:48,305:9068:INFO:Initializing Crfai UI
+2021-10-03 19:43:49,874:9068:INFO:Crfai add button callback
+2021-10-03 19:44:23,461:9068:INFO:Crfai train button callback
+2021-10-03 20:10:10,641:9068:INFO:Crfai train button callback completed
+2021-10-03 20:16:25,155:9068:INFO:save button callback
+2021-10-03 20:16:34,317:9068:INFO:Crfai OK button callback
+2021-10-03 20:16:35,348:9068:INFO:Root UI destroyed
