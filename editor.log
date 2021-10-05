@@ -503,3 +503,5 @@
 2021-10-03 21:37:23,774:16840:INFO:save command received
 2021-10-03 21:37:26,354:16840:INFO:quit command received
 2021-10-03 21:37:26,354:16840:INFO:exiting program, ending logging service
+2021-10-05 15:04:12,595:1676:INFO:logging service started
+2021-10-05 15:04:12,612:1676:INFO:opening voicebank file dialog
