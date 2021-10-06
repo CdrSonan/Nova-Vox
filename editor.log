@@ -505,3 +505,54 @@
 2021-10-03 21:37:26,354:16840:INFO:exiting program, ending logging service
 2021-10-05 15:04:12,595:1676:INFO:logging service started
 2021-10-05 15:04:12,612:1676:INFO:opening voicebank file dialog
+2021-10-06 15:42:42,634:16900:INFO:logging service started
+2021-10-06 15:42:42,634:16900:INFO:opening voicebank file dialog
+2021-10-06 15:42:45,509:16900:INFO:loading voicebank
+2021-10-06 15:42:45,929:16900:INFO:opening sequence file dialog
+2021-10-06 15:42:48,285:16900:INFO:reading sequence
+2021-10-06 15:42:48,287:16900:INFO:starting render manager
+2021-10-06 15:42:49,525:24804:INFO:logging service started
+2021-10-06 15:42:50,794:32208:INFO:logging service started
+2021-10-06 15:42:50,795:16900:INFO:manager started, waiting for user input
+2021-10-06 15:42:50,809:32208:INFO:render process started, reading settings
+2021-10-06 15:42:50,810:32208:INFO:starting new rendering iteration
+2021-10-06 15:42:50,812:32208:INFO:starting new sequence rendering iteration, copying data from main process
+2021-10-06 15:42:50,829:32208:INFO:setting up local data structures
+2021-10-06 15:42:50,830:32208:INFO:starting new segment rendering iteration
+2021-10-06 15:42:50,830:32208:INFO:shifting internal data backwards
+2021-10-06 15:42:50,831:32208:INFO:calling resamplers for sample 0, sequence 0
+2021-10-06 15:42:50,905:32208:INFO:performing pitch shift of sample 0, sequence 0
+2021-10-06 15:42:50,915:32208:INFO:applying partial pitch shift to spectrum of sample 0, sequence 0
+2021-10-06 15:42:50,923:32208:INFO:starting new segment rendering iteration
+2021-10-06 15:42:50,924:32208:INFO:applying AI params to spectrum of sample 0, sequence 0
+2021-10-06 15:42:50,924:32208:INFO:shifting internal data backwards
+2021-10-06 15:42:50,924:32208:INFO:calling resamplers for sample 1, sequence 0
+2021-10-06 15:42:50,957:32208:INFO:performing pitch shift of sample 1, sequence 0
+2021-10-06 15:42:50,972:32208:INFO:applying partial pitch shift to spectrum of sample 1, sequence 0
+2021-10-06 15:42:50,977:32208:INFO:starting new segment rendering iteration
+2021-10-06 15:42:50,977:32208:INFO:applying AI params to spectrum of sample 1, sequence 0
+2021-10-06 15:42:50,977:32208:INFO:shifting internal data backwards
+2021-10-06 15:42:50,977:32208:INFO:calling resamplers for sample 2, sequence 0
+2021-10-06 15:42:50,993:32208:INFO:performing pitch shift of sample 2, sequence 0
+2021-10-06 15:42:51,007:32208:INFO:applying partial pitch shift to spectrum of sample 2, sequence 0
+2021-10-06 15:42:51,014:32208:INFO:starting new segment rendering iteration
+2021-10-06 15:42:51,015:32208:INFO:applying AI params to spectrum of sample 2, sequence 0
+2021-10-06 15:42:51,015:32208:INFO:shifting internal data backwards
+2021-10-06 15:42:51,015:32208:INFO:calling resamplers for sample 3, sequence 0
+2021-10-06 15:42:51,254:32208:INFO:performing pitch shift of sample 3, sequence 0
+2021-10-06 15:42:51,264:32208:INFO:applying partial pitch shift to spectrum of sample 3, sequence 0
+2021-10-06 15:42:51,267:32208:INFO:starting new segment rendering iteration
+2021-10-06 15:42:51,267:32208:INFO:applying AI params to spectrum of sample 3, sequence 0
+2021-10-06 15:42:51,267:32208:INFO:shifting internal data backwards
+2021-10-06 15:42:51,267:32208:INFO:calling resamplers for sample 4, sequence 0
+2021-10-06 15:42:51,268:32208:INFO:performing pitch shift of sample 4, sequence 0
+2021-10-06 15:42:51,276:32208:INFO:applying partial pitch shift to spectrum of sample 4, sequence 0
+2021-10-06 15:42:51,328:32208:INFO:starting new segment rendering iteration
+2021-10-06 15:42:51,328:32208:INFO:applying AI params to spectrum of sample 4, sequence 0
+2021-10-06 15:42:51,328:32208:INFO:shifting internal data backwards
+2021-10-06 15:42:51,329:32208:INFO:performing final rendering up to sample 4, sequence 0
+2021-10-06 15:42:51,343:32208:INFO:rendering process finished for all sequences, waiting for render semaphore
+2021-10-06 15:42:56,300:16900:INFO:status command received
+2021-10-06 15:42:59,028:16900:INFO:save command received
+2021-10-06 15:43:01,469:16900:INFO:quit command received
+2021-10-06 15:43:01,470:16900:INFO:exiting program, ending logging service

@@ -8,45 +8,41 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
     inputTensor = inputTensor.to(device = device)
     repetititionSpacing = repetititionSpacing.to(device = device)
     batchRS = math.ceil(repetititionSpacing * inputTensor.size()[1] / 2)
-    repetititionSpacing = int(repetititionSpacing * global_consts.batchSize * math.ceil(inputTensor.size()[1] / 2))
+    repetititionSpacing = int(repetititionSpacing * global_consts.batchSize * math.ceil(inputTensor.size()[1] / 2) - math.ceil(global_consts.tripleBatchSize / pitch / 2))
     window = torch.hann_window(global_consts.tripleBatchSize, device = device)
-    alignPhase = inputTensor[batchRS][pitch].angle()
-    finalPhase = inputTensor[1][pitch].angle()
-    phaseDiff = (finalPhase - alignPhase)
-    requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[1] - math.ceil(global_consts.tripleBatchSize / pitch) - batchRS)), 1) #!!!BUGGED!!!
+    alignPhase = inputTensor[pitch, int(batchRS/2)].angle()
+    finalPhase = inputTensor[pitch, -int(batchRS/2)].angle()
+    phaseDiff = (alignPhase - finalPhase)
+    print(alignPhase, finalPhase, phaseDiff)
+    requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[1] - (3 / pitch) - batchRS)), 1)
 
-    #fix insertion timings, include modulo operations
-    #pre-calculate istft
-    #adjust repetitition spacing to only cover 1/2 of the shortest possible sample
-
+    inputTensor = torch.istft(inputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
 
     if requiredTensors <= 1:
         outputTensor = inputTensor.clone()
-        outputTensor = torch.istft(outputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
     else:
-        outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing) + repetititionSpacing, device = device)
+        outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[0] - repetititionSpacing) + repetititionSpacing, device = device)
         workingTensor = inputTensor.clone()
-        workingTensor = torch.istft(workingTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
         workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.linspace(1, 0, repetititionSpacing, device = device)
-        outputTensor[0:inputTensor.size()[1] * global_consts.batchSize] += workingTensor
+        outputTensor[0:workingTensor.size()[0]] += workingTensor
+        cursor = workingTensor.size()[0] - repetititionSpacing
 
         for i in range(1, requiredTensors - 1):
             workingTensor = inputTensor.clone()
-            workingTensor = torch.istft(workingTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
             #workingTensor = phaseShift(workingTensor, pitch, i * phaseDiff, device = device)
-            phaseOffset = (global_consts.tripleBatchSize * 0.5 / math.pi) * (torch.remainder(i * phaseDiff, 2 * math.pi) / pitch)
+            phaseOffset = int((global_consts.tripleBatchSize * 0.5 / math.pi) * (torch.remainder(i * phaseDiff, 2 * math.pi) / pitch)) + math.ceil(global_consts.tripleBatchSize / pitch / 2) #BUGGED, related to z test input data size
             workingTensor = workingTensor[phaseOffset:]
             workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.linspace(0, 1, repetititionSpacing, device = device)
             workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.linspace(1, 0, repetititionSpacing, device = device)
-            outputTensor[i * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing):i * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing) + inputTensor.size()[1] * global_consts.batchSize] += workingTensor #account for shrinking
+            outputTensor[cursor:cursor + workingTensor.size()[0]] += workingTensor
+            cursor += workingTensor.size()[0] - repetititionSpacing
 
         workingTensor = inputTensor.clone()
-        workingTensor = torch.istft(workingTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
         #workingTensor = phaseShift(workingTensor, pitch, (requiredTensors - 1) * phaseDiff, device = device)
-        phaseOffset = (global_consts.tripleBatchSize * 0.5 / math.pi) * (torch.remainder((requiredTensors - 1) * phaseDiff, 2 * math.pi) / pitch)
+        phaseOffset = int((global_consts.tripleBatchSize * 0.5 / math.pi) * (torch.remainder((requiredTensors - 1) * phaseDiff, 2 * math.pi) / pitch)) + math.ceil(global_consts.tripleBatchSize / pitch / 2) #BUGGED, related to z test input data size
         workingTensor = workingTensor[phaseOffset:]
         workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.linspace(0, 1, repetititionSpacing, device = device)
-        outputTensor[(requiredTensors - 1) * (inputTensor.size()[1] * global_consts.batchSize - repetititionSpacing):] += workingTensor #account for shrinking
+        outputTensor[cursor:cursor + workingTensor.size()[0]] += workingTensor
     return outputTensor[0:targetSize * global_consts.batchSize]
     
 def loopSamplerSpectrum(inputTensor, targetSize, repetititionSpacing, device):
