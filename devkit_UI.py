@@ -89,6 +89,12 @@ class RootUi(tkinter.Frame):
         self.worddictButton["command"] = self.onWorddictPress
         self.worddictButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.worddictButton["state"] = "disabled"
+
+        self.utauimportButton = tkinter.Button(self)
+        self.utauimportButton["text"] = loc["utau_btn"]
+        self.utauimportButton["command"] = self.onUtauimportPress
+        self.utauimportButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
+        self.utauimportButton["state"] = "disabled"
         
         self.saveButton = tkinter.Button(self)
         self.saveButton["text"] = loc["save_as"]
@@ -131,6 +137,12 @@ class RootUi(tkinter.Frame):
     
     def onWorddictPress(self):
         logging.info("Worddict button callback")
+
+    def onUtauimportPress(self):
+        """opens the UTAU import tool when the UTAU import tool button in the main window is pressed"""
+        logging.info("UTAU import button callback")
+        self.utauImportUi = UtauImportUi(tkinter.Tk())
+        self.utauImportUi.mainloop()
 
     def onDestroy(self, event):
         logging.info("Root UI destroyed")
@@ -334,7 +346,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.voicedFilter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.voicedFilter.entry.pack(side = "right", fill = "x")
         self.sideBar.voicedFilter.display = tkinter.Label(self.sideBar.voicedFilter)
-        self.sideBar.voicedFilter.display["text"] = loc["viter"]
+        self.sideBar.voicedFilter.display["text"] = loc["vfilter"]
         self.sideBar.voicedFilter.display.pack(side = "right", fill = "x")
         self.sideBar.voicedFilter.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
@@ -754,3 +766,309 @@ class CrfaiUi(tkinter.Frame):
         if filepath != "":
             loadedVB.loadCrfWeights(filepath)
             self.sidebar.statusVar.set("AI trained with " + loadedVB.crfAi.epoch + " epochs and " + loadedVB.crfAi.samples + " samples")
+
+class UtauImportUi(tkinter.Frame):
+    """Class of the phoneme dictionnary UI window"""
+    def __init__(self, master=None):
+        logging.info("Initializing Phonemedict UI")
+        tkinter.Frame.__init__(self, master)
+        self.pack(ipadx = 20, ipady = 20)
+        self.createWidgets()
+        self.master.wm_title(loc["phon_lbl"])
+        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+        self.sampleList = []
+        
+    def createWidgets(self):
+        """Initializes all widgets of the Phoneme Dict UI window."""
+        global loadedVB
+
+        self.diagram = tkinter.LabelFrame(self, text = loc["utau_diag_lbl"])
+        self.diagram.fig = Figure(figsize=(4, 4))
+        self.diagram.ax = self.diagram.fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
+        self.diagram.ax.set_xlabel(loc["time_lbl"], fontsize = 8)
+        self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
+        self.diagram.canvas = FigureCanvasTkAgg(self.diagram.fig, self.diagram)
+        self.diagram.canvas.get_tk_widget().pack(side = "top", fill = "both", expand = True)
+        self.diagram.pack(side = "right", fill = "y", padx = 5, pady = 2)
+        
+        self.phonemeList = tkinter.LabelFrame(self, text = loc["smp_list"])
+        self.phonemeList.list = tkinter.Frame(self.phonemeList)
+        self.phonemeList.list.lb = tkinter.Listbox(self.phonemeList.list)
+        self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
+        self.phonemeList.list.sb = tkinter.Scrollbar(self.phonemeList.list)
+        self.phonemeList.list.sb.pack(side = "left", fill = "y")
+        self.phonemeList.list.lb["selectmode"] = "single"
+        self.phonemeList.list.lb["yscrollcommand"] = self.phonemeList.list.sb.set
+        self.phonemeList.list.lb.bind("<<ListboxSelect>>", self.onSelectionChange)
+        self.phonemeList.list.lb.bind("<FocusOut>", self.onListFocusOut)
+        self.phonemeList.list.sb["command"] = self.phonemeList.list.lb.yview
+        self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
+        self.phonemeList.removeButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.removeButton["text"] = loc["remove"]
+        self.phonemeList.removeButton["command"] = self.onRemovePress
+        self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
+        self.phonemeList.addButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.addButton["text"] = loc["add"]
+        self.phonemeList.addButton["command"] = self.onAddPress
+        self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
+        self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar = tkinter.LabelFrame(self, text = loc["per_smp_set"])
+        self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
+        
+        self.sideBar.type = tkinter.Frame(self.sideBar)
+        self.sideBar.type.variable = tkinter.BooleanVar(self.sideBar.type)
+        self.sideBar.type.entry = tkinter.Frame(self.sideBar.type)
+        self.sideBar.type.entry["textvariable"] = self.sideBar.type.variable
+        self.sideBar.type.entry.button1 = tkinter.Radiobutton(self.sideBar.type.entry, text = loc["smp_phoneme"], value = 0, variable = self.sideBar.type.variable)
+        self.sideBar.type.entry.button1.pack(side = "right", fill = "x")
+        self.sideBar.type.entry.button2 = tkinter.Radiobutton(self.sideBar.type.entry, text = loc["smp_transition"], value = 1, variable = self.sideBar.type.variable)
+        self.sideBar.type.entry.button2.pack(side = "right", fill = "x")
+        self.sideBar.type.entry.pack(side = "right", fill = "x")
+        self.sideBar.type.display = tkinter.Label(self.sideBar.type)
+        self.sideBar.type.display["text"] = loc["smpl_type"]
+        self.sideBar.type.display.pack(side = "right", fill = "x")
+        self.sideBar.type.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.key = tkinter.Frame(self.sideBar)
+        self.sideBar.key.variable = tkinter.StringVar(self.sideBar.key)
+        self.sideBar.key.entry = tkinter.Entry(self.sideBar.key)
+        self.sideBar.key.entry["textvariable"] = self.sideBar.key.variable
+        self.sideBar.key.entry.bind("<FocusOut>", self.onKeyChange)
+        self.sideBar.key.entry.bind("<KeyRelease-Return>", self.onKeyChange)
+        self.sideBar.key.entry.pack(side = "right", fill = "x")
+        self.sideBar.key.display = tkinter.Label(self.sideBar.key)
+        self.sideBar.key.display["text"] = loc["phon_key"]
+        self.sideBar.key.display.pack(side = "right", fill = "x")
+        self.sideBar.key.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.start = tkinter.Frame(self.sideBar)
+        self.sideBar.start.variable = tkinter.DoubleVar(self.sideBar.start)
+        self.sideBar.start.entry = tkinter.Spinbox(self.sideBar.start, from_ = 0, increment = 0.05)
+        self.sideBar.start.entry["textvariable"] = self.sideBar.start.variable
+        self.sideBar.start.entry.bind("<FocusOut>", self.onFrameUpdateTrigger)
+        self.sideBar.start.entry.bind("<KeyRelease-Return>", self.onFrameUpdateTrigger)
+        self.sideBar.start.entry.pack(side = "right", fill = "x")
+        self.sideBar.start.display = tkinter.Label(self.sideBar.start)
+        self.sideBar.start.display["text"] = loc["start"]
+        self.sideBar.start.display.pack(side = "right", fill = "x")
+        self.sideBar.start.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.end = tkinter.Frame(self.sideBar)
+        self.sideBar.end.variable = tkinter.DoubleVar(self.sideBar.end)
+        self.sideBar.end.entry = tkinter.Spinbox(self.sideBar.end, from_ = 0, increment = 0.05)
+        self.sideBar.end.entry["textvariable"] = self.sideBar.end.variable
+        self.sideBar.end.entry.bind("<FocusOut>", self.onFrameUpdateTrigger)
+        self.sideBar.end.entry.bind("<KeyRelease-Return>", self.onFrameUpdateTrigger)
+        self.sideBar.end.entry.pack(side = "right", fill = "x")
+        self.sideBar.end.display = tkinter.Label(self.sideBar.end)
+        self.sideBar.end.display["text"] = loc["end"]
+        self.sideBar.end.display.pack(side = "right", fill = "x")
+        self.sideBar.end.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.fileButton = tkinter.Button(self.sideBar)
+        self.sideBar.fileButton["text"] = loc["cng_file"]
+        self.sideBar.fileButton["command"] = self.onFilechangePress
+        self.sideBar.fileButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+        
+        self.sideBar.importButton = tkinter.Button(self.sideBar)
+        self.sideBar.importButton["text"] = loc["smp_import"]
+        self.sideBar.importButton["command"] = self.onImportPress
+        self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+        
+        
+        self.okButton = tkinter.Button(self)
+        self.okButton["text"] = loc["ok"]
+        self.okButton["command"] = self.onOkPress
+        self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
+
+        self.loadButton = tkinter.Button(self)
+        self.loadButton["text"] = loc["load_oto"]
+        self.loadButton["command"] = self.onLoadPress
+        self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
+
+        self.importButton = tkinter.Button(self)
+        self.importButton["text"] = loc["all_import"]
+        self.importButton["command"] = self.onImportAllPress
+        self.importButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
+
+        self.phonemeList.list.lastFocusedIndex = None
+        
+    def onSelectionChange(self, event):
+        """Adjusts the per-phoneme part of the UI to display the correct values when the selected Phoneme in the Phoneme list changes"""
+        logging.info("Phonemedict selection change callback")
+        global loadedVB
+        if len(self.phonemeList.list.lb.curselection()) > 0:
+            self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
+            index = self.phonemeList.list.lastFocusedIndex
+            sample = self.sampleList[index]
+            self.sideBar.type.variable.set(sample.type)
+            self.sideBar.key.variable.set(sample.key)
+            if sample.key == None:
+                self.disableButtons()
+            else:
+                self.enableButtons()
+            self.sideBar.start.variable.set(sample.start)
+            self.sideBar.end.variable.set(sample.end)
+            self.updateDiagram(sample)
+
+                
+    def onListFocusOut(self, event):
+        """Helper function for retaining information about the last focused element of the Phoneme list when Phoneme list loses entry focus"""
+        logging.info("Phonemedict list focus loss callback")
+        if len(self.phonemeList.list.lb.curselection()) > 0:
+            self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
+        
+    def disableButtons(self):
+        """Disables the per-phoneme settings buttons"""
+        self.sideBar.key.entry["state"] = "disabled"
+    
+    def enableButtons(self):
+        """Enables the per-phoneme settings buttons"""
+        self.sideBar.key.entry["state"] = "normal"
+    
+    def onAddPress(self):
+        """UI Frontend function for adding a phoneme to the Voicebank"""
+        logging.info("Phonemedict add button callback")
+        global loadedVB
+        key = tkinter.simpledialog.askstring(loc["new_phon"], loc["phon_key_sel"])
+        if (key != "") & (key != None):
+            if key in loadedVB.phonemeDict.keys():
+                key += "#"
+            filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
+            if filepath != "":
+                loadedVB.addPhoneme(key, filepath)
+                calculatePitch(loadedVB.phonemeDict[key])
+                calculateSpectra(loadedVB.phonemeDict[key])
+                self.phonemeList.list.lb.insert("end", key)
+        
+    def onRemovePress(self):
+        """UI Frontend function for removing a phoneme from the Voicebank"""
+        logging.info("Phonemedict remove button callback")
+        global loadedVB
+        if self.phonemeList.list.lb.size() > 0:
+            index = self.phonemeList.list.lastFocusedIndex
+            key = self.phonemeList.list.lb.get(index)
+            loadedVB.delPhoneme(key)
+            self.phonemeList.list.lb.delete(index)
+            if index == self.phonemeList.list.lb.size():
+                self.phonemeList.list.lb.selection_set(index - 1)
+            else:
+                self.phonemeList.list.lb.selection_set(index)
+            if self.phonemeList.list.lb.size() == 0:
+                self.disableButtons()
+
+    def updateDiagram(self, sample):
+        logging.info("Phonemedict slider movement callback")
+        global loadedVB
+        value = int(value)
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        spectrum = loadedVB.phonemeDict[key].spectrum + loadedVB.phonemeDict[key].spectra[value]
+        voicedExcitation = torch.abs(loadedVB.phonemeDict[key].voicedExcitation[:, value]) * spectrum
+        excitation = torch.abs(loadedVB.phonemeDict[key].excitation[value]) * spectrum
+        xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
+        self.diagram.ax.plot(xScale, excitation, label = loc["excitation"])
+        self.diagram.ax.plot(xScale, voicedExcitation, label = loc["vExcitation"])
+        self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"])
+        self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
+        self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
+        self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
+        self.diagram.ax.legend(loc = "upper right", fontsize = 8)
+        self.diagram.canvas.draw()
+        self.diagram.ax.clear()
+            
+    def onKeyChange(self, event):
+        """UI Frontend function for changing the key of a phoneme"""
+        logging.info("Phonemedict key change callback")
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        newKey = self.sideBar.key.variable.get()
+        if key != newKey:
+            loadedVB.changePhonemeKey(key, newKey)
+            self.phonemeList.list.lb.delete(index)
+            self.phonemeList.list.lb.insert(index, newKey)
+        
+    def onFrameUpdateTrigger(self, event):
+        """UI Frontend function for updating the pitch of a phoneme"""
+        logging.info("Phonemedict pitch update callback")
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
+            if (loadedVB.phonemeDict[key].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key].searchRange != self.sideBar.pSearchRange.variable.get()):
+                loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
+                loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
+                calculatePitch(loadedVB.phonemeDict[key])
+                calculateSpectra(loadedVB.phonemeDict[key])
+        
+    def onFilechangePress(self, event):
+        """UI Frontend function for changing the file associated with a phoneme"""
+        logging.info("Phonemedict file change button callback")
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
+        if filepath != "":
+            loadedVB.changePhonemeFile(key, filepath)
+            calculatePitch(loadedVB.phonemeDict[key])
+            calculateSpectra(loadedVB.phonemeDict[key])
+            self.phonemeList.list.lb.delete(index)
+            self.phonemeList.list.lb.insert(index, key)
+            
+        
+    def onImportPress(self):
+        """UI Frontend function for finalizing a phoneme"""
+        logging.info("Phonemedict finalize button callback")
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)[0]
+        loadedVB.finalizePhoneme(key)
+        self.sideBar.expPitch.variable.set(None)
+        self.sideBar.pSearchRange.variable.set(None)
+        self.sideBar.voicedFilter.variable.set(None)
+        self.sideBar.unvoicedIter.variable.set(None)
+        self.disableButtons()
+
+    def onImportAllPress(self):
+        """UI Frontend function for finalizing a phoneme"""
+        logging.info("Phonemedict finalize button callback")
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)[0]
+        loadedVB.finalizePhoneme(key)
+        self.sideBar.expPitch.variable.set(None)
+        self.sideBar.pSearchRange.variable.set(None)
+        self.sideBar.voicedFilter.variable.set(None)
+        self.sideBar.unvoicedIter.variable.set(None)
+        self.disableButtons()
+        
+    def onOkPress(self):
+        """Updates the last selected phoneme and closes the Phoneme Dict UI window when the OK button is pressed"""
+        logging.info("Phonemedict OK button callback")
+        global loadedVB
+        if self.phonemeList.list.lb.size() > 0:
+            index = self.phonemeList.list.lastFocusedIndex
+            if index != None:
+                key = self.phonemeList.list.lb.get(index)
+                self.onKeyChange(None)
+                if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
+                    self.onPitchUpdateTrigger(None)
+                    self.onSpectralUpdateTrigger(None)
+        self.master.destroy()
+
+    def onLoadPress(self):
+        """UI Frontend function for loading the phoneme dict of a different Voicebank"""
+        logging.info("Phonemedict load button callback")
+        global loadedVB
+        additive =  tkinter.messagebox.askyesnocancel(loc["warning"], loc["additive_msg"], icon = "question")
+        if additive != None:
+            filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
+            if filepath != "":
+                loadedVB.loadPhonemeDict(filepath, additive)
+                for i in range(self.phonemeList.list.lb.size()):
+                    self.phonemeList.list.lb.delete(0)
+                for i in loadedVB.phonemeDict.keys():
+                    self.phonemeList.list.lb.insert("end", i)
