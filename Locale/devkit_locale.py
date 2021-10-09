@@ -37,6 +37,7 @@ def getLocale():
         locale["vb_discard_msg"] = "Creating a new Voicebank will discard all unsaved changes to the currently opened one. Continue?"
         locale[".nvvb_desc"] = "NovaVox Voicebanks"
         locale[".wav_desc"] = "wavesound audio files"
+        locale["oto.ini_desc"] = "UTAU oto.ini files"
         locale["all_files_desc"] = "All files"
         locale["name"] = "Name:"
         locale["smp_rate"] = "Sample Rate:"
@@ -84,5 +85,10 @@ def getLocale():
         locale["per_smp_set"] = "per-sample settings"
         locale["smp_phoneme"] = "phoneme"
         locale["smp_transition"] = "transition"
+        locale["waveform"] = "waveform"
+        locale["offset/blank"] = "offset/blank"
+        locale["fixed"] = "fixed"
+        locale["overlap"] = "overlap"
+        locale["preuttr"] = "pre-utterance"
 
     return locale

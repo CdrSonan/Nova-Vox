@@ -169,6 +169,11 @@ class Voicebank:
         self.phonemeDict[key] = AudioSample(filepath)
         calculatePitch(self.phonemeDict[key])
         calculateSpectra(self.phonemeDict[key])
+
+    def addPhonemeUtau(sample):
+        self.phonemeDict[sample.key] = sample.convert()
+        calculatePitch(self.phonemeDict[sample.key])
+        calculateSpectra(self.phonemeDict[sample.key])
     
     def delPhoneme(self, key):
         """deletes a phoneme from the Voicebank's PhonemeDict"""
@@ -190,6 +195,10 @@ class Voicebank:
     def addTrainSample(self, filepath):
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
         self.stagedTrainSamples.append(AudioSample(filepath))
+
+    def addTrainSampleUtau(self, sample):
+        """stages an audio sample the phoneme crossfade Ai is to be trained with"""
+        self.stagedTrainSamples.append(sample.convert())
     
     def delTrainSample(self, index):
         """removes an audio sample from the list of staged training phonemes"""

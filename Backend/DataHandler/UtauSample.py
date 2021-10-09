@@ -10,7 +10,10 @@ class UtauSample:
         else:
             self.key = None
         self.start = start
-        self.end = end
+        if end == None:
+            self.end = self.audioSample.waveform.size()[0]
+        else:
+            self.end = end
         self.handle = filepath + ", " + str(start) + " - " + str(end)
 
         self.offset = offset
@@ -25,5 +28,6 @@ class UtauSample:
     def convert(self):
         start = int(self.start * sampleRate / 1000)
         end = int(self.end * sampleRate / 1000)
-        self.audioSample.waveform = self.audioSample.waveform[start:end]
-        return self.audioSample
+        audioSample = AudioSample(self.audioSample.filepath)
+        audioSample.waveform = audioSample.waveform[start:end]
+        return audioSample

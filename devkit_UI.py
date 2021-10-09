@@ -10,6 +10,7 @@ import tkinter.filedialog
 import tkinter.simpledialog
 import logging
 import torch
+import csv
 import global_consts
 import Backend.VB_Components.Voicebank
 Voicebank = Backend.VB_Components.Voicebank.Voicebank
@@ -19,6 +20,7 @@ import Backend.ESPER.SpectralCalculator
 calculateSpectra = Backend.ESPER.SpectralCalculator.calculateSpectra
 import Locale.devkit_locale
 loc = Locale.devkit_locale.getLocale()
+from Backend.DataHandler.UtauSample import UtauSample
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -931,48 +933,39 @@ class UtauImportUi(tkinter.Frame):
     def onAddPress(self):
         """UI Frontend function for adding a phoneme to the Voicebank"""
         logging.info("Phonemedict add button callback")
-        global loadedVB
-        key = tkinter.simpledialog.askstring(loc["new_phon"], loc["phon_key_sel"])
-        if (key != "") & (key != None):
-            if key in loadedVB.phonemeDict.keys():
-                key += "#"
-            filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
-            if filepath != "":
-                loadedVB.addPhoneme(key, filepath)
-                calculatePitch(loadedVB.phonemeDict[key])
-                calculateSpectra(loadedVB.phonemeDict[key])
-                self.phonemeList.list.lb.insert("end", key)
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
+        if filepath != "":
+            sample = UtauSample(filepath, 0, None, 0, None, 0, 0, 0, 0, 0)
+            self.sampleList.append(sample)
+            self.phonemeList.list.lb.insert("end", sample.handle)
         
     def onRemovePress(self):
         """UI Frontend function for removing a phoneme from the Voicebank"""
         logging.info("Phonemedict remove button callback")
-        global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
-            key = self.phonemeList.list.lb.get(index)
-            loadedVB.delPhoneme(key)
+            del self.sampleList[index]
             self.phonemeList.list.lb.delete(index)
             if index == self.phonemeList.list.lb.size():
                 self.phonemeList.list.lb.selection_set(index - 1)
             else:
                 self.phonemeList.list.lb.selection_set(index)
-            if self.phonemeList.list.lb.size() == 0:
-                self.disableButtons()
 
     def updateDiagram(self, sample):
         logging.info("Phonemedict slider movement callback")
-        global loadedVB
-        value = int(value)
         index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)
-        spectrum = loadedVB.phonemeDict[key].spectrum + loadedVB.phonemeDict[key].spectra[value]
-        voicedExcitation = torch.abs(loadedVB.phonemeDict[key].voicedExcitation[:, value]) * spectrum
-        excitation = torch.abs(loadedVB.phonemeDict[key].excitation[value]) * spectrum
-        xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
-        self.diagram.ax.plot(xScale, excitation, label = loc["excitation"])
-        self.diagram.ax.plot(xScale, voicedExcitation, label = loc["vExcitation"])
-        self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"])
-        self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
+        sample = self.sampleList[index]
+        waveform = sample.audioSample.waveform
+        xScale = torch.linspace(0, waveform.size()[0] * global_consts.sampleRate / 1000, waveform.size()[0])
+        self.diagram.ax.plot(xScale, waveform, label = loc["waveform"], color = (0., 0.5, 1.))
+        self.diagram.ax.axvspan(0, sample.offset, ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=0.5, label = loc["offset/blank"])
+        self.diagram.ax.axvspan(waveform.size()[0] - sample.blank, waveform.size()[0], ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=0.5, label = loc["offset/blank"])
+        self.diagram.ax.axvspan(sample.offset, sample.offset + sample.fixed, ymin = 0.5, facecolor=(1., 0.75, 1.), alpha=0.5, label = loc["fixed"])
+        self.diagram.ax.axvline(sample.offset + sample.overlap, ymin = 0.5, color = (0., 1., 0.), alpha = 0.9, label = loc["overlap"])
+        self.diagram.ax.axvline(sample.offset + sample.preuttr, ymin = 0.5, color = (1., 0., 0.), alpha = 0.9, label = loc["preuttr"])
+        self.diagram.ax.axvspan(sample.start, sample.end, ymax = 0.5, facecolor=(0.4, 0.1, 1.), alpha=0.5, label = loc["offset/blank"])
+        self.diagram.ax.set_xlim([0, waveform.size()[0]])
+        self.diagram.ax.set_ylim([-1, 1])
         self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
         self.diagram.ax.legend(loc = "upper right", fontsize = 8)
@@ -982,39 +975,30 @@ class UtauImportUi(tkinter.Frame):
     def onKeyChange(self, event):
         """UI Frontend function for changing the key of a phoneme"""
         logging.info("Phonemedict key change callback")
-        global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)
+        key = self.sampleList[index].key
         newKey = self.sideBar.key.variable.get()
         if key != newKey:
-            loadedVB.changePhonemeKey(key, newKey)
-            self.phonemeList.list.lb.delete(index)
-            self.phonemeList.list.lb.insert(index, newKey)
+            self.sampleList[index].key = newKey
         
     def onFrameUpdateTrigger(self, event):
         """UI Frontend function for updating the pitch of a phoneme"""
         logging.info("Phonemedict pitch update callback")
-        global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)
-        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
-            if (loadedVB.phonemeDict[key].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key].searchRange != self.sideBar.pSearchRange.variable.get()):
-                loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
-                loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
-                calculatePitch(loadedVB.phonemeDict[key])
-                calculateSpectra(loadedVB.phonemeDict[key])
+        sample = self.sampleList[index]
+        sample.start = self.sideBar.start.variable.get()
+        sample.end = self.sideBar.end.variable.get()
+        sample.updateHandle()
+        self.phonemeList.list.lb.delete(index)
+        self.phonemeList.list.lb.insert(index, sample.handle)
         
     def onFilechangePress(self, event):
         """UI Frontend function for changing the file associated with a phoneme"""
         logging.info("Phonemedict file change button callback")
-        global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
         if filepath != "":
-            loadedVB.changePhonemeFile(key, filepath)
-            calculatePitch(loadedVB.phonemeDict[key])
-            calculateSpectra(loadedVB.phonemeDict[key])
+            
             self.phonemeList.list.lb.delete(index)
             self.phonemeList.list.lb.insert(index, key)
             
@@ -1063,12 +1047,10 @@ class UtauImportUi(tkinter.Frame):
         """UI Frontend function for loading the phoneme dict of a different Voicebank"""
         logging.info("Phonemedict load button callback")
         global loadedVB
-        additive =  tkinter.messagebox.askyesnocancel(loc["warning"], loc["additive_msg"], icon = "question")
-        if additive != None:
-            filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
-            if filepath != "":
-                loadedVB.loadPhonemeDict(filepath, additive)
-                for i in range(self.phonemeList.list.lb.size()):
-                    self.phonemeList.list.lb.delete(0)
-                for i in loadedVB.phonemeDict.keys():
-                    self.phonemeList.list.lb.insert("end", i)
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["oto.ini_desc"], ".ini"), (loc["all_files_desc"], "*")))
+        if filepath != "":
+            reader = csv.reader(open(filepath), delimiter = "=")
+            for row in reader:
+                filename = row[0]
+                properties = row[1].split(",")
+                self.sampleList.append(UtauSample())
