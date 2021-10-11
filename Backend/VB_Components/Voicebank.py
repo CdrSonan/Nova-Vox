@@ -170,7 +170,7 @@ class Voicebank:
         calculatePitch(self.phonemeDict[key])
         calculateSpectra(self.phonemeDict[key])
 
-    def addPhonemeUtau(sample):
+    def addPhonemeUtau(self, sample):
         self.phonemeDict[sample.key] = sample.convert()
         calculatePitch(self.phonemeDict[sample.key])
         calculateSpectra(self.phonemeDict[sample.key])

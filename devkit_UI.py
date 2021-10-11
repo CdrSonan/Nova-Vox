@@ -8,6 +8,7 @@ Created on Thu Aug  5 16:51:29 2021
 import tkinter
 import tkinter.filedialog
 import tkinter.simpledialog
+from os import path
 import logging
 import torch
 import csv
@@ -21,6 +22,7 @@ calculateSpectra = Backend.ESPER.SpectralCalculator.calculateSpectra
 import Locale.devkit_locale
 loc = Locale.devkit_locale.getLocale()
 from Backend.DataHandler.UtauSample import UtauSample
+from Backend.UtauImport import fetchSamples
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -1047,10 +1049,26 @@ class UtauImportUi(tkinter.Frame):
         """UI Frontend function for loading the phoneme dict of a different Voicebank"""
         logging.info("Phonemedict load button callback")
         global loadedVB
-        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["oto.ini_desc"], ".ini"), (loc["all_files_desc"], "*")))
-        if filepath != "":
-            reader = csv.reader(open(filepath), delimiter = "=")
+        custom_phonemes = tkinter.messagebox.askyesnocancel(loc["warning"], loc["utau_cstm_phn_msg"], icon = "question", default='no')
+        if custom_phonemes != None:
+            if custom_phonemes:
+                phonemepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".txt_desc"], ".txt"), (loc["all_files_desc"], "*")))
+            else:
+                phonemepath = "Backend/UtauDefaultPhonemes.ini"
+            phonemes = []
+            types = []
+            reader = csv.reader(open(phonemepath), delimiter = "=")
             for row in reader:
-                filename = row[0]
-                properties = row[1].split(",")
-                self.sampleList.append(UtauSample())
+                row = row.split(" ")
+                phonemes.append(row[0])
+                types.append(row[1])
+            filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["oto.ini_desc"], ".ini"), (loc["all_files_desc"], "*")))
+            if filepath != "":
+                reader = csv.reader(open(filepath), delimiter = "=")
+                otoPath = path.split(filepath)[0]
+                for row in reader:
+                    filename = row[0]
+                    properties = row[1].split(",")
+                    for sample in fetchSamples(filename, properties, phonemes, types, otoPath):
+                        self.sampleList.append(sample)
+                        self.phonemeList.list.lb.insert("end", sample.handle)

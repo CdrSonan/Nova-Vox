@@ -2,10 +2,10 @@ from Backend.AudioSample import AudioSample
 from global_consts import sampleRate
 
 class UtauSample:
-    def __init__(self, filepath, type, key, start, end, offset, fixed, blank, preuttr, overlap):
+    def __init__(self, filepath, _type, key, start, end, offset, fixed, blank, preuttr, overlap):
         self.audioSample = AudioSample(filepath)
-        self.type = type
-        if self.type == 0:
+        self._type = _type
+        if self._type == 0:
             self.key = key
         else:
             self.key = None

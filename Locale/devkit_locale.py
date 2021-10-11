@@ -38,6 +38,7 @@ def getLocale():
         locale[".nvvb_desc"] = "NovaVox Voicebanks"
         locale[".wav_desc"] = "wavesound audio files"
         locale["oto.ini_desc"] = "UTAU oto.ini files"
+        locale[".txt_desc"] = ".txt text files"
         locale["all_files_desc"] = "All files"
         locale["name"] = "Name:"
         locale["smp_rate"] = "Sample Rate:"
@@ -90,5 +91,6 @@ def getLocale():
         locale["fixed"] = "fixed"
         locale["overlap"] = "overlap"
         locale["preuttr"] = "pre-utterance"
+        locale["utau_cstm_phn_msg"] = "use custom phoneme definition file for import?"
 
     return locale
