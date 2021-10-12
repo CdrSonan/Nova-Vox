@@ -8097,3 +8097,33 @@
 2021-10-12 02:59:59,641:11688:INFO:UTAU import button callback
 2021-10-12 02:59:59,709:11688:INFO:Initializing Phonemedict UI
 2021-10-12 03:01:26,533:11688:INFO:Phonemedict OK button callback
+2021-10-12 13:51:45,932:31968:INFO:logging service started
+2021-10-12 13:51:45,932:31968:INFO:initializing Root UI
+2021-10-12 13:51:47,903:31968:INFO:new button callback
+2021-10-12 13:51:48,325:31968:INFO:UTAU import button callback
+2021-10-12 13:51:48,376:31968:INFO:Initializing Phonemedict UI
+2021-10-12 13:51:49,617:31968:INFO:Phonemedict load button callback
+2021-10-12 13:53:23,217:25760:INFO:logging service started
+2021-10-12 13:53:23,217:25760:INFO:initializing Root UI
+2021-10-12 13:53:24,328:25760:INFO:new button callback
+2021-10-12 13:53:24,749:25760:INFO:UTAU import button callback
+2021-10-12 13:53:24,797:25760:INFO:Initializing Phonemedict UI
+2021-10-12 13:53:26,064:25760:INFO:Phonemedict load button callback
+2021-10-12 13:54:02,261:31204:INFO:logging service started
+2021-10-12 13:54:02,262:31204:INFO:initializing Root UI
+2021-10-12 13:54:03,746:31204:INFO:new button callback
+2021-10-12 13:54:04,321:31204:INFO:UTAU import button callback
+2021-10-12 13:54:04,369:31204:INFO:Initializing Phonemedict UI
+2021-10-12 13:54:05,666:31204:INFO:Phonemedict load button callback
+2021-10-12 13:54:34,724:19892:INFO:logging service started
+2021-10-12 13:54:34,724:19892:INFO:initializing Root UI
+2021-10-12 13:54:36,020:19892:INFO:new button callback
+2021-10-12 13:54:36,510:19892:INFO:UTAU import button callback
+2021-10-12 13:54:36,558:19892:INFO:Initializing Phonemedict UI
+2021-10-12 13:54:37,597:19892:INFO:Phonemedict load button callback
+2021-10-12 13:58:14,238:33548:INFO:logging service started
+2021-10-12 13:58:14,238:33548:INFO:initializing Root UI
+2021-10-12 13:58:15,726:33548:INFO:new button callback
+2021-10-12 13:58:16,164:33548:INFO:UTAU import button callback
+2021-10-12 13:58:16,212:33548:INFO:Initializing Phonemedict UI
+2021-10-12 13:58:17,185:33548:INFO:Phonemedict load button callback

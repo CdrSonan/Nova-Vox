@@ -1042,14 +1042,14 @@ class UtauImportUi(tkinter.Frame):
                 phonemepath = "Backend/UtauDefaultPhonemes.ini"
             phonemes = []
             types = []
-            reader = csv.reader(open(phonemepath), delimiter = "=")
+            reader = csv.reader(open(phonemepath), delimiter = " ")
             for row in reader:
-                row = row.split(" ")
+                #row[1] = row[1].split(" ")
                 phonemes.append(row[0])
                 types.append(row[1])
             filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["oto.ini_desc"], ".ini"), (loc["all_files_desc"], "*")))
             if filepath != "":
-                reader = csv.reader(open(filepath), delimiter = "=")
+                reader = csv.reader(open(filepath, encoding = "Shift_JIS"), delimiter = "=")
                 otoPath = path.split(filepath)[0]
                 for row in reader:
                     filename = row[0]
