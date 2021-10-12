@@ -1,5 +1,6 @@
 from Backend.AudioSample import AudioSample
 from global_consts import sampleRate
+from os import path
 
 class UtauSample:
     def __init__(self, filepath, _type, key, start, end, offset, fixed, blank, preuttr, overlap):
@@ -14,7 +15,7 @@ class UtauSample:
             self.end = self.audioSample.waveform.size()[0]
         else:
             self.end = end
-        self.handle = filepath + ", " + str(start) + " - " + str(end)
+        self.handle = path.split(self.audioSample.filepath)[1] + ", " + str(self.start) + " - " + str(self.end)
 
         self.offset = offset
         self.fixed = fixed
@@ -23,7 +24,7 @@ class UtauSample:
         self.overlap = overlap
 
     def updateHandle(self):
-        self.handle = self.audioSample.filepath + ", " + str(self.start) + " - " + str(self.end)
+        self.handle = path.split(self.audioSample.filepath)[1] + ", " + str(self.start) + " - " + str(self.end)
 
     def convert(self):
         start = int(self.start * sampleRate / 1000)

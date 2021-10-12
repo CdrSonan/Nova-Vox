@@ -8127,3 +8127,226 @@
 2021-10-12 13:58:16,164:33548:INFO:UTAU import button callback
 2021-10-12 13:58:16,212:33548:INFO:Initializing Phonemedict UI
 2021-10-12 13:58:17,185:33548:INFO:Phonemedict load button callback
+2021-10-12 22:10:10,521:17428:INFO:logging service started
+2021-10-12 22:10:10,538:17428:INFO:initializing Root UI
+2021-10-12 22:10:12,156:17428:INFO:new button callback
+2021-10-12 22:10:12,792:17428:INFO:UTAU import button callback
+2021-10-12 22:10:12,840:17428:INFO:Initializing Phonemedict UI
+2021-10-12 22:10:13,941:17428:INFO:Phonemedict load button callback
+2021-10-12 22:11:51,108:28968:INFO:logging service started
+2021-10-12 22:11:51,109:28968:INFO:initializing Root UI
+2021-10-12 22:11:52,821:28968:INFO:new button callback
+2021-10-12 22:11:53,259:28968:INFO:UTAU import button callback
+2021-10-12 22:11:53,307:28968:INFO:Initializing Phonemedict UI
+2021-10-12 22:11:54,243:28968:INFO:Phonemedict load button callback
+2021-10-12 22:13:33,033:32088:INFO:logging service started
+2021-10-12 22:13:33,034:32088:INFO:initializing Root UI
+2021-10-12 22:13:34,227:32088:INFO:new button callback
+2021-10-12 22:13:34,624:32088:INFO:UTAU import button callback
+2021-10-12 22:13:34,672:32088:INFO:Initializing Phonemedict UI
+2021-10-12 22:13:36,089:32088:INFO:Phonemedict load button callback
+2021-10-12 22:16:00,990:28068:INFO:logging service started
+2021-10-12 22:16:00,991:28068:INFO:initializing Root UI
+2021-10-12 22:16:30,728:28988:INFO:logging service started
+2021-10-12 22:16:30,728:28988:INFO:initializing Root UI
+2021-10-12 22:16:32,014:28988:INFO:new button callback
+2021-10-12 22:16:33,652:28988:INFO:UTAU import button callback
+2021-10-12 22:16:33,699:28988:INFO:Initializing Phonemedict UI
+2021-10-12 22:16:35,701:28988:INFO:Phonemedict load button callback
+2021-10-12 22:17:45,908:17116:INFO:logging service started
+2021-10-12 22:17:45,908:17116:INFO:initializing Root UI
+2021-10-12 22:17:47,554:17116:INFO:new button callback
+2021-10-12 22:17:48,103:17116:INFO:UTAU import button callback
+2021-10-12 22:17:48,150:17116:INFO:Initializing Phonemedict UI
+2021-10-12 22:17:49,189:17116:INFO:Phonemedict load button callback
+2021-10-12 22:18:50,737:23476:INFO:logging service started
+2021-10-12 22:18:50,737:23476:INFO:initializing Root UI
+2021-10-12 22:18:55,530:23476:INFO:new button callback
+2021-10-12 22:18:56,101:23476:INFO:UTAU import button callback
+2021-10-12 22:18:56,148:23476:INFO:Initializing Phonemedict UI
+2021-10-12 22:18:57,059:23476:INFO:Phonemedict load button callback
+2021-10-12 22:20:29,582:33024:INFO:logging service started
+2021-10-12 22:20:29,582:33024:INFO:initializing Root UI
+2021-10-12 22:20:30,822:33024:INFO:new button callback
+2021-10-12 22:20:31,500:33024:INFO:UTAU import button callback
+2021-10-12 22:20:31,547:33024:INFO:Initializing Phonemedict UI
+2021-10-12 22:20:32,771:33024:INFO:Phonemedict load button callback
+2021-10-12 22:53:26,068:33024:INFO:Phonemedict selection change callback
+2021-10-12 22:53:33,953:33024:INFO:Phonemedict selection change callback
+2021-10-12 22:54:08,974:33024:INFO:Phonemedict list focus loss callback
+2021-10-12 23:02:08,291:24688:INFO:logging service started
+2021-10-12 23:02:08,291:24688:INFO:initializing Root UI
+2021-10-12 23:02:11,229:24688:INFO:new button callback
+2021-10-12 23:02:11,586:24688:INFO:UTAU import button callback
+2021-10-12 23:02:11,633:24688:INFO:Initializing Phonemedict UI
+2021-10-12 23:02:12,611:24688:INFO:Phonemedict load button callback
+2021-10-12 23:03:34,236:21072:INFO:logging service started
+2021-10-12 23:03:34,236:21072:INFO:initializing Root UI
+2021-10-12 23:03:36,990:21072:INFO:new button callback
+2021-10-12 23:03:37,423:21072:INFO:UTAU import button callback
+2021-10-12 23:03:37,472:21072:INFO:Initializing Phonemedict UI
+2021-10-12 23:03:38,426:21072:INFO:Phonemedict load button callback
+2021-10-12 23:04:51,976:21100:INFO:logging service started
+2021-10-12 23:04:51,976:21100:INFO:initializing Root UI
+2021-10-12 23:04:54,128:21100:INFO:new button callback
+2021-10-12 23:04:54,740:21100:INFO:UTAU import button callback
+2021-10-12 23:04:54,787:21100:INFO:Initializing Phonemedict UI
+2021-10-12 23:04:55,756:21100:INFO:Phonemedict load button callback
+2021-10-12 23:07:00,516:33952:INFO:logging service started
+2021-10-12 23:07:00,517:33952:INFO:initializing Root UI
+2021-10-12 23:07:02,572:33952:INFO:new button callback
+2021-10-12 23:07:03,058:33952:INFO:UTAU import button callback
+2021-10-12 23:07:03,105:33952:INFO:Initializing Phonemedict UI
+2021-10-12 23:07:05,554:33952:INFO:Phonemedict load button callback
+2021-10-12 23:07:42,352:18092:INFO:logging service started
+2021-10-12 23:07:42,353:18092:INFO:initializing Root UI
+2021-10-12 23:07:44,802:18092:INFO:new button callback
+2021-10-12 23:07:45,196:18092:INFO:UTAU import button callback
+2021-10-12 23:07:45,244:18092:INFO:Initializing Phonemedict UI
+2021-10-12 23:07:46,237:18092:INFO:Phonemedict load button callback
+2021-10-12 23:08:30,993:31832:INFO:logging service started
+2021-10-12 23:08:30,993:31832:INFO:initializing Root UI
+2021-10-12 23:08:33,399:31832:INFO:new button callback
+2021-10-12 23:08:34,406:31832:INFO:UTAU import button callback
+2021-10-12 23:08:34,454:31832:INFO:Initializing Phonemedict UI
+2021-10-12 23:08:35,504:31832:INFO:Phonemedict load button callback
+2021-10-12 23:09:33,661:34484:INFO:logging service started
+2021-10-12 23:09:33,662:34484:INFO:initializing Root UI
+2021-10-12 23:09:35,067:34484:INFO:new button callback
+2021-10-12 23:09:36,700:34484:INFO:UTAU import button callback
+2021-10-12 23:09:36,747:34484:INFO:Initializing Phonemedict UI
+2021-10-12 23:09:37,562:34484:INFO:Phonemedict load button callback
+2021-10-12 23:10:17,851:4108:INFO:logging service started
+2021-10-12 23:10:17,851:4108:INFO:initializing Root UI
+2021-10-12 23:10:19,556:4108:INFO:new button callback
+2021-10-12 23:10:19,957:4108:INFO:UTAU import button callback
+2021-10-12 23:10:20,004:4108:INFO:Initializing Phonemedict UI
+2021-10-12 23:10:21,012:4108:INFO:Phonemedict load button callback
+2021-10-12 23:13:01,879:17668:INFO:logging service started
+2021-10-12 23:13:01,879:17668:INFO:initializing Root UI
+2021-10-12 23:13:05,422:17668:INFO:new button callback
+2021-10-12 23:13:05,880:17668:INFO:UTAU import button callback
+2021-10-12 23:13:05,927:17668:INFO:Initializing Phonemedict UI
+2021-10-12 23:13:07,102:17668:INFO:Phonemedict load button callback
+2021-10-12 23:13:22,706:17668:INFO:Phonemedict selection change callback
+2021-10-12 23:16:32,801:17668:INFO:Phonemedict list focus loss callback
+2021-10-12 23:17:34,073:32704:INFO:logging service started
+2021-10-12 23:17:34,073:32704:INFO:initializing Root UI
+2021-10-12 23:17:36,168:32704:INFO:new button callback
+2021-10-12 23:17:36,586:32704:INFO:UTAU import button callback
+2021-10-12 23:17:36,634:32704:INFO:Initializing Phonemedict UI
+2021-10-12 23:17:37,982:32704:INFO:Phonemedict load button callback
+2021-10-12 23:20:27,728:20084:INFO:logging service started
+2021-10-12 23:20:27,729:20084:INFO:initializing Root UI
+2021-10-12 23:20:29,146:20084:INFO:new button callback
+2021-10-12 23:20:29,714:20084:INFO:UTAU import button callback
+2021-10-12 23:20:29,762:20084:INFO:Initializing Phonemedict UI
+2021-10-12 23:20:31,181:20084:INFO:Phonemedict load button callback
+2021-10-12 23:21:59,875:15604:INFO:logging service started
+2021-10-12 23:21:59,875:15604:INFO:initializing Root UI
+2021-10-12 23:22:01,251:15604:INFO:new button callback
+2021-10-12 23:22:01,709:15604:INFO:UTAU import button callback
+2021-10-12 23:22:01,758:15604:INFO:Initializing Phonemedict UI
+2021-10-12 23:22:03,746:15604:INFO:Phonemedict load button callback
+2021-10-12 23:23:34,960:1748:INFO:logging service started
+2021-10-12 23:23:34,961:1748:INFO:initializing Root UI
+2021-10-12 23:23:37,261:1748:INFO:new button callback
+2021-10-12 23:23:37,749:1748:INFO:UTAU import button callback
+2021-10-12 23:23:37,796:1748:INFO:Initializing Phonemedict UI
+2021-10-12 23:23:38,807:1748:INFO:Phonemedict load button callback
+2021-10-12 23:25:13,610:31208:INFO:logging service started
+2021-10-12 23:25:13,610:31208:INFO:initializing Root UI
+2021-10-12 23:25:17,596:31208:INFO:new button callback
+2021-10-12 23:25:17,999:31208:INFO:UTAU import button callback
+2021-10-12 23:25:18,046:31208:INFO:Initializing Phonemedict UI
+2021-10-12 23:25:19,882:31208:INFO:Phonemedict load button callback
+2021-10-12 23:26:43,476:34000:INFO:logging service started
+2021-10-12 23:26:43,477:34000:INFO:initializing Root UI
+2021-10-12 23:26:45,181:34000:INFO:new button callback
+2021-10-12 23:26:45,680:34000:INFO:UTAU import button callback
+2021-10-12 23:26:45,729:34000:INFO:Initializing Phonemedict UI
+2021-10-12 23:26:54,557:34000:INFO:Phonemedict add button callback
+2021-10-12 23:26:59,655:34000:INFO:Phonemedict load button callback
+2021-10-12 23:27:18,087:34000:INFO:Phonemedict selection change callback
+2021-10-12 23:27:29,054:34000:INFO:Phonemedict list focus loss callback
+2021-10-12 23:29:18,948:31760:INFO:logging service started
+2021-10-12 23:29:18,949:31760:INFO:initializing Root UI
+2021-10-12 23:29:20,330:31760:INFO:new button callback
+2021-10-12 23:29:20,720:31760:INFO:UTAU import button callback
+2021-10-12 23:29:20,768:31760:INFO:Initializing Phonemedict UI
+2021-10-12 23:29:21,893:31760:INFO:Phonemedict load button callback
+2021-10-12 23:29:38,089:31760:INFO:Phonemedict selection change callback
+2021-10-12 23:29:38,089:31760:INFO:Phonemedict slider movement callback
+2021-10-12 23:29:39,991:31760:INFO:Phonemedict selection change callback
+2021-10-12 23:29:39,991:31760:INFO:Phonemedict slider movement callback
+2021-10-12 23:29:46,261:31760:INFO:Phonemedict selection change callback
+2021-10-12 23:29:46,261:31760:INFO:Phonemedict slider movement callback
+2021-10-12 23:30:05,424:31760:INFO:Phonemedict list focus loss callback
+2021-10-12 23:30:48,554:31760:INFO:Phonemedict list focus loss callback
+2021-10-12 23:31:28,813:31760:INFO:Phonemedict selection change callback
+2021-10-12 23:31:28,813:31760:INFO:Phonemedict slider movement callback
+2021-10-12 23:31:33,801:31760:INFO:Phonemedict selection change callback
+2021-10-12 23:31:33,801:31760:INFO:Phonemedict slider movement callback
+2021-10-12 23:31:39,715:31760:INFO:Phonemedict selection change callback
+2021-10-12 23:31:39,715:31760:INFO:Phonemedict slider movement callback
+2021-10-12 23:31:54,134:31760:INFO:Phonemedict list focus loss callback
+2021-10-12 23:32:37,513:34304:INFO:logging service started
+2021-10-12 23:32:37,513:34304:INFO:initializing Root UI
+2021-10-12 23:32:39,098:34304:INFO:new button callback
+2021-10-12 23:32:39,448:34304:INFO:UTAU import button callback
+2021-10-12 23:32:39,496:34304:INFO:Initializing Phonemedict UI
+2021-10-12 23:32:41,095:34304:INFO:Phonemedict load button callback
+2021-10-12 23:33:01,540:34304:INFO:Phonemedict selection change callback
+2021-10-12 23:33:01,540:34304:INFO:Phonemedict slider movement callback
+2021-10-12 23:33:12,838:34304:INFO:Phonemedict selection change callback
+2021-10-12 23:33:12,838:34304:INFO:Phonemedict slider movement callback
+2021-10-12 23:33:19,575:34304:INFO:Phonemedict selection change callback
+2021-10-12 23:33:19,575:34304:INFO:Phonemedict slider movement callback
+2021-10-12 23:33:27,450:34304:INFO:Phonemedict selection change callback
+2021-10-12 23:33:27,450:34304:INFO:Phonemedict slider movement callback
+2021-10-12 23:33:34,621:34304:INFO:Phonemedict selection change callback
+2021-10-12 23:33:34,621:34304:INFO:Phonemedict slider movement callback
+2021-10-12 23:33:38,289:34304:INFO:Phonemedict selection change callback
+2021-10-12 23:33:38,289:34304:INFO:Phonemedict slider movement callback
+2021-10-12 23:33:57,112:34304:INFO:Phonemedict list focus loss callback
+2021-10-12 23:35:26,690:33960:INFO:logging service started
+2021-10-12 23:35:26,690:33960:INFO:initializing Root UI
+2021-10-12 23:35:28,004:33960:INFO:new button callback
+2021-10-12 23:35:28,490:33960:INFO:UTAU import button callback
+2021-10-12 23:35:28,538:33960:INFO:Initializing Phonemedict UI
+2021-10-12 23:35:29,988:33960:INFO:Phonemedict load button callback
+2021-10-12 23:35:47,559:33960:INFO:Phonemedict selection change callback
+2021-10-12 23:35:47,559:33960:INFO:Phonemedict slider movement callback
+2021-10-12 23:35:59,397:33960:INFO:Phonemedict selection change callback
+2021-10-12 23:35:59,397:33960:INFO:Phonemedict slider movement callback
+2021-10-12 23:36:06,380:33960:INFO:Phonemedict selection change callback
+2021-10-12 23:36:06,380:33960:INFO:Phonemedict slider movement callback
+2021-10-12 23:37:05,690:33960:INFO:Phonemedict selection change callback
+2021-10-12 23:37:05,690:33960:INFO:Phonemedict slider movement callback
+2021-10-12 23:37:11,902:33960:INFO:Phonemedict selection change callback
+2021-10-12 23:37:11,902:33960:INFO:Phonemedict slider movement callback
+2021-10-12 23:37:16,356:33960:INFO:Phonemedict selection change callback
+2021-10-12 23:37:16,356:33960:INFO:Phonemedict slider movement callback
+2021-10-12 23:37:19,904:33960:INFO:Phonemedict selection change callback
+2021-10-12 23:37:19,904:33960:INFO:Phonemedict slider movement callback
+2021-10-12 23:37:54,905:33960:INFO:Phonemedict list focus loss callback
+2021-10-12 23:39:30,839:28908:INFO:logging service started
+2021-10-12 23:39:30,840:28908:INFO:initializing Root UI
+2021-10-12 23:39:32,497:28908:INFO:new button callback
+2021-10-12 23:39:32,900:28908:INFO:UTAU import button callback
+2021-10-12 23:39:32,947:28908:INFO:Initializing Phonemedict UI
+2021-10-12 23:39:34,311:28908:INFO:Phonemedict load button callback
+2021-10-12 23:39:51,460:28908:INFO:Phonemedict selection change callback
+2021-10-12 23:39:51,460:28908:INFO:Phonemedict slider movement callback
+2021-10-12 23:40:04,525:28908:INFO:Phonemedict list focus loss callback
+2021-10-12 23:40:40,180:6852:INFO:logging service started
+2021-10-12 23:40:40,181:6852:INFO:initializing Root UI
+2021-10-12 23:40:42,209:6852:INFO:new button callback
+2021-10-12 23:40:43,473:6852:INFO:UTAU import button callback
+2021-10-12 23:40:43,522:6852:INFO:Initializing Phonemedict UI
+2021-10-12 23:40:44,601:6852:INFO:Phonemedict load button callback
+2021-10-12 23:41:02,067:6852:INFO:Phonemedict selection change callback
+2021-10-12 23:41:02,068:6852:INFO:Phonemedict slider movement callback
+2021-10-12 23:41:11,430:6852:INFO:Phonemedict selection change callback
+2021-10-12 23:41:11,430:6852:INFO:Phonemedict slider movement callback
+2021-10-12 23:41:25,939:6852:INFO:Phonemedict list focus loss callback

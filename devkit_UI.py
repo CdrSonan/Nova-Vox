@@ -902,7 +902,7 @@ class UtauImportUi(tkinter.Frame):
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
             index = self.phonemeList.list.lastFocusedIndex
             sample = self.sampleList[index]
-            self.sideBar.type.variable.set(sample.type)
+            self.sideBar._type.variable.set(sample._type)
             self.sideBar.key.variable.set(sample.key)
             if sample.key == None:
                 self.disableButtons()
@@ -949,19 +949,21 @@ class UtauImportUi(tkinter.Frame):
                 self.phonemeList.list.lb.selection_set(index)
 
     def updateDiagram(self, sample):
+        print(sample.blank)
         logging.info("Phonemedict slider movement callback")
         index = self.phonemeList.list.lastFocusedIndex
         sample = self.sampleList[index]
         waveform = sample.audioSample.waveform
-        xScale = torch.linspace(0, waveform.size()[0] * global_consts.sampleRate / 1000, waveform.size()[0])
+        timesize = waveform.size()[0] * 1000 / global_consts.sampleRate
+        xScale = torch.linspace(0, timesize, waveform.size()[0])
         self.diagram.ax.plot(xScale, waveform, label = loc["waveform"], color = (0., 0.5, 1.))
         self.diagram.ax.axvspan(0, sample.offset, ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=0.5, label = loc["offset/blank"])
-        self.diagram.ax.axvspan(waveform.size()[0] - sample.blank, waveform.size()[0], ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=0.5, label = loc["offset/blank"])
+        self.diagram.ax.axvspan(timesize + sample.blank, timesize, ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=0.5)
         self.diagram.ax.axvspan(sample.offset, sample.offset + sample.fixed, ymin = 0.5, facecolor=(1., 0.75, 1.), alpha=0.5, label = loc["fixed"])
         self.diagram.ax.axvline(sample.offset + sample.overlap, ymin = 0.5, color = (0., 1., 0.), alpha = 0.9, label = loc["overlap"])
         self.diagram.ax.axvline(sample.offset + sample.preuttr, ymin = 0.5, color = (1., 0., 0.), alpha = 0.9, label = loc["preuttr"])
         self.diagram.ax.axvspan(sample.start, sample.end, ymax = 0.5, facecolor=(0.4, 0.1, 1.), alpha=0.5, label = loc["offset/blank"])
-        self.diagram.ax.set_xlim([0, waveform.size()[0]])
+        self.diagram.ax.set_xlim([0, timesize])
         self.diagram.ax.set_ylim([-1, 1])
         self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
@@ -1052,8 +1054,24 @@ class UtauImportUi(tkinter.Frame):
                 reader = csv.reader(open(filepath, encoding = "Shift_JIS"), delimiter = "=")
                 otoPath = path.split(filepath)[0]
                 for row in reader:
+                    print(row)
                     filename = row[0]
                     properties = row[1].split(",")
-                    for sample in fetchSamples(filename, properties, phonemes, types, otoPath):
-                        self.sampleList.append(sample)
-                        self.phonemeList.list.lb.insert("end", sample.handle)
+                    sampleList = fetchSamples(filename, properties, phonemes, types, otoPath)
+                    print("fetched")
+                    for sample in sampleList:
+                        if sample._type == 1:
+                            self.sampleList.append(sample)
+                            self.phonemeList.list.lb.insert("end", sample.handle)
+                        else:
+                            for i in range(len(self.sampleList)):
+                                if self.sampleList[i].key == sample.key:
+                                    if sample.end - sample.start > self.sampleList[i].end - self.sampleList[i].start:
+                                        self.sampleList[i] = sample
+                                        self.sampleList[i].updateHandle()
+                                        self.phonemeList.list.lb.delete(i)
+                                        self.phonemeList.list.lb.insert(i, sample.handle)
+                                    break
+                            else:
+                                self.sampleList.append(sample)
+                                self.phonemeList.list.lb.insert("end", sample.handle)

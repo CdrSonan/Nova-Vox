@@ -2,11 +2,29 @@ from Backend.DataHandler.UtauSample import UtauSample
 from os import path
 
 def replaceKana(input):
+    print("in", input)
+    input = input.replace("きゃ", "kya")
+    input = input.replace("きゅ", "kyu")
+    input = input.replace("きょ", "kyo")
+    input = input.replace("ぎゃ", "gya")
+    input = input.replace("ぎゅ", "gyu")
+    input = input.replace("ぎょ", "gyo")
+    input = input.replace("しゃ", "shya")
+    input = input.replace("しゅ", "shyu")
+    input = input.replace("しょ", "shyo")
+    input = input.replace("じゃ", "jya")
+    input = input.replace("じゅ", "jyu")
+    input = input.replace("じょ", "jyo")
+    input = input.replace("とぅ", "to")
     input = input.replace("あ", "a")
+    input = input.replace("ぁ", "a")
     input = input.replace("い", "i")
+    input = input.replace("ぃ", "i")
     input = input.replace("う", "u")
     input = input.replace("え", "e")
+    input = input.replace("ぇ", "e")
     input = input.replace("お", "o")
+    input = input.replace("ぉ", "o")
     input = input.replace("か", "ka")
     input = input.replace("き", "ki")
     input = input.replace("く", "ku")
@@ -73,15 +91,17 @@ def replaceKana(input):
     input = input.replace("わ", "wa")
     input = input.replace("を", "wo")
     input = input.replace("ん", "n")
+    input = input.replace("ヴ", "wu")
+    print("out", input)
     return input
 
 def fetchSamples(filename, properties, phonemes, types, otoPath):
     alias = properties[0]
-    offset = properties[1]
-    fixed = properties[2]
-    blank = properties[3]
-    preuttr = properties[4]
-    overlap = properties[5]
+    offset = float(properties[1])
+    fixed = float(properties[2])
+    blank = float(properties[3])
+    preuttr = float(properties[4])
+    overlap = float(properties[5])
     
     if alias == "":
         alias = path.splitext(path.split(filename)[1])[0]
@@ -90,17 +110,18 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
     typeSequence = []
     delimiters = [" ", "_", "+"]
     while len(aliasCopy) > 0:
+        if aliasCopy[0] in delimiters:
+            aliasCopy = aliasCopy[1:]
         for i in range(len(phonemes)):
             p = phonemes[i]
             f = aliasCopy.find(p)
             if f == 0:
                 sequence.append(p)
                 typeSequence.append(types[i])
+                aliasCopy = aliasCopy[len(p):]
                 break
         else:
-            raise LookupError("filename/alias " + alias + " contains one or several phonemes not in the specified phoneme list")
-        if aliasCopy[0] in delimiters:
-            aliasCopy = aliasCopy[1:]
+            raise LookupError("filename/alias " + alias + "/" + aliasCopy + " contains one or several phonemes not in the specified phoneme list")
         
     output = []
 
