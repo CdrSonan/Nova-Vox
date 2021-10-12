@@ -8076,3 +8076,24 @@
 2021-10-03 20:16:25,155:9068:INFO:save button callback
 2021-10-03 20:16:34,317:9068:INFO:Crfai OK button callback
 2021-10-03 20:16:35,348:9068:INFO:Root UI destroyed
+2021-10-12 02:56:19,265:32284:INFO:logging service started
+2021-10-12 02:56:19,266:32284:INFO:initializing Root UI
+2021-10-12 02:56:21,632:32284:INFO:new button callback
+2021-10-12 02:56:25,594:32284:INFO:Root UI destroyed
+2021-10-12 02:57:22,094:23000:INFO:logging service started
+2021-10-12 02:57:22,094:23000:INFO:initializing Root UI
+2021-10-12 02:57:23,748:23000:INFO:new button callback
+2021-10-12 02:57:44,045:23436:INFO:logging service started
+2021-10-12 02:57:44,046:23436:INFO:initializing Root UI
+2021-10-12 02:57:46,364:23436:INFO:new button callback
+2021-10-12 02:57:47,301:23436:INFO:UTAU import button callback
+2021-10-12 02:57:47,349:23436:INFO:Initializing Phonemedict UI
+2021-10-12 02:59:38,092:11688:INFO:logging service started
+2021-10-12 02:59:38,092:11688:INFO:initializing Root UI
+2021-10-12 02:59:39,517:11688:INFO:new button callback
+2021-10-12 02:59:39,981:11688:INFO:UTAU import button callback
+2021-10-12 02:59:40,028:11688:INFO:Initializing Phonemedict UI
+2021-10-12 02:59:55,942:11688:INFO:Phonemedict OK button callback
+2021-10-12 02:59:59,641:11688:INFO:UTAU import button callback
+2021-10-12 02:59:59,709:11688:INFO:Initializing Phonemedict UI
+2021-10-12 03:01:26,533:11688:INFO:Phonemedict OK button callback

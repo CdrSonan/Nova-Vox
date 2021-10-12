@@ -185,6 +185,7 @@ class RootUi(tkinter.Frame):
                 self.crfaiButton["state"] = "active"
                 self.parameterButton["state"] = "active"
                 self.worddictButton["state"] = "active"
+                self.utauimportButton["state"] = "active"
                 self.saveButton["state"] = "active"
                 self.master.wm_title(loadedVBPath)
     
@@ -199,6 +200,7 @@ class RootUi(tkinter.Frame):
             self.crfaiButton["state"] = "active"
             self.parameterButton["state"] = "active"
             self.worddictButton["state"] = "active"
+            self.utauimportButton["state"] = "active"
             self.saveButton["state"] = "active"
             self.master.wm_title(loc["unsaved_vb"])
             
@@ -821,19 +823,18 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar = tkinter.LabelFrame(self, text = loc["per_smp_set"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
-        self.sideBar.type = tkinter.Frame(self.sideBar)
-        self.sideBar.type.variable = tkinter.BooleanVar(self.sideBar.type)
-        self.sideBar.type.entry = tkinter.Frame(self.sideBar.type)
-        self.sideBar.type.entry["textvariable"] = self.sideBar.type.variable
-        self.sideBar.type.entry.button1 = tkinter.Radiobutton(self.sideBar.type.entry, text = loc["smp_phoneme"], value = 0, variable = self.sideBar.type.variable)
-        self.sideBar.type.entry.button1.pack(side = "right", fill = "x")
-        self.sideBar.type.entry.button2 = tkinter.Radiobutton(self.sideBar.type.entry, text = loc["smp_transition"], value = 1, variable = self.sideBar.type.variable)
-        self.sideBar.type.entry.button2.pack(side = "right", fill = "x")
-        self.sideBar.type.entry.pack(side = "right", fill = "x")
-        self.sideBar.type.display = tkinter.Label(self.sideBar.type)
-        self.sideBar.type.display["text"] = loc["smpl_type"]
-        self.sideBar.type.display.pack(side = "right", fill = "x")
-        self.sideBar.type.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.sideBar._type = tkinter.Frame(self.sideBar)
+        self.sideBar._type.variable = tkinter.BooleanVar(self.sideBar._type)
+        self.sideBar._type.entry = tkinter.Frame(self.sideBar._type)
+        self.sideBar._type.entry.button1 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["smp_phoneme"], value = 0, variable = self.sideBar._type.variable)
+        self.sideBar._type.entry.button1.pack(side = "right", fill = "x")
+        self.sideBar._type.entry.button2 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["smp_transition"], value = 1, variable = self.sideBar._type.variable)
+        self.sideBar._type.entry.button2.pack(side = "right", fill = "x")
+        self.sideBar._type.entry.pack(side = "right", fill = "x")
+        self.sideBar._type.display = tkinter.Label(self.sideBar._type)
+        self.sideBar._type.display["text"] = loc["smpl_type"]
+        self.sideBar._type.display.pack(side = "right", fill = "x")
+        self.sideBar._type.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.sideBar.key = tkinter.Frame(self.sideBar)
         self.sideBar.key.variable = tkinter.StringVar(self.sideBar.key)
@@ -871,16 +872,10 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.end.display.pack(side = "right", fill = "x")
         self.sideBar.end.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar.fileButton = tkinter.Button(self.sideBar)
-        self.sideBar.fileButton["text"] = loc["cng_file"]
-        self.sideBar.fileButton["command"] = self.onFilechangePress
-        self.sideBar.fileButton.pack(side = "top", fill = "x", expand = True, padx = 5)
-        
         self.sideBar.importButton = tkinter.Button(self.sideBar)
         self.sideBar.importButton["text"] = loc["smp_import"]
         self.sideBar.importButton["command"] = self.onImportPress
         self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
-        
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
@@ -992,44 +987,37 @@ class UtauImportUi(tkinter.Frame):
         sample.end = self.sideBar.end.variable.get()
         sample.updateHandle()
         self.phonemeList.list.lb.delete(index)
-        self.phonemeList.list.lb.insert(index, sample.handle)
-        
-    def onFilechangePress(self, event):
-        """UI Frontend function for changing the file associated with a phoneme"""
-        logging.info("Phonemedict file change button callback")
-        index = self.phonemeList.list.lastFocusedIndex
-        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
-        if filepath != "":
-            
-            self.phonemeList.list.lb.delete(index)
-            self.phonemeList.list.lb.insert(index, key)
-            
+        self.phonemeList.list.lb.insert(index, sample.handle)   
         
     def onImportPress(self):
         """UI Frontend function for finalizing a phoneme"""
         logging.info("Phonemedict finalize button callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)[0]
-        loadedVB.finalizePhoneme(key)
-        self.sideBar.expPitch.variable.set(None)
-        self.sideBar.pSearchRange.variable.set(None)
-        self.sideBar.voicedFilter.variable.set(None)
-        self.sideBar.unvoicedIter.variable.set(None)
-        self.disableButtons()
+        if self.sampleList[index]._type == 0:
+            loadedVB.addPhonemeUtau(self.sampleList[index])
+        else:
+            loadedVB.addTrainSampleUtau(self.sampleList[index])
+        self.sideBar._type.variable.set(None)
+        self.sideBar.key.variable.set(None)
+        self.sideBar.start.variable.set(None)
+        self.sideBar.end.variable.set(None)
+        self.phonemeList.list.lb.delete(index)
 
     def onImportAllPress(self):
         """UI Frontend function for finalizing a phoneme"""
         logging.info("Phonemedict finalize button callback")
         global loadedVB
-        index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)[0]
-        loadedVB.finalizePhoneme(key)
-        self.sideBar.expPitch.variable.set(None)
-        self.sideBar.pSearchRange.variable.set(None)
-        self.sideBar.voicedFilter.variable.set(None)
-        self.sideBar.unvoicedIter.variable.set(None)
-        self.disableButtons()
+        for i in range(len(self.sampleList)):
+            if self.sampleList[0]._type == 0:
+                loadedVB.addPhonemeUtau(self.sampleList[0])
+            else:
+                loadedVB.addTrainSampleUtau(self.sampleList[0])
+            self.sideBar._type.variable.set(None)
+            self.sideBar.key.variable.set(None)
+            self.sideBar.start.variable.set(None)
+            self.sideBar.end.variable.set(None)
+            self.phonemeList.list.lb.delete(0)
         
     def onOkPress(self):
         """Updates the last selected phoneme and closes the Phoneme Dict UI window when the OK button is pressed"""
@@ -1038,11 +1026,8 @@ class UtauImportUi(tkinter.Frame):
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
             if index != None:
-                key = self.phonemeList.list.lb.get(index)
                 self.onKeyChange(None)
-                if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
-                    self.onPitchUpdateTrigger(None)
-                    self.onSpectralUpdateTrigger(None)
+                self.onFrameUpdateTrigger(None)
         self.master.destroy()
 
     def onLoadPress(self):
