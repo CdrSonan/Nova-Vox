@@ -8350,3 +8350,1519 @@
 2021-10-12 23:41:11,430:6852:INFO:Phonemedict selection change callback
 2021-10-12 23:41:11,430:6852:INFO:Phonemedict slider movement callback
 2021-10-12 23:41:25,939:6852:INFO:Phonemedict list focus loss callback
+2021-10-14 22:05:51,974:8832:INFO:logging service started
+2021-10-14 22:05:51,975:8832:INFO:initializing Root UI
+2021-10-14 22:05:54,641:8832:INFO:new button callback
+2021-10-14 22:05:55,025:8832:INFO:UTAU import button callback
+2021-10-14 22:05:55,073:8832:INFO:Initializing Phonemedict UI
+2021-10-14 22:05:56,164:8832:INFO:Phonemedict load button callback
+2021-10-14 22:06:14,327:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:06:14,327:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:06:23,389:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:06:23,389:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:06:30,329:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:06:30,330:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:06:38,673:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:06:38,673:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:06:44,088:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:06:44,088:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:06:49,695:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:06:49,695:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:06:52,531:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:06:52,531:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:06:56,472:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:06:56,472:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:07:01,349:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:07:01,349:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:07:05,197:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:07:05,197:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:07:12,154:8832:INFO:Phonemedict list focus loss callback
+2021-10-14 22:09:52,255:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:09:52,255:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:10:03,252:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:10:03,252:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:10:08,442:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:10:08,442:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:10:12,418:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:10:12,418:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:10:16,995:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:10:16,995:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:10:29,427:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:10:29,428:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:10:38,297:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:10:38,297:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:10:51,587:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:10:51,587:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:10:55,388:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:10:55,388:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:10:59,527:8832:INFO:Phonemedict selection change callback
+2021-10-14 22:10:59,527:8832:INFO:Phonemedict slider movement callback
+2021-10-14 22:11:06,208:8832:INFO:Phonemedict list focus loss callback
+2021-10-14 22:11:39,809:8832:INFO:Phonemedict list focus loss callback
+2021-10-14 22:23:33,932:19544:INFO:logging service started
+2021-10-14 22:23:33,933:19544:INFO:initializing Root UI
+2021-10-14 22:23:38,315:19544:INFO:new button callback
+2021-10-14 22:23:38,901:19544:INFO:UTAU import button callback
+2021-10-14 22:23:38,950:19544:INFO:Initializing Phonemedict UI
+2021-10-14 22:23:40,442:19544:INFO:Phonemedict load button callback
+2021-10-14 22:23:58,360:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:23:58,360:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:24:04,266:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:24:04,266:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:24:13,244:19544:INFO:Phonemedict list focus loss callback
+2021-10-14 22:24:29,218:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:24:29,218:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:24:32,760:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:24:32,760:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:24:37,239:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:24:37,239:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:24:42,751:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:24:42,751:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:24:49,489:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:24:49,489:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:25:09,798:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:25:09,798:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:25:31,168:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:25:31,168:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:25:35,476:19544:INFO:Phonemedict selection change callback
+2021-10-14 22:25:35,476:19544:INFO:Phonemedict slider movement callback
+2021-10-14 22:26:41,666:19544:INFO:Phonemedict list focus loss callback
+2021-10-14 22:26:54,792:19544:INFO:Phonemedict list focus loss callback
+2021-10-14 22:27:19,814:19544:INFO:Phonemedict list focus loss callback
+2021-10-14 22:28:03,183:13300:INFO:logging service started
+2021-10-14 22:28:03,183:13300:INFO:initializing Root UI
+2021-10-14 22:28:05,045:13300:INFO:new button callback
+2021-10-14 22:28:07,386:13300:INFO:UTAU import button callback
+2021-10-14 22:28:07,434:13300:INFO:Initializing Phonemedict UI
+2021-10-14 22:28:08,493:13300:INFO:Phonemedict load button callback
+2021-10-14 22:29:48,859:14776:INFO:logging service started
+2021-10-14 22:29:48,859:14776:INFO:initializing Root UI
+2021-10-14 22:29:51,252:14776:INFO:new button callback
+2021-10-14 22:29:52,479:14776:INFO:UTAU import button callback
+2021-10-14 22:29:52,527:14776:INFO:Initializing Phonemedict UI
+2021-10-14 22:29:53,397:14776:INFO:Phonemedict load button callback
+2021-10-14 22:30:15,264:14776:INFO:Phonemedict selection change callback
+2021-10-14 22:30:15,264:14776:INFO:Phonemedict slider movement callback
+2021-10-14 22:30:25,451:14776:INFO:Phonemedict list focus loss callback
+2021-10-14 22:30:41,150:14776:INFO:Phonemedict list focus loss callback
+2021-10-14 22:31:38,290:20056:INFO:logging service started
+2021-10-14 22:31:38,291:20056:INFO:initializing Root UI
+2021-10-14 22:31:41,468:20056:INFO:new button callback
+2021-10-14 22:31:41,847:20056:INFO:UTAU import button callback
+2021-10-14 22:31:41,895:20056:INFO:Initializing Phonemedict UI
+2021-10-14 22:31:43,010:20056:INFO:Phonemedict load button callback
+2021-10-14 22:31:49,464:20056:INFO:Phonemedict selection change callback
+2021-10-14 22:31:49,464:20056:INFO:Phonemedict slider movement callback
+2021-10-14 22:31:59,202:20056:INFO:Phonemedict list focus loss callback
+2021-10-14 23:34:02,666:20636:INFO:logging service started
+2021-10-14 23:34:02,666:20636:INFO:initializing Root UI
+2021-10-14 23:34:03,949:20636:INFO:new button callback
+2021-10-14 23:34:04,299:20636:INFO:UTAU import button callback
+2021-10-14 23:34:04,348:20636:INFO:Initializing Phonemedict UI
+2021-10-14 23:34:05,507:20636:INFO:Phonemedict load button callback
+2021-10-14 23:35:19,808:21636:INFO:logging service started
+2021-10-14 23:35:19,809:21636:INFO:initializing Root UI
+2021-10-14 23:35:21,180:21636:INFO:new button callback
+2021-10-14 23:35:21,690:21636:INFO:UTAU import button callback
+2021-10-14 23:35:21,739:21636:INFO:Initializing Phonemedict UI
+2021-10-14 23:35:23,572:21636:INFO:Phonemedict load button callback
+2021-10-14 23:36:05,865:21636:INFO:Phonemedict selection change callback
+2021-10-14 23:36:05,865:21636:INFO:Phonemedict slider movement callback
+2021-10-14 23:36:11,930:21636:INFO:Phonemedict selection change callback
+2021-10-14 23:36:11,931:21636:INFO:Phonemedict slider movement callback
+2021-10-14 23:36:29,587:21636:INFO:Phonemedict list focus loss callback
+2021-10-14 23:38:52,702:17592:INFO:logging service started
+2021-10-14 23:38:52,702:17592:INFO:initializing Root UI
+2021-10-14 23:38:54,422:17592:INFO:new button callback
+2021-10-14 23:38:54,769:17592:INFO:UTAU import button callback
+2021-10-14 23:38:54,817:17592:INFO:Initializing Phonemedict UI
+2021-10-14 23:38:56,339:17592:INFO:Phonemedict load button callback
+2021-10-14 23:39:02,275:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:39:02,275:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:39:08,515:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:39:08,515:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:39:25,759:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:39:25,759:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:39:32,730:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:39:32,730:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:39:39,472:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:39:39,472:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:39:43,180:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:39:43,180:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:39:46,379:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:39:46,380:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:39:50,934:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:39:50,934:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:39:59,715:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:39:59,715:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:05,557:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:05,557:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:08,490:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:08,490:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:11,063:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:11,063:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:13,493:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:13,493:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:16,915:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:16,915:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:20,994:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:20,994:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:23,917:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:23,917:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:27,391:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:27,391:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:30,674:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:30,674:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:35,053:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:35,053:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:38,506:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:38,506:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:41,175:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:41,175:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:44,448:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:44,448:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:40:47,540:17592:INFO:Phonemedict selection change callback
+2021-10-14 23:40:47,540:17592:INFO:Phonemedict slider movement callback
+2021-10-14 23:44:59,291:17592:INFO:Phonemedict list focus loss callback
+2021-10-14 23:46:07,864:17592:INFO:Phonemedict list focus loss callback
+2021-10-14 23:53:23,289:14128:INFO:logging service started
+2021-10-14 23:53:23,289:14128:INFO:initializing Root UI
+2021-10-14 23:53:25,483:14128:INFO:new button callback
+2021-10-14 23:53:25,922:14128:INFO:UTAU import button callback
+2021-10-14 23:53:25,970:14128:INFO:Initializing Phonemedict UI
+2021-10-14 23:53:27,179:14128:INFO:Phonemedict selection change callback
+2021-10-14 23:53:28,880:14128:INFO:Phonemedict load button callback
+2021-10-14 23:53:28,899:14128:INFO:Phonemedict list focus loss callback
+2021-10-14 23:53:34,631:14128:INFO:Phonemedict selection change callback
+2021-10-14 23:53:34,631:14128:INFO:Phonemedict slider movement callback
+2021-10-14 23:53:54,361:14128:INFO:Phonemedict list focus loss callback
+2021-10-14 23:54:15,403:23972:INFO:logging service started
+2021-10-14 23:54:15,404:23972:INFO:initializing Root UI
+2021-10-14 23:54:17,150:23972:INFO:new button callback
+2021-10-14 23:54:17,504:23972:INFO:UTAU import button callback
+2021-10-14 23:54:17,552:23972:INFO:Initializing Phonemedict UI
+2021-10-14 23:54:18,791:23972:INFO:Phonemedict load button callback
+2021-10-14 23:54:23,358:23972:INFO:Phonemedict selection change callback
+2021-10-14 23:54:23,359:23972:INFO:Phonemedict slider movement callback
+2021-10-14 23:54:41,656:23972:INFO:Phonemedict list focus loss callback
+2021-10-14 23:57:30,447:21564:INFO:logging service started
+2021-10-14 23:57:30,448:21564:INFO:initializing Root UI
+2021-10-14 23:57:31,733:21564:INFO:new button callback
+2021-10-14 23:57:32,077:21564:INFO:UTAU import button callback
+2021-10-14 23:57:32,125:21564:INFO:Initializing Phonemedict UI
+2021-10-14 23:57:33,102:21564:INFO:Phonemedict load button callback
+2021-10-14 23:57:38,701:21564:INFO:Phonemedict selection change callback
+2021-10-14 23:57:38,701:21564:INFO:Phonemedict slider movement callback
+2021-10-15 00:04:45,179:21564:INFO:Phonemedict list focus loss callback
+2021-10-15 00:05:02,783:23720:INFO:logging service started
+2021-10-15 00:05:02,784:23720:INFO:initializing Root UI
+2021-10-15 00:05:05,168:23720:INFO:new button callback
+2021-10-15 00:05:05,726:23720:INFO:UTAU import button callback
+2021-10-15 00:05:05,774:23720:INFO:Initializing Phonemedict UI
+2021-10-15 00:05:06,760:23720:INFO:Phonemedict load button callback
+2021-10-15 00:05:11,843:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:05:11,843:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:05:26,155:23720:INFO:Phonemedict list focus loss callback
+2021-10-15 00:12:22,630:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:12:22,630:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:12:28,965:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:12:28,965:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:12:45,771:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:12:45,771:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:12:58,809:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:12:58,809:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:13:03,001:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:13:03,001:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:13:07,696:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:13:07,706:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:13:10,825:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:13:10,825:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:13:15,108:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:13:15,108:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:13:20,298:23720:INFO:Phonemedict selection change callback
+2021-10-15 00:13:20,298:23720:INFO:Phonemedict slider movement callback
+2021-10-15 00:13:30,211:23720:INFO:Phonemedict OK button callback
+2021-10-15 00:13:30,211:23720:INFO:Phonemedict key change callback
+2021-10-15 00:13:30,211:23720:INFO:Phonemedict pitch update callback
+2021-10-15 00:13:33,252:23720:INFO:Root UI destroyed
+2021-10-15 00:38:20,544:19068:INFO:logging service started
+2021-10-15 00:38:20,544:19068:INFO:initializing Root UI
+2021-10-15 00:38:22,992:19068:INFO:new button callback
+2021-10-15 00:38:23,865:19068:INFO:UTAU import button callback
+2021-10-15 00:38:23,913:19068:INFO:Initializing Phonemedict UI
+2021-10-15 00:38:25,214:19068:INFO:Phonemedict load button callback
+2021-10-15 00:38:28,284:19068:WARNING:filename/alias いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,284:19068:WARNING:filename/alias - いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,337:19068:WARNING:filename/alias i いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,546:19068:WARNING:filename/alias u いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,546:19068:WARNING:filename/alias ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,546:19068:WARNING:filename/alias - ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,547:19068:WARNING:filename/alias a ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,547:19068:WARNING:filename/alias a ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,547:19068:WARNING:filename/alias i ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,601:19068:WARNING:filename/alias うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,602:19068:WARNING:filename/alias - うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,602:19068:WARNING:filename/alias i うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,657:19068:WARNING:filename/alias o うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,685:19068:WARNING:filename/alias u うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,685:19068:WARNING:filename/alias ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,685:19068:WARNING:filename/alias - ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,686:19068:WARNING:filename/alias i ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,686:19068:WARNING:filename/alias o ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,742:19068:WARNING:filename/alias u ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:28,865:19068:WARNING:filename/alias u ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,157:19068:WARNING:filename/alias a ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,157:19068:WARNING:filename/alias o ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,263:19068:WARNING:filename/alias a うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,376:19068:WARNING:filename/alias ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,376:19068:WARNING:filename/alias - ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,376:19068:WARNING:filename/alias e ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,377:19068:WARNING:filename/alias i ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,377:19068:WARNING:filename/alias i ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,377:19068:WARNING:filename/alias e ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,377:19068:WARNING:filename/alias うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,377:19068:WARNING:filename/alias - うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,378:19068:WARNING:filename/alias e うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,378:19068:WARNING:filename/alias i うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,378:19068:WARNING:filename/alias i うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,429:19068:WARNING:filename/alias うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,468:19068:WARNING:filename/alias - うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,508:19068:WARNING:filename/alias o うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,536:19068:WARNING:filename/alias u うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,587:19068:WARNING:filename/alias o うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,646:19068:WARNING:filename/alias ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,646:19068:WARNING:filename/alias - ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,646:19068:WARNING:filename/alias o ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,701:19068:WARNING:filename/alias u ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,701:19068:WARNING:filename/alias o ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:29,701:19068:WARNING:filename/alias u しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:30,743:19068:WARNING:filename/alias きぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:30,744:19068:WARNING:filename/alias - きぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:30,853:19068:WARNING:filename/alias i きぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:30,853:19068:WARNING:filename/alias ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:30,854:19068:WARNING:filename/alias - ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:30,970:19068:WARNING:filename/alias i ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:31,105:19068:WARNING:filename/alias u ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,347:19068:WARNING:filename/alias o ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,480:19068:WARNING:filename/alias くぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,481:19068:WARNING:filename/alias - くぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,481:19068:WARNING:filename/alias a くぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,481:19068:WARNING:filename/alias a くぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,481:19068:WARNING:filename/alias i くぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,537:19068:WARNING:filename/alias ぐぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,537:19068:WARNING:filename/alias - ぐぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,537:19068:WARNING:filename/alias a ぐぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,538:19068:WARNING:filename/alias a ぐぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,538:19068:WARNING:filename/alias i ぐぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,596:19068:WARNING:filename/alias くぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,596:19068:WARNING:filename/alias - くぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,597:19068:WARNING:filename/alias i くぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,597:19068:WARNING:filename/alias o くぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,657:19068:WARNING:filename/alias u くぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,657:19068:WARNING:filename/alias ぐぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,658:19068:WARNING:filename/alias - ぐぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,658:19068:WARNING:filename/alias i ぐぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,658:19068:WARNING:filename/alias o ぐぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,713:19068:WARNING:filename/alias u ぐぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,713:19068:WARNING:filename/alias くぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,713:19068:WARNING:filename/alias - くぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,714:19068:WARNING:filename/alias e くぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,714:19068:WARNING:filename/alias i くぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,714:19068:WARNING:filename/alias i くぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,714:19068:WARNING:filename/alias e くぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,715:19068:WARNING:filename/alias ぐぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,715:19068:WARNING:filename/alias - ぐぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,715:19068:WARNING:filename/alias e ぐぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,715:19068:WARNING:filename/alias i ぐぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,715:19068:WARNING:filename/alias i ぐぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,716:19068:WARNING:filename/alias e ぐぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,716:19068:WARNING:filename/alias くぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,716:19068:WARNING:filename/alias - くぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,716:19068:WARNING:filename/alias o くぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,768:19068:WARNING:filename/alias u くぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,768:19068:WARNING:filename/alias o くぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,769:19068:WARNING:filename/alias ぐぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,769:19068:WARNING:filename/alias - ぐぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,769:19068:WARNING:filename/alias o ぐぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,822:19068:WARNING:filename/alias u ぐぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:32,823:19068:WARNING:filename/alias o ぐぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:33,503:19068:WARNING:filename/alias u くぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:33,504:19068:WARNING:filename/alias a くぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:33,504:19068:WARNING:filename/alias o くぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:33,648:19068:WARNING:filename/alias u ぐぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:33,648:19068:WARNING:filename/alias a ぐぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:33,648:19068:WARNING:filename/alias o ぐぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:34,911:19068:WARNING:filename/alias a すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:35,141:19068:WARNING:filename/alias a ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:35,242:19068:WARNING:filename/alias しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:35,242:19068:WARNING:filename/alias - しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:35,344:19068:WARNING:filename/alias i しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:35,345:19068:WARNING:filename/alias じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:35,345:19068:WARNING:filename/alias - じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:35,448:19068:WARNING:filename/alias i じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:35,581:19068:WARNING:filename/alias u しぇ2/ぇ2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:35,713:19068:WARNING:filename/alias u じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:36,215:19068:WARNING:filename/alias o しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:36,297:19068:WARNING:filename/alias o じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:36,298:19068:WARNING:filename/alias すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:36,298:19068:WARNING:filename/alias - すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:36,352:19068:WARNING:filename/alias o すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:36,454:19068:WARNING:filename/alias ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:36,454:19068:WARNING:filename/alias - ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:36,509:19068:WARNING:filename/alias o ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:37,264:19068:WARNING:filename/alias e すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:37,264:19068:WARNING:filename/alias i すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:37,453:19068:WARNING:filename/alias e ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:37,453:19068:WARNING:filename/alias i ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,259:19068:WARNING:filename/alias a てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,490:19068:WARNING:filename/alias a でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,543:19068:WARNING:filename/alias a どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,543:19068:WARNING:filename/alias ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,544:19068:WARNING:filename/alias - ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,657:19068:WARNING:filename/alias i ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,657:19068:WARNING:filename/alias e ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,744:19068:WARNING:filename/alias i ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,794:19068:WARNING:filename/alias i ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,794:19068:WARNING:filename/alias u ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,794:19068:WARNING:filename/alias ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,794:19068:WARNING:filename/alias - ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,795:19068:WARNING:filename/alias a ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,855:19068:WARNING:filename/alias i ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,855:19068:WARNING:filename/alias a ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,855:19068:WARNING:filename/alias ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,855:19068:WARNING:filename/alias - ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,856:19068:WARNING:filename/alias u ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,856:19068:WARNING:filename/alias u ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,856:19068:WARNING:filename/alias a ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,857:19068:WARNING:filename/alias o ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,857:19068:WARNING:filename/alias ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,857:19068:WARNING:filename/alias - ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,857:19068:WARNING:filename/alias o ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,858:19068:WARNING:filename/alias e ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,858:19068:WARNING:filename/alias u ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,858:19068:WARNING:filename/alias o ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,858:19068:WARNING:filename/alias つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,858:19068:WARNING:filename/alias - つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,859:19068:WARNING:filename/alias a つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,859:19068:WARNING:filename/alias a つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,859:19068:WARNING:filename/alias i つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,860:19068:WARNING:filename/alias つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,860:19068:WARNING:filename/alias - つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,860:19068:WARNING:filename/alias i つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,861:19068:WARNING:filename/alias o つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,861:19068:WARNING:filename/alias u つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,861:19068:WARNING:filename/alias つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,861:19068:WARNING:filename/alias - つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,862:19068:WARNING:filename/alias e つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,862:19068:WARNING:filename/alias i つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,862:19068:WARNING:filename/alias i つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,863:19068:WARNING:filename/alias e つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,863:19068:WARNING:filename/alias つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,863:19068:WARNING:filename/alias - つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,863:19068:WARNING:filename/alias o つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,864:19068:WARNING:filename/alias u つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,864:19068:WARNING:filename/alias o つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,952:19068:WARNING:filename/alias u つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,953:19068:WARNING:filename/alias a つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,953:19068:WARNING:filename/alias o つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,953:19068:WARNING:filename/alias てぃ2/ぃ2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,953:19068:WARNING:filename/alias - てぃ2/ぃ2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,954:19068:WARNING:filename/alias i てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,989:19068:WARNING:filename/alias a てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,989:19068:WARNING:filename/alias u てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,990:19068:WARNING:filename/alias でぃ2/ぃ2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,990:19068:WARNING:filename/alias - でぃ2/ぃ2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,990:19068:WARNING:filename/alias i でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,990:19068:WARNING:filename/alias a でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,990:19068:WARNING:filename/alias u でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,991:19068:WARNING:filename/alias てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:38,991:19068:WARNING:filename/alias - てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,047:19068:WARNING:filename/alias o てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,150:19068:WARNING:filename/alias でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,151:19068:WARNING:filename/alias - でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,202:19068:WARNING:filename/alias o でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,203:19068:WARNING:filename/alias i どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,339:19068:WARNING:filename/alias e てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,339:19068:WARNING:filename/alias i てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,523:19068:WARNING:filename/alias e でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,523:19068:WARNING:filename/alias i でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,626:19068:WARNING:filename/alias てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,626:19068:WARNING:filename/alias - てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,675:19068:WARNING:filename/alias e てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,706:19068:WARNING:filename/alias o てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,706:19068:WARNING:filename/alias でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,706:19068:WARNING:filename/alias - でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,707:19068:WARNING:filename/alias e でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,707:19068:WARNING:filename/alias o でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,745:19068:WARNING:filename/alias n てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:39,745:19068:WARNING:filename/alias n でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:40,040:19068:WARNING:filename/alias どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:40,040:19068:WARNING:filename/alias - どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:40,040:19068:WARNING:filename/alias u どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:40,625:19068:WARNING:filename/alias e どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:40,976:19068:WARNING:filename/alias にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:40,977:19068:WARNING:filename/alias - にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,095:19068:WARNING:filename/alias i にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,095:19068:WARNING:filename/alias e にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,160:19068:WARNING:filename/alias i にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,211:19068:WARNING:filename/alias i にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,211:19068:WARNING:filename/alias u にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,476:19068:WARNING:filename/alias にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,477:19068:WARNING:filename/alias - にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,477:19068:WARNING:filename/alias a にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,532:19068:WARNING:filename/alias i にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,533:19068:WARNING:filename/alias a にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,533:19068:WARNING:filename/alias にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,533:19068:WARNING:filename/alias - にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,533:19068:WARNING:filename/alias u にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,533:19068:WARNING:filename/alias u にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,534:19068:WARNING:filename/alias a にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,534:19068:WARNING:filename/alias o にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,534:19068:WARNING:filename/alias にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,534:19068:WARNING:filename/alias - にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,535:19068:WARNING:filename/alias o にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,535:19068:WARNING:filename/alias e にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,535:19068:WARNING:filename/alias u にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,535:19068:WARNING:filename/alias o にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:41,536:19068:WARNING:filename/alias o にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,195:19068:WARNING:filename/alias ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,196:19068:WARNING:filename/alias - ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,309:19068:WARNING:filename/alias i ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,309:19068:WARNING:filename/alias e ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,310:19068:WARNING:filename/alias びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,310:19068:WARNING:filename/alias - びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,431:19068:WARNING:filename/alias i びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,431:19068:WARNING:filename/alias e びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,432:19068:WARNING:filename/alias ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,432:19068:WARNING:filename/alias - ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,547:19068:WARNING:filename/alias i ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,547:19068:WARNING:filename/alias e ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,633:19068:WARNING:filename/alias i ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,685:19068:WARNING:filename/alias i ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,686:19068:WARNING:filename/alias u ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,764:19068:WARNING:filename/alias i びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,819:19068:WARNING:filename/alias i びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,819:19068:WARNING:filename/alias u びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,902:19068:WARNING:filename/alias i ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,956:19068:WARNING:filename/alias i ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:43,957:19068:WARNING:filename/alias u ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,861:19068:WARNING:filename/alias ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,861:19068:WARNING:filename/alias - ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,861:19068:WARNING:filename/alias a ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,935:19068:WARNING:filename/alias i ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,935:19068:WARNING:filename/alias a ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,936:19068:WARNING:filename/alias びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,936:19068:WARNING:filename/alias - びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,936:19068:WARNING:filename/alias a びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,988:19068:WARNING:filename/alias i びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,988:19068:WARNING:filename/alias a びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,988:19068:WARNING:filename/alias ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,989:19068:WARNING:filename/alias - ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:44,989:19068:WARNING:filename/alias a ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,048:19068:WARNING:filename/alias i ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,048:19068:WARNING:filename/alias a ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,049:19068:WARNING:filename/alias ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,049:19068:WARNING:filename/alias - ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,049:19068:WARNING:filename/alias u ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,049:19068:WARNING:filename/alias u ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,049:19068:WARNING:filename/alias a ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,050:19068:WARNING:filename/alias o ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,050:19068:WARNING:filename/alias びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,050:19068:WARNING:filename/alias - びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,050:19068:WARNING:filename/alias u びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,051:19068:WARNING:filename/alias u びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,051:19068:WARNING:filename/alias a びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,051:19068:WARNING:filename/alias o びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,052:19068:WARNING:filename/alias ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,052:19068:WARNING:filename/alias - ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,052:19068:WARNING:filename/alias u ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,053:19068:WARNING:filename/alias u ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,053:19068:WARNING:filename/alias a ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,053:19068:WARNING:filename/alias o ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,054:19068:WARNING:filename/alias ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,054:19068:WARNING:filename/alias - ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,054:19068:WARNING:filename/alias o ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,054:19068:WARNING:filename/alias e ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,055:19068:WARNING:filename/alias u ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,055:19068:WARNING:filename/alias o ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,055:19068:WARNING:filename/alias びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,056:19068:WARNING:filename/alias - びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,056:19068:WARNING:filename/alias o びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,056:19068:WARNING:filename/alias e びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,057:19068:WARNING:filename/alias u びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,057:19068:WARNING:filename/alias o びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,057:19068:WARNING:filename/alias ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,057:19068:WARNING:filename/alias - ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,058:19068:WARNING:filename/alias o ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,058:19068:WARNING:filename/alias e ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,058:19068:WARNING:filename/alias u ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,059:19068:WARNING:filename/alias o ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,059:19068:WARNING:filename/alias ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,059:19068:WARNING:filename/alias - ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,060:19068:WARNING:filename/alias a ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,060:19068:WARNING:filename/alias a ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,060:19068:WARNING:filename/alias i ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,121:19068:WARNING:filename/alias ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,121:19068:WARNING:filename/alias - ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,121:19068:WARNING:filename/alias i ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,122:19068:WARNING:filename/alias o ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,177:19068:WARNING:filename/alias u ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,177:19068:WARNING:filename/alias ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,177:19068:WARNING:filename/alias - ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,177:19068:WARNING:filename/alias e ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,178:19068:WARNING:filename/alias i ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,178:19068:WARNING:filename/alias i ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,178:19068:WARNING:filename/alias e ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,178:19068:WARNING:filename/alias ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,178:19068:WARNING:filename/alias - ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,179:19068:WARNING:filename/alias o ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,243:19068:WARNING:filename/alias u ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:45,244:19068:WARNING:filename/alias o ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:46,304:19068:WARNING:filename/alias u ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:46,304:19068:WARNING:filename/alias a ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:46,304:19068:WARNING:filename/alias o ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,403:19068:WARNING:filename/alias みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,403:19068:WARNING:filename/alias - みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,521:19068:WARNING:filename/alias i みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,522:19068:WARNING:filename/alias e みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,602:19068:WARNING:filename/alias i みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,653:19068:WARNING:filename/alias i みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,654:19068:WARNING:filename/alias u みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,954:19068:WARNING:filename/alias みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,955:19068:WARNING:filename/alias - みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:48,955:19068:WARNING:filename/alias a みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,008:19068:WARNING:filename/alias i みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,008:19068:WARNING:filename/alias a みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,008:19068:WARNING:filename/alias みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,008:19068:WARNING:filename/alias - みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,009:19068:WARNING:filename/alias u みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,009:19068:WARNING:filename/alias u みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,009:19068:WARNING:filename/alias a みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,009:19068:WARNING:filename/alias o みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,010:19068:WARNING:filename/alias みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,010:19068:WARNING:filename/alias - みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,010:19068:WARNING:filename/alias o みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,010:19068:WARNING:filename/alias e みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,011:19068:WARNING:filename/alias u みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:49,011:19068:WARNING:filename/alias o みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:50,544:19068:WARNING:filename/alias o いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,033:19068:WARNING:filename/alias りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,034:19068:WARNING:filename/alias - りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,149:19068:WARNING:filename/alias i りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,150:19068:WARNING:filename/alias e りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,150:19068:WARNING:filename/alias りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,150:19068:WARNING:filename/alias - りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,150:19068:WARNING:filename/alias a りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,218:19068:WARNING:filename/alias i りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,218:19068:WARNING:filename/alias a りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,218:19068:WARNING:filename/alias りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,219:19068:WARNING:filename/alias - りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,219:19068:WARNING:filename/alias u りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,219:19068:WARNING:filename/alias u りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,220:19068:WARNING:filename/alias a りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,220:19068:WARNING:filename/alias o りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,220:19068:WARNING:filename/alias りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,221:19068:WARNING:filename/alias - りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,221:19068:WARNING:filename/alias o りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,221:19068:WARNING:filename/alias e りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,221:19068:WARNING:filename/alias u りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,222:19068:WARNING:filename/alias o りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,315:19068:WARNING:filename/alias i りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,367:19068:WARNING:filename/alias i りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:51,367:19068:WARNING:filename/alias u りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:52,743:19068:WARNING:filename/alias a うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:52,917:19068:WARNING:filename/alias n いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,149:19068:WARNING:filename/alias n ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,149:19068:WARNING:filename/alias a ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,150:19068:WARNING:filename/alias e ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,150:19068:WARNING:filename/alias e ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,180:19068:WARNING:filename/alias n うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,232:19068:WARNING:filename/alias u うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,232:19068:WARNING:filename/alias n ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,303:19068:WARNING:filename/alias u ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,304:19068:WARNING:filename/alias n うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,304:19068:WARNING:filename/alias n うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,388:19068:WARNING:filename/alias n ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,388:19068:WARNING:filename/alias n ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,977:19068:WARNING:filename/alias n きぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,978:19068:WARNING:filename/alias n ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,979:19068:WARNING:filename/alias a きぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,979:19068:WARNING:filename/alias e きぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,980:19068:WARNING:filename/alias a ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:53,980:19068:WARNING:filename/alias e ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,422:19068:WARNING:filename/alias n くぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,422:19068:WARNING:filename/alias a くぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,422:19068:WARNING:filename/alias e くぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,422:19068:WARNING:filename/alias e くぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,423:19068:WARNING:filename/alias n ぐぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,423:19068:WARNING:filename/alias a ぐぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,423:19068:WARNING:filename/alias e ぐぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,423:19068:WARNING:filename/alias e ぐぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,424:19068:WARNING:filename/alias n くぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,482:19068:WARNING:filename/alias u くぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,482:19068:WARNING:filename/alias n ぐぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,537:19068:WARNING:filename/alias u ぐぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,537:19068:WARNING:filename/alias n ぐぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:54,537:19068:WARNING:filename/alias n ぐぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:55,330:19068:WARNING:filename/alias n しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:55,357:19068:WARNING:filename/alias a しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:55,357:19068:WARNING:filename/alias e しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:55,358:19068:WARNING:filename/alias a じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:55,358:19068:WARNING:filename/alias e じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:55,651:19068:WARNING:filename/alias n すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:55,705:19068:WARNING:filename/alias u すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:55,705:19068:WARNING:filename/alias n ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:55,757:19068:WARNING:filename/alias u ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,469:19068:WARNING:filename/alias n ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,469:19068:WARNING:filename/alias n ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,469:19068:WARNING:filename/alias o ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,469:19068:WARNING:filename/alias n ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,470:19068:WARNING:filename/alias a ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,470:19068:WARNING:filename/alias e ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,470:19068:WARNING:filename/alias e ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,521:19068:WARNING:filename/alias n ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,578:19068:WARNING:filename/alias n つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,579:19068:WARNING:filename/alias a つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,579:19068:WARNING:filename/alias e つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,579:19068:WARNING:filename/alias e つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,580:19068:WARNING:filename/alias n つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,580:19068:WARNING:filename/alias u つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,580:19068:WARNING:filename/alias n つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,581:19068:WARNING:filename/alias n つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,581:19068:WARNING:filename/alias n てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,637:19068:WARNING:filename/alias u てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,637:19068:WARNING:filename/alias n でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,638:19068:WARNING:filename/alias n どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,638:19068:WARNING:filename/alias u でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:56,908:19068:WARNING:filename/alias o どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:57,109:19068:WARNING:filename/alias n にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:57,110:19068:WARNING:filename/alias n にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:57,110:19068:WARNING:filename/alias a にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:57,110:19068:WARNING:filename/alias e にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:57,110:19068:WARNING:filename/alias e にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:57,111:19068:WARNING:filename/alias n にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:57,174:19068:WARNING:filename/alias n にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,225:19068:WARNING:filename/alias n ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,225:19068:WARNING:filename/alias n ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,225:19068:WARNING:filename/alias o ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,226:19068:WARNING:filename/alias n びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,226:19068:WARNING:filename/alias n びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,226:19068:WARNING:filename/alias o びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,226:19068:WARNING:filename/alias n ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,227:19068:WARNING:filename/alias n ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,227:19068:WARNING:filename/alias o ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,227:19068:WARNING:filename/alias n ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,227:19068:WARNING:filename/alias a ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,228:19068:WARNING:filename/alias e ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,228:19068:WARNING:filename/alias e ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,228:19068:WARNING:filename/alias n びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,228:19068:WARNING:filename/alias a びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,229:19068:WARNING:filename/alias e びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,229:19068:WARNING:filename/alias e びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,229:19068:WARNING:filename/alias n ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,229:19068:WARNING:filename/alias a ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,230:19068:WARNING:filename/alias e ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,230:19068:WARNING:filename/alias e ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,298:19068:WARNING:filename/alias n ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,410:19068:WARNING:filename/alias n びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:58,538:19068:WARNING:filename/alias n ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,100:19068:WARNING:filename/alias n ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,100:19068:WARNING:filename/alias a ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,100:19068:WARNING:filename/alias e ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,101:19068:WARNING:filename/alias e ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,101:19068:WARNING:filename/alias n ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,158:19068:WARNING:filename/alias u ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,159:19068:WARNING:filename/alias n ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,159:19068:WARNING:filename/alias n ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,951:19068:WARNING:filename/alias n みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,951:19068:WARNING:filename/alias n みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,951:19068:WARNING:filename/alias o みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,952:19068:WARNING:filename/alias n みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,952:19068:WARNING:filename/alias a みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,952:19068:WARNING:filename/alias e みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:38:59,952:19068:WARNING:filename/alias e みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,012:19068:WARNING:filename/alias n みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,469:19068:WARNING:filename/alias a いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,469:19068:WARNING:filename/alias e いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,741:19068:WARNING:filename/alias n りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,741:19068:WARNING:filename/alias n りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,741:19068:WARNING:filename/alias o りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,742:19068:WARNING:filename/alias n りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,742:19068:WARNING:filename/alias a りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,742:19068:WARNING:filename/alias e りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,742:19068:WARNING:filename/alias e りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:00,797:19068:WARNING:filename/alias n りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:01,221:19068:WARNING:filename/alias a うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:01,222:19068:WARNING:filename/alias e うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:01,222:19068:WARNING:filename/alias e うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:39:08,440:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:39:08,440:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:39:27,309:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:39:27,310:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:39:32,062:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:39:32,063:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:39:37,003:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:39:37,004:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:40:03,519:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:40:03,520:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:40:08,810:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:40:08,811:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:40:13,687:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:40:13,687:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:40:25,716:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:40:25,733:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:40:37,870:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:40:37,871:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:40:53,723:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:40:53,723:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:41:07,966:19068:INFO:Phonemedict OK button callback
+2021-10-15 00:41:07,966:19068:INFO:Phonemedict key change callback
+2021-10-15 00:41:07,966:19068:INFO:Phonemedict pitch update callback
+2021-10-15 00:41:09,594:19068:INFO:UTAU import button callback
+2021-10-15 00:41:09,657:19068:INFO:Initializing Phonemedict UI
+2021-10-15 00:41:11,322:19068:INFO:Phonemedict load button callback
+2021-10-15 00:41:20,230:19068:WARNING:filename/alias - あ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:20,231:19068:WARNING:filename/alias あ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,797:19068:WARNING:filename/alias い゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,798:19068:WARNING:filename/alias い・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,838:19068:WARNING:filename/alias いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,965:19068:WARNING:filename/alias う゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,965:19068:WARNING:filename/alias う・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,965:19068:WARNING:filename/alias - うぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,966:19068:WARNING:filename/alias う゛ぁ/゛ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,966:19068:WARNING:filename/alias - うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,966:19068:WARNING:filename/alias - う゛ぃ/゛ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:21,966:19068:WARNING:filename/alias - うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,011:19068:WARNING:filename/alias - う゛ぇ/゛ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,011:19068:WARNING:filename/alias うぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,011:19068:WARNING:filename/alias - うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,041:19068:WARNING:filename/alias - う゛ぉ/゛ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,041:19068:WARNING:filename/alias うぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,041:19068:WARNING:filename/alias うゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,041:19068:WARNING:filename/alias うゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,042:19068:WARNING:filename/alias うょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,042:19068:WARNING:filename/alias う゛子音/゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,070:19068:WARNING:filename/alias - え゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,071:19068:WARNING:filename/alias え・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,126:19068:WARNING:filename/alias - お゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,126:19068:WARNING:filename/alias お・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,182:19068:WARNING:filename/alias か・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,182:19068:WARNING:filename/alias か子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,235:19068:WARNING:filename/alias が・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,235:19068:WARNING:filename/alias が子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,285:19068:WARNING:filename/alias き・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,285:19068:WARNING:filename/alias - きぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,334:19068:WARNING:filename/alias きゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,334:19068:WARNING:filename/alias きゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,378:19068:WARNING:filename/alias きゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,378:19068:WARNING:filename/alias きゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,418:19068:WARNING:filename/alias き子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,459:19068:WARNING:filename/alias ぎ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,459:19068:WARNING:filename/alias - ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,498:19068:WARNING:filename/alias ぎゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,498:19068:WARNING:filename/alias ぎゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,537:19068:WARNING:filename/alias ぎゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,577:19068:WARNING:filename/alias ぎょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,577:19068:WARNING:filename/alias ぎ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,624:19068:WARNING:filename/alias く・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,625:19068:WARNING:filename/alias - くぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,625:19068:WARNING:filename/alias - くぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,625:19068:WARNING:filename/alias - くぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,625:19068:WARNING:filename/alias - くぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,626:19068:WARNING:filename/alias く子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,679:19068:WARNING:filename/alias ぐ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,680:19068:WARNING:filename/alias - ぐぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,680:19068:WARNING:filename/alias - ぐぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,680:19068:WARNING:filename/alias - ぐぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,681:19068:WARNING:filename/alias - ぐぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,681:19068:WARNING:filename/alias ぐ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,733:19068:WARNING:filename/alias け・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,733:19068:WARNING:filename/alias け子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,784:19068:WARNING:filename/alias げ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,784:19068:WARNING:filename/alias げ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,834:19068:WARNING:filename/alias こ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,834:19068:WARNING:filename/alias こ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,879:19068:WARNING:filename/alias ご・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,879:19068:WARNING:filename/alias ご子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,924:19068:WARNING:filename/alias さ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,924:19068:WARNING:filename/alias さ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,962:19068:WARNING:filename/alias ざ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:22,963:19068:WARNING:filename/alias ざ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,001:19068:WARNING:filename/alias し・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,002:19068:WARNING:filename/alias - しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,002:19068:WARNING:filename/alias しぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,041:19068:WARNING:filename/alias しゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,080:19068:WARNING:filename/alias しゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,081:19068:WARNING:filename/alias しゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,120:19068:WARNING:filename/alias しょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,120:19068:WARNING:filename/alias しょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,120:19068:WARNING:filename/alias し子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,175:19068:WARNING:filename/alias じ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,176:19068:WARNING:filename/alias - じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,176:19068:WARNING:filename/alias じぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,215:19068:WARNING:filename/alias じゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,215:19068:WARNING:filename/alias じゃーん/ーn contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,215:19068:WARNING:filename/alias じゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,254:19068:WARNING:filename/alias じゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,293:19068:WARNING:filename/alias じょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,293:19068:WARNING:filename/alias じょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,293:19068:WARNING:filename/alias じ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,342:19068:WARNING:filename/alias す・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,342:19068:WARNING:filename/alias - すぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,342:19068:WARNING:filename/alias すぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,343:19068:WARNING:filename/alias - すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,343:19068:WARNING:filename/alias すぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,343:19068:WARNING:filename/alias すぅぃ/ぅぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,343:19068:WARNING:filename/alias すぅぃ・/ぅぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,344:19068:WARNING:filename/alias - すぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,344:19068:WARNING:filename/alias すぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,344:19068:WARNING:filename/alias - すぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,344:19068:WARNING:filename/alias す子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,386:19068:WARNING:filename/alias ず・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,387:19068:WARNING:filename/alias - ずぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,387:19068:WARNING:filename/alias ずぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,387:19068:WARNING:filename/alias - ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,387:19068:WARNING:filename/alias ずぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,387:19068:WARNING:filename/alias ずぅぃ/ぅぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,388:19068:WARNING:filename/alias ずぅぃ・/ぅぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,388:19068:WARNING:filename/alias - ずぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,388:19068:WARNING:filename/alias ずぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,388:19068:WARNING:filename/alias - ずぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,389:19068:WARNING:filename/alias ずぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,389:19068:WARNING:filename/alias ず子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,444:19068:WARNING:filename/alias せ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,445:19068:WARNING:filename/alias せ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,487:19068:WARNING:filename/alias ぜ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,487:19068:WARNING:filename/alias ぜ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,533:19068:WARNING:filename/alias そ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,533:19068:WARNING:filename/alias そ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,579:19068:WARNING:filename/alias ぞ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,579:19068:WARNING:filename/alias ぞ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,619:19068:WARNING:filename/alias た・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,619:19068:WARNING:filename/alias た子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,660:19068:WARNING:filename/alias だ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,661:19068:WARNING:filename/alias だ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,700:19068:WARNING:filename/alias ち・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,700:19068:WARNING:filename/alias - ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,700:19068:WARNING:filename/alias ちぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,700:19068:WARNING:filename/alias ちぇ子音/ぇ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,701:19068:WARNING:filename/alias - ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,701:19068:WARNING:filename/alias ちゃ・/ゃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,701:19068:WARNING:filename/alias - ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,701:19068:WARNING:filename/alias ちゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,701:19068:WARNING:filename/alias - ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,702:19068:WARNING:filename/alias ちょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,702:19068:WARNING:filename/alias ちょ子音/ょ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,702:19068:WARNING:filename/alias ち子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,757:19068:WARNING:filename/alias ぢ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,757:19068:WARNING:filename/alias - ぢぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,757:19068:WARNING:filename/alias ぢぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,758:19068:WARNING:filename/alias - ぢゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,758:19068:WARNING:filename/alias ぢゃ・/ゃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,758:19068:WARNING:filename/alias ぢゃ子音/ゃ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,758:19068:WARNING:filename/alias - ぢゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,759:19068:WARNING:filename/alias ぢゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,759:19068:WARNING:filename/alias - ぢょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,759:19068:WARNING:filename/alias ぢょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,759:19068:WARNING:filename/alias ぢ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,804:19068:WARNING:filename/alias つ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,804:19068:WARNING:filename/alias - つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,804:19068:WARNING:filename/alias つぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,805:19068:WARNING:filename/alias - つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,805:19068:WARNING:filename/alias つぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,805:19068:WARNING:filename/alias - つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,805:19068:WARNING:filename/alias つぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,806:19068:WARNING:filename/alias - つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,806:19068:WARNING:filename/alias つぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,806:19068:WARNING:filename/alias つ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,846:19068:WARNING:filename/alias づ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,846:19068:WARNING:filename/alias づ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,888:19068:WARNING:filename/alias て・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,888:19068:WARNING:filename/alias - てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,889:19068:WARNING:filename/alias てぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,889:19068:WARNING:filename/alias てぃぁ/ぃぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,889:19068:WARNING:filename/alias てぃぇ/ぃぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,889:19068:WARNING:filename/alias - てゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,890:19068:WARNING:filename/alias - てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,890:19068:WARNING:filename/alias てゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,890:19068:WARNING:filename/alias - てょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,890:19068:WARNING:filename/alias てょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,891:19068:WARNING:filename/alias て子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,929:19068:WARNING:filename/alias で・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,930:19068:WARNING:filename/alias - でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,930:19068:WARNING:filename/alias でぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,930:19068:WARNING:filename/alias でぃぇ/ぃぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,930:19068:WARNING:filename/alias でぃ子音/ぃ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,931:19068:WARNING:filename/alias - でゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,931:19068:WARNING:filename/alias - でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,931:19068:WARNING:filename/alias でゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,931:19068:WARNING:filename/alias でゅ子音/ゅ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,931:19068:WARNING:filename/alias - でょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,932:19068:WARNING:filename/alias で子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:23,984:19068:WARNING:filename/alias と・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,024:19068:WARNING:filename/alias とぅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,025:19068:WARNING:filename/alias と子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,095:19068:WARNING:filename/alias ど・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,096:19068:WARNING:filename/alias - どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,096:19068:WARNING:filename/alias どぅ・/ぅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,096:19068:WARNING:filename/alias どぅぁ/ぅぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,096:19068:WARNING:filename/alias どぅぃ/ぅぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,097:19068:WARNING:filename/alias どぅぇ/ぅぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,097:19068:WARNING:filename/alias どぅぉ/ぅぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,097:19068:WARNING:filename/alias ど子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,136:19068:WARNING:filename/alias - な゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:24,137:19068:WARNING:filename/alias な・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,308:19068:WARNING:filename/alias な子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,341:19068:WARNING:filename/alias - に゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,341:19068:WARNING:filename/alias に・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,341:19068:WARNING:filename/alias - にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,342:19068:WARNING:filename/alias - に゛ぇ/゛ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,342:19068:WARNING:filename/alias にぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,342:19068:WARNING:filename/alias にぇ子音/ぇ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,342:19068:WARNING:filename/alias - にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,343:19068:WARNING:filename/alias - に゛ゃ/゛ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,343:19068:WARNING:filename/alias にゃ子音/ゃ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,343:19068:WARNING:filename/alias - にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,344:19068:WARNING:filename/alias - に゛ゅ/゛ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,344:19068:WARNING:filename/alias にゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,344:19068:WARNING:filename/alias にゅ子音/ゅ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,344:19068:WARNING:filename/alias - にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,345:19068:WARNING:filename/alias - に゛ょ/゛ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,345:19068:WARNING:filename/alias にょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,345:19068:WARNING:filename/alias にょ子音/ょ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,346:19068:WARNING:filename/alias に子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,403:19068:WARNING:filename/alias - ぬ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,403:19068:WARNING:filename/alias ぬ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,404:19068:WARNING:filename/alias - ぬぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,404:19068:WARNING:filename/alias - ぬ゛ぁ/゛ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,404:19068:WARNING:filename/alias ぬぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,404:19068:WARNING:filename/alias - ぬぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,405:19068:WARNING:filename/alias ぬ゛ぃ/゛ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,405:19068:WARNING:filename/alias ぬぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,405:19068:WARNING:filename/alias - ぬぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,406:19068:WARNING:filename/alias - ぬ゛ぇ/゛ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,406:19068:WARNING:filename/alias ぬぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,406:19068:WARNING:filename/alias - ぬぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,406:19068:WARNING:filename/alias - ぬ゛ぉ/゛ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,407:19068:WARNING:filename/alias ぬぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,407:19068:WARNING:filename/alias ぬ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,443:19068:WARNING:filename/alias - ね゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,443:19068:WARNING:filename/alias ね・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,443:19068:WARNING:filename/alias ね子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,472:19068:WARNING:filename/alias - の゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,472:19068:WARNING:filename/alias の・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,472:19068:WARNING:filename/alias の子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,513:19068:WARNING:filename/alias は・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,513:19068:WARNING:filename/alias は子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,552:19068:WARNING:filename/alias ば・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,552:19068:WARNING:filename/alias ば子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,603:19068:WARNING:filename/alias - ぱ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,604:19068:WARNING:filename/alias ぱ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,604:19068:WARNING:filename/alias ぱ゛・/゛・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,604:19068:WARNING:filename/alias ぱ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,651:19068:WARNING:filename/alias ひ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,651:19068:WARNING:filename/alias - ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,651:19068:WARNING:filename/alias - ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,651:19068:WARNING:filename/alias ひゃ・/ゃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,652:19068:WARNING:filename/alias ひゃ子音/ゃ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,652:19068:WARNING:filename/alias - ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,652:19068:WARNING:filename/alias ひゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,652:19068:WARNING:filename/alias ひゅ子音/ゅ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,653:19068:WARNING:filename/alias - ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,653:19068:WARNING:filename/alias ひょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,653:19068:WARNING:filename/alias ひょ子音/ょ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,653:19068:WARNING:filename/alias ひ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,702:19068:WARNING:filename/alias び・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,702:19068:WARNING:filename/alias - びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,702:19068:WARNING:filename/alias びぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,702:19068:WARNING:filename/alias びぇ子音/ぇ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,703:19068:WARNING:filename/alias - びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,703:19068:WARNING:filename/alias びゃ・/ゃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,703:19068:WARNING:filename/alias びゃ子音/ゃ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,703:19068:WARNING:filename/alias - びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,704:19068:WARNING:filename/alias びゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,704:19068:WARNING:filename/alias びゅ子音/ゅ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,704:19068:WARNING:filename/alias - びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,704:19068:WARNING:filename/alias びょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,705:19068:WARNING:filename/alias びょ子音/ょ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,705:19068:WARNING:filename/alias び子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,781:19068:WARNING:filename/alias ぴ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,781:19068:WARNING:filename/alias - ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,782:19068:WARNING:filename/alias ぴぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,782:19068:WARNING:filename/alias - ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,782:19068:WARNING:filename/alias ぴゃ・/ゃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,783:19068:WARNING:filename/alias ぴゃ子音/ゃ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,783:19068:WARNING:filename/alias - ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,783:19068:WARNING:filename/alias ぴゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,784:19068:WARNING:filename/alias ぴゅ子音/ゅ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,784:19068:WARNING:filename/alias - ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,784:19068:WARNING:filename/alias - ぴ゛ょ/゛ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,784:19068:WARNING:filename/alias ぴょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,785:19068:WARNING:filename/alias ぴ゛ょ・/゛ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,785:19068:WARNING:filename/alias ぴょ子音/ょ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,785:19068:WARNING:filename/alias ぴ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,840:19068:WARNING:filename/alias ふ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,840:19068:WARNING:filename/alias - ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,840:19068:WARNING:filename/alias ふぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,840:19068:WARNING:filename/alias ふぁ子音/ぁ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,841:19068:WARNING:filename/alias - ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,841:19068:WARNING:filename/alias ふぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,841:19068:WARNING:filename/alias - ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,841:19068:WARNING:filename/alias ふぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,842:19068:WARNING:filename/alias - ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,842:19068:WARNING:filename/alias ふぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,842:19068:WARNING:filename/alias ふぉ子音/ぉ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,842:19068:WARNING:filename/alias ふ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,887:19068:WARNING:filename/alias ぶ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,887:19068:WARNING:filename/alias - ぶぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,887:19068:WARNING:filename/alias ぶぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,888:19068:WARNING:filename/alias - ぶぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,888:19068:WARNING:filename/alias ぶぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,888:19068:WARNING:filename/alias - ぶぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,888:19068:WARNING:filename/alias ぶぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,889:19068:WARNING:filename/alias - ぶぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,889:19068:WARNING:filename/alias ぶぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,889:19068:WARNING:filename/alias ぶ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,938:19068:WARNING:filename/alias - ぷ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,938:19068:WARNING:filename/alias ぷ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,938:19068:WARNING:filename/alias ぷ゛・/゛・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,938:19068:WARNING:filename/alias - ぷぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,939:19068:WARNING:filename/alias ぷぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,939:19068:WARNING:filename/alias - ぷぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,939:19068:WARNING:filename/alias ぷぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,939:19068:WARNING:filename/alias - ぷぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,940:19068:WARNING:filename/alias ぷぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,940:19068:WARNING:filename/alias - ぷぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,940:19068:WARNING:filename/alias ぷぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,940:19068:WARNING:filename/alias ぷ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,979:19068:WARNING:filename/alias へ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:26,979:19068:WARNING:filename/alias へ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,027:19068:WARNING:filename/alias べ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,027:19068:WARNING:filename/alias べ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,073:19068:WARNING:filename/alias - ぺ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,073:19068:WARNING:filename/alias ぺ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,074:19068:WARNING:filename/alias ぺ゛・/゛・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,074:19068:WARNING:filename/alias ぺ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,074:19068:WARNING:filename/alias ぺ゛子音/゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,118:19068:WARNING:filename/alias ほ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,118:19068:WARNING:filename/alias - ほぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,119:19068:WARNING:filename/alias ほぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,119:19068:WARNING:filename/alias ほ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,160:19068:WARNING:filename/alias ぼ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,161:19068:WARNING:filename/alias ぼ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,203:19068:WARNING:filename/alias - ぽ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,203:19068:WARNING:filename/alias ぽ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,203:19068:WARNING:filename/alias ぽ゛・/゛・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,204:19068:WARNING:filename/alias ぽ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,204:19068:WARNING:filename/alias ぽ゛子音/゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,252:19068:WARNING:filename/alias - ま゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,252:19068:WARNING:filename/alias - ま゜/゜ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,252:19068:WARNING:filename/alias - ま゜゛/゜゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,253:19068:WARNING:filename/alias ま・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:27,253:19068:WARNING:filename/alias ま゜・/゜・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,532:19068:WARNING:filename/alias ま子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,532:19068:WARNING:filename/alias ま゛子音/゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,532:19068:WARNING:filename/alias ま゜子音/゜子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,533:19068:WARNING:filename/alias ま゜゛子音/゜゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,574:19068:WARNING:filename/alias - み゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,574:19068:WARNING:filename/alias み・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,574:19068:WARNING:filename/alias - みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,575:19068:WARNING:filename/alias - み゛ぇ/゛ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,575:19068:WARNING:filename/alias みぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,575:19068:WARNING:filename/alias - みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,575:19068:WARNING:filename/alias - み゛ゃ/゛ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,576:19068:WARNING:filename/alias みゃ・/ゃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,576:19068:WARNING:filename/alias みゃ子音/ゃ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,576:19068:WARNING:filename/alias - みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,576:19068:WARNING:filename/alias - み゛ゅ/゛ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,577:19068:WARNING:filename/alias みゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,577:19068:WARNING:filename/alias みゅ子音/ゅ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,577:19068:WARNING:filename/alias - みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,577:19068:WARNING:filename/alias - み゛ょ/゛ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,578:19068:WARNING:filename/alias みょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,578:19068:WARNING:filename/alias みょ子音/ょ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,578:19068:WARNING:filename/alias み子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,635:19068:WARNING:filename/alias - む゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,635:19068:WARNING:filename/alias む・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,636:19068:WARNING:filename/alias む子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,675:19068:WARNING:filename/alias - め゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,675:19068:WARNING:filename/alias め・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,676:19068:WARNING:filename/alias め子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,716:19068:WARNING:filename/alias - も゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,716:19068:WARNING:filename/alias も・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,717:19068:WARNING:filename/alias - もょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,717:19068:WARNING:filename/alias もょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,717:19068:WARNING:filename/alias も子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:29,762:19068:WARNING:filename/alias や・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:30,965:19068:WARNING:filename/alias や子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:31,016:19068:WARNING:filename/alias ゆ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:31,016:19068:WARNING:filename/alias ゆ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:31,062:19068:WARNING:filename/alias よ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:31,062:19068:WARNING:filename/alias よ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:31,102:19068:WARNING:filename/alias ら・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,329:19068:WARNING:filename/alias ら子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,370:19068:WARNING:filename/alias り・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,371:19068:WARNING:filename/alias - りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,371:19068:WARNING:filename/alias りぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,371:19068:WARNING:filename/alias - りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,371:19068:WARNING:filename/alias りゃ・/ゃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,372:19068:WARNING:filename/alias りゃ子音/ゃ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,372:19068:WARNING:filename/alias - りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,372:19068:WARNING:filename/alias りゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,372:19068:WARNING:filename/alias りゅ子音/ゅ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,373:19068:WARNING:filename/alias - りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,373:19068:WARNING:filename/alias りょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,373:19068:WARNING:filename/alias りょ子音/ょ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,373:19068:WARNING:filename/alias り子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,422:19068:WARNING:filename/alias る・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,422:19068:WARNING:filename/alias る子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,473:19068:WARNING:filename/alias れ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,473:19068:WARNING:filename/alias れ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,517:19068:WARNING:filename/alias ろ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,517:19068:WARNING:filename/alias ろ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,580:19068:WARNING:filename/alias - わ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:33,581:19068:WARNING:filename/alias わ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,239:19068:WARNING:filename/alias わ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,239:19068:WARNING:filename/alias - ゐ/ゐ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,239:19068:WARNING:filename/alias - ゐ゛/ゐ゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,240:19068:WARNING:filename/alias ゐ・/ゐ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,240:19068:WARNING:filename/alias ゐ子音/ゐ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,240:19068:WARNING:filename/alias - ゑ/ゑ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,240:19068:WARNING:filename/alias ゑ・/ゑ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,240:19068:WARNING:filename/alias ゑ子音/ゑ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,292:19068:WARNING:filename/alias - を゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,292:19068:WARNING:filename/alias を・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,293:19068:WARNING:filename/alias を子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,317:19068:WARNING:filename/alias -  ん゛/ n゛ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,318:19068:WARNING:filename/alias ん・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,318:19068:WARNING:filename/alias - んぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,318:19068:WARNING:filename/alias んぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,318:19068:WARNING:filename/alias - んぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,319:19068:WARNING:filename/alias んぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,319:19068:WARNING:filename/alias - んぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,319:19068:WARNING:filename/alias んぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,370:19068:WARNING:filename/alias んな・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,370:19068:WARNING:filename/alias オルガン/オルガン contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,371:19068:WARNING:filename/alias ギター/ギター contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,371:19068:WARNING:filename/alias シンバル/シンバル contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,371:19068:WARNING:filename/alias スネア/スネア contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,371:19068:WARNING:filename/alias トランペット/トランペット contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,371:19068:WARNING:filename/alias トランペット・/トランペット・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,372:19068:WARNING:filename/alias ドラム/ドラム contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,372:19068:WARNING:filename/alias ノコギリ波277.183Hz/ノコギリ波277.183Hz contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,372:19068:WARNING:filename/alias ノック/ノック contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,372:19068:WARNING:filename/alias ノック2/ノック2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,372:19068:WARNING:filename/alias ハーモニカ/ハーモニカ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,373:19068:WARNING:filename/alias ハイタム/ハイタム contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,373:19068:WARNING:filename/alias ハイハット/ハイハット contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,373:19068:WARNING:filename/alias ハイハット2/ハイハット2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,373:19068:WARNING:filename/alias バイオリン/バイオリン contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,373:19068:WARNING:filename/alias バスドラム/バスドラム contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,374:19068:WARNING:filename/alias バチ/バチ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,374:19068:WARNING:filename/alias ビーム/ビーム contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,374:19068:WARNING:filename/alias ビー玉/ビー玉 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,374:19068:WARNING:filename/alias ピアノ/ピアノ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,374:19068:WARNING:filename/alias ピンポン玉/ピンポン玉 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,375:19068:WARNING:filename/alias フロアタム/フロアタム contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,375:19068:WARNING:filename/alias ベル/ベル contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,375:19068:WARNING:filename/alias ホームラン/ホームラン contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,375:19068:WARNING:filename/alias ホームラン2/ホームラン2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,375:19068:WARNING:filename/alias マシンガン/マシンガン contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,376:19068:WARNING:filename/alias マシンガン2/マシンガン2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,376:19068:WARNING:filename/alias ロータム/ロータム contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,376:19068:WARNING:filename/alias ロボット合体音/ロボット合体音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,376:19068:WARNING:filename/alias - ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,376:19068:WARNING:filename/alias - ヴァ/ァ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,377:19068:WARNING:filename/alias - ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,377:19068:WARNING:filename/alias ヴぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,377:19068:WARNING:filename/alias - ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,378:19068:WARNING:filename/alias - ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,378:19068:WARNING:filename/alias 殴打/殴打 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,378:19068:WARNING:filename/alias 殴打2/殴打2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,378:19068:WARNING:filename/alias 音の出ないハーモニカ/音no出naiハーモニカ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,379:19068:WARNING:filename/alias 乾いたノック/乾itaノック contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,379:19068:WARNING:filename/alias 金属バット/金属バット contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,379:19068:WARNING:filename/alias 金属音1/金属音1 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,379:19068:WARNING:filename/alias 金属音2/金属音2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,379:19068:WARNING:filename/alias 金属音3/金属音3 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,380:19068:WARNING:filename/alias 矩形波/矩形波 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,380:19068:WARNING:filename/alias 軽く叩く/軽ku叩ku contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,380:19068:WARNING:filename/alias - 江/江 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,380:19068:WARNING:filename/alias 江・/江・ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,380:19068:WARNING:filename/alias 硬質衝突音/硬質衝突音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,381:19068:WARNING:filename/alias 雑音/雑音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,381:19068:WARNING:filename/alias 心音/心音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,381:19068:WARNING:filename/alias 振動音/振動音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,381:19068:WARNING:filename/alias 正弦波/正弦波 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,381:19068:WARNING:filename/alias 太鼓/太鼓 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,382:19068:WARNING:filename/alias 中ドラム/中ドラム contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,382:19068:WARNING:filename/alias 破裂長音/破裂長音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,382:19068:WARNING:filename/alias 爆発/爆発 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,382:19068:WARNING:filename/alias 爆発2/爆発2 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,382:19068:WARNING:filename/alias 爆発3/爆発3 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,383:19068:WARNING:filename/alias 爆発4/爆発4 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,383:19068:WARNING:filename/alias 発砲音/発砲音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,383:19068:WARNING:filename/alias 木琴/木琴 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:34,383:19068:WARNING:filename/alias 有声摩擦長音/有声摩擦長音 contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:41:49,574:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:41:49,575:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:41:52,651:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:41:52,651:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:42:15,193:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:42:15,193:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:42:19,652:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:42:19,652:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:42:22,710:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:42:22,710:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:42:24,550:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:42:24,550:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:42:25,991:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:42:25,992:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:42:29,137:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:42:29,138:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:42:33,436:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:42:33,436:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:42:38,069:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:42:38,070:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:43:56,292:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:43:56,292:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:00,905:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:00,905:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:02,433:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:02,434:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:05,702:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:05,702:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:15,786:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:15,787:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:28,483:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:28,484:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:29,782:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:29,783:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:31,405:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:31,405:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:33,048:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:33,048:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:35,640:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:35,640:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:39,943:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:39,943:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:40,897:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:40,897:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:42,964:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:42,965:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:45,406:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:45,406:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:46,508:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:46,509:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:52,795:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:52,796:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:53,871:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:53,871:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:55,327:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:55,328:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:44:56,183:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:44:56,184:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:03,099:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:03,099:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:04,137:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:04,137:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:05,455:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:05,456:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:06,857:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:06,857:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:08,213:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:08,213:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:16,098:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:16,098:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:18,181:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:18,182:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:22,210:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:22,211:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:31,011:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:31,012:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:32,493:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:45:32,494:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:45:41,238:19068:INFO:Phonemedict list focus loss callback
+2021-10-15 00:46:25,087:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:46:25,088:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:46:26,704:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:46:26,704:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:46:28,706:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:46:28,707:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:46:29,910:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:46:29,911:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:46:33,070:19068:INFO:Phonemedict OK button callback
+2021-10-15 00:46:33,070:19068:INFO:Phonemedict key change callback
+2021-10-15 00:46:33,071:19068:INFO:Phonemedict pitch update callback
+2021-10-15 00:46:34,010:19068:INFO:UTAU import button callback
+2021-10-15 00:46:34,070:19068:INFO:Initializing Phonemedict UI
+2021-10-15 00:46:35,128:19068:INFO:Phonemedict load button callback
+2021-10-15 00:47:07,050:19068:WARNING:filename/alias * あ/* a contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,100:19068:WARNING:filename/alias * い/* i contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,100:19068:WARNING:filename/alias いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,101:19068:WARNING:filename/alias - いぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,139:19068:WARNING:filename/alias * う/* u contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,139:19068:WARNING:filename/alias ヴァ/ァ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,140:19068:WARNING:filename/alias - ヴぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,140:19068:WARNING:filename/alias - ヴァ/ァ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,140:19068:WARNING:filename/alias うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,140:19068:WARNING:filename/alias - うぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,140:19068:WARNING:filename/alias ヴィ/ィ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,141:19068:WARNING:filename/alias - ヴぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,141:19068:WARNING:filename/alias - ヴィ/ィ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,141:19068:WARNING:filename/alias うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,141:19068:WARNING:filename/alias - うぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,142:19068:WARNING:filename/alias ヴェ/ェ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,142:19068:WARNING:filename/alias - ヴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,142:19068:WARNING:filename/alias - ヴェ/ェ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,142:19068:WARNING:filename/alias うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,143:19068:WARNING:filename/alias - うぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,143:19068:WARNING:filename/alias ヴォ/ォ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,143:19068:WARNING:filename/alias - ヴぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,143:19068:WARNING:filename/alias - ヴォ/ォ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,178:19068:WARNING:filename/alias * え/* e contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,242:19068:WARNING:filename/alias * お/* o contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,242:19068:WARNING:filename/alias * を/* wo contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,242:19068:WARNING:filename/alias おぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,243:19068:WARNING:filename/alias - おぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,341:19068:WARNING:filename/alias カ/カ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,342:19068:WARNING:filename/alias ガ/ガ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,342:19068:WARNING:filename/alias - カ/カ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,342:19068:WARNING:filename/alias - ガ/ガ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,511:19068:WARNING:filename/alias キ/キ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,511:19068:WARNING:filename/alias ギ/ギ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,511:19068:WARNING:filename/alias - キ/キ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,512:19068:WARNING:filename/alias - ギ/ギ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,609:19068:WARNING:filename/alias きぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,609:19068:WARNING:filename/alias - きぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,610:19068:WARNING:filename/alias ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:07,610:19068:WARNING:filename/alias - ぎぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,191:19068:WARNING:filename/alias ク/ク contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,191:19068:WARNING:filename/alias グ/グ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,192:19068:WARNING:filename/alias - ク/ク contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,192:19068:WARNING:filename/alias - グ/グ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,356:19068:WARNING:filename/alias ケ/ケ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,356:19068:WARNING:filename/alias ゲ/ゲ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,356:19068:WARNING:filename/alias - ケ/ケ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,357:19068:WARNING:filename/alias - ゲ/ゲ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,524:19068:WARNING:filename/alias コ/コ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,524:19068:WARNING:filename/alias ゴ/ゴ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,525:19068:WARNING:filename/alias - コ/コ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:08,525:19068:WARNING:filename/alias - ゴ/ゴ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:09,008:19068:WARNING:filename/alias しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:09,009:19068:WARNING:filename/alias - しぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:09,009:19068:WARNING:filename/alias じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:09,009:19068:WARNING:filename/alias - じぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:09,783:19068:WARNING:filename/alias すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:09,784:19068:WARNING:filename/alias - すぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:09,784:19068:WARNING:filename/alias ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:09,784:19068:WARNING:filename/alias - ずぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,348:19068:WARNING:filename/alias ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,349:19068:WARNING:filename/alias - ちぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,349:19068:WARNING:filename/alias ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,349:19068:WARNING:filename/alias - ちゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,349:19068:WARNING:filename/alias ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,350:19068:WARNING:filename/alias - ちゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,350:19068:WARNING:filename/alias ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,350:19068:WARNING:filename/alias - ちょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,437:19068:WARNING:filename/alias つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,438:19068:WARNING:filename/alias - つぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,438:19068:WARNING:filename/alias つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,438:19068:WARNING:filename/alias - つぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,438:19068:WARNING:filename/alias つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,439:19068:WARNING:filename/alias - つぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,439:19068:WARNING:filename/alias つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,439:19068:WARNING:filename/alias - つぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,620:19068:WARNING:filename/alias てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,621:19068:WARNING:filename/alias - てぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,621:19068:WARNING:filename/alias でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,621:19068:WARNING:filename/alias - でぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,621:19068:WARNING:filename/alias てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,622:19068:WARNING:filename/alias てぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,622:19068:WARNING:filename/alias - てゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,622:19068:WARNING:filename/alias - てぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,622:19068:WARNING:filename/alias でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,622:19068:WARNING:filename/alias でぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,623:19068:WARNING:filename/alias - でゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,623:19068:WARNING:filename/alias - でぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,876:19068:WARNING:filename/alias どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,876:19068:WARNING:filename/alias - どぅ/ぅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,996:19068:WARNING:filename/alias にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,997:19068:WARNING:filename/alias - にぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,997:19068:WARNING:filename/alias にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,997:19068:WARNING:filename/alias - にゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,997:19068:WARNING:filename/alias にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,998:19068:WARNING:filename/alias - にゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,998:19068:WARNING:filename/alias にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:10,998:19068:WARNING:filename/alias - にょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,697:19068:WARNING:filename/alias ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,697:19068:WARNING:filename/alias - ひぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,697:19068:WARNING:filename/alias びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,697:19068:WARNING:filename/alias - びぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,698:19068:WARNING:filename/alias ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,698:19068:WARNING:filename/alias - ぴぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,698:19068:WARNING:filename/alias ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,698:19068:WARNING:filename/alias - ひゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,699:19068:WARNING:filename/alias びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,699:19068:WARNING:filename/alias - びゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,699:19068:WARNING:filename/alias ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,699:19068:WARNING:filename/alias - ぴゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,700:19068:WARNING:filename/alias ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,700:19068:WARNING:filename/alias - ひゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,700:19068:WARNING:filename/alias びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,700:19068:WARNING:filename/alias - びゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,700:19068:WARNING:filename/alias ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,701:19068:WARNING:filename/alias - ぴゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,701:19068:WARNING:filename/alias ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,701:19068:WARNING:filename/alias - ひょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,701:19068:WARNING:filename/alias びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,702:19068:WARNING:filename/alias - びょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,702:19068:WARNING:filename/alias ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,702:19068:WARNING:filename/alias - ぴょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,955:19068:WARNING:filename/alias ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,955:19068:WARNING:filename/alias - ふぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,956:19068:WARNING:filename/alias ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,956:19068:WARNING:filename/alias - ふぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,956:19068:WARNING:filename/alias ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,957:19068:WARNING:filename/alias - ふぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,957:19068:WARNING:filename/alias ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:11,957:19068:WARNING:filename/alias - ふぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:12,574:19068:WARNING:filename/alias みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:12,574:19068:WARNING:filename/alias - みぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:12,575:19068:WARNING:filename/alias みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:12,575:19068:WARNING:filename/alias - みゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:12,575:19068:WARNING:filename/alias みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:12,575:19068:WARNING:filename/alias - みゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:12,576:19068:WARNING:filename/alias みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:12,576:19068:WARNING:filename/alias - みょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,116:19068:WARNING:filename/alias * ら/* ra contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,190:19068:WARNING:filename/alias * り/* ri contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,226:19068:WARNING:filename/alias りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,226:19068:WARNING:filename/alias - りぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,227:19068:WARNING:filename/alias りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,227:19068:WARNING:filename/alias - りゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,227:19068:WARNING:filename/alias りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,227:19068:WARNING:filename/alias - りゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,228:19068:WARNING:filename/alias りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,228:19068:WARNING:filename/alias - りょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,303:19068:WARNING:filename/alias * る/* ru contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,381:19068:WARNING:filename/alias * れ/* re contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,460:19068:WARNING:filename/alias * ろ/* ro contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:13,599:19068:WARNING:filename/alias * ん/* n contains one or several phonemes not in the specified phoneme list
+2021-10-15 00:47:21,226:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:47:21,226:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:47:25,060:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:47:25,060:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:47:33,126:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:47:33,126:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:47:34,886:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:47:34,886:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:47:36,355:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:47:36,356:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:47:36,994:19068:INFO:Phonemedict selection change callback
+2021-10-15 00:47:36,995:19068:INFO:Phonemedict slider movement callback
+2021-10-15 00:47:44,714:19068:INFO:Phonemedict list focus loss callback
+2021-10-15 00:48:14,644:19068:INFO:Phonemedict OK button callback
+2021-10-15 00:48:14,644:19068:INFO:Phonemedict key change callback
+2021-10-15 00:48:14,644:19068:INFO:Phonemedict pitch update callback
+2021-10-15 00:48:16,353:19068:INFO:Root UI destroyed

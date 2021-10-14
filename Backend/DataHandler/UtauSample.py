@@ -12,7 +12,7 @@ class UtauSample:
             self.key = None
         self.start = start
         if end == None:
-            self.end = self.audioSample.waveform.size()[0]
+            self.end = self.audioSample.waveform.size()[0] * int(1000 / sampleRate)
         else:
             self.end = end
         self.handle = path.split(self.audioSample.filepath)[1] + ", " + str(self.start) + " - " + str(self.end)

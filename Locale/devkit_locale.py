@@ -34,6 +34,8 @@ def getLocale():
         locale["open"] = "Open..."
         locale["new"] = "New..."
         locale["warning"] = "Warning"
+        locale["error"] = "Error"
+        locale["info"] = "Info"
         locale["vb_discard_msg"] = "Creating a new Voicebank will discard all unsaved changes to the currently opened one. Continue?"
         locale[".nvvb_desc"] = "NovaVox Voicebanks"
         locale[".wav_desc"] = "wavesound audio files"
@@ -63,6 +65,7 @@ def getLocale():
         locale["ai_settings"] = "Sample preprocessing and AI training settings"
         locale["epochs"] = "AI training epochs:"
         locale["train"] = "train AI"
+        locale["time_lbl"] = "Time (ms)"
         locale["freq_lbl"] = "Frequency (Hz)"
         locale["amp_lbl"] = "Signal Amplitude"
         locale["excitation"] = "unvoiced Excitation"
@@ -92,5 +95,8 @@ def getLocale():
         locale["overlap"] = "overlap"
         locale["preuttr"] = "pre-utterance"
         locale["utau_cstm_phn_msg"] = "use custom phoneme definition file for import?"
+        locale["NV_area"] = "Nova-Vox sample"
+        locale["oto_msng_phn"] = "One or several phonetic symbols contained in the UTAU Voicebank could not be found on the given phoneme table, resulting in some samples not being imported. See devkit.log for details."
+        locale["oto_error"] = "An unknown error occured when reading the oto.ini file. Please check the integrity and encoding od the file. See devkit.log for details."
 
     return locale

@@ -2,7 +2,6 @@ from Backend.DataHandler.UtauSample import UtauSample
 from os import path
 
 def replaceKana(input):
-    print("in", input)
     input = input.replace("きゃ", "kya")
     input = input.replace("きゅ", "kyu")
     input = input.replace("きょ", "kyo")
@@ -17,14 +16,10 @@ def replaceKana(input):
     input = input.replace("じょ", "jyo")
     input = input.replace("とぅ", "to")
     input = input.replace("あ", "a")
-    input = input.replace("ぁ", "a")
     input = input.replace("い", "i")
-    input = input.replace("ぃ", "i")
     input = input.replace("う", "u")
     input = input.replace("え", "e")
-    input = input.replace("ぇ", "e")
     input = input.replace("お", "o")
-    input = input.replace("ぉ", "o")
     input = input.replace("か", "ka")
     input = input.replace("き", "ki")
     input = input.replace("く", "ku")
@@ -92,7 +87,6 @@ def replaceKana(input):
     input = input.replace("を", "wo")
     input = input.replace("ん", "n")
     input = input.replace("ヴ", "wu")
-    print("out", input)
     return input
 
 def fetchSamples(filename, properties, phonemes, types, otoPath):
@@ -110,6 +104,8 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
     typeSequence = []
     delimiters = [" ", "_", "+"]
     while len(aliasCopy) > 0:
+        if aliasCopy[0] == "-":
+            aliasCopy = aliasCopy[1:]
         if aliasCopy[0] in delimiters:
             aliasCopy = aliasCopy[1:]
         for i in range(len(phonemes)):
@@ -131,27 +127,24 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
 
     if len(sequence) == 1:
         if typeSequence[0] == "V":
-            sample = UtauSample(filepath, 0, sequence[0], offset + fixed, None, offset, fixed, blank, preuttr, overlap)
-            sample.end -= blank
+            sample = UtauSample(filepath, 0, sequence[0], offset + fixed, offset + fixed - blank, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
         elif typeSequence[0] == "C":
-            sample = UtauSample(filepath, 0, sequence[0], offset, None, offset, fixed, blank, preuttr, overlap)
-            sample.end -= blank
+            sample = UtauSample(filepath, 0, sequence[0], offset, offset + fixed - blank, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
     elif len(sequence) == 2:
         if typeSequence[0] == "V":
             if typeSequence[1] == "V":
-                #sample = UtauSample(filepath, 0, sequence[0], offset + fixed, None, offset, fixed, blank, preuttr, overlap)
-                #sample.end -= blank
-                #output.append(sample)
-                pass
+                sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                output.append(sample)
+                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, offset + fixed - blank, offset, fixed, blank, preuttr, overlap)
+                output.append(sample)
             elif typeSequence[1] == "C":
                 sample = UtauSample(filepath, 0, sequence[0], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
                 output.append(sample)
                 sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
                 output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap)
-                sample.end -= blank
+                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, offset + fixed - blank, offset, fixed, blank, preuttr, overlap)
                 output.append(sample)
         elif typeSequence[0] == "C":
             if typeSequence[1] == "V":
@@ -159,14 +152,10 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
                 output.append(sample)
                 sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
                 output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap)
-                sample.end -= blank
+                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, offset + fixed - blank, offset, fixed, blank, preuttr, overlap)
                 output.append(sample)
             elif typeSequence[1] == "C":
-                #sample = UtauSample(filepath, 0, sequence[0], offset, None, offset, fixed, blank, preuttr, overlap)
-                #sample.end -= blank
-                #output.append(sample)
-                pass
+                print("skipped CC sample")
     elif len(sequence) == 3:
         if typeSequence[0] == "V":
             sample = UtauSample(filepath, 1, None, offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
@@ -175,17 +164,14 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
             output.append(sample)
             sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
-            sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap)
-            sample.end -= blank
+            sample = UtauSample(filepath, 0, sequence[2], offset + fixed, offset + fixed - blank, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
         elif typeSequence[0] == "C":
             sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
             sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
-            sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap)
-            sample.end -= blank
+            sample = UtauSample(filepath, 0, sequence[2], offset + fixed, offset + fixed - blank, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
-
     return output
 
