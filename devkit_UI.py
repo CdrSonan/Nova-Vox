@@ -775,9 +775,9 @@ class CrfaiUi(tkinter.Frame):
             self.sidebar.statusVar.set("AI trained with " + loadedVB.crfAi.epoch + " epochs and " + loadedVB.crfAi.samples + " samples")
 
 class UtauImportUi(tkinter.Frame):
-    """Class of the phoneme dictionnary UI window"""
+    """Class of the UTAU import UI window"""
     def __init__(self, master=None):
-        logging.info("Initializing Phonemedict UI")
+        logging.info("Initializing UTAU import UI")
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
@@ -786,7 +786,7 @@ class UtauImportUi(tkinter.Frame):
         self.sampleList = []
         
     def createWidgets(self):
-        """Initializes all widgets of the Phoneme Dict UI window."""
+        """Initializes all widgets of the UTAU import UI window."""
         global loadedVB
 
         self.diagram = tkinter.LabelFrame(self, text = loc["utau_diag_lbl"])
@@ -896,8 +896,8 @@ class UtauImportUi(tkinter.Frame):
         self.phonemeList.list.lastFocusedIndex = None
         
     def onSelectionChange(self, event):
-        """Adjusts the per-phoneme part of the UI to display the correct values when the selected Phoneme in the Phoneme list changes"""
-        logging.info("Phonemedict selection change callback")
+        """Adjusts the per-sample part of the UI to display the correct values when the selected sample in the SampleList list changes"""
+        logging.info("UTAU sample list selection change callback")
         global loadedVB
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
@@ -911,26 +911,26 @@ class UtauImportUi(tkinter.Frame):
                 self.enableButtons()
             self.sideBar.start.variable.set(sample.start)
             self.sideBar.end.variable.set(sample.end)
-            self.updateDiagram(sample)
+            self.updateDiagram()
 
                 
     def onListFocusOut(self, event):
-        """Helper function for retaining information about the last focused element of the Phoneme list when Phoneme list loses entry focus"""
-        logging.info("Phonemedict list focus loss callback")
+        """Helper function for retaining information about the last focused element of the SampleList when the SampleList loses entry focus"""
+        logging.info("UTAU sample list focus loss callback")
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
         
     def disableButtons(self):
-        """Disables the per-phoneme settings buttons"""
+        """Disables the key button"""
         self.sideBar.key.entry["state"] = "disabled"
     
     def enableButtons(self):
-        """Enables the per-phoneme settings buttons"""
+        """Enables the key button"""
         self.sideBar.key.entry["state"] = "normal"
     
     def onAddPress(self):
-        """UI Frontend function for adding a phoneme to the Voicebank"""
-        logging.info("Phonemedict add button callback")
+        """UI Frontend function for adding a sample to the SampleList"""
+        logging.info("UTAU sample add button callback")
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
         if filepath != "":
             sample = UtauSample(filepath, 0, None, 0, None, 0, 0, 0, 0, 0)
@@ -938,8 +938,8 @@ class UtauImportUi(tkinter.Frame):
             self.phonemeList.list.lb.insert("end", sample.handle)
         
     def onRemovePress(self):
-        """UI Frontend function for removing a phoneme from the Voicebank"""
-        logging.info("Phonemedict remove button callback")
+        """UI Frontend function for removing a sample from the SampleList"""
+        logging.info("UTAU sample remove button callback")
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
             del self.sampleList[index]
@@ -948,17 +948,22 @@ class UtauImportUi(tkinter.Frame):
                 self.phonemeList.list.lb.selection_set(index - 1)
             else:
                 self.phonemeList.list.lb.selection_set(index)
+            self.updateDiagram()
 
-    def updateDiagram(self, sample):
-        logging.info("Phonemedict slider movement callback")
+    def updateDiagram(self):
+        logging.info("UTAU diagram update callback")
         index = self.phonemeList.list.lastFocusedIndex
         sample = self.sampleList[index]
         waveform = sample.audioSample.waveform
         timesize = waveform.size()[0] * 1000 / global_consts.sampleRate
+        if sample.blank >= 0:
+            endpoint = timesize - sample.blank
+        else:
+            endpoint = sample.offset - sample.blank
         xScale = torch.linspace(0, timesize, waveform.size()[0])
         self.diagram.ax.plot(xScale, waveform, label = loc["waveform"], color = (0., 0.5, 1.), alpha = 0.75)
         self.diagram.ax.axvspan(0, sample.offset, ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=1., label = loc["offset/blank"])
-        self.diagram.ax.axvspan(sample.offset + sample.fixed - sample.blank, timesize, ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=1.)
+        self.diagram.ax.axvspan(endpoint, timesize, ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=1.)
         self.diagram.ax.axvspan(sample.offset, sample.offset + sample.fixed, ymin = 0.5, facecolor=(1., 0.75, 1.), alpha=1., label = loc["fixed"])
         self.diagram.ax.axvline(sample.offset + sample.overlap, ymin = 0.5, color = (0., 1., 0.), alpha = 0.9, label = loc["overlap"])
         self.diagram.ax.axvline(sample.offset + sample.preuttr, ymin = 0.5, color = (1., 0., 0.), alpha = 0.9, label = loc["preuttr"])
@@ -972,8 +977,8 @@ class UtauImportUi(tkinter.Frame):
         self.diagram.ax.clear()
             
     def onKeyChange(self, event):
-        """UI Frontend function for changing the key of a phoneme"""
-        logging.info("Phonemedict key change callback")
+        """UI Frontend function for changing the key of a phoneme-type UTAU sample"""
+        logging.info("UTAU sample key change callback")
         index = self.phonemeList.list.lastFocusedIndex
         key = self.sampleList[index].key
         newKey = self.sideBar.key.variable.get()
@@ -981,8 +986,8 @@ class UtauImportUi(tkinter.Frame):
             self.sampleList[index].key = newKey
         
     def onFrameUpdateTrigger(self, event):
-        """UI Frontend function for updating the pitch of a phoneme"""
-        logging.info("Phonemedict pitch update callback")
+        """UI Frontend function for updating the start and end data of a sample"""
+        logging.info("UTAU sample frame update callback")
         index = self.phonemeList.list.lastFocusedIndex
         sample = self.sampleList[index]
         sample.start = self.sideBar.start.variable.get()
@@ -990,40 +995,50 @@ class UtauImportUi(tkinter.Frame):
         sample.updateHandle()
         self.phonemeList.list.lb.delete(index)
         self.phonemeList.list.lb.insert(index, sample.handle)   
+        self.updateDiagram()
         
     def onImportPress(self):
-        """UI Frontend function for finalizing a phoneme"""
-        logging.info("Phonemedict finalize button callback")
+        """UI Frontend function for importing an UTAU sample from the SampleList as phoneme or transition sample"""
+        logging.info("UTAU import button callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         if self.sampleList[index]._type == 0:
             loadedVB.addPhonemeUtau(self.sampleList[index])
         else:
             loadedVB.addTrainSampleUtau(self.sampleList[index])
-        self.sideBar._type.variable.set(None)
+        self.sideBar._type.variable.set(0)
         self.sideBar.key.variable.set(None)
         self.sideBar.start.variable.set(None)
         self.sideBar.end.variable.set(None)
+        del self.sampleList[index]
         self.phonemeList.list.lb.delete(index)
+        if index == self.phonemeList.list.lb.size():
+            self.phonemeList.list.lb.selection_set(index - 1)
+        else:
+            self.phonemeList.list.lb.selection_set(index)
+        if self.phonemeList.list.lb.size() > 0:
+            self.updateDiagram()
 
     def onImportAllPress(self):
-        """UI Frontend function for finalizing a phoneme"""
-        logging.info("Phonemedict finalize button callback")
+        """UI Frontend function for importing the entire SampleList as phoneme and transition samples"""
+        logging.info("UTAU import all button callback")
         global loadedVB
         for i in range(len(self.sampleList)):
             if self.sampleList[0]._type == 0:
                 loadedVB.addPhonemeUtau(self.sampleList[0])
             else:
                 loadedVB.addTrainSampleUtau(self.sampleList[0])
-            self.sideBar._type.variable.set(None)
-            self.sideBar.key.variable.set(None)
-            self.sideBar.start.variable.set(None)
-            self.sideBar.end.variable.set(None)
+            del self.sampleList[0]
             self.phonemeList.list.lb.delete(0)
+        self.sideBar._type.variable.set(0)
+        self.sideBar.key.variable.set(None)
+        self.sideBar.start.variable.set(None)
+        self.sideBar.end.variable.set(None)
+        self.phonemeList.list.lb.selection_set(0)
         
     def onOkPress(self):
-        """Updates the last selected phoneme and closes the Phoneme Dict UI window when the OK button is pressed"""
-        logging.info("Phonemedict OK button callback")
+        """Updates the last selected sample and closes the UTAU import UI window when the OK button is pressed"""
+        logging.info("UTAU OK button callback")
         global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
@@ -1033,8 +1048,8 @@ class UtauImportUi(tkinter.Frame):
         self.master.destroy()
 
     def onLoadPress(self):
-        """UI Frontend function for loading the phoneme dict of a different Voicebank"""
-        logging.info("Phonemedict load button callback")
+        """UI Frontend function for parsing an oto.ini file, and loading its samples into the SampleList"""
+        logging.info("oto.ini load button callback")
         global loadedVB
         custom_phonemes = tkinter.messagebox.askyesnocancel(loc["warning"], loc["utau_cstm_phn_msg"], icon = "question", default='no')
         if custom_phonemes != None:
@@ -1053,6 +1068,7 @@ class UtauImportUi(tkinter.Frame):
                 reader = csv.reader(open(filepath, encoding = "Shift_JIS"), delimiter = "=")
                 otoPath = path.split(filepath)[0]
                 for row in reader:
+                    print("processing " + str(row))
                     filename = row[0]
                     properties = row[1].split(",")
                     occuredError = None
