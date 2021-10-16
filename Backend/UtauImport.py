@@ -158,6 +158,9 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
             p = phonemes[i]
             f = aliasCopy.find(p)
             if f == 0:
+                if len(aliasCopy) > len(p):
+                    if aliasCopy[len(p)] in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+                        p += aliasCopy[len(p)]
                 sequence.append(p)
                 typeSequence.append(types[i])
                 aliasCopy = aliasCopy[len(p):]
