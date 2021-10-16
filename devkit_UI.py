@@ -781,7 +781,7 @@ class UtauImportUi(tkinter.Frame):
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
-        self.master.wm_title(loc["phon_lbl"])
+        self.master.wm_title(loc["utau_lbl"])
         self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         self.sampleList = []
         
