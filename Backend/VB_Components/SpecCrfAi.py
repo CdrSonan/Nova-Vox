@@ -120,7 +120,7 @@ class SpecCrfAi(nn.Module):
         output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), factor)))
         return output
     
-    def train(self, indata, epochs=1):
+    def train(self, indata, progressVar, epochs=1):
         """NN training with forward and backward passes, Loss criterion and optimizer runs based on a dataset of spectral transition samples.
         
         Arguments:
@@ -139,9 +139,12 @@ class SpecCrfAi(nn.Module):
                 self.epoch = epochs
             else:
                 self.epoch = None
+            progressVar.set(0)
+            sampleCount = len(indata)
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
                     print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
+                    progressVar.set(int(100 * i / sampleCount))
                     data = torch.sqrt(data.to(device = self.device))
                     data = torch.squeeze(data)
                     spectrum1 = data[0]
@@ -157,6 +160,7 @@ class SpecCrfAi(nn.Module):
                         loss.backward()
                         self.optimizer.step()
                         print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
+                progressVar.set(100)
             self.sampleCount += len(indata)
             self.loss = loss
             

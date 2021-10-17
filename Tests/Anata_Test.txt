@@ -6,7 +6,7 @@ borders = [0, 2, 4,
            656, 657, 700
           ]
 
-phonemes = ["A", "N", "A", "T", "A"]
+phonemes = ["a", "n", "a", "t", "a"]
 
 startCaps = torch.zeros(5)
 

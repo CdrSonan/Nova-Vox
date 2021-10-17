@@ -9,6 +9,7 @@ import tkinter
 import tkinter.filedialog
 import tkinter.simpledialog
 import tkinter.messagebox
+from tkinter.ttk import Progressbar
 from os import path
 import logging
 import torch
@@ -669,6 +670,10 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
+        self.progressVar = tkinter.IntVar(0)
+        self.progressBar = Progressbar(self, orient = "horizontal", mode = 'determinate', variable = self.progressVar)
+        self.progressBar.pack(side = "top", fill = "x", expand = True, padx = 5)
+
         if loadedVB.crfAi.epoch == None:
             epoch = loc["varying"]
         else:
@@ -730,7 +735,8 @@ class CrfaiUi(tkinter.Frame):
         """UI Frontend function for training the AI with the specified settings and samples"""
         logging.info("Crfai train button callback")
         global loadedVB
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get())
+        self.statusVar.set("training Ai...")
+        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get(), self.progressVar)
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             loadedVB.delTrainSample(0)
@@ -877,6 +883,10 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.importButton["text"] = loc["smp_import"]
         self.sideBar.importButton["command"] = self.onImportPress
         self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+
+        self.progressVar = tkinter.IntVar(0)
+        self.progressBar = Progressbar(self, orient = "horizontal", mode = 'determinate', variable = self.progressVar)
+        self.progressBar.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
@@ -1023,18 +1033,22 @@ class UtauImportUi(tkinter.Frame):
         """UI Frontend function for importing the entire SampleList as phoneme and transition samples"""
         logging.info("UTAU import all button callback")
         global loadedVB
-        for i in range(len(self.sampleList)):
+        sampleCount = len(self.sampleList)
+        for i in range(sampleCount):
+            self.progressVar.set(int(100 * i / sampleCount))
             if self.sampleList[0]._type == 0:
                 loadedVB.addPhonemeUtau(self.sampleList[0])
             else:
                 loadedVB.addTrainSampleUtau(self.sampleList[0])
             del self.sampleList[0]
             self.phonemeList.list.lb.delete(0)
+        self.progressVar.set(100)
         self.sideBar._type.variable.set(0)
         self.sideBar.key.variable.set(None)
         self.sideBar.start.variable.set(None)
         self.sideBar.end.variable.set(None)
         self.phonemeList.list.lb.selection_set(0)
+        self.progressVar.set(0)
         
     def onOkPress(self):
         """Updates the last selected sample and closes the UTAU import UI window when the OK button is pressed"""

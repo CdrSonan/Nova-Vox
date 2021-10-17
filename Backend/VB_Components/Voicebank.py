@@ -208,7 +208,7 @@ class Voicebank:
         """currently unused method that changes the file of a staged phoneme crossfade Ai training sample"""
         self.stagedTrainSamples[index] = AudioSample(filepath)
     
-    def trainCrfAi(self, epochs, additive, unvoicedIterations):
+    def trainCrfAi(self, epochs, additive, unvoicedIterations, progressVar):
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
         
         Arguments:
@@ -225,15 +225,19 @@ class Voicebank:
         if additive == False:
             self.crfAi = SpecCrfAi()
         print("sample preprocessing started")
-        for i in range(len(self.stagedTrainSamples)):
+        sampleCount = len(self.stagedTrainSamples)
+        for i in range(sampleCount):
+            progressVar.set(int(100 * i / sampleCount))
             self.stagedTrainSamples[i].voicedIterations = 1
             self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
             calculatePitch(self.stagedTrainSamples[i])
             calculateSpectra(self.stagedTrainSamples[i])
             self.stagedTrainSamples[i] = (self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra).to(device = self.device)
         print("sample preprocessing complete")
+        progressVar.set(100)
         print("AI training started")
-        self.crfAi.train(self.stagedTrainSamples, epochs = epochs)
+        self.crfAi.train(self.stagedTrainSamples, progressVar, epochs = epochs)
+        progressVar.set(0)
         print("AI training complete")
         
     def finalizCrfAi(self):

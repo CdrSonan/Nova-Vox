@@ -4,7 +4,7 @@ specpath = os.path.dirname(os.path.abspath(SPEC))
 
 common_excludes = ["pillow", "torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
-common_datas = [("settings.ini", "."), ("icon/*", "icon")]
+common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("Backend/UtauDefaultPhonemes.ini", "Backend")]
 
 block_cipher = None
 
