@@ -114,3 +114,5 @@
 2021-10-17 02:28:07,524:27916:INFO:save command received
 2021-10-17 02:28:11,789:27916:INFO:quit command received
 2021-10-17 02:28:11,790:27916:INFO:exiting program, ending logging service
+2021-10-17 22:17:54,435:19000:INFO:logging service started
+2021-10-17 22:17:54,449:19000:INFO:opening voicebank file dialog

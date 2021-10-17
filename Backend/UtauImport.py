@@ -223,7 +223,6 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
     filepath = path.join(otoPath, filename)
 
     intermediate = max(-2 * (fixed - preuttr) + offset + fixed, (fixed / 2) + offset)
-
     if len(sequence) == 1:
         if typeSequence[0] == "V":
             sample = UtauSample(filepath, 0, sequence[0], offset + fixed, None, offset, fixed, blank, preuttr, overlap)

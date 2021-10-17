@@ -51,8 +51,8 @@ def getExcitation(vocalSegment, device):
 def getVoicedExcitation(vocalSegment, device):
     nativePitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch.to(device = device)
     requiredSize = math.ceil(torch.max(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas) / torch.min(vocalSegment.pitch) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize)
-    voicedExcitation = Loop.loopSamplerVoicedExcitation(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].voicedExcitation, requiredSize, vocalSegment.repetititionSpacing, math.ceil(nativePitch / global_consts.tickRate), device)
-    pitchDeltas = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas
+    voicedExcitation = Loop.loopSamplerVoicedExcitation(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].voicedExcitation, requiredSize, vocalSegment.repetititionSpacing, pitchDeltas, device)
+    pitchDeltas = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltasFull
     pitchDeltas = torch.squeeze(Loop.loopSamplerSpectrum(torch.unsqueeze(pitchDeltas, 1), requiredSize, vocalSegment.repetititionSpacing, device = device))
     cursor = 0
     voicedExcitationFourier = torch.empty(vocalSegment.end3 - vocalSegment.start1, global_consts.halfTripleBatchSize + 1, dtype = torch.cdouble, device = device)
@@ -63,7 +63,7 @@ def getVoicedExcitation(vocalSegment, device):
         rescale_factor = float(vocalSegment.pitch[i] / nativePitchMod)
         buffer = 10 #this is a terrible idea, but it seems to work
         if cursor < math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]):
-            voicedExcitationPart = torch.cat((torch.zeros(math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]) - cursor).to(device = device), voicedExcitation), 0)
+            voicedExcitationPart = torch.cat((voicedExcitation, torch.zeros(math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]) - cursor).to(device = device)), 0)
             length = (3*math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i])) + buffer
             voicedExcitationPart = voicedExcitationPart[vocalSegment.offset:length + vocalSegment.offset]
             x = torch.linspace(0, 1, length, device = device)

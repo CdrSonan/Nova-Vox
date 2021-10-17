@@ -69,6 +69,7 @@ class AudioSample:
         del transform
         del self.sampleRate
         self.pitchDeltas = torch.tensor([], dtype = int)
+        self.pitchDeltasFull = torch.tensor([], dtype = int)
         self.pitchBorders = torch.tensor([], dtype = int)
         self.pitch = torch.tensor([0], dtype = int)
         self.spectra = torch.tensor([[]], dtype = float)
@@ -114,6 +115,7 @@ class LiteAudioSample:
             
             
         self.pitchDeltas = audioSample.pitchDeltas
+        self.pitchDeltasFull = audioSample.pitchDeltasFull
         self.pitch = audioSample.pitch
         self.spectra = audioSample.spectra
         self.spectrum = audioSample.spectrum

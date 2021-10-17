@@ -1,3 +1,4 @@
+import logging
 import torch
 
 import Backend.VB_Components.VbMetadata
@@ -12,6 +13,7 @@ import Backend.ESPER.PitchCalculator
 calculatePitch = Backend.ESPER.PitchCalculator.calculatePitch
 import Backend.ESPER.SpectralCalculator
 calculateSpectra = Backend.ESPER.SpectralCalculator.calculateSpectra
+import global_consts
 
 class Voicebank:
     """Class for holding a Voicebank as handled by the devkit.
@@ -171,9 +173,12 @@ class Voicebank:
         calculateSpectra(self.phonemeDict[key])
 
     def addPhonemeUtau(self, sample):
-        self.phonemeDict[sample.key] = sample.convert()
-        calculatePitch(self.phonemeDict[sample.key])
-        calculateSpectra(self.phonemeDict[sample.key])
+        if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
+            self.phonemeDict[sample.key] = sample.convert()
+            calculatePitch(self.phonemeDict[sample.key])
+            calculateSpectra(self.phonemeDict[sample.key])
+        else:
+            logging.warning("skipped one or several samples below the size threshold")
     
     def delPhoneme(self, key):
         """deletes a phoneme from the Voicebank's PhonemeDict"""
@@ -198,7 +203,10 @@ class Voicebank:
 
     def addTrainSampleUtau(self, sample):
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
-        self.stagedTrainSamples.append(sample.convert())
+        if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
+            self.stagedTrainSamples.append(sample.convert())
+        else:
+            logging.warning("skipped one or several samples below the size threshold")
     
     def delTrainSample(self, index):
         """removes an audio sample from the list of staged training phonemes"""

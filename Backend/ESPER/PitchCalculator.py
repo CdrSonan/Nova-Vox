@@ -50,3 +50,4 @@ def calculatePitch(audioSample):
                 cursor2 -= audioSample.pitchDeltas[cursor]
             cursor2 += global_consts.batchSize
             pitchDeltas[i] = audioSample.pitchDeltas[cursor]
+        audioSample.pitchDeltasFull = pitchDeltas
