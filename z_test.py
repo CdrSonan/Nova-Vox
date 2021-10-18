@@ -13,11 +13,11 @@ for i in range(10 * global_consts.tripleBatchSize):
 
 plt.plot(data)
 
-data = torch.stft(data, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
+#data = torch.stft(data, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
 
 #plt.plot(data)
 
-dataShift = shift(data, 80 * global_consts.tripleBatchSize, torch.tensor([0.5]), 3, None)
+dataShift = shift(data, 80 * global_consts.tripleBatchSize, torch.tensor([0.5]), torch.full([global_consts.tripleBatchSize], 50), 50, None)
 
 plt.plot(dataShift)
 

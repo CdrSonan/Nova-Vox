@@ -4,11 +4,11 @@ import global_consts
 import Backend.Resampler.PhaseShift
 phaseShift = Backend.Resampler.PhaseShift.phaseShift
 
-def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pitch, device):
+def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pitch, pitchavg, device):
     inputTensor = inputTensor.to(device = device)
     repetititionSpacing = repetititionSpacing.to(device = device)
     batchRS = math.ceil(repetititionSpacing * inputTensor.size()[0] / 2 / global_consts.batchSize)
-    repetititionSpacing = int(repetititionSpacing * math.ceil(inputTensor.size()[0] / 2) - math.ceil(global_consts.tripleBatchSize / pitch / 2))
+    repetititionSpacing = int(repetititionSpacing * math.ceil(inputTensor.size()[0] / 2) - math.ceil(global_consts.tripleBatchSize / pitchavg / 2))
     #window = torch.hann_window(global_consts.tripleBatchSize, device = device)
     counter = 0
     for i in pitch:
@@ -20,10 +20,10 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
         counter += i
         if counter > inputTensor.size()[0] - (0.5 * repetititionSpacing):
             finalPhase = counter - inputTensor.size()[0] + (0.5 * repetititionSpacing)
-    #alignPhase = inputTensor[pitch, int(batchRS/2)].angle()
-    #finalPhase = inputTensor[pitch, -int(batchRS/2)].angle()
-    phaseDiff = (alignPhase - finalPhase)
-    requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[1] - (3 / pitch) - batchRS)), 1)
+            break
+    phaseDiff = int(torch.remainder(alignPhase - finalPhase, pitchavg))
+    print(phaseDiff)
+    requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[0] / global_consts.batchSize - (3 / pitchavg) - batchRS)), 1)
 
     #inputTensor = torch.istft(inputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
 

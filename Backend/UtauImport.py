@@ -187,11 +187,11 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
     """
 
     alias = properties[0]
-    offset = float(properties[1])
-    fixed = float(properties[2])
+    offset = max(float(properties[1]), 0)
+    fixed = max(float(properties[2]), 0)
     blank = float(properties[3])
-    preuttr = float(properties[4])
-    overlap = float(properties[5])
+    preuttr = max(float(properties[4]), 0)
+    overlap = max(float(properties[5]), 0)
     
     if alias == "":
         alias = path.splitext(path.split(filename)[1])[0]

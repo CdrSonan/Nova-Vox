@@ -479,7 +479,9 @@ class PhonemedictUi(tkinter.Frame):
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
         spectrum = loadedVB.phonemeDict[key].spectrum + loadedVB.phonemeDict[key].spectra[value]
-        voicedExcitation = torch.abs(loadedVB.phonemeDict[key].voicedExcitation[:, value]) * spectrum
+        window = torch.hann_window(global_consts.tripleBatchSize)
+        voicedExcitation = torch.stft(loadedVB.phonemeDict[key].voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
+        voicedExcitation = torch.abs(voicedExcitation[:, value]) * spectrum
         excitation = torch.abs(loadedVB.phonemeDict[key].excitation[value]) * spectrum
         xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
         self.diagram.ax.plot(xScale, excitation, label = loc["excitation"])
@@ -736,7 +738,7 @@ class CrfaiUi(tkinter.Frame):
         logging.info("Crfai train button callback")
         global loadedVB
         self.statusVar.set("training Ai...")
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get(), self.progressVar)
+        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get())
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             loadedVB.delTrainSample(0)
@@ -1035,6 +1037,7 @@ class UtauImportUi(tkinter.Frame):
         global loadedVB
         sampleCount = len(self.sampleList)
         for i in range(sampleCount):
+            self.update()
             self.progressVar.set(int(100 * i / sampleCount))
             if self.sampleList[0]._type == 0:
                 loadedVB.addPhonemeUtau(self.sampleList[0])
@@ -1042,6 +1045,7 @@ class UtauImportUi(tkinter.Frame):
                 loadedVB.addTrainSampleUtau(self.sampleList[0])
             del self.sampleList[0]
             self.phonemeList.list.lb.delete(0)
+        self.update()
         self.progressVar.set(100)
         self.sideBar._type.variable.set(0)
         self.sideBar.key.variable.set(None)
@@ -1079,10 +1083,21 @@ class UtauImportUi(tkinter.Frame):
                 types.append(row[1])
             filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["oto.ini_desc"], ".ini"), (loc["all_files_desc"], "*")))
             if filepath != "":
+
+                f = open(filepath, "r", encoding = "Shift_JIS")
+                reader = csv.reader(f, delimiter = ",")
+                rowCount = sum(1 for row in reader)
+                f.close()
+                i = 0
+
                 reader = csv.reader(open(filepath, encoding = "Shift_JIS"), delimiter = "=")
                 otoPath = path.split(filepath)[0]
+
                 for row in reader:
                     print("processing " + str(row))
+                    i += 1
+                    self.update()
+                    self.progressVar.set(int(100 * i / rowCount))
                     filename = row[0]
                     properties = row[1].split(",")
                     occuredError = None
@@ -1112,7 +1127,10 @@ class UtauImportUi(tkinter.Frame):
                     except Exception as error:
                         occuredError = 1
                         logging.error(error)
+                self.progressVar.set(100)
+                self.update()
                 if occuredError == 0:
                     tkinter.messagebox.showinfo(loc["info"], loc["oto_msng_phn"])
                 elif occuredError == 1:
                     tkinter.messagebox.showerror(loc["error"], loc["oto_error"])
+                self.progressVar.set(0)
