@@ -52,15 +52,20 @@ class SpecCrfAi(nn.Module):
             
         super(SpecCrfAi, self).__init__()
 
-        self.layerStart = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, 2 * global_consts.tripleBatchSize, device = device)
-        self.ReLuStart = nn.ReLU()
+        self.layerStart1 = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, 3 * global_consts.halfTripleBatchSize + 4, device = device)
+        self.ReLuStart1 = nn.ReLU()
+        self.layerStart2 = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, 4 * global_consts.halfTripleBatchSize + 4, device = device)
+        self.ReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
-            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(2 * global_consts.tripleBatchSize, 2 * global_consts.tripleBatchSize, device = device)
+            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 4, 4 * global_consts.halfTripleBatchSize + 4, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
-        self.ReLuEnd = nn.ReLU()
+        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 4, 2 * global_consts.halfTripleBatchSize + 2, device = device)
+        self.ReLuEnd1 = nn.ReLU()
+        self.layerEnd2 = torch.nn.Linear(2 * global_consts.halfTripleBatchSize + 2, global_consts.halfTripleBatchSize + 1, device = device)
+        self.ReLuEnd2 = nn.ReLU()
+
         self.device = device
         
         self.hiddenLayerCount = hiddenLayerCount
@@ -90,11 +95,15 @@ class SpecCrfAi(nn.Module):
         interpolated = (spectrum1 * (1. - fac)) + (spectrum2 * fac)
         x = torch.cat((spectrum1, spectrum2, interpolated, fac), dim = 0)
         x = x.float()
-        x = self.layerStart(x)
-        x = self.ReLuStart(x)
+        x = self.layerStart1(x)
+        x = self.ReLuStart1(x)
+        x = self.layerStart2(x)
+        x = self.ReLuStart2(x)
         x = self.hiddenLayers(x)
-        x = self.layerEnd(x)
-        x = self.ReLuEnd(x)
+        x = self.layerEnd1(x)
+        x = self.ReLuEnd1(x)
+        x = self.layerEnd2(x)
+        x = self.ReLuEnd2(x)
         return x
     
     def processData(self, spectrum1, spectrum2, factor):
@@ -223,15 +232,19 @@ class LiteSpecCrfAi(nn.Module):
         else:
             hiddenLayerCount = specCrfAi.hiddenLayerCount
 
-        self.layerStart = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, 2 * global_consts.tripleBatchSize, device = device)
-        self.ReLuStart = nn.ReLU()
+        self.layerStart1 = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, 3 * global_consts.halfTripleBatchSize + 4, device = device)
+        self.ReLuStart1 = nn.ReLU()
+        self.layerStart2 = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, 4 * global_consts.halfTripleBatchSize + 4, device = device)
+        self.ReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
-            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(2 * global_consts.tripleBatchSize, 2 * global_consts.tripleBatchSize, device = device)
+            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 4, 4 * global_consts.halfTripleBatchSize + 4, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
-        self.ReLuEnd = nn.ReLU()
+        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 4, 2 * global_consts.halfTripleBatchSize + 2, device = device)
+        self.ReLuEnd1 = nn.ReLU()
+        self.layerEnd2 = torch.nn.Linear(2 * global_consts.halfTripleBatchSize + 2, global_consts.halfTripleBatchSize + 1, device = device)
+        self.ReLuEnd2 = nn.ReLU()
         
         self.device = device
 
@@ -262,11 +275,15 @@ class LiteSpecCrfAi(nn.Module):
         interpolated = (spectrum1 * (1. - fac)) + (spectrum2 * fac)
         x = torch.cat((spectrum1, spectrum2, interpolated, fac), dim = 0)
         x = x.float()
-        x = self.layerStart(x)
-        x = self.ReLuStart(x)
+        x = self.layerStart1(x)
+        x = self.ReLuStart1(x)
+        x = self.layerStart2(x)
+        x = self.ReLuStart2(x)
         x = self.hiddenLayers(x)
-        x = self.layerEnd(x)
-        x = self.ReLuEnd(x)
+        x = self.layerEnd1(x)
+        x = self.ReLuEnd1(x)
+        x = self.layerEnd2(x)
+        x = self.ReLuEnd2(x)
         return x
     
     def processData(self, spectrum1, spectrum2, factor):

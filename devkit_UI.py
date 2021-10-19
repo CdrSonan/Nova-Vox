@@ -794,7 +794,7 @@ class UtauImportUi(tkinter.Frame):
         """Initializes all widgets of the UTAU import UI window."""
         global loadedVB
 
-        self.diagram = tkinter.LabelFrame(self, text = loc["utau_diag_lbl"])
+        self.diagram = tkinter.LabelFrame(self, text = loc["utau_diag_lbl"], width = 600)
         self.diagram.fig = Figure(figsize=(4, 4))
         self.diagram.ax = self.diagram.fig.add_axes([0.1, 0.1, 0.8, 0.8])
         self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
