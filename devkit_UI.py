@@ -671,10 +671,6 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.finalizeButton["text"] = loc["finalize"]
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
-        
-        self.progressVar = tkinter.IntVar(0)
-        self.progressBar = Progressbar(self, orient = "horizontal", mode = 'determinate', variable = self.progressVar)
-        self.progressBar.pack(side = "top", fill = "x", expand = True, padx = 5)
 
         if loadedVB.crfAi.epoch == None:
             epoch = loc["varying"]
@@ -738,6 +734,7 @@ class CrfaiUi(tkinter.Frame):
         logging.info("Crfai train button callback")
         global loadedVB
         self.statusVar.set("training Ai...")
+        self.update()
         loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get())
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
@@ -885,10 +882,6 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.importButton["text"] = loc["smp_import"]
         self.sideBar.importButton["command"] = self.onImportPress
         self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
-
-        self.progressVar = tkinter.IntVar(0)
-        self.progressBar = Progressbar(self, orient = "horizontal", mode = 'determinate', variable = self.progressVar)
-        self.progressBar.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
@@ -945,7 +938,12 @@ class UtauImportUi(tkinter.Frame):
         logging.info("UTAU sample add button callback")
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
         if filepath != "":
-            sample = UtauSample(filepath, 0, None, 0, None, 0, 0, 0, 0, 0)
+            for s in self.sampleList:
+                if filepath == s.audioSample.filepath:
+                    sample = UtauSample(filepath, 0, None, 0, None, s.offset, s.fixed, s.blank, s.preuttr, s.overlap)
+                    break
+            else:
+                sample = UtauSample(filepath, 0, None, 0, None, 0, 0, 0, 0, 0)
             self.sampleList.append(sample)
             self.phonemeList.list.lb.insert("end", sample.handle)
         
@@ -1038,7 +1036,6 @@ class UtauImportUi(tkinter.Frame):
         sampleCount = len(self.sampleList)
         for i in range(sampleCount):
             self.update()
-            self.progressVar.set(int(100 * i / sampleCount))
             if self.sampleList[0]._type == 0:
                 loadedVB.addPhonemeUtau(self.sampleList[0])
             else:
@@ -1046,13 +1043,11 @@ class UtauImportUi(tkinter.Frame):
             del self.sampleList[0]
             self.phonemeList.list.lb.delete(0)
         self.update()
-        self.progressVar.set(100)
         self.sideBar._type.variable.set(0)
         self.sideBar.key.variable.set(None)
         self.sideBar.start.variable.set(None)
         self.sideBar.end.variable.set(None)
         self.phonemeList.list.lb.selection_set(0)
-        self.progressVar.set(0)
         
     def onOkPress(self):
         """Updates the last selected sample and closes the UTAU import UI window when the OK button is pressed"""
@@ -1097,7 +1092,6 @@ class UtauImportUi(tkinter.Frame):
                     print("processing " + str(row))
                     i += 1
                     self.update()
-                    self.progressVar.set(int(100 * i / rowCount))
                     filename = row[0]
                     properties = row[1].split(",")
                     occuredError = None
@@ -1127,10 +1121,8 @@ class UtauImportUi(tkinter.Frame):
                     except Exception as error:
                         occuredError = 1
                         logging.error(error)
-                self.progressVar.set(100)
                 self.update()
                 if occuredError == 0:
                     tkinter.messagebox.showinfo(loc["info"], loc["oto_msng_phn"])
                 elif occuredError == 1:
                     tkinter.messagebox.showerror(loc["error"], loc["oto_error"])
-                self.progressVar.set(0)

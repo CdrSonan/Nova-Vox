@@ -17,7 +17,7 @@ plt.plot(data)
 
 #plt.plot(data)
 
-dataShift = shift(data, 80 * global_consts.tripleBatchSize, torch.tensor([0.5]), torch.full([global_consts.tripleBatchSize], 50), 50, None)
+dataShift = shift(data, 80 * global_consts.tripleBatchSize, torch.tensor([0.5]), torch.full([global_consts.tripleBatchSize], 200), 200, None)
 
 plt.plot(dataShift)
 

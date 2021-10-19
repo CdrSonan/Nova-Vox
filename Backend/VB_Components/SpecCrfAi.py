@@ -1,3 +1,4 @@
+from typing import OrderedDict
 import numpy as np
 import torch
 from torch._C import device
@@ -39,7 +40,7 @@ class SpecCrfAi(nn.Module):
     Since network performance deteriorates with skewed data, it internally passes the input through a square root function and squares the output."""
         
         
-    def __init__(self, device = None, learningRate=1e-4):
+    def __init__(self, device = None, learningRate=1e-4, hiddenLayerCount = 3):
         """Constructor initialising NN layers and prerequisite attributes.
         
         Arguments:
@@ -51,18 +52,18 @@ class SpecCrfAi(nn.Module):
             
         super(SpecCrfAi, self).__init__()
 
-        self.layer1 = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, global_consts.tripleBatchSize + 3, device = device)
-        self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
-        self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize, device = device)
-        self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3, device = device)
-        self.ReLu4 = nn.ReLU()
-        self.layer5 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1, device = device)
-        
+        self.layerStart = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, 2 * global_consts.tripleBatchSize, device = device)
+        self.ReLuStart = nn.ReLU()
+        hiddenLayerDict = OrderedDict([])
+        for i in range(hiddenLayerCount):
+            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(2 * global_consts.tripleBatchSize, 2 * global_consts.tripleBatchSize, device = device)
+            hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
+        self.hiddenLayers = nn.Sequential(hiddenLayerDict)
+        self.layerEnd = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
+        self.ReLuEnd = nn.ReLU()
         self.device = device
         
+        self.hiddenLayerCount = hiddenLayerCount
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
         #self.criterion = nn.L1Loss()
@@ -89,15 +90,11 @@ class SpecCrfAi(nn.Module):
         interpolated = (spectrum1 * (1. - fac)) + (spectrum2 * fac)
         x = torch.cat((spectrum1, spectrum2, interpolated, fac), dim = 0)
         x = x.float()
-        x = self.layer1(x)
-        x = self.ReLu1(x)
-        x = self.layer2(x)
-        x = self.ReLu2(x)
-        x = self.layer3(x)
-        x = self.ReLu3(x)
-        x = self.layer4(x)
-        x = self.ReLu4(x)
-        x = self.layer5(x)
+        x = self.layerStart(x)
+        x = self.ReLuStart(x)
+        x = self.hiddenLayers(x)
+        x = self.layerEnd(x)
+        x = self.ReLuEnd(x)
         return x
     
     def processData(self, spectrum1, spectrum2, factor):
@@ -139,7 +136,6 @@ class SpecCrfAi(nn.Module):
                 self.epoch = epochs
             else:
                 self.epoch = None
-            sampleCount = len(indata)
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
                     print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
@@ -222,15 +218,20 @@ class LiteSpecCrfAi(nn.Module):
             
         super(LiteSpecCrfAi, self).__init__()
         
-        self.layer1 = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, global_consts.tripleBatchSize + 3, device = device)
-        self.ReLu1 = nn.ReLU()
-        self.layer2 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.tripleBatchSize + 3, device = device)
-        self.ReLu2 = nn.ReLU()
-        self.layer3 = torch.nn.Linear(global_consts.tripleBatchSize + 3, 2 * global_consts.tripleBatchSize, device = device)
-        self.ReLu3 = nn.ReLU()
-        self.layer4 = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.tripleBatchSize + 3, device = device)
-        self.ReLu4 = nn.ReLU()
-        self.layer5 = torch.nn.Linear(global_consts.tripleBatchSize + 3, global_consts.halfTripleBatchSize + 1, device = device)
+        if specCrfAi == None:
+            hiddenLayerCount = 3
+        else:
+            hiddenLayerCount = specCrfAi.hiddenLayerCount
+
+        self.layerStart = torch.nn.Linear(3 * global_consts.halfTripleBatchSize + 4, 2 * global_consts.tripleBatchSize, device = device)
+        self.ReLuStart = nn.ReLU()
+        hiddenLayerDict = OrderedDict([])
+        for i in range(hiddenLayerCount):
+            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(2 * global_consts.tripleBatchSize, 2 * global_consts.tripleBatchSize, device = device)
+            hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
+        self.hiddenLayers = nn.Sequential(hiddenLayerDict)
+        self.layerEnd = torch.nn.Linear(2 * global_consts.tripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
+        self.ReLuEnd = nn.ReLU()
         
         self.device = device
 
@@ -261,15 +262,11 @@ class LiteSpecCrfAi(nn.Module):
         interpolated = (spectrum1 * (1. - fac)) + (spectrum2 * fac)
         x = torch.cat((spectrum1, spectrum2, interpolated, fac), dim = 0)
         x = x.float()
-        x = self.layer1(x)
-        x = self.ReLu1(x)
-        x = self.layer2(x)
-        x = self.ReLu2(x)
-        x = self.layer3(x)
-        x = self.ReLu3(x)
-        x = self.layer4(x)
-        x = self.ReLu4(x)
-        x = self.layer5(x)
+        x = self.layerStart(x)
+        x = self.ReLuStart(x)
+        x = self.hiddenLayers(x)
+        x = self.layerEnd(x)
+        x = self.ReLuEnd(x)
         return x
     
     def processData(self, spectrum1, spectrum2, factor):
