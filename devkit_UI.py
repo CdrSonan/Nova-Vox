@@ -14,6 +14,7 @@ from os import path
 import logging
 import torch
 import csv
+import sys
 import global_consts
 import Backend.VB_Components.Voicebank
 Voicebank = Backend.VB_Components.Voicebank.Voicebank
@@ -42,7 +43,11 @@ class RootUi(tkinter.Frame):
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
         self.master.wm_title(loc["no_vb"])
-        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+        if (sys.platform.startswith('win')): 
+            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+        else:
+            logo = tkinter.PhotoImage(file="icon/nova-vox-logo-black.gif")
+            self.master.call('wm', 'iconphoto', self.master._w, logo)
 
         settings = {}
         with open("settings.ini", 'r') as f:
@@ -214,7 +219,8 @@ class MetadataUi(tkinter.Frame):
         self.pack(ipadx = 20)
         self.createWidgets()
         self.master.wm_title(loc["metadat_lbl"])
-        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+        if (sys.platform.startswith('win')): 
+            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
     def createWidgets(self):
         """initializes all widgets of the Metadata window. Called once during initialization"""
@@ -264,8 +270,8 @@ class PhonemedictUi(tkinter.Frame):
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
         self.master.wm_title(loc["phon_lbl"])
-        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
-        self.disableButtons()
+        if (sys.platform.startswith('win')): 
+            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
     def createWidgets(self):
         """Initializes all widgets of the Phoneme Dict UI window."""
@@ -607,7 +613,8 @@ class CrfaiUi(tkinter.Frame):
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
         self.master.wm_title(loc["crfai_lbl"])
-        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+        if (sys.platform.startswith('win')): 
+            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
     def createWidgets(self):
         """creates all widgets of the window. Called once during initialization"""
@@ -787,7 +794,9 @@ class UtauImportUi(tkinter.Frame):
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
         self.master.wm_title(loc["utau_lbl"])
-        self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+        if (sys.platform.startswith('win')): 
+            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+        
         self.sampleList = []
         
     def createWidgets(self):

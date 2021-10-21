@@ -8045,3 +8045,1850 @@
 2021-10-19 22:21:41,781:38180:INFO:Initializing Crfai UI
 2021-10-19 22:21:44,234:38180:INFO:Crfai train button callback
 2021-10-19 22:55:32,670:38180:INFO:Crfai train button callback completed
+2021-10-20 17:09:02,449:10340:INFO:logging service started
+2021-10-20 17:09:02,450:10340:INFO:initializing Root UI
+2021-10-20 17:17:24,987:10975:INFO:logging service started
+2021-10-20 17:17:24,988:10975:INFO:initializing Root UI
+2021-10-20 17:17:27,143:10975:INFO:new button callback
+2021-10-20 17:17:34,439:10975:INFO:UTAU import button callback
+2021-10-20 17:17:34,454:10975:INFO:Initializing UTAU import UI
+2021-10-21 10:07:22,242:5595:INFO:logging service started
+2021-10-21 10:07:22,243:5595:INFO:initializing Root UI
+2021-10-21 10:07:29,925:5595:INFO:Root UI destroyed
+2021-10-21 10:14:39,295:6029:INFO:logging service started
+2021-10-21 10:14:39,295:6029:INFO:initializing Root UI
+2021-10-21 10:14:44,441:6029:INFO:new button callback
+2021-10-21 10:14:46,423:6029:INFO:UTAU import button callback
+2021-10-21 10:14:46,441:6029:INFO:Initializing UTAU import UI
+2021-10-21 10:15:27,429:6189:INFO:logging service started
+2021-10-21 10:15:27,429:6189:INFO:initializing Root UI
+2021-10-21 10:15:29,756:6189:INFO:new button callback
+2021-10-21 10:15:30,568:6189:INFO:Metadata button callback
+2021-10-21 10:15:30,585:6189:INFO:Initializing Metadata UI
+2021-10-21 10:17:36,397:6335:INFO:logging service started
+2021-10-21 10:17:36,397:6335:INFO:initializing Root UI
+2021-10-21 10:18:02,661:6458:INFO:logging service started
+2021-10-21 10:18:02,661:6458:INFO:initializing Root UI
+2021-10-21 10:18:08,391:6458:INFO:new button callback
+2021-10-21 10:18:10,260:6458:INFO:Metadata button callback
+2021-10-21 10:18:10,277:6458:INFO:Initializing Metadata UI
+2021-10-21 10:18:27,397:6596:INFO:logging service started
+2021-10-21 10:18:27,397:6596:INFO:initializing Root UI
+2021-10-21 10:18:28,718:6596:INFO:new button callback
+2021-10-21 10:18:29,447:6596:INFO:Metadata button callback
+2021-10-21 10:18:29,463:6596:INFO:Initializing Metadata UI
+2021-10-21 10:18:44,723:6739:INFO:logging service started
+2021-10-21 10:18:44,723:6739:INFO:initializing Root UI
+2021-10-21 10:18:46,223:6739:INFO:new button callback
+2021-10-21 10:18:48,492:6739:INFO:Metadata button callback
+2021-10-21 10:18:48,509:6739:INFO:Initializing Metadata UI
+2021-10-21 10:21:29,556:7261:INFO:logging service started
+2021-10-21 10:21:29,557:7261:INFO:initializing Root UI
+2021-10-21 10:21:30,933:7261:INFO:new button callback
+2021-10-21 10:21:31,736:7261:INFO:Metadata button callback
+2021-10-21 10:21:31,753:7261:INFO:Initializing Metadata UI
+2021-10-21 10:22:36,094:7394:INFO:logging service started
+2021-10-21 10:22:36,095:7394:INFO:initializing Root UI
+2021-10-21 10:22:37,729:7394:INFO:new button callback
+2021-10-21 10:22:38,316:7394:INFO:Metadata button callback
+2021-10-21 10:22:38,333:7394:INFO:Initializing Metadata UI
+2021-10-21 10:22:43,608:7394:INFO:Metadata OK button callback
+2021-10-21 10:22:48,293:7394:INFO:UTAU import button callback
+2021-10-21 10:22:48,311:7394:INFO:Initializing UTAU import UI
+2021-10-21 10:22:51,191:7394:INFO:oto.ini load button callback
+2021-10-21 10:24:08,918:7394:INFO:UTAU sample list selection change callback
+2021-10-21 10:24:08,919:7394:INFO:UTAU diagram update callback
+2021-10-21 10:24:46,266:7394:INFO:UTAU sample list selection change callback
+2021-10-21 10:24:46,267:7394:INFO:UTAU diagram update callback
+2021-10-21 10:24:51,370:7394:INFO:UTAU sample list selection change callback
+2021-10-21 10:24:51,371:7394:INFO:UTAU diagram update callback
+2021-10-21 10:24:54,480:7394:INFO:UTAU sample list selection change callback
+2021-10-21 10:24:54,481:7394:INFO:UTAU diagram update callback
+2021-10-21 10:25:13,228:7394:INFO:UTAU sample list selection change callback
+2021-10-21 10:25:13,229:7394:INFO:UTAU diagram update callback
+2021-10-21 10:25:16,174:7394:INFO:UTAU sample list selection change callback
+2021-10-21 10:25:16,175:7394:INFO:UTAU diagram update callback
+2021-10-21 10:25:19,723:7394:INFO:UTAU sample list selection change callback
+2021-10-21 10:25:19,724:7394:INFO:UTAU diagram update callback
+2021-10-21 10:25:26,586:7394:INFO:UTAU import all button callback
+2021-10-21 10:25:54,101:7394:INFO:UTAU OK button callback
+2021-10-21 10:25:55,738:7394:INFO:PhonemeDict button callback
+2021-10-21 10:25:55,754:7394:INFO:Initializing Phonemedict UI
+2021-10-21 10:25:56,870:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:25:56,871:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:25:56,871:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:25:59,075:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:25:59,199:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:25:59,314:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:25:59,431:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:25:59,555:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:25:59,672:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:25:59,782:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:25:59,929:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:00,054:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:00,167:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:00,284:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:00,407:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:00,535:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:00,659:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:00,780:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:01,025:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:01,165:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:01,283:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:01,403:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:01,587:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:01,827:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:02,493:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:02,621:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:02,736:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:02,862:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:02,987:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:03,110:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:03,226:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:03,342:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:03,462:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:03,584:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:03,749:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:03,872:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:03,990:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:04,239:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:04,478:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:06,987:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:07,152:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:07,314:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:07,440:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:07,560:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:07,674:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:07,791:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:07,914:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:08,076:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:08,199:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:08,315:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:08,434:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:08,560:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:08,683:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:08,805:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:08,920:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:09,073:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:09,198:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:09,311:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:09,564:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:10,072:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:10,197:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:11,005:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:11,139:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:11,264:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:11,391:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:11,511:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:11,632:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:11,753:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:13,125:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:15,441:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:20,025:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:26:25,792:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:26:25,808:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:29,293:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:29,416:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:29,532:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:29,655:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:29,768:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:29,892:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:30,021:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:30,143:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:30,263:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:30,385:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:30,514:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:30,638:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:30,780:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:30,913:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:31,315:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:31,433:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:31,549:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:31,665:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:31,791:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:31,915:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:32,049:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:32,176:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:32,300:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:32,427:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:32,548:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:32,668:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:32,785:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:32,909:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:33,027:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:33,149:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:33,271:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:33,389:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:33,497:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:33,615:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:34,642:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:34,760:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:34,876:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:34,988:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:35,107:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:35,222:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:35,342:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:35,456:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:35,584:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:35,701:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:35,815:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:35,931:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:36,054:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:36,180:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:36,307:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:36,437:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:36,560:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:36,676:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:36,842:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:36,971:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:37,084:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:37,205:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:37,318:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:37,442:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:37,559:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:37,678:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:37,793:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:37,914:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:38,036:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:38,160:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:38,272:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:38,388:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:38,510:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:38,632:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:38,758:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:38,878:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:38,995:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:39,121:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:40,461:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:40,588:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:40,703:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:40,819:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:40,931:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:41,060:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:41,175:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:41,343:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:45,815:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:26:45,831:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:47,432:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:47,565:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:47,688:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:47,806:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:47,934:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:48,049:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:48,166:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:48,288:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:48,405:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:48,530:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:48,681:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:48,793:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:50,130:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:26:50,177:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:26:52,230:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:26:52,255:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:54,302:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:54,431:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:54,554:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:54,677:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:54,803:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:54,930:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:55,045:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:55,157:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:55,284:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:55,397:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:55,708:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:55,829:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:55,943:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:56,074:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:56,203:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:56,331:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:56,457:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:56,585:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:56,712:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:56,838:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:56,964:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:57,075:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:57,198:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:57,322:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:57,446:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:57,572:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:57,696:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:57,814:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:57,936:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:58,065:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:58,195:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:58,319:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:58,483:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:58,612:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:58,739:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:58,863:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:58,990:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:59,118:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:59,248:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:59,374:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:59,500:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:59,631:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:59,757:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:26:59,891:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:00,018:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:03,652:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:27:03,671:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:05,325:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:05,452:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:05,568:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:05,683:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:05,801:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:05,932:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:06,053:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:06,177:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:06,293:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:06,416:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:06,539:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:06,654:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:06,775:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:06,892:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:07,011:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:07,140:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:07,275:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:07,509:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:07,754:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:07,870:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:08,322:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:08,453:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:08,576:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:08,700:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:08,827:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:08,948:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:09,080:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:09,197:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:09,338:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:09,779:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:09,901:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:10,021:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:10,152:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:10,267:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:10,392:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:10,507:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:10,630:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:10,755:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:10,882:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:11,013:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:11,143:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:11,262:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:11,388:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:11,520:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:11,646:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:11,769:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:11,891:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:12,009:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:12,138:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:12,255:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:12,368:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:12,483:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:13,109:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:13,318:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:13,515:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:13,747:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:13,867:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:21,895:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:27:21,910:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:23,905:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:27:23,905:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:27:23,906:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:24,032:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:27:27,426:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:27:27,426:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:27:27,427:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:29,058:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:27:30,875:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:27:30,891:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:32,586:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:27:34,232:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:27:34,249:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:35,962:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:36,081:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:36,201:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:36,322:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:36,440:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:36,555:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:36,680:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:36,797:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:36,913:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:37,026:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:37,146:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:37,260:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:37,373:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:37,487:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:37,599:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:37,714:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:37,830:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:37,945:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:38,059:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:38,353:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:38,471:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:38,588:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:38,702:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:38,825:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:39,056:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:39,177:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:40,220:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:40,391:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:42,162:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:42,277:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:42,404:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:42,524:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:42,635:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:42,751:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:42,862:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:42,986:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:43,111:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:43,428:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:43,601:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:43,714:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:43,863:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:43,982:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:44,094:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:44,206:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:44,316:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:44,431:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:44,542:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:44,654:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:44,769:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:44,879:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:45,006:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:45,154:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:45,275:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:45,387:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:45,513:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:45,628:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:45,744:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:45,863:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:45,976:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:46,094:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:46,205:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:46,320:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:46,431:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:46,545:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:46,671:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:46,780:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:46,890:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:47,009:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:47,129:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:47,245:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:47,360:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:47,475:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:47,600:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:47,716:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:47,831:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:47,945:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:48,075:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:48,195:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:48,310:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:49,628:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:49,759:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:50,256:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:50,381:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:50,497:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:50,646:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:50,761:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:50,875:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:50,990:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:51,108:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:51,221:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:51,335:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:51,457:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:51,580:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:51,694:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:51,808:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:51,921:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:52,041:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:52,157:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:52,270:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:52,398:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:52,513:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:52,628:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:52,753:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:52,872:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:52,999:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:53,113:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:53,227:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:54,764:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:27:54,764:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:27:54,765:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:54,896:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:27:55,719:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:27:57,448:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:27:57,464:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:27:59,085:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:02,094:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:02,111:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:06,524:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:28:06,525:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:28:06,526:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:06,645:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:07,631:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:28:09,338:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:09,353:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:10,327:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:12,317:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:12,334:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:14,330:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:14,449:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:14,573:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:14,690:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:14,807:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:14,924:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:15,083:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:15,210:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:15,328:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:15,479:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:15,605:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:15,725:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:15,842:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:15,963:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:16,079:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:16,199:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:16,314:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:16,430:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:16,546:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:16,673:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:16,798:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:16,921:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:17,059:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:17,180:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:17,298:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:17,434:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:17,578:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:17,747:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:17,919:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:18,036:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:18,153:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:18,420:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:18,552:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:18,754:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:18,876:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:19,009:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:19,135:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:19,257:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:19,372:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:19,488:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:19,605:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:19,718:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:19,834:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:19,950:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:20,067:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:20,190:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:20,308:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:20,425:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:20,544:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:20,663:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:20,780:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:20,896:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:21,055:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:21,178:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:21,305:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:21,430:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:21,548:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:21,665:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:21,787:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:21,906:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:22,026:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:22,140:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:22,262:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:22,381:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:22,501:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:22,619:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:22,740:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:22,861:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:22,979:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:23,098:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:23,218:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:23,333:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:23,451:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:26,612:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:26,739:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:26,852:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:26,966:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:27,090:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:27,204:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:27,323:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:27,439:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:27,556:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:27,673:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:27,786:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:27,904:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:28,021:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:28,134:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:28,252:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:28,371:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:28,487:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:28,604:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:28,721:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:28,841:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:28,960:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:29,080:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:29,193:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:29,315:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:31,602:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:28:31,603:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:28:31,604:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:31,723:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:32,451:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:28:34,233:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:34,245:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:35,120:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:37,037:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:37,055:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:38,786:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:28:38,787:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:28:38,788:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:38,913:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:39,429:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:28:41,050:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:41,062:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:42,628:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:45,539:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:45,553:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:50,785:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:28:50,786:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:28:50,787:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:50,916:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:51,609:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:28:53,285:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:53,291:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:53,940:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:56,455:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:28:56,462:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:58,923:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:59,047:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:59,175:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:59,451:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:28:59,759:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:00,004:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:00,255:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:00,513:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:00,799:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:01,032:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:01,208:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:01,454:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:01,608:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:01,859:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:02,064:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:02,797:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:03,323:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:03,808:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:04,525:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:04,824:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:05,265:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:05,574:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:05,701:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:05,819:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:05,945:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:06,069:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:06,190:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:07,754:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:29:07,755:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:29:07,755:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:07,889:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:08,892:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:29:10,473:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:10,478:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:11,232:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:13,456:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:13,463:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:14,605:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:29:14,606:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:29:14,606:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:14,768:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:15,355:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:29:17,116:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:17,128:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:18,051:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:21,043:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:21,060:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:22,748:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:29:22,749:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:29:22,749:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:22,873:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:23,664:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:29:25,296:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:25,305:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:26,820:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:28,539:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:28,550:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:31,961:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:29:31,962:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:29:31,962:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:32,084:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:32,906:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:29:34,456:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:34,464:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:35,208:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:37,458:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:37,468:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:38,514:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:29:38,515:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:29:38,516:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:38,647:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:39,259:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:29:40,838:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:40,848:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:43,043:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:45,107:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:45,118:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:45,897:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:29:45,898:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:29:45,898:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:46,022:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:47,186:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:29:49,270:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:49,276:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:51,158:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:52,651:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:29:52,658:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:54,209:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:54,542:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:55,122:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:55,497:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:55,682:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:55,926:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:56,153:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:56,322:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:56,472:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:56,642:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:56,791:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:56,940:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:57,069:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:57,189:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:57,311:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:57,438:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:57,555:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:59,200:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:29:59,201:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:29:59,202:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:29:59,337:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:00,049:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:30:01,318:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:01,325:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:03,552:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:05,484:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:05,493:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:09,168:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:09,287:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:09,441:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:09,569:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:09,692:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:09,811:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:09,935:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:10,055:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:10,175:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:10,299:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:10,760:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:10,938:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:11,183:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:11,338:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:11,462:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:11,585:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:11,703:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:11,821:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:11,942:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:12,065:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:12,179:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:12,298:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:12,421:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:12,545:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:12,668:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:12,828:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:13,067:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:13,192:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:13,312:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:13,432:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:13,551:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:15,457:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:30:15,458:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:30:15,458:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:15,581:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:16,321:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:30:18,375:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:18,381:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:19,236:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:21,638:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:21,645:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:23,382:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:23,508:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:23,639:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:23,868:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:24,000:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:24,140:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:24,274:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:24,394:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:24,516:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:24,629:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:27,243:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:27,398:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:27,517:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:27,634:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:27,760:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:27,885:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:28,476:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:28,999:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:29,324:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:29,520:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:29,651:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:29,771:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:29,888:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:30,004:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:30,135:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:30,254:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:30,373:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:30,498:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:31,233:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:31,404:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:31,695:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:31,915:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:32,082:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:32,300:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:32,486:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:32,696:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:32,883:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:33,098:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:33,289:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:33,433:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:33,554:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:33,667:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:33,782:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:33,896:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:34,013:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:34,130:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:34,259:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:34,957:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:35,257:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:35,365:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:37,716:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:40,065:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:45,528:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:30:45,529:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:30:45,529:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:45,593:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:46,384:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:30:48,254:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:48,260:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:48,784:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:52,675:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:52,682:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:54,746:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:30:54,746:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:30:54,747:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:54,792:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:55,867:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:30:57,524:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:30:57,534:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:30:58,161:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:00,243:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:00,254:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:01,952:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:31:01,953:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:31:01,953:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:02,005:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:02,634:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:31:02,696:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:31:04,080:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:04,085:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:05,151:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:07,040:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:07,047:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:08,441:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:08,537:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:08,625:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:08,709:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:08,818:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:08,947:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,085:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,183:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,329:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,469:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,557:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,661:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,738:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,812:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,883:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:09,942:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:10,009:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:10,085:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:10,151:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:10,219:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:10,288:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:10,364:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:10,446:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:10,563:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:10,669:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:12,153:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:31:12,154:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:31:12,154:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:12,209:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:13,514:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:31:13,514:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:31:13,514:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:14,937:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:31:16,433:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:16,440:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:18,226:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:20,256:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:20,265:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:21,969:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:22,049:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:22,188:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:22,399:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:22,539:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:22,757:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:22,953:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:23,091:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:23,208:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:23,306:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:23,435:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:23,551:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:23,657:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:23,828:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:23,978:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:24,131:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:24,298:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:24,445:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:24,937:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:25,604:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:25,683:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:25,749:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:25,816:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:25,878:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:25,945:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,059:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,125:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,192:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,249:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,320:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,397:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,455:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,521:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,592:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,819:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:26,958:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,087:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,180:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,471:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,539:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,614:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,723:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,791:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,856:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,919:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:27,976:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,033:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,089:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,155:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,211:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,265:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,335:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,411:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,485:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,558:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,631:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,694:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,760:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,817:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,876:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,934:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:28,990:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:29,044:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:29,101:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:29,161:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:29,228:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:29,327:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:29,505:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:29,752:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:29,941:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:30,061:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:30,231:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:33,319:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:31:33,319:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:31:33,319:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:33,368:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:34,028:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:31:35,574:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:35,580:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:38,582:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:41,058:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:41,065:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:41,501:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:31:41,501:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:31:41,501:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:41,548:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:42,400:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:31:44,087:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:44,093:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:44,546:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:46,547:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:46,553:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:47,001:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:31:47,001:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:31:47,002:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:47,057:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:47,979:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:31:49,444:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:49,450:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:50,922:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:52,856:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:31:52,863:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:54,071:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:54,352:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:54,464:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:54,572:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:54,684:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:54,784:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:54,854:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:54,922:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,012:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,124:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,244:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,342:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,439:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,556:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,683:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,771:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,837:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,904:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:55,972:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:56,039:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:56,104:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:56,173:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:56,236:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:56,297:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:56,367:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:56,830:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:56,909:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:56,962:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:57,018:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:57,082:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:57,138:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:57,199:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:57,265:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:57,335:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:57,474:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:57,947:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:58,021:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:58,092:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:58,173:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:58,294:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:58,434:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:58,573:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:58,754:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:58,834:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:58,933:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,030:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,127:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,274:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,361:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,432:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,500:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,586:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,651:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,768:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,850:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,917:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:31:59,993:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:00,174:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:00,355:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:04,859:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:06,123:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:32:06,123:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:32:06,124:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:06,171:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:07,315:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:32:07,891:7394:INFO:Phonemedict pitch update callback
+2021-10-21 10:32:09,618:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:09,625:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:10,192:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:12,687:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:12,696:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:13,161:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:32:13,162:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:32:13,162:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:13,209:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:13,959:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:32:15,646:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:15,653:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:16,412:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:18,837:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:18,846:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:19,686:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:32:19,686:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:32:19,686:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:19,744:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:20,890:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:32:22,577:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:22,585:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:23,126:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:25,238:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:25,249:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:27,526:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:32:27,526:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:32:27,526:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:27,573:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:28,404:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:32:30,869:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:30,875:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:31,708:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:35,126:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:35,133:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:36,019:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:32:36,019:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:32:36,020:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:36,081:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:36,842:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:32:38,479:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:38,484:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:39,197:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:41,157:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:41,164:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:41,620:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:32:41,620:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:32:41,621:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:41,679:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:42,440:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:32:44,209:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:44,215:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:45,119:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:47,150:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:47,158:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:48,445:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:32:48,445:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:32:48,446:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:48,496:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:49,499:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:32:51,035:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:51,040:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:51,884:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:54,087:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:54,094:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:54,855:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:32:54,855:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:32:54,855:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:54,903:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:55,613:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:32:57,159:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:57,166:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:32:57,662:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:59,490:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:32:59,498:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:02,568:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:33:02,569:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:33:02,569:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:02,623:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:03,364:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:33:04,971:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:04,977:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:05,546:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:07,669:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:07,676:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:08,364:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:33:08,365:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:33:08,365:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:08,413:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:09,184:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:33:10,528:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:10,534:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:13,701:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:16,441:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:16,448:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:17,250:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:17,283:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:33:25,316:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:25,323:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:28,653:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:33:28,653:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:33:28,654:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:28,703:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:30,135:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:30,212:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:30,315:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:30,450:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:30,611:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:30,732:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:30,882:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:31,013:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:31,143:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:31,234:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:31,389:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:31,567:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:31,690:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:31,777:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:31,876:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:31,948:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:32,045:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:32,153:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:32,256:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:32,362:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:32,484:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:32,591:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:32,704:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:33,328:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:34,012:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:34,261:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:34,782:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:34,850:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:34,911:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:34,967:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:35,036:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:35,094:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:35,150:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:35,211:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:35,270:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:35,326:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:35,386:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:35,485:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:36,068:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:36,138:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:36,208:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:36,298:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:36,429:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:36,539:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:36,649:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:36,771:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:36,921:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:37,073:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:37,230:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:37,357:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:37,457:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:37,555:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:37,732:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:37,931:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:38,047:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:38,223:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:38,342:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:38,459:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:38,609:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:38,782:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:38,945:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:40,297:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:40,688:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:41,822:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:41,949:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:42,114:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:44,750:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:33:44,750:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:33:44,751:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:46,013:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:33:47,984:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:47,990:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:48,534:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:50,585:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:50,592:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:52,486:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:33:52,486:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:33:52,487:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:52,537:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:53,247:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:33:54,592:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:54,597:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:33:55,171:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:56,787:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:33:56,794:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:01,225:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:34:01,225:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:34:01,225:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:01,276:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:02,098:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:34:04,282:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:04,287:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:04,565:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:06,251:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:06,258:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:08,153:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:34:08,153:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:34:08,154:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:08,209:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:09,384:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:34:10,737:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:10,743:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:12,940:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:18,398:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:18,405:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:19,448:7394:INFO:Phonemedict selection change callback
+2021-10-21 10:34:19,448:7394:INFO:Phonemedict slider properties update callback
+2021-10-21 10:34:19,449:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:19,508:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:20,410:7394:INFO:Phonemedict list focus loss callback
+2021-10-21 10:34:21,945:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:21,952:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:22,721:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:24,741:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:24,748:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:26,538:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:26,616:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:26,736:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:26,803:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:26,909:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:26,999:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,066:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,136:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,206:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,273:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,372:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,430:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,488:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,542:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,599:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,666:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,730:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:27,811:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:28,019:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:28,106:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:28,364:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:28,461:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:28,531:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:28,972:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:29,202:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:29,762:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:29,858:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,417:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,490:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,559:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,615:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,671:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,727:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,781:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,840:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,905:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:30,975:7394:INFO:Phonemedict slider movement callback
+2021-10-21 10:34:34,506:7394:INFO:Phonemedict OK button callback
+2021-10-21 10:34:34,506:7394:INFO:Phonemedict key change callback
+2021-10-21 10:34:34,506:7394:INFO:Phonemedict pitch update callback
+2021-10-21 10:34:34,506:7394:INFO:Phonemedict spectral update callback
+2021-10-21 10:34:36,223:7394:INFO:Crfai button callback
+2021-10-21 10:34:36,243:7394:INFO:Initializing Crfai UI
+2021-10-21 10:34:42,966:7394:INFO:Crfai train button callback
+2021-10-21 10:45:32,071:46508:INFO:logging service started
+2021-10-21 10:45:32,071:46508:INFO:initializing Root UI
+2021-10-21 10:45:34,028:46508:INFO:new button callback
+2021-10-21 10:45:35,599:46508:INFO:UTAU import button callback
+2021-10-21 10:45:35,615:46508:INFO:Initializing UTAU import UI
+2021-10-21 10:45:36,840:46508:INFO:oto.ini load button callback
+2021-10-21 10:45:58,004:46508:WARNING:filename/alias - あ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:58,004:46508:WARNING:filename/alias あ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,196:46508:WARNING:filename/alias い゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,197:46508:WARNING:filename/alias い・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,309:46508:WARNING:filename/alias う゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,309:46508:WARNING:filename/alias う・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,309:46508:WARNING:filename/alias - うぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,310:46508:WARNING:filename/alias う゛ぁ/゛ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,336:46508:WARNING:filename/alias - う゛ぃ/゛ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,376:46508:WARNING:filename/alias - う゛ぇ/゛ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,377:46508:WARNING:filename/alias うぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,417:46508:WARNING:filename/alias - う゛ぉ/゛ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,417:46508:WARNING:filename/alias うぉ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,417:46508:WARNING:filename/alias うゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,418:46508:WARNING:filename/alias うゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,418:46508:WARNING:filename/alias うょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,418:46508:WARNING:filename/alias う゛子音/゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,428:46508:WARNING:filename/alias - え゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,428:46508:WARNING:filename/alias え・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,458:46508:WARNING:filename/alias - お゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,458:46508:WARNING:filename/alias お・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,486:46508:WARNING:filename/alias か・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,487:46508:WARNING:filename/alias か子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,516:46508:WARNING:filename/alias が・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,516:46508:WARNING:filename/alias が子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,546:46508:WARNING:filename/alias き・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,608:46508:WARNING:filename/alias きゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,609:46508:WARNING:filename/alias きゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,644:46508:WARNING:filename/alias きゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,645:46508:WARNING:filename/alias きゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,675:46508:WARNING:filename/alias き子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,715:46508:WARNING:filename/alias ぎ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,778:46508:WARNING:filename/alias ぎゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,778:46508:WARNING:filename/alias ぎゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,808:46508:WARNING:filename/alias ぎゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,841:46508:WARNING:filename/alias ぎょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,842:46508:WARNING:filename/alias ぎ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,873:46508:WARNING:filename/alias く・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:45:59,993:46508:WARNING:filename/alias く子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,033:46508:WARNING:filename/alias ぐ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,150:46508:WARNING:filename/alias ぐ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,181:46508:WARNING:filename/alias け・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,182:46508:WARNING:filename/alias け子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,217:46508:WARNING:filename/alias げ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,217:46508:WARNING:filename/alias げ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,247:46508:WARNING:filename/alias こ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,248:46508:WARNING:filename/alias こ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,280:46508:WARNING:filename/alias ご・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,281:46508:WARNING:filename/alias ご子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,312:46508:WARNING:filename/alias さ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,312:46508:WARNING:filename/alias さ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,340:46508:WARNING:filename/alias ざ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,340:46508:WARNING:filename/alias ざ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,368:46508:WARNING:filename/alias し・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,398:46508:WARNING:filename/alias しぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,440:46508:WARNING:filename/alias しゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,470:46508:WARNING:filename/alias しゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,470:46508:WARNING:filename/alias しゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,499:46508:WARNING:filename/alias しょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,500:46508:WARNING:filename/alias しょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,500:46508:WARNING:filename/alias し子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,529:46508:WARNING:filename/alias じ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,559:46508:WARNING:filename/alias じぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,588:46508:WARNING:filename/alias じゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,588:46508:WARNING:filename/alias じゃーん/ーn contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,589:46508:WARNING:filename/alias じゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,618:46508:WARNING:filename/alias じゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,653:46508:WARNING:filename/alias じょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,654:46508:WARNING:filename/alias じょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,654:46508:WARNING:filename/alias じ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,685:46508:WARNING:filename/alias す・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,712:46508:WARNING:filename/alias すぁ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,742:46508:WARNING:filename/alias すぃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,743:46508:WARNING:filename/alias すぅぃ/ぅぃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,743:46508:WARNING:filename/alias すぅぃ・/ぅぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,771:46508:WARNING:filename/alias すぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,801:46508:WARNING:filename/alias す子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,832:46508:WARNING:filename/alias ず・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,860:46508:WARNING:filename/alias ずぁ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,889:46508:WARNING:filename/alias ずぃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,890:46508:WARNING:filename/alias ずぅぃ/ぅぃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,890:46508:WARNING:filename/alias ずぅぃ・/ぅぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,919:46508:WARNING:filename/alias ずぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,948:46508:WARNING:filename/alias ずぉ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,949:46508:WARNING:filename/alias ず子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,979:46508:WARNING:filename/alias せ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:00,979:46508:WARNING:filename/alias せ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,014:46508:WARNING:filename/alias ぜ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,014:46508:WARNING:filename/alias ぜ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,043:46508:WARNING:filename/alias そ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,043:46508:WARNING:filename/alias そ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,072:46508:WARNING:filename/alias ぞ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,072:46508:WARNING:filename/alias ぞ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,101:46508:WARNING:filename/alias た・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,101:46508:WARNING:filename/alias た子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,131:46508:WARNING:filename/alias だ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,131:46508:WARNING:filename/alias だ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,160:46508:WARNING:filename/alias ち・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,189:46508:WARNING:filename/alias ちぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,189:46508:WARNING:filename/alias ちぇ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,218:46508:WARNING:filename/alias ちゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,250:46508:WARNING:filename/alias ちゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,284:46508:WARNING:filename/alias ちょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,284:46508:WARNING:filename/alias ちょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,285:46508:WARNING:filename/alias ち子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,314:46508:WARNING:filename/alias ぢ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,314:46508:WARNING:filename/alias - ぢぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,314:46508:WARNING:filename/alias ぢぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,315:46508:WARNING:filename/alias - ぢゃ/ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,315:46508:WARNING:filename/alias ぢゃ・/ゃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,315:46508:WARNING:filename/alias ぢゃ子音/ゃ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,315:46508:WARNING:filename/alias - ぢゅ/ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,316:46508:WARNING:filename/alias ぢゅ・/ゅ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,316:46508:WARNING:filename/alias - ぢょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,316:46508:WARNING:filename/alias ぢょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,317:46508:WARNING:filename/alias ぢ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,345:46508:WARNING:filename/alias つ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,380:46508:WARNING:filename/alias つぁ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,409:46508:WARNING:filename/alias つぃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,440:46508:WARNING:filename/alias つぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,475:46508:WARNING:filename/alias つぉ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,476:46508:WARNING:filename/alias つ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,505:46508:WARNING:filename/alias づ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,506:46508:WARNING:filename/alias づ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,534:46508:WARNING:filename/alias て・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,565:46508:WARNING:filename/alias てぃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,566:46508:WARNING:filename/alias てぃぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,566:46508:WARNING:filename/alias てぃぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,640:46508:WARNING:filename/alias てゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,676:46508:WARNING:filename/alias てょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,677:46508:WARNING:filename/alias て子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,709:46508:WARNING:filename/alias で・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,738:46508:WARNING:filename/alias でぃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,738:46508:WARNING:filename/alias でぃぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,738:46508:WARNING:filename/alias でぃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,801:46508:WARNING:filename/alias でゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,801:46508:WARNING:filename/alias でゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,836:46508:WARNING:filename/alias で子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,864:46508:WARNING:filename/alias と・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,893:46508:WARNING:filename/alias とぅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,894:46508:WARNING:filename/alias と子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,921:46508:WARNING:filename/alias ど・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,951:46508:WARNING:filename/alias どぅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,952:46508:WARNING:filename/alias どぅぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,952:46508:WARNING:filename/alias どぅぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,953:46508:WARNING:filename/alias どぅぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,953:46508:WARNING:filename/alias どぅぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,954:46508:WARNING:filename/alias ど子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,983:46508:WARNING:filename/alias - な゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:01,983:46508:WARNING:filename/alias な・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,526:46508:WARNING:filename/alias な子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,556:46508:WARNING:filename/alias - に゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,557:46508:WARNING:filename/alias に・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,586:46508:WARNING:filename/alias - に゛ぇ/゛ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,588:46508:WARNING:filename/alias にぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,588:46508:WARNING:filename/alias にぇ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,617:46508:WARNING:filename/alias - に゛ゃ/゛ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,618:46508:WARNING:filename/alias にゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,648:46508:WARNING:filename/alias - に゛ゅ/゛ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,649:46508:WARNING:filename/alias にゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,649:46508:WARNING:filename/alias にゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,680:46508:WARNING:filename/alias - に゛ょ/゛ょ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,680:46508:WARNING:filename/alias にょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,680:46508:WARNING:filename/alias にょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,681:46508:WARNING:filename/alias に子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,710:46508:WARNING:filename/alias - ぬ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,711:46508:WARNING:filename/alias ぬ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,711:46508:WARNING:filename/alias - ぬぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,711:46508:WARNING:filename/alias - ぬ゛ぁ/゛ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,711:46508:WARNING:filename/alias ぬぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,712:46508:WARNING:filename/alias - ぬぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,712:46508:WARNING:filename/alias ぬ゛ぃ/゛ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,712:46508:WARNING:filename/alias ぬぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,713:46508:WARNING:filename/alias - ぬぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,713:46508:WARNING:filename/alias - ぬ゛ぇ/゛ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,713:46508:WARNING:filename/alias ぬぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,714:46508:WARNING:filename/alias - ぬぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,714:46508:WARNING:filename/alias - ぬ゛ぉ/゛ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,714:46508:WARNING:filename/alias ぬぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,715:46508:WARNING:filename/alias ぬ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,744:46508:WARNING:filename/alias - ね゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,744:46508:WARNING:filename/alias ね・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,744:46508:WARNING:filename/alias ね子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,773:46508:WARNING:filename/alias - の゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,774:46508:WARNING:filename/alias の・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,774:46508:WARNING:filename/alias の子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,804:46508:WARNING:filename/alias は・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,804:46508:WARNING:filename/alias は子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,834:46508:WARNING:filename/alias ば・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,834:46508:WARNING:filename/alias ば子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,863:46508:WARNING:filename/alias - ぱ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,864:46508:WARNING:filename/alias ぱ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,864:46508:WARNING:filename/alias ぱ゛・/゛・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,864:46508:WARNING:filename/alias ぱ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,894:46508:WARNING:filename/alias ひ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,957:46508:WARNING:filename/alias ひゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,957:46508:WARNING:filename/alias ひゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,996:46508:WARNING:filename/alias ひゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:03,996:46508:WARNING:filename/alias ひゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,029:46508:WARNING:filename/alias ひょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,029:46508:WARNING:filename/alias ひょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,030:46508:WARNING:filename/alias ひ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,065:46508:WARNING:filename/alias び・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,095:46508:WARNING:filename/alias びぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,095:46508:WARNING:filename/alias びぇ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,125:46508:WARNING:filename/alias びゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,126:46508:WARNING:filename/alias びゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,159:46508:WARNING:filename/alias びゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,159:46508:WARNING:filename/alias びゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,191:46508:WARNING:filename/alias びょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,192:46508:WARNING:filename/alias びょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,192:46508:WARNING:filename/alias び子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,223:46508:WARNING:filename/alias ぴ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,254:46508:WARNING:filename/alias ぴぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,284:46508:WARNING:filename/alias ぴゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,284:46508:WARNING:filename/alias ぴゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,316:46508:WARNING:filename/alias ぴゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,316:46508:WARNING:filename/alias ぴゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,346:46508:WARNING:filename/alias - ぴ゛ょ/゛ょ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,346:46508:WARNING:filename/alias ぴょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,347:46508:WARNING:filename/alias ぴ゛ょ・/゛ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,347:46508:WARNING:filename/alias ぴょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,347:46508:WARNING:filename/alias ぴ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,378:46508:WARNING:filename/alias ふ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,408:46508:WARNING:filename/alias ふぁ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,408:46508:WARNING:filename/alias ふぁ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,444:46508:WARNING:filename/alias ふぃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,487:46508:WARNING:filename/alias ふぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,520:46508:WARNING:filename/alias ふぉ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,521:46508:WARNING:filename/alias ふぉ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,521:46508:WARNING:filename/alias ふ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,554:46508:WARNING:filename/alias ぶ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,554:46508:WARNING:filename/alias - ぶぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,555:46508:WARNING:filename/alias ぶぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,555:46508:WARNING:filename/alias - ぶぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,555:46508:WARNING:filename/alias ぶぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,556:46508:WARNING:filename/alias - ぶぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,556:46508:WARNING:filename/alias ぶぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,556:46508:WARNING:filename/alias - ぶぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,557:46508:WARNING:filename/alias ぶぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,557:46508:WARNING:filename/alias ぶ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,587:46508:WARNING:filename/alias - ぷ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,588:46508:WARNING:filename/alias ぷ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,588:46508:WARNING:filename/alias ぷ゛・/゛・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,588:46508:WARNING:filename/alias - ぷぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,589:46508:WARNING:filename/alias ぷぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,589:46508:WARNING:filename/alias - ぷぃ/ぃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,589:46508:WARNING:filename/alias ぷぃ・/ぃ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,590:46508:WARNING:filename/alias - ぷぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,590:46508:WARNING:filename/alias ぷぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,590:46508:WARNING:filename/alias - ぷぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,591:46508:WARNING:filename/alias ぷぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,591:46508:WARNING:filename/alias ぷ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,622:46508:WARNING:filename/alias へ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,622:46508:WARNING:filename/alias へ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,656:46508:WARNING:filename/alias べ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,656:46508:WARNING:filename/alias べ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,693:46508:WARNING:filename/alias - ぺ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,693:46508:WARNING:filename/alias ぺ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,693:46508:WARNING:filename/alias ぺ゛・/゛・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,694:46508:WARNING:filename/alias ぺ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,694:46508:WARNING:filename/alias ぺ゛子音/゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,726:46508:WARNING:filename/alias ほ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,726:46508:WARNING:filename/alias - ほぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,727:46508:WARNING:filename/alias ほぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,727:46508:WARNING:filename/alias ほ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,759:46508:WARNING:filename/alias ぼ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,760:46508:WARNING:filename/alias ぼ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,798:46508:WARNING:filename/alias - ぽ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,798:46508:WARNING:filename/alias ぽ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,799:46508:WARNING:filename/alias ぽ゛・/゛・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,800:46508:WARNING:filename/alias ぽ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,800:46508:WARNING:filename/alias ぽ゛子音/゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,834:46508:WARNING:filename/alias - ま゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,834:46508:WARNING:filename/alias - ま゜/゜ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,834:46508:WARNING:filename/alias - ま゜゛/゜゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,835:46508:WARNING:filename/alias ま・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:04,835:46508:WARNING:filename/alias ま゜・/゜・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,471:46508:WARNING:filename/alias ま子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,471:46508:WARNING:filename/alias ま゛子音/゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,471:46508:WARNING:filename/alias ま゜子音/゜子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,472:46508:WARNING:filename/alias ま゜゛子音/゜゛子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,501:46508:WARNING:filename/alias - み゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,501:46508:WARNING:filename/alias み・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,531:46508:WARNING:filename/alias - み゛ぇ/゛ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,532:46508:WARNING:filename/alias みぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,565:46508:WARNING:filename/alias - み゛ゃ/゛ゃ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,565:46508:WARNING:filename/alias みゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,566:46508:WARNING:filename/alias みゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,601:46508:WARNING:filename/alias - み゛ゅ/゛ゅ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,602:46508:WARNING:filename/alias みゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,602:46508:WARNING:filename/alias みゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,631:46508:WARNING:filename/alias - み゛ょ/゛ょ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,632:46508:WARNING:filename/alias みょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,632:46508:WARNING:filename/alias みょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,632:46508:WARNING:filename/alias み子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,662:46508:WARNING:filename/alias - む゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,663:46508:WARNING:filename/alias む・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,663:46508:WARNING:filename/alias む子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,693:46508:WARNING:filename/alias - め゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,693:46508:WARNING:filename/alias め・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,694:46508:WARNING:filename/alias め子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,728:46508:WARNING:filename/alias - も゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,729:46508:WARNING:filename/alias も・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,729:46508:WARNING:filename/alias - もょ/ょ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,729:46508:WARNING:filename/alias もょ・/ょ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,730:46508:WARNING:filename/alias も子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:06,761:46508:WARNING:filename/alias や・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:07,594:46508:WARNING:filename/alias や子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:07,627:46508:WARNING:filename/alias ゆ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:07,627:46508:WARNING:filename/alias ゆ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:07,661:46508:WARNING:filename/alias よ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:07,662:46508:WARNING:filename/alias よ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:07,693:46508:WARNING:filename/alias ら・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,411:46508:WARNING:filename/alias ら子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,444:46508:WARNING:filename/alias り・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,475:46508:WARNING:filename/alias りぇ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,508:46508:WARNING:filename/alias りゃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,509:46508:WARNING:filename/alias りゃ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,541:46508:WARNING:filename/alias りゅ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,541:46508:WARNING:filename/alias りゅ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,572:46508:WARNING:filename/alias りょ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,572:46508:WARNING:filename/alias りょ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,573:46508:WARNING:filename/alias り子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,605:46508:WARNING:filename/alias る・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,605:46508:WARNING:filename/alias る子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,636:46508:WARNING:filename/alias れ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,637:46508:WARNING:filename/alias れ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,667:46508:WARNING:filename/alias ろ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,667:46508:WARNING:filename/alias ろ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,697:46508:WARNING:filename/alias - わ゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:09,697:46508:WARNING:filename/alias わ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,236:46508:WARNING:filename/alias わ子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,236:46508:WARNING:filename/alias - ゐ/ゐ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,237:46508:WARNING:filename/alias - ゐ゛/ゐ゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,237:46508:WARNING:filename/alias ゐ・/ゐ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,237:46508:WARNING:filename/alias ゐ子音/ゐ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,238:46508:WARNING:filename/alias - ゑ/ゑ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,238:46508:WARNING:filename/alias ゑ・/ゑ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,238:46508:WARNING:filename/alias ゑ子音/ゑ子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,268:46508:WARNING:filename/alias - を゛/゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,269:46508:WARNING:filename/alias を・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,269:46508:WARNING:filename/alias を子音/子音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,280:46508:WARNING:filename/alias -  ん゛/ n゛ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,280:46508:WARNING:filename/alias ん・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,281:46508:WARNING:filename/alias - んぁ/ぁ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,281:46508:WARNING:filename/alias んぁ・/ぁ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,281:46508:WARNING:filename/alias - んぇ/ぇ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,281:46508:WARNING:filename/alias んぇ・/ぇ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,282:46508:WARNING:filename/alias - んぉ/ぉ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,282:46508:WARNING:filename/alias んぉ・/ぉ・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,322:46508:WARNING:filename/alias んな・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,322:46508:WARNING:filename/alias オルガン/オルガン contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,323:46508:WARNING:filename/alias ギター/ギター contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,323:46508:WARNING:filename/alias シンバル/シンバル contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,324:46508:WARNING:filename/alias スネア/スネア contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,324:46508:WARNING:filename/alias トランペット/トランペット contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,325:46508:WARNING:filename/alias トランペット・/トランペット・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,325:46508:WARNING:filename/alias ドラム/ドラム contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,325:46508:WARNING:filename/alias ノコギリ波277.183Hz/ノコギリ波277.183Hz contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,326:46508:WARNING:filename/alias ノック/ノック contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,326:46508:WARNING:filename/alias ノック2/ノック2 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,326:46508:WARNING:filename/alias ハーモニカ/ハーモニカ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,327:46508:WARNING:filename/alias ハイタム/ハイタム contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,327:46508:WARNING:filename/alias ハイハット/ハイハット contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,328:46508:WARNING:filename/alias ハイハット2/ハイハット2 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,328:46508:WARNING:filename/alias バイオリン/バイオリン contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,328:46508:WARNING:filename/alias バスドラム/バスドラム contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,329:46508:WARNING:filename/alias バチ/バチ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,329:46508:WARNING:filename/alias ビーム/ビーム contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,329:46508:WARNING:filename/alias ビー玉/ビー玉 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,330:46508:WARNING:filename/alias ピアノ/ピアノ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,330:46508:WARNING:filename/alias ピンポン玉/ピンポン玉 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,331:46508:WARNING:filename/alias フロアタム/フロアタム contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,331:46508:WARNING:filename/alias ベル/ベル contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,331:46508:WARNING:filename/alias ホームラン/ホームラン contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,332:46508:WARNING:filename/alias ホームラン2/ホームラン2 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,332:46508:WARNING:filename/alias マシンガン/マシンガン contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,332:46508:WARNING:filename/alias マシンガン2/マシンガン2 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,333:46508:WARNING:filename/alias ロータム/ロータム contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,333:46508:WARNING:filename/alias ロボット合体音/ロボット合体音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,362:46508:WARNING:filename/alias - ヴァ/ァ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,398:46508:WARNING:filename/alias ヴぃ・/・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,456:46508:WARNING:filename/alias 殴打/殴打 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,456:46508:WARNING:filename/alias 殴打2/殴打2 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,456:46508:WARNING:filename/alias 音の出ないハーモニカ/音No出Naiハーモニカ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,457:46508:WARNING:filename/alias 乾いたノック/乾itaノック contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,457:46508:WARNING:filename/alias 金属バット/金属バット contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,457:46508:WARNING:filename/alias 金属音1/金属音1 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,458:46508:WARNING:filename/alias 金属音2/金属音2 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,458:46508:WARNING:filename/alias 金属音3/金属音3 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,458:46508:WARNING:filename/alias 矩形波/矩形波 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,458:46508:WARNING:filename/alias 軽く叩く/軽ku叩ku contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,459:46508:WARNING:filename/alias - 江/江 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,459:46508:WARNING:filename/alias 江・/江・ contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,459:46508:WARNING:filename/alias 硬質衝突音/硬質衝突音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,459:46508:WARNING:filename/alias 雑音/雑音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,460:46508:WARNING:filename/alias 心音/心音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,460:46508:WARNING:filename/alias 振動音/振動音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,460:46508:WARNING:filename/alias 正弦波/正弦波 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,461:46508:WARNING:filename/alias 太鼓/太鼓 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,461:46508:WARNING:filename/alias 中ドラム/中ドラム contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,461:46508:WARNING:filename/alias 破裂長音/破裂長音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,461:46508:WARNING:filename/alias 爆発/爆発 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,462:46508:WARNING:filename/alias 爆発2/爆発2 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,462:46508:WARNING:filename/alias 爆発3/爆発3 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,462:46508:WARNING:filename/alias 爆発4/爆発4 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,462:46508:WARNING:filename/alias 発砲音/発砲音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,463:46508:WARNING:filename/alias 木琴/木琴 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:10,463:46508:WARNING:filename/alias 有声摩擦長音/有声摩擦長音 contains one or several phonemes not in the specified phoneme list
+2021-10-21 10:46:15,960:46508:INFO:UTAU sample list selection change callback
+2021-10-21 10:46:15,961:46508:INFO:UTAU diagram update callback
+2021-10-21 10:46:23,991:46508:INFO:UTAU import all button callback
+2021-10-21 10:46:24,108:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,309:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,310:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,312:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,313:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,314:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,315:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,333:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,334:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,335:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,354:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,365:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,366:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,391:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,585:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:25,694:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,296:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,390:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,391:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,401:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,402:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,473:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,517:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,652:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,667:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,797:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,843:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,858:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,872:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,887:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,901:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,915:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,929:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:26,943:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,011:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,026:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,423:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,578:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,599:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,642:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,656:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,704:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,718:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,733:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,748:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,763:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,778:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,792:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,860:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,900:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,939:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,953:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,967:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,981:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:27,995:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,012:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,027:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,043:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,063:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,078:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,094:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,108:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,122:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,259:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,294:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,307:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,324:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,339:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,353:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,420:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,433:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,446:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,459:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,471:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,484:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,579:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,593:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,633:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,646:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,660:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,673:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,739:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,805:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,846:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,888:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,928:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,942:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,981:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:28,994:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,035:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,050:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,064:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,109:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,264:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,298:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,310:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,373:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,409:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,422:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,476:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,477:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:29,478:46508:WARNING:skipped one or several samples below the size threshold
+2021-10-21 10:46:31,048:46508:INFO:UTAU OK button callback
+2021-10-21 10:46:32,279:46508:INFO:Crfai button callback
+2021-10-21 10:46:32,295:46508:INFO:Initializing Crfai UI
+2021-10-21 10:46:38,147:46508:INFO:Crfai train button callback
+2021-10-21 10:47:21,476:46508:INFO:Crfai train button callback completed
+2021-10-21 10:48:48,434:46508:INFO:Crfai OK button callback
+2021-10-21 10:48:50,571:46508:INFO:Root UI destroyed

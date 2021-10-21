@@ -81,8 +81,8 @@ class AudioSample:
         
         self.expectedPitch = 249.
         self.searchRange = 0.2
-        self.voicedFilter = 0.5
-        self.unvoicedIterations = 10
+        self.voicedFilter = 0.9
+        self.unvoicedIterations = 20
         
 class LiteAudioSample:
     """A stripped down version of AudioSample only holding the data required for synthesis.
