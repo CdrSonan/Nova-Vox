@@ -98,5 +98,9 @@ def getLocale():
         locale["NV_area"] = "Nova-Vox sample"
         locale["oto_msng_phn"] = "One or several phonetic symbols contained in the UTAU Voicebank could not be found on the given phoneme table, resulting in some samples not being imported. See devkit.log for details."
         locale["oto_error"] = "An unknown error occured when reading the oto.ini file. Please check the integrity and encoding od the file. See devkit.log for details."
+        locale["vowel"] = "vowel"
+        locale["cons_hard"] = "hard consonant"
+        locale["cons_soft"] = "soft consonant"
+        locale["tr_type"] = "transition type"
         
     return locale

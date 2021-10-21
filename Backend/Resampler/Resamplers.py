@@ -92,3 +92,6 @@ def getVoicedExcitation(vocalSegment, device):
         slope = torch.pow(slope, factor)
         voicedExcitation[(vocalSegment.end1 - vocalSegment.start1) * global_consts.batchSize:(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize] *= slope
     return voicedExcitation[0:(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize]
+
+def getType(vocalSegment):
+    return vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey]._type

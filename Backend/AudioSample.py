@@ -46,7 +46,7 @@ class AudioSample:
         calculateSpectra(): Method for calculating spectral and excitation data based on previously set attributes"""
         
         
-    def __init__(self, filepath):
+    def __init__(self, filepath, _type = "c"):
         """Constructor for initialising an AudioSample based on an audio file and desired sample rate.
         
         Arguments:
@@ -83,6 +83,8 @@ class AudioSample:
         self.searchRange = 0.2
         self.voicedFilter = 0.9
         self.unvoicedIterations = 20
+
+        self._type = _type
         
 class LiteAudioSample:
     """A stripped down version of AudioSample only holding the data required for synthesis.
@@ -121,3 +123,4 @@ class LiteAudioSample:
         self.spectrum = audioSample.spectrum
         self.excitation = audioSample.excitation
         self.voicedExcitation = audioSample.voicedExcitation
+        self._type = audioSample._type

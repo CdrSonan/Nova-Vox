@@ -168,7 +168,7 @@ class Voicebank:
             filepath: a String representing the filepath to the .wav audio file of the phoneme sample"""
             
             
-        self.phonemeDict[key] = AudioSample(filepath)
+        self.phonemeDict[key] = AudioSample(filepath, "V")
         calculatePitch(self.phonemeDict[key])
         calculateSpectra(self.phonemeDict[key])
 
@@ -239,7 +239,7 @@ class Voicebank:
             self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
             calculatePitch(self.stagedTrainSamples[i])
             calculateSpectra(self.stagedTrainSamples[i])
-            self.stagedTrainSamples[i] = (self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra).to(device = self.device)
+            self.stagedTrainSamples[i] = [(self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra).to(device = self.device), self.stagedTrainSamples[i]._type]
         print("sample preprocessing complete")
         print("AI training started")
         self.crfAi.train(self.stagedTrainSamples, epochs = epochs)
