@@ -10141,3 +10141,44 @@
 2021-10-22 20:40:57,529:46308:INFO:Crfai button callback
 2021-10-22 20:40:57,580:46308:INFO:Initializing Crfai UI
 2021-10-22 20:41:07,642:46308:INFO:Crfai train button callback
+2021-10-22 23:42:06,165:3828:INFO:logging service started
+2021-10-22 23:42:06,166:3828:INFO:initializing Root UI
+2021-10-22 23:42:08,153:3828:INFO:new button callback
+2021-10-22 23:42:11,393:3828:INFO:UTAU import button callback
+2021-10-22 23:42:11,412:3828:INFO:Initializing UTAU import UI
+2021-10-22 23:42:13,847:3828:INFO:oto.ini load button callback
+2021-10-22 23:43:12,132:3828:INFO:UTAU sample list selection change callback
+2021-10-22 23:43:12,132:3828:INFO:UTAU diagram update callback
+2021-10-22 23:43:15,380:3828:INFO:UTAU import all button callback
+2021-10-22 23:43:40,972:3828:INFO:UTAU sample list focus loss callback
+2021-10-22 23:43:42,978:3828:INFO:UTAU OK button callback
+2021-10-22 23:43:44,081:3828:INFO:Crfai button callback
+2021-10-22 23:43:44,098:3828:INFO:Initializing Crfai UI
+2021-10-22 23:43:50,878:3828:INFO:Crfai train button callback
+2021-10-22 23:54:15,789:38025:INFO:logging service started
+2021-10-22 23:54:15,789:38025:INFO:initializing Root UI
+2021-10-22 23:54:17,277:38025:INFO:new button callback
+2021-10-22 23:54:17,838:38025:INFO:UTAU import button callback
+2021-10-22 23:54:17,856:38025:INFO:Initializing UTAU import UI
+2021-10-22 23:54:19,975:38025:INFO:oto.ini load button callback
+2021-10-22 23:55:38,699:38025:INFO:UTAU import all button callback
+2021-10-22 23:56:18,690:38025:INFO:UTAU OK button callback
+2021-10-22 23:56:19,821:38025:INFO:Crfai button callback
+2021-10-22 23:56:19,838:38025:INFO:Initializing Crfai UI
+2021-10-22 23:56:25,138:38025:INFO:Crfai train button callback
+2021-10-23 00:03:30,659:38025:INFO:Crfai train button callback completed
+2021-10-23 00:03:50,606:72575:INFO:logging service started
+2021-10-23 00:03:50,606:72575:INFO:initializing Root UI
+2021-10-23 00:03:56,227:72575:INFO:new button callback
+2021-10-23 00:03:57,586:72575:INFO:UTAU import button callback
+2021-10-23 00:03:57,602:72575:INFO:Initializing UTAU import UI
+2021-10-23 00:03:58,797:72575:INFO:oto.ini load button callback
+2021-10-23 00:04:52,121:72575:INFO:UTAU import all button callback
+2021-10-23 00:05:19,792:72575:INFO:UTAU OK button callback
+2021-10-23 00:05:21,735:72575:INFO:Crfai button callback
+2021-10-23 00:05:21,753:72575:INFO:Initializing Crfai UI
+2021-10-23 00:05:33,859:72575:INFO:Crfai train button callback
+2021-10-23 00:24:24,419:72575:INFO:Crfai train button callback completed
+2021-10-23 00:25:27,974:72575:INFO:Crfai OK button callback
+2021-10-23 00:25:55,002:72575:INFO:save button callback
+2021-10-23 00:26:08,335:72575:INFO:Root UI destroyed

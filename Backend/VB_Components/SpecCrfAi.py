@@ -94,23 +94,23 @@ class SpecCrfAi(nn.Module):
         fac = torch.tensor([factor], device = self.device)
         _type = _type[0]
         if _type == "VV":
-            typesection = torch.Tensor([1, 0, 0, 1, 0, 0], device = self.device)
+            typesection = torch.tensor([1, 0, 0, 1, 0, 0], device = self.device)
         elif _type == "VC":
-            typesection = torch.Tensor([1, 0, 0, 0, 1, 0], device = self.device)
+            typesection = torch.tensor([1, 0, 0, 0, 1, 0], device = self.device)
         elif _type == "Vc":
-            typesection = torch.Tensor([1, 0, 0, 0, 0, 1], device = self.device)
+            typesection = torch.tensor([1, 0, 0, 0, 0, 1], device = self.device)
         elif _type == "CV":
-            typesection = torch.Tensor([0, 1, 0, 1, 0, 0], device = self.device)
+            typesection = torch.tensor([0, 1, 0, 1, 0, 0], device = self.device)
         elif _type == "CC":
-            typesection = torch.Tensor([0, 1, 0, 0, 1, 0], device = self.device)
+            typesection = torch.tensor([0, 1, 0, 0, 1, 0], device = self.device)
         elif _type == "Cc":
-            typesection = torch.Tensor([0, 1, 0, 0, 0, 1], device = self.device)
+            typesection = torch.tensor([0, 1, 0, 0, 0, 1], device = self.device)
         elif _type == "cV":
-            typesection = torch.Tensor([0, 0, 1, 1, 0, 0], device = self.device)
+            typesection = torch.tensor([0, 0, 1, 1, 0, 0], device = self.device)
         elif _type == "cC":
-            typesection = torch.Tensor([0, 0, 1, 0, 1, 0], device = self.device)
+            typesection = torch.tensor([0, 0, 1, 0, 1, 0], device = self.device)
         elif _type == "cc":
-            typesection = torch.Tensor([0, 0, 1, 0, 0, 1], device = self.device)
+            typesection = torch.tensor([0, 0, 1, 0, 0, 1], device = self.device)
         x = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4, fac, typesection), dim = 0)
         x = x.float()
         x = self.layerStart1(x)

@@ -60,7 +60,7 @@ else:
     print("could not read loglevel setting. Loglevel has been set to \"info\" by default.")
     loglevel = logging.INFO
 
-logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename='editor.log', encoding='utf-8', level=loglevel)
+logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename='editor.log', level=loglevel)
 logging.info("logging service started")
 
 if __name__ == '__main__':
