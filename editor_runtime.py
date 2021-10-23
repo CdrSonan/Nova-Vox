@@ -42,6 +42,7 @@ import Backend.DataHandler.VocalSequence
 VocalSequence = Backend.DataHandler.VocalSequence.VocalSequence
 import Backend.DataHandler.Manager
 RenderManager = Backend.DataHandler.Manager.RenderManager
+import sys
 
 if pyi_splash.is_alive():
     pyi_splash.update_text("starting logging and main processes...")
@@ -82,6 +83,8 @@ if __name__ == '__main__':
                 voicebankList = [vb]
                 aiParamStackList = [None]
                 logging.info("starting render manager")
+                if (sys.platform.startswith('win')) == False: 
+                    mp.set_start_method("spawn")
                 manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
                 logging.info("manager started, waiting for user input")
                 while True:
