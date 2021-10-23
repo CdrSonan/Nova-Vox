@@ -1,9 +1,9 @@
 borders = [0, 2, 4,
-           65, 70, 75,
-           90, 102, 104,
-           150, 152, 156,
-           164, 166, 172,
-           656, 657, 700
+           200, 250, 300,
+           500, 550, 600,
+           800, 850, 900,
+           1000, 1050, 1100,
+           1490, 1495, 1500
           ]
 
 phonemes = ["a", "n", "a", "t", "a"]
@@ -12,14 +12,14 @@ startCaps = torch.zeros(5)
 
 endCaps = torch.zeros(5)
 
-offsets = [0, 40, 20, 0, 13]
+offsets = [0, 40, 20, 0, 20]
 
-repetititionSpacing = torch.full([5], 0.8)
+repetititionSpacing = torch.full([5], 0.5)
 
-pitch = torch.full([700], 193)
+pitch = torch.full([1500], 150)
 
-steadiness = torch.full([700], 0)
+steadiness = torch.full([1500], 0)
 
-breathiness = torch.full([700], -1)
+breathiness = torch.full([1500], 0)
 
-sequence = VocalSequence(700, borders, phonemes, startCaps, endCaps, offsets, repetititionSpacing, pitch, steadiness, breathiness)
+sequence = VocalSequence(1500, borders, phonemes, startCaps, endCaps, offsets, repetititionSpacing, pitch, steadiness, breathiness)

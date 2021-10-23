@@ -159,6 +159,7 @@ class SpecCrfAi(nn.Module):
         
         
         if indata != False:
+            torch.save(indata, "transitions.smpl")
             if (self.epoch == 0) or self.epoch == epochs:
                 self.epoch = epochs
             else:
@@ -251,7 +252,7 @@ class LiteSpecCrfAi(nn.Module):
         if specCrfAi == None:
             hiddenLayerCount = 3
         else:
-            hiddenLayerCount = specCrfAi.hiddenLayerCount
+            hiddenLayerCount = 3#specCrfAi.hiddenLayerCount
 
         self.layerStart1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 11, 4 * global_consts.halfTripleBatchSize + 11, device = device)
         self.ReLuStart1 = nn.ReLU()
@@ -293,25 +294,24 @@ class LiteSpecCrfAi(nn.Module):
         
         
         fac = torch.tensor([factor], device = self.device)
-        _type = _type[0]
         if _type == "VV":
-            typesection = torch.Tensor([1, 0, 0, 1, 0, 0])
+            typesection = torch.tensor([1, 0, 0, 1, 0, 0], device = self.device)
         elif _type == "VC":
-            typesection = torch.Tensor([1, 0, 0, 0, 1, 0])
+            typesection = torch.tensor([1, 0, 0, 0, 1, 0], device = self.device)
         elif _type == "Vc":
-            typesection = torch.Tensor([1, 0, 0, 0, 0, 1])
+            typesection = torch.tensor([1, 0, 0, 0, 0, 1], device = self.device)
         elif _type == "CV":
-            typesection = torch.Tensor([0, 1, 0, 1, 0, 0])
+            typesection = torch.tensor([0, 1, 0, 1, 0, 0], device = self.device)
         elif _type == "CC":
-            typesection = torch.Tensor([0, 1, 0, 0, 1, 0])
+            typesection = torch.tensor([0, 1, 0, 0, 1, 0], device = self.device)
         elif _type == "Cc":
-            typesection = torch.Tensor([0, 1, 0, 0, 0, 1])
+            typesection = torch.tensor([0, 1, 0, 0, 0, 1], device = self.device)
         elif _type == "cV":
-            typesection = torch.Tensor([0, 0, 1, 1, 0, 0])
+            typesection = torch.tensor([0, 0, 1, 1, 0, 0], device = self.device)
         elif _type == "cC":
-            typesection = torch.Tensor([0, 0, 1, 0, 1, 0])
+            typesection = torch.tensor([0, 0, 1, 0, 1, 0], device = self.device)
         elif _type == "cc":
-            typesection = torch.Tensor([0, 0, 1, 0, 0, 1])
+            typesection = torch.tensor([0, 0, 1, 0, 0, 1], device = self.device)
         x = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4, fac, typesection), dim = 0)
         x = x.float()
         x = self.layerStart1(x)

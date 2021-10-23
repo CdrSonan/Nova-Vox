@@ -21,8 +21,7 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
         if counter > inputTensor.size()[0] - (0.5 * repetititionSpacing):
             finalPhase = counter - inputTensor.size()[0] + (0.5 * repetititionSpacing)
             break
-    phaseDiff = int(torch.remainder(alignPhase - finalPhase, pitchavg))
-    print(phaseDiff)
+    phaseDiff = int(torch.remainder(finalPhase - alignPhase, pitchavg))
     requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[0] / global_consts.batchSize - (3 / pitchavg) - batchRS)), 1)
 
     #inputTensor = torch.istft(inputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
