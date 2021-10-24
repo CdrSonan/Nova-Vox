@@ -239,7 +239,7 @@ class Voicebank:
             self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
             calculatePitch(self.stagedTrainSamples[i])
             calculateSpectra(self.stagedTrainSamples[i])
-            self.stagedTrainSamples[i] = [(self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra).to(device = self.device), self.stagedTrainSamples[i]._type]
+            self.stagedTrainSamples[i] = (self.stagedTrainSamples[i].spectrum + self.stagedTrainSamples[i].spectra).to(device = self.device)
         print("sample preprocessing complete")
         print("AI training started")
         self.crfAi.train(self.stagedTrainSamples, epochs = epochs)

@@ -327,21 +327,6 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.key.display["text"] = loc["phon_key"]
         self.sideBar.key.display.pack(side = "right", fill = "x")
         self.sideBar.key.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.sideBar._type = tkinter.Frame(self.sideBar)
-        self.sideBar._type.variable = tkinter.StringVar(self.sideBar._type)
-        self.sideBar._type.entry = tkinter.Frame(self.sideBar._type)
-        self.sideBar._type.entry.button1 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["vowel"], value = "V", variable = self.sideBar._type.variable, command = self.onTypeChange)
-        self.sideBar._type.entry.button1.pack(side = "right", fill = "x")
-        self.sideBar._type.entry.button2 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["cons_hard"], value = "C", variable = self.sideBar._type.variable, command = self.onTypeChange)
-        self.sideBar._type.entry.button2.pack(side = "right", fill = "x")
-        self.sideBar._type.entry.button3 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["cons_soft"], value = "c", variable = self.sideBar._type.variable, command = self.onTypeChange)
-        self.sideBar._type.entry.button3.pack(side = "right", fill = "x")
-        self.sideBar._type.entry.pack(side = "right", fill = "x")
-        self.sideBar._type.display = tkinter.Label(self.sideBar._type)
-        self.sideBar._type.display["text"] = loc["smpl_type"]
-        self.sideBar._type.display.pack(side = "right", fill = "x")
-        self.sideBar._type.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.expPitch = tkinter.Frame(self.sideBar)
         self.sideBar.expPitch.variable = tkinter.DoubleVar(self.sideBar.expPitch)
@@ -428,7 +413,6 @@ class PhonemedictUi(tkinter.Frame):
                 self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key].searchRange)
                 self.sideBar.voicedFilter.variable.set(loadedVB.phonemeDict[key].voicedFilter)
                 self.sideBar.unvoicedIter.variable.set(loadedVB.phonemeDict[key].unvoicedIterations)
-                self.sideBar._type.variable.set(loadedVB.phonemeDict[key]._type)
                 self.enableButtons()
             else:
                 self.sideBar.expPitch.variable.set(None)
@@ -453,9 +437,6 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.unvoicedIter.entry["state"] = "disabled"
         self.sideBar.fileButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
-        self.sideBar._type.entry.button1["state"] = "disabled"
-        self.sideBar._type.entry.button2["state"] = "disabled"
-        self.sideBar._type.entry.button3["state"] = "disabled"
     
     def enableButtons(self):
         """Enables the per-phoneme settings buttons"""
@@ -465,9 +446,6 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.unvoicedIter.entry["state"] = "normal"
         self.sideBar.fileButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"
-        self.sideBar._type.entry.button1["state"] = "normal"
-        self.sideBar._type.entry.button2["state"] = "normal"
-        self.sideBar._type.entry.button3["state"] = "normal"
     
     def onAddPress(self):
         """UI Frontend function for adding a phoneme to the Voicebank"""
@@ -543,14 +521,6 @@ class PhonemedictUi(tkinter.Frame):
             loadedVB.changePhonemeKey(key, newKey)
             self.phonemeList.list.lb.delete(index)
             self.phonemeList.list.lb.insert(index, newKey)
-
-    def onTypeChange(self, event = None):
-        """UI Frontend function for changing the type of a phoneme"""
-        logging.info("Phonemedict type change callback")
-        global loadedVB
-        index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)
-        loadedVB.phonemeDict[key]._type = self.sideBar._type.variable.get()
 
         
     def onPitchUpdateTrigger(self, event):
@@ -674,33 +644,6 @@ class CrfaiUi(tkinter.Frame):
         self.phonemeList.addButton["command"] = self.onAddPress
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self._type = tkinter.LabelFrame(self, text = loc["tr_type"])
-        self._type.variable = tkinter.StringVar(self._type, value = "VV")
-        self._type.entry = tkinter.Frame(self._type)
-        self._type.entry.button1 = tkinter.Radiobutton(self._type.entry, text = "VV", value = "VV", variable = self._type.variable, command = self.onTypeChange)
-        self._type.entry.button1.pack(side = "right", fill = "x")
-        self._type.entry.button2 = tkinter.Radiobutton(self._type.entry, text = "VC", value = "VC", variable = self._type.variable, command = self.onTypeChange)
-        self._type.entry.button2.pack(side = "right", fill = "x")
-        self._type.entry.button3 = tkinter.Radiobutton(self._type.entry, text = "Vc", value = "Vc", variable = self._type.variable, command = self.onTypeChange)
-        self._type.entry.button3.pack(side = "right", fill = "x")
-        self._type.entry.button4 = tkinter.Radiobutton(self._type.entry, text = "CV", value = "CV", variable = self._type.variable, command = self.onTypeChange)
-        self._type.entry.button4.pack(side = "right", fill = "x")
-        self._type.entry.button5 = tkinter.Radiobutton(self._type.entry, text = "CC", value = "CC", variable = self._type.variable, command = self.onTypeChange)
-        self._type.entry.button5.pack(side = "right", fill = "x")
-        self._type.entry.button6 = tkinter.Radiobutton(self._type.entry, text = "Cc", value = "Cc", variable = self._type.variable, command = self.onTypeChange)
-        self._type.entry.button6.pack(side = "right", fill = "x")
-        self._type.entry.button7 = tkinter.Radiobutton(self._type.entry, text = "cV", value = "cV", variable = self._type.variable, command = self.onTypeChange)
-        self._type.entry.button7.pack(side = "right", fill = "x")
-        self._type.entry.button8 = tkinter.Radiobutton(self._type.entry, text = "cC", value = "cC", variable = self._type.variable, command = self.onTypeChange)
-        self._type.entry.button8.pack(side = "right", fill = "x")
-        self._type.entry.button9 = tkinter.Radiobutton(self._type.entry, text = "cc", value = "cc", variable = self._type.variable, command = self.onTypeChange)
-        self._type.entry.button9.pack(side = "right", fill = "x")
-        self._type.entry.pack(side = "right", fill = "x")
-        self._type.display = tkinter.Label(self._type)
-        self._type.display["text"] = loc["smpl_type"]
-        self._type.display.pack(side = "right", fill = "x")
-        self._type.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar = tkinter.LabelFrame(self, text = loc["ai_settings"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
@@ -765,7 +708,6 @@ class CrfaiUi(tkinter.Frame):
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
             index = self.phonemeList.list.lastFocusedIndex
-            self._type.variable.set(loadedVB.stagedTrainSamples[index]._type)
             
     def onListFocusOut(self, event):
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""
@@ -795,13 +737,6 @@ class CrfaiUi(tkinter.Frame):
                 self.phonemeList.list.lb.selection_set(index - 1)
             else:
                 self.phonemeList.list.lb.selection_set(index)
-
-    def onTypeChange(self, event = None):
-        """UI Frontend function for changing the type of a transition sample"""
-        logging.info("CrfAi sample type change callback")
-        global loadedVB
-        index = self.phonemeList.list.lastFocusedIndex
-        loadedVB.stagedTrainSamples[index]._type = self._type.variable.get()
 
                 
     def onTrainPress(self):
@@ -919,39 +854,6 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar._type.display.pack(side = "right", fill = "x")
         self.sideBar._type.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.soundType = tkinter.Frame(self.sideBar)
-        self.sideBar.soundType.variable = tkinter.StringVar(self.sideBar.soundType, "VV")
-        self.sideBar.soundType.entry = tkinter.Frame(self.sideBar.soundType)
-        self.sideBar.soundType.entry.button1 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "VV", value = "VV", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button1.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button2 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "VC", value = "VC", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button2.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button3 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "Vc", value = "Vc", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button3.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button4 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "CV", value = "CV", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button4.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button5 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "CC", value = "CC", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button5.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button6 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "Cc", value = "Cc", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button6.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button7 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "cV", value = "cV", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button7.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button8 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "cC", value = "cC", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button8.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button9 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "cc", value = "cc", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button9.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button10 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "V", value = "V", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button10.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button11 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "C", value = "C", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button11.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.button12 = tkinter.Radiobutton(self.sideBar.soundType.entry, text = "c", value = "c", variable = self.sideBar.soundType.variable, command = self.onSoundTypeChange)
-        self.sideBar.soundType.entry.button12.pack(side = "right", fill = "x")
-        self.sideBar.soundType.entry.pack(side = "right", fill = "x")
-        self.sideBar.soundType.display = tkinter.Label(self.sideBar.soundType)
-        self.sideBar.soundType.display["text"] = loc["smpl_type"]
-        self.sideBar.soundType.display.pack(side = "right", fill = "x")
-        self.sideBar.soundType.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
         self.sideBar.key = tkinter.Frame(self.sideBar)
         self.sideBar.key.variable = tkinter.StringVar(self.sideBar.key)
         self.sideBar.key.entry = tkinter.Entry(self.sideBar.key)
@@ -1026,8 +928,6 @@ class UtauImportUi(tkinter.Frame):
                 self.enableButtons()
             self.sideBar.start.variable.set(sample.start)
             self.sideBar.end.variable.set(sample.end)
-            self.sideBar._type.variable.set(sample._type)
-            self.sideBar.soundType.variable.set(sample.soundType)
             self.updateDiagram()
 
                 
@@ -1038,36 +938,12 @@ class UtauImportUi(tkinter.Frame):
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
         
     def disableButtons(self):
-        """Disables the key button and sets available soundType options"""
+        """Disables the key button"""
         self.sideBar.key.entry["state"] = "disabled"
-        self.sideBar.soundType.entry.button1["state"] = "normal"
-        self.sideBar.soundType.entry.button2["state"] = "normal"
-        self.sideBar.soundType.entry.button3["state"] = "normal"
-        self.sideBar.soundType.entry.button4["state"] = "normal"
-        self.sideBar.soundType.entry.button5["state"] = "normal"
-        self.sideBar.soundType.entry.button6["state"] = "normal"
-        self.sideBar.soundType.entry.button7["state"] = "normal"
-        self.sideBar.soundType.entry.button8["state"] = "normal"
-        self.sideBar.soundType.entry.button9["state"] = "normal"
-        self.sideBar.soundType.entry.button10["state"] = "disabled"
-        self.sideBar.soundType.entry.button11["state"] = "disabled"
-        self.sideBar.soundType.entry.button12["state"] = "disabled"
     
     def enableButtons(self):
-        """Enables the key button and sets available soundType options"""
+        """Enables the key button"""
         self.sideBar.key.entry["state"] = "normal"
-        self.sideBar.soundType.entry.button1["state"] = "disabled"
-        self.sideBar.soundType.entry.button2["state"] = "disabled"
-        self.sideBar.soundType.entry.button3["state"] = "disabled"
-        self.sideBar.soundType.entry.button4["state"] = "disabled"
-        self.sideBar.soundType.entry.button5["state"] = "disabled"
-        self.sideBar.soundType.entry.button6["state"] = "disabled"
-        self.sideBar.soundType.entry.button7["state"] = "disabled"
-        self.sideBar.soundType.entry.button8["state"] = "disabled"
-        self.sideBar.soundType.entry.button9["state"] = "disabled"
-        self.sideBar.soundType.entry.button10["state"] = "normal"
-        self.sideBar.soundType.entry.button11["state"] = "normal"
-        self.sideBar.soundType.entry.button12["state"] = "normal"
 
     def onTypeChange(self, event = None):
         """UI Frontend function for changing the type of a sample"""
@@ -1080,13 +956,6 @@ class UtauImportUi(tkinter.Frame):
         else:
             print("else")
             self.enableButtons
-
-    def onSoundTypeChange(self, event = None):
-        """UI Frontend function for changing the sound type of a sample"""
-        logging.info("Utau sample sound type change callback")
-        global loadedVB
-        index = self.phonemeList.list.lastFocusedIndex
-        self.sampleList[index].soundType = self.sideBar.soundType.variable.get()
     
     def onAddPress(self):
         """UI Frontend function for adding a sample to the SampleList"""

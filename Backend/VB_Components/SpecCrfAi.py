@@ -51,10 +51,10 @@ class SpecCrfAi(nn.Module):
             
             
         super(SpecCrfAi, self).__init__()
-
-        self.layerStart1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 11, 4 * global_consts.halfTripleBatchSize + 11, device = device)
+        self.convolution = nn.Conv1d(5, 5, 1)
+        self.layerStart1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize + 5, device = device)
         self.ReLuStart1 = nn.ReLU()
-        self.layerStart2 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 11, 4 * global_consts.halfTripleBatchSize, device = device)
+        self.layerStart2 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
@@ -77,7 +77,7 @@ class SpecCrfAi(nn.Module):
         self.sampleCount = 0
         self.loss = None
         
-    def forward(self, spectrum1, spectrum2, spectrum3, spectrum4, factor, _type):
+    def forward(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
         """Forward NN pass with unprocessed in-and outputs.
         
         Arguments:
@@ -90,29 +90,16 @@ class SpecCrfAi(nn.Module):
             
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
         
-        
-        fac = torch.tensor([factor], device = self.device)
-        _type = _type[0]
-        if _type == "VV":
-            typesection = torch.tensor([1, 0, 0, 1, 0, 0], device = self.device)
-        elif _type == "VC":
-            typesection = torch.tensor([1, 0, 0, 0, 1, 0], device = self.device)
-        elif _type == "Vc":
-            typesection = torch.tensor([1, 0, 0, 0, 0, 1], device = self.device)
-        elif _type == "CV":
-            typesection = torch.tensor([0, 1, 0, 1, 0, 0], device = self.device)
-        elif _type == "CC":
-            typesection = torch.tensor([0, 1, 0, 0, 1, 0], device = self.device)
-        elif _type == "Cc":
-            typesection = torch.tensor([0, 1, 0, 0, 0, 1], device = self.device)
-        elif _type == "cV":
-            typesection = torch.tensor([0, 0, 1, 1, 0, 0], device = self.device)
-        elif _type == "cC":
-            typesection = torch.tensor([0, 0, 1, 0, 1, 0], device = self.device)
-        elif _type == "cc":
-            typesection = torch.tensor([0, 0, 1, 0, 0, 1], device = self.device)
-        x = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4, fac, typesection), dim = 0)
+
+        spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
+        limit = torch.max(spectra, dim = 1)
+        #fac = torch.tensor([factor], device = self.device)
+        #x = torch.cat((torch.reshape(spectra, (-1,)), fac), dim = 0)
+        fac = torch.full(global_consts.halfTripleBatchSize + 1, factor, device = self.device)
+        x = torch.cat((spectra, fac), dim = 1)
         x = x.float()
+        x = torch.unsqueeze(torch.transpose(x, 0, 1), 0)
+        x = self.convolution(x)
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
@@ -122,9 +109,10 @@ class SpecCrfAi(nn.Module):
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
+        x = torch.minimum(x, limit)
         return x
     
-    def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor, type1, type2):
+    def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
         """forward NN pass with data pre-and postprocessing as expected by other classes
         
         Arguments:
@@ -141,7 +129,7 @@ class SpecCrfAi(nn.Module):
         
         
         self.eval()
-        output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), torch.sqrt(spectrum3), torch.sqrt(spectrum4), factor, type1 + type2)))
+        output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), torch.sqrt(spectrum3), torch.sqrt(spectrum4), factor)))
         return output
     
     def train(self, indata, epochs=1):
@@ -167,8 +155,7 @@ class SpecCrfAi(nn.Module):
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
                     print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
-                    _type = data[1]
-                    data = torch.sqrt(data[0].to(device = self.device))
+                    data = torch.sqrt(data.to(device = self.device))
                     data = torch.squeeze(data)
                     spectrum1 = data[0]
                     spectrum2 = data[1]
@@ -179,7 +166,7 @@ class SpecCrfAi(nn.Module):
                     for i in indexList:
                         factor = i / float(data.size()[0])
                         spectrumTarget = data[i]
-                        output = torch.squeeze(self(spectrum1, spectrum2, spectrum3, spectrum4, factor, _type))
+                        output = torch.squeeze(self(spectrum1, spectrum2, spectrum3, spectrum4, factor))
                         loss = self.criterion(output, spectrumTarget)
                         self.optimizer.zero_grad()
                         loss.backward()
@@ -254,9 +241,10 @@ class LiteSpecCrfAi(nn.Module):
         else:
             hiddenLayerCount = 3#specCrfAi.hiddenLayerCount
 
-        self.layerStart1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 11, 4 * global_consts.halfTripleBatchSize + 11, device = device)
+        self.convolution = nn.Conv1d(5, 5, 1)
+        self.layerStart1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize + 5, device = device)
         self.ReLuStart1 = nn.ReLU()
-        self.layerStart2 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 11, 4 * global_consts.halfTripleBatchSize, device = device)
+        self.layerStart2 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
@@ -279,7 +267,7 @@ class LiteSpecCrfAi(nn.Module):
             self.load_state_dict(specCrfAi.getState()['model_state_dict'])
             self.eval()
         
-    def forward(self, spectrum1, spectrum2, spectrum3, spectrum4, factor, _type):
+    def forward(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
         """Forward NN pass with unprocessed in-and outputs.
         
         Arguments:
@@ -293,27 +281,15 @@ class LiteSpecCrfAi(nn.Module):
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
         
         
-        fac = torch.tensor([factor], device = self.device)
-        if _type == "VV":
-            typesection = torch.tensor([1, 0, 0, 1, 0, 0], device = self.device)
-        elif _type == "VC":
-            typesection = torch.tensor([1, 0, 0, 0, 1, 0], device = self.device)
-        elif _type == "Vc":
-            typesection = torch.tensor([1, 0, 0, 0, 0, 1], device = self.device)
-        elif _type == "CV":
-            typesection = torch.tensor([0, 1, 0, 1, 0, 0], device = self.device)
-        elif _type == "CC":
-            typesection = torch.tensor([0, 1, 0, 0, 1, 0], device = self.device)
-        elif _type == "Cc":
-            typesection = torch.tensor([0, 1, 0, 0, 0, 1], device = self.device)
-        elif _type == "cV":
-            typesection = torch.tensor([0, 0, 1, 1, 0, 0], device = self.device)
-        elif _type == "cC":
-            typesection = torch.tensor([0, 0, 1, 0, 1, 0], device = self.device)
-        elif _type == "cc":
-            typesection = torch.tensor([0, 0, 1, 0, 0, 1], device = self.device)
-        x = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4, fac, typesection), dim = 0)
+        spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
+        limit = torch.max(spectra, dim = 1)
+        #fac = torch.tensor([factor], device = self.device)
+        #x = torch.cat((torch.reshape(spectra, (-1,)), fac), dim = 0)
+        fac = torch.full(global_consts.halfTripleBatchSize + 1, factor, device = self.device)
+        x = torch.cat((spectra, fac), dim = 1)
         x = x.float()
+        x = torch.unsqueeze(torch.transpose(x, 0, 1), 0)
+        x = self.convolution(x)
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
@@ -323,9 +299,10 @@ class LiteSpecCrfAi(nn.Module):
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
+        x = torch.minimum(x, limit)
         return x
     
-    def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor, type1, type2):
+    def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
         """forward NN pass with data pre-and postprocessing as expected by other classes
         
         Arguments:
@@ -342,7 +319,7 @@ class LiteSpecCrfAi(nn.Module):
         
         
         self.eval()
-        output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), torch.sqrt(spectrum3), torch.sqrt(spectrum4), factor, type1 + type2)))
+        output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), torch.sqrt(spectrum3), torch.sqrt(spectrum4), factor)))
         return output
     
     def getState(self):

@@ -31,37 +31,10 @@ for i in range(hiddenLayerNumber, hiddenLayerNumberMax):
         spectrum2 = j[1]
         spectrum3 = j[-2]
         spectrum4 = j[-1]
-        if encodedTypes == 0:
-            type1 = "V"
-            type2 = "V"
-        elif encodedTypes == 1:
-            type1 = "V"
-            type2 = "C"
-        elif encodedTypes == 2:
-            type1 = "V"
-            type2 = "c"
-        elif encodedTypes == 3:
-            type1 = "C"
-            type2 = "V"
-        elif encodedTypes == 4:
-            type1 = "C"
-            type2 = "C"
-        elif encodedTypes == 5:
-            type1 = "C"
-            type2 = "c"
-        elif encodedTypes == 6:
-            type1 = "c"
-            type2 = "V"
-        elif encodedTypes == 7:
-            type1 = "c"
-            type2 = "C"
-        elif encodedTypes == 8:
-            type1 = "c"
-            type2 = "c"
         for k in range(j.size()[0]):
             factor = i / float(j.size()[0])
             spectrumTarget = j[k]
-            output = torch.squeeze(crfAi.processData(spectrum1, spectrum2, spectrum3, spectrum4, factor, type1, type2))
+            output = torch.squeeze(crfAi.processData(spectrum1, spectrum2, spectrum3, spectrum4, factor))
             loss = RelLoss(output, spectrumTarget)
             trainResults.append(loss)
     trainAvg = numpy.mean(trainResults)
@@ -75,7 +48,7 @@ for i in range(hiddenLayerNumber, hiddenLayerNumberMax):
         for k in range(j.size()[0]):
             factor = i / float(j.size()[0])
             spectrumTarget = j[k]
-            output = torch.squeeze(crfAi.processData(spectrum1, spectrum2, spectrum3, spectrum4, factor, type1, type2))
+            output = torch.squeeze(crfAi.processData(spectrum1, spectrum2, spectrum3, spectrum4, factor))
             loss = RelLoss(output, spectrumTarget)
             testResults.append(loss)
     testAvg = numpy.mean(testResults)

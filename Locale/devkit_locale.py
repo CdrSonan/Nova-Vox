@@ -101,6 +101,5 @@ def getLocale():
         locale["vowel"] = "vowel"
         locale["cons_hard"] = "hard consonant"
         locale["cons_soft"] = "soft consonant"
-        locale["tr_type"] = "transition type"
         
     return locale

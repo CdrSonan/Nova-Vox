@@ -59,15 +59,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
             previousSpectrum = None
             previousExcitation = None
             previousVoicedExcitation = None
-            previousType = None
             currentSpectrum = None
             currentExcitation = None
             currentVoicedExcitation = None
-            currentType = None
             nextSpectrum = None
             nextExcitation = None
             nextVoicedExcitation = None
-            nextType = None
             
             aiActive = False
             #reverse iterator to set internalStatusControl.ai based on internalStatusControl.rs
@@ -90,15 +87,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                 previousSpectrum = currentSpectrum
                 previousExcitation = currentExcitation
                 previousVoicedExcitation = currentVoicedExcitation
-                previousType = currentType
                 currentSpectrum = nextSpectrum
                 currentExcitation = nextExcitation
                 currentVoicedExcitation = nextVoicedExcitation
-                currentType = nextType
                 nextSpectrum = None
                 nextExcitation = None
                 nextVoicedExcitation = None
-                nextType = None
                 if j < len(internalStatusControl.ai):
                     if internalStatusControl.rs[j].item() == 0:
                         logging.info("calling resamplers for sample " + str(j) + ", sequence " + str(i))
@@ -107,19 +101,16 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                             previousSpectrum = rs.getSpectrum(section, device_rs)
                             previousExcitation = rs.getExcitation(section, device_rs)
                             previousVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
-                            previousType = rs.getType(section)
                         if currentSpectrum == None:
                             section = VocalSegment(internalInputs, voicebank, j, device_rs)
                             currentSpectrum = rs.getSpectrum(section, device_rs)
                             currentExcitation = rs.getExcitation(section, device_rs)
                             currentVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
-                            currentType = rs.getType(section)
                         if (internalInputs.endCaps[j] == False) and (nextSpectrum == None):
                             section = VocalSegment(internalInputs, voicebank, j + 1, device_rs)
                             nextSpectrum = rs.getSpectrum(section, device_rs)
                             nextExcitation = rs.getExcitation(section, device_rs)
                             nextVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
-                            nextType = rs.getType(section)
 
                         outputList[i].status[j] = 1
 
@@ -134,7 +125,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                             windowStartEx = internalInputs.borders[3 * j + 1]
                             excitation[internalInputs.borders[3 * j]:windowStartEx] = previousExcitation[internalInputs.borders[3 * j] - windowStartEx:]
                             for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2]):
-                                spectrum[k] = voicebank.crfAi.processData(previousSpectrum[-2].to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), currentSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]), previousType, currentType)
+                                spectrum[k] = voicebank.crfAi.processData(previousSpectrum[-2].to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), currentSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]))
                         if internalInputs.endCaps[j]:
                             windowEnd = internalInputs.borders[3 * j + 5]
                             windowEndEx = internalInputs.borders[3 * j + 5]
@@ -144,7 +135,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                             windowEndEx = internalInputs.borders[3 * j + 4]
                             excitation[windowEndEx:internalInputs.borders[3 * j + 5]] = nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx]
                             for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
-                                spectrum[k] = voicebank.crfAi.processData(currentSpectrum[-2].to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), nextSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]), currentType, nextType)
+                                spectrum[k] = voicebank.crfAi.processData(currentSpectrum[-2].to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), nextSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
                         spectrum[windowStart:windowEnd] = currentSpectrum
                         excitation[windowStartEx:windowEndEx] = currentExcitation
 
