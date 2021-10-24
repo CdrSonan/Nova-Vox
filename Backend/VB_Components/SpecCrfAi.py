@@ -51,10 +51,10 @@ class SpecCrfAi(nn.Module):
             
             
         super(SpecCrfAi, self).__init__()
-        self.convolution = nn.Conv1d(5, 5, 1)
-        self.layerStart1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize + 5, device = device)
+        self.convolution = nn.Conv1d(5, 5, 1, device = device)
+        self.layerStart1 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, 5 * global_consts.halfTripleBatchSize + 5, device = device)
         self.ReLuStart1 = nn.ReLU()
-        self.layerStart2 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize, device = device)
+        self.layerStart2 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
@@ -90,16 +90,20 @@ class SpecCrfAi(nn.Module):
             
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
         
-
+        spectrum1 = torch.unsqueeze(spectrum1, 1)
+        spectrum2 = torch.unsqueeze(spectrum2, 1)
+        spectrum3 = torch.unsqueeze(spectrum3, 1)
+        spectrum4 = torch.unsqueeze(spectrum4, 1)
         spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
-        limit = torch.max(spectra, dim = 1)
+        limit = torch.max(spectra, dim = 1)[0]
         #fac = torch.tensor([factor], device = self.device)
         #x = torch.cat((torch.reshape(spectra, (-1,)), fac), dim = 0)
-        fac = torch.full(global_consts.halfTripleBatchSize + 1, factor, device = self.device)
+        fac = torch.full((global_consts.halfTripleBatchSize + 1, 1), factor, device = self.device)
         x = torch.cat((spectra, fac), dim = 1)
         x = x.float()
         x = torch.unsqueeze(torch.transpose(x, 0, 1), 0)
         x = self.convolution(x)
+        x = torch.reshape(x, (-1,))
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
@@ -281,6 +285,10 @@ class LiteSpecCrfAi(nn.Module):
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
         
         
+        pectrum1 = torch.unsqueeze(spectrum1, 1)
+        spectrum2 = torch.unsqueeze(spectrum2, 1)
+        spectrum3 = torch.unsqueeze(spectrum3, 1)
+        spectrum4 = torch.unsqueeze(spectrum4, 1)
         spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
         limit = torch.max(spectra, dim = 1)
         #fac = torch.tensor([factor], device = self.device)
