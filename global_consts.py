@@ -16,6 +16,9 @@ filterTEEMult = 24
 
 pitchShiftSpectralRolloff = 10
 
+spectralRolloff1 = 144
+spectralRolloff2 = 192
+
 breCompPremul = 0.4
 
 language = "en"

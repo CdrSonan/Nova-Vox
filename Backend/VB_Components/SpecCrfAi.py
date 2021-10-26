@@ -166,7 +166,7 @@ class SpecCrfAi(nn.Module):
                     spectrum2 = data[1]
                     spectrum3 = data[-2]
                     spectrum4 = data[-1]
-
+                    """
                     length = data.size()[0]
                     filterWidth = math.ceil(length / 3)
                     threshold = torch.nn.Threshold(0.001, 0.001)
@@ -174,8 +174,8 @@ class SpecCrfAi(nn.Module):
                     cutoffWindow = torch.zeros(data.size()[0])
                     cutoffWindow[0:filterWidth] = 1.
                     cutoffWindow[filterWidth] = 0.5
-                    data = threshold(torch.fft.irfft(cutoffWindow * data, dim = 0, n = length))
-
+                    data = threshold(torch.fft.irfft(torch.unsqueeze(cutoffWindow, 1) * data, dim = 0, n = length))
+                    """
                     indexList = np.arange(0, data.size()[0], 1)
                     np.random.shuffle(indexList)
                     for i in indexList:
