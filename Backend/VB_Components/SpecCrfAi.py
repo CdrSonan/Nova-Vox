@@ -62,9 +62,9 @@ class SpecCrfAi(nn.Module):
             hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 4 * global_consts.halfTripleBatchSize, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 2 * global_consts.halfTripleBatchSize + 2, device = device)
+        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(2 * global_consts.halfTripleBatchSize + 2, global_consts.halfTripleBatchSize + 1, device = device)
+        self.layerEnd2 = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
 
         self.device = device
@@ -72,8 +72,8 @@ class SpecCrfAi(nn.Module):
         self.hiddenLayerCount = hiddenLayerCount
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
-        #self.criterion = nn.L1Loss()
-        self.criterion = RelLoss()
+        self.criterion = nn.L1Loss()
+        #self.criterion = RelLoss()
         self.epoch = 0
         self.sampleCount = 0
         self.loss = None
@@ -166,16 +166,16 @@ class SpecCrfAi(nn.Module):
                     spectrum2 = data[1]
                     spectrum3 = data[-2]
                     spectrum4 = data[-1]
-                    """
+                    
                     length = data.size()[0]
-                    filterWidth = math.ceil(length / 3)
+                    filterWidth = math.ceil(length / 5)
                     threshold = torch.nn.Threshold(0.001, 0.001)
                     data = torch.fft.rfft(data, dim = 0)
                     cutoffWindow = torch.zeros(data.size()[0])
                     cutoffWindow[0:filterWidth] = 1.
                     cutoffWindow[filterWidth] = 0.5
                     data = threshold(torch.fft.irfft(torch.unsqueeze(cutoffWindow, 1) * data, dim = 0, n = length))
-                    """
+                    
                     indexList = np.arange(0, data.size()[0], 1)
                     np.random.shuffle(indexList)
                     for i in indexList:

@@ -49,3 +49,335 @@
 2021-10-26 10:15:18,395:21324:INFO:save command received
 2021-10-26 10:15:23,189:21324:INFO:quit command received
 2021-10-26 10:15:23,190:21324:INFO:exiting program, ending logging service
+2021-10-26 17:26:16,059:22184:INFO:logging service started
+2021-10-26 17:26:16,059:22184:INFO:opening voicebank file dialog
+2021-10-26 17:26:18,996:22184:INFO:loading voicebank
+2021-10-26 17:26:19,270:22184:INFO:opening sequence file dialog
+2021-10-26 17:26:26,950:22184:INFO:reading sequence
+2021-10-26 17:26:26,950:22184:INFO:starting render manager
+2021-10-26 17:26:28,238:18368:INFO:logging service started
+2021-10-26 17:26:29,502:1204:INFO:logging service started
+2021-10-26 17:26:29,505:22184:INFO:manager started, waiting for user input
+2021-10-26 17:26:29,527:1204:INFO:render process started, reading settings
+2021-10-26 17:26:29,528:1204:INFO:starting new rendering iteration
+2021-10-26 17:26:29,530:1204:INFO:starting new sequence rendering iteration, copying data from main process
+2021-10-26 17:26:29,576:1204:INFO:setting up local data structures
+2021-10-26 17:26:29,578:1204:INFO:starting new segment rendering iteration
+2021-10-26 17:26:29,578:1204:INFO:shifting internal data backwards
+2021-10-26 17:26:29,579:1204:INFO:calling resamplers for sample 0, sequence 0
+2021-10-26 17:26:29,990:1204:INFO:performing pitch shift of sample 0, sequence 0
+2021-10-26 17:26:30,253:1204:INFO:applying partial pitch shift to spectrum of sample 0, sequence 0
+2021-10-26 17:26:30,282:1204:INFO:starting new segment rendering iteration
+2021-10-26 17:26:30,282:1204:INFO:applying AI params to spectrum of sample 0, sequence 0
+2021-10-26 17:26:30,283:1204:INFO:shifting internal data backwards
+2021-10-26 17:26:30,283:1204:INFO:calling resamplers for sample 1, sequence 0
+2021-10-26 17:26:30,485:1204:INFO:performing pitch shift of sample 1, sequence 0
+2021-10-26 17:26:30,988:1204:INFO:applying partial pitch shift to spectrum of sample 1, sequence 0
+2021-10-26 17:26:31,028:1204:INFO:starting new segment rendering iteration
+2021-10-26 17:26:31,028:1204:INFO:applying AI params to spectrum of sample 1, sequence 0
+2021-10-26 17:26:31,028:1204:INFO:shifting internal data backwards
+2021-10-26 17:26:31,028:1204:INFO:calling resamplers for sample 2, sequence 0
+2021-10-26 17:26:31,325:1204:INFO:performing pitch shift of sample 2, sequence 0
+2021-10-26 17:26:31,845:1204:INFO:applying partial pitch shift to spectrum of sample 2, sequence 0
+2021-10-26 17:26:31,892:1204:INFO:starting new segment rendering iteration
+2021-10-26 17:26:31,892:1204:INFO:applying AI params to spectrum of sample 2, sequence 0
+2021-10-26 17:26:31,892:1204:INFO:shifting internal data backwards
+2021-10-26 17:26:31,893:1204:INFO:calling resamplers for sample 3, sequence 0
+2021-10-26 17:26:32,146:1204:INFO:performing pitch shift of sample 3, sequence 0
+2021-10-26 17:26:32,379:22184:INFO:status command received
+2021-10-26 17:26:32,681:1204:INFO:applying partial pitch shift to spectrum of sample 3, sequence 0
+2021-10-26 17:26:32,713:1204:INFO:starting new segment rendering iteration
+2021-10-26 17:26:32,713:1204:INFO:applying AI params to spectrum of sample 3, sequence 0
+2021-10-26 17:26:32,713:1204:INFO:shifting internal data backwards
+2021-10-26 17:26:32,713:1204:INFO:calling resamplers for sample 4, sequence 0
+2021-10-26 17:26:32,714:1204:INFO:performing pitch shift of sample 4, sequence 0
+2021-10-26 17:26:32,989:1204:INFO:applying partial pitch shift to spectrum of sample 4, sequence 0
+2021-10-26 17:26:33,045:1204:INFO:starting new segment rendering iteration
+2021-10-26 17:26:33,046:1204:INFO:applying AI params to spectrum of sample 4, sequence 0
+2021-10-26 17:26:33,046:1204:INFO:shifting internal data backwards
+2021-10-26 17:26:33,046:1204:INFO:performing final rendering up to sample 4, sequence 0
+2021-10-26 17:26:33,071:1204:INFO:rendering process finished for all sequences, waiting for render semaphore
+2021-10-26 17:26:36,159:22184:INFO:save command received
+2021-10-26 17:26:40,364:22184:INFO:quit command received
+2021-10-26 17:26:40,364:22184:INFO:exiting program, ending logging service
+2021-10-26 19:18:10,549:17552:INFO:logging service started
+2021-10-26 19:18:10,550:17552:INFO:opening voicebank file dialog
+2021-10-26 19:18:12,777:17552:INFO:loading voicebank
+2021-10-26 19:18:13,038:17552:INFO:opening sequence file dialog
+2021-10-26 19:18:20,325:17552:INFO:reading sequence
+2021-10-26 19:18:20,325:17552:INFO:starting render manager
+2021-10-26 19:18:21,615:5596:INFO:logging service started
+2021-10-26 19:18:22,869:4304:INFO:logging service started
+2021-10-26 19:18:22,872:17552:INFO:manager started, waiting for user input
+2021-10-26 19:18:22,894:4304:INFO:render process started, reading settings
+2021-10-26 19:18:22,895:4304:INFO:starting new rendering iteration
+2021-10-26 19:18:22,897:4304:INFO:starting new sequence rendering iteration, copying data from main process
+2021-10-26 19:18:22,944:4304:INFO:setting up local data structures
+2021-10-26 19:18:22,946:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:22,946:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:22,946:4304:INFO:calling resamplers for sample 0, sequence 0
+2021-10-26 19:18:23,350:4304:INFO:performing pitch shift of sample 0, sequence 0
+2021-10-26 19:18:23,622:4304:INFO:applying partial pitch shift to spectrum of sample 0, sequence 0
+2021-10-26 19:18:23,652:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:23,652:4304:INFO:applying AI params to spectrum of sample 0, sequence 0
+2021-10-26 19:18:23,653:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:23,653:4304:INFO:calling resamplers for sample 1, sequence 0
+2021-10-26 19:18:23,865:4304:INFO:performing pitch shift of sample 1, sequence 0
+2021-10-26 19:18:24,389:4304:INFO:applying partial pitch shift to spectrum of sample 1, sequence 0
+2021-10-26 19:18:24,432:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:24,432:4304:INFO:applying AI params to spectrum of sample 1, sequence 0
+2021-10-26 19:18:24,433:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:24,433:4304:INFO:calling resamplers for sample 2, sequence 0
+2021-10-26 19:18:24,723:4304:INFO:performing pitch shift of sample 2, sequence 0
+2021-10-26 19:18:25,248:4304:INFO:applying partial pitch shift to spectrum of sample 2, sequence 0
+2021-10-26 19:18:25,290:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:25,291:4304:INFO:applying AI params to spectrum of sample 2, sequence 0
+2021-10-26 19:18:25,291:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:25,291:4304:INFO:calling resamplers for sample 3, sequence 0
+2021-10-26 19:18:25,551:4304:INFO:performing pitch shift of sample 3, sequence 0
+2021-10-26 19:18:25,565:17552:INFO:status command received
+2021-10-26 19:18:26,096:4304:INFO:applying partial pitch shift to spectrum of sample 3, sequence 0
+2021-10-26 19:18:26,126:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:26,127:4304:INFO:applying AI params to spectrum of sample 3, sequence 0
+2021-10-26 19:18:26,127:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:26,127:4304:INFO:calling resamplers for sample 4, sequence 0
+2021-10-26 19:18:26,128:4304:INFO:performing pitch shift of sample 4, sequence 0
+2021-10-26 19:18:26,396:4304:INFO:applying partial pitch shift to spectrum of sample 4, sequence 0
+2021-10-26 19:18:26,448:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:26,448:4304:INFO:applying AI params to spectrum of sample 4, sequence 0
+2021-10-26 19:18:26,448:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:26,448:4304:INFO:performing final rendering up to sample 4, sequence 0
+2021-10-26 19:18:26,473:4304:INFO:rendering process finished for all sequences, waiting for render semaphore
+2021-10-26 19:18:29,074:17552:INFO:render command received
+2021-10-26 19:18:29,076:4304:INFO:starting new rendering iteration
+2021-10-26 19:18:29,076:4304:INFO:starting new sequence rendering iteration, copying data from main process
+2021-10-26 19:18:29,116:4304:INFO:setting up local data structures
+2021-10-26 19:18:29,118:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:29,119:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:29,119:4304:INFO:calling resamplers for sample 0, sequence 0
+2021-10-26 19:18:29,517:4304:INFO:performing pitch shift of sample 0, sequence 0
+2021-10-26 19:18:29,767:4304:INFO:applying partial pitch shift to spectrum of sample 0, sequence 0
+2021-10-26 19:18:29,797:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:29,797:4304:INFO:applying AI params to spectrum of sample 0, sequence 0
+2021-10-26 19:18:29,798:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:29,798:4304:INFO:calling resamplers for sample 1, sequence 0
+2021-10-26 19:18:29,994:4304:INFO:performing pitch shift of sample 1, sequence 0
+2021-10-26 19:18:30,523:4304:INFO:applying partial pitch shift to spectrum of sample 1, sequence 0
+2021-10-26 19:18:30,563:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:30,563:4304:INFO:applying AI params to spectrum of sample 1, sequence 0
+2021-10-26 19:18:30,563:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:30,563:4304:INFO:calling resamplers for sample 2, sequence 0
+2021-10-26 19:18:30,846:4304:INFO:performing pitch shift of sample 2, sequence 0
+2021-10-26 19:18:31,381:4304:INFO:applying partial pitch shift to spectrum of sample 2, sequence 0
+2021-10-26 19:18:31,422:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:31,422:4304:INFO:applying AI params to spectrum of sample 2, sequence 0
+2021-10-26 19:18:31,423:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:31,423:4304:INFO:calling resamplers for sample 3, sequence 0
+2021-10-26 19:18:31,679:4304:INFO:performing pitch shift of sample 3, sequence 0
+2021-10-26 19:18:32,199:4304:INFO:applying partial pitch shift to spectrum of sample 3, sequence 0
+2021-10-26 19:18:32,229:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:32,229:4304:INFO:applying AI params to spectrum of sample 3, sequence 0
+2021-10-26 19:18:32,229:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:32,229:4304:INFO:calling resamplers for sample 4, sequence 0
+2021-10-26 19:18:32,230:4304:INFO:performing pitch shift of sample 4, sequence 0
+2021-10-26 19:18:32,488:4304:INFO:applying partial pitch shift to spectrum of sample 4, sequence 0
+2021-10-26 19:18:32,542:4304:INFO:starting new segment rendering iteration
+2021-10-26 19:18:32,542:4304:INFO:applying AI params to spectrum of sample 4, sequence 0
+2021-10-26 19:18:32,543:4304:INFO:shifting internal data backwards
+2021-10-26 19:18:32,543:4304:INFO:performing final rendering up to sample 4, sequence 0
+2021-10-26 19:18:32,606:4304:INFO:rendering process finished for all sequences, waiting for render semaphore
+2021-10-26 19:18:38,397:17552:INFO:save command received
+2021-10-26 19:18:43,317:17552:INFO:quit command received
+2021-10-26 19:18:43,317:17552:INFO:exiting program, ending logging service
+2021-10-26 19:25:09,868:9328:INFO:logging service started
+2021-10-26 19:25:09,868:9328:INFO:opening voicebank file dialog
+2021-10-26 19:25:16,871:9328:INFO:loading voicebank
+2021-10-26 19:25:17,138:9328:INFO:opening sequence file dialog
+2021-10-26 19:25:26,090:9328:INFO:reading sequence
+2021-10-26 19:25:26,090:9328:INFO:starting render manager
+2021-10-26 19:25:27,394:22192:INFO:logging service started
+2021-10-26 19:25:28,691:20240:INFO:logging service started
+2021-10-26 19:25:28,694:9328:INFO:manager started, waiting for user input
+2021-10-26 19:25:28,717:20240:INFO:render process started, reading settings
+2021-10-26 19:25:28,718:20240:INFO:starting new rendering iteration
+2021-10-26 19:25:28,720:20240:INFO:starting new sequence rendering iteration, copying data from main process
+2021-10-26 19:25:28,769:20240:INFO:setting up local data structures
+2021-10-26 19:25:28,771:20240:INFO:starting new segment rendering iteration
+2021-10-26 19:25:28,771:20240:INFO:shifting internal data backwards
+2021-10-26 19:25:28,771:20240:INFO:calling resamplers for sample 0, sequence 0
+2021-10-26 19:25:29,178:20240:INFO:performing pitch shift of sample 0, sequence 0
+2021-10-26 19:25:29,464:20240:INFO:applying partial pitch shift to spectrum of sample 0, sequence 0
+2021-10-26 19:25:29,494:20240:INFO:starting new segment rendering iteration
+2021-10-26 19:25:29,494:20240:INFO:applying AI params to spectrum of sample 0, sequence 0
+2021-10-26 19:25:29,495:20240:INFO:shifting internal data backwards
+2021-10-26 19:25:29,495:20240:INFO:calling resamplers for sample 1, sequence 0
+2021-10-26 19:25:29,693:20240:INFO:performing pitch shift of sample 1, sequence 0
+2021-10-26 19:25:30,269:20240:INFO:applying partial pitch shift to spectrum of sample 1, sequence 0
+2021-10-26 19:25:30,315:20240:INFO:starting new segment rendering iteration
+2021-10-26 19:25:30,315:20240:INFO:applying AI params to spectrum of sample 1, sequence 0
+2021-10-26 19:25:30,315:20240:INFO:shifting internal data backwards
+2021-10-26 19:25:30,315:20240:INFO:calling resamplers for sample 2, sequence 0
+2021-10-26 19:25:30,612:20240:INFO:performing pitch shift of sample 2, sequence 0
+2021-10-26 19:25:31,197:20240:INFO:applying partial pitch shift to spectrum of sample 2, sequence 0
+2021-10-26 19:25:31,240:20240:INFO:starting new segment rendering iteration
+2021-10-26 19:25:31,240:20240:INFO:applying AI params to spectrum of sample 2, sequence 0
+2021-10-26 19:25:31,240:20240:INFO:shifting internal data backwards
+2021-10-26 19:25:31,241:20240:INFO:calling resamplers for sample 3, sequence 0
+2021-10-26 19:25:31,494:20240:INFO:performing pitch shift of sample 3, sequence 0
+2021-10-26 19:25:32,046:20240:INFO:applying partial pitch shift to spectrum of sample 3, sequence 0
+2021-10-26 19:25:32,079:20240:INFO:starting new segment rendering iteration
+2021-10-26 19:25:32,080:20240:INFO:applying AI params to spectrum of sample 3, sequence 0
+2021-10-26 19:25:32,080:20240:INFO:shifting internal data backwards
+2021-10-26 19:25:32,080:20240:INFO:calling resamplers for sample 4, sequence 0
+2021-10-26 19:25:32,080:20240:INFO:performing pitch shift of sample 4, sequence 0
+2021-10-26 19:25:32,363:20240:INFO:applying partial pitch shift to spectrum of sample 4, sequence 0
+2021-10-26 19:25:32,417:20240:INFO:starting new segment rendering iteration
+2021-10-26 19:25:32,417:20240:INFO:applying AI params to spectrum of sample 4, sequence 0
+2021-10-26 19:25:32,418:20240:INFO:shifting internal data backwards
+2021-10-26 19:25:32,418:20240:INFO:performing final rendering up to sample 4, sequence 0
+2021-10-26 19:25:32,443:20240:INFO:rendering process finished for all sequences, waiting for render semaphore
+2021-10-26 19:25:35,735:9328:INFO:save command received
+2021-10-26 19:25:42,444:9328:INFO:quit command received
+2021-10-26 19:25:42,445:9328:INFO:exiting program, ending logging service
+2021-10-26 19:29:47,383:15792:INFO:logging service started
+2021-10-26 19:29:47,384:15792:INFO:opening voicebank file dialog
+2021-10-26 19:30:07,917:15792:INFO:loading voicebank
+2021-10-26 19:30:08,180:15792:INFO:opening sequence file dialog
+2021-10-26 19:30:15,044:15792:INFO:reading sequence
+2021-10-26 19:30:15,044:15792:INFO:starting render manager
+2021-10-26 19:30:16,350:23080:INFO:logging service started
+2021-10-26 19:30:17,646:10000:INFO:logging service started
+2021-10-26 19:30:17,650:15792:INFO:manager started, waiting for user input
+2021-10-26 19:30:17,672:10000:INFO:render process started, reading settings
+2021-10-26 19:30:17,673:10000:INFO:starting new rendering iteration
+2021-10-26 19:30:17,675:10000:INFO:starting new sequence rendering iteration, copying data from main process
+2021-10-26 19:30:17,737:10000:INFO:setting up local data structures
+2021-10-26 19:30:17,739:10000:INFO:starting new segment rendering iteration
+2021-10-26 19:30:17,739:10000:INFO:shifting internal data backwards
+2021-10-26 19:30:17,739:10000:INFO:calling resamplers for sample 0, sequence 0
+2021-10-26 19:30:18,161:10000:INFO:performing pitch shift of sample 0, sequence 0
+2021-10-26 19:30:18,438:10000:INFO:applying partial pitch shift to spectrum of sample 0, sequence 0
+2021-10-26 19:30:18,469:10000:INFO:starting new segment rendering iteration
+2021-10-26 19:30:18,469:10000:INFO:applying AI params to spectrum of sample 0, sequence 0
+2021-10-26 19:30:18,469:10000:INFO:shifting internal data backwards
+2021-10-26 19:30:18,469:10000:INFO:calling resamplers for sample 1, sequence 0
+2021-10-26 19:30:18,670:10000:INFO:performing pitch shift of sample 1, sequence 0
+2021-10-26 19:30:19,258:10000:INFO:applying partial pitch shift to spectrum of sample 1, sequence 0
+2021-10-26 19:30:19,303:10000:INFO:starting new segment rendering iteration
+2021-10-26 19:30:19,303:10000:INFO:applying AI params to spectrum of sample 1, sequence 0
+2021-10-26 19:30:19,303:10000:INFO:shifting internal data backwards
+2021-10-26 19:30:19,304:10000:INFO:calling resamplers for sample 2, sequence 0
+2021-10-26 19:30:19,604:10000:INFO:performing pitch shift of sample 2, sequence 0
+2021-10-26 19:30:20,195:10000:INFO:applying partial pitch shift to spectrum of sample 2, sequence 0
+2021-10-26 19:30:20,239:10000:INFO:starting new segment rendering iteration
+2021-10-26 19:30:20,240:10000:INFO:applying AI params to spectrum of sample 2, sequence 0
+2021-10-26 19:30:20,240:10000:INFO:shifting internal data backwards
+2021-10-26 19:30:20,240:10000:INFO:calling resamplers for sample 3, sequence 0
+2021-10-26 19:30:20,500:10000:INFO:performing pitch shift of sample 3, sequence 0
+2021-10-26 19:30:21,093:10000:INFO:applying partial pitch shift to spectrum of sample 3, sequence 0
+2021-10-26 19:30:21,125:10000:INFO:starting new segment rendering iteration
+2021-10-26 19:30:21,126:10000:INFO:applying AI params to spectrum of sample 3, sequence 0
+2021-10-26 19:30:21,126:10000:INFO:shifting internal data backwards
+2021-10-26 19:30:21,126:10000:INFO:calling resamplers for sample 4, sequence 0
+2021-10-26 19:30:21,127:10000:INFO:performing pitch shift of sample 4, sequence 0
+2021-10-26 19:30:21,420:10000:INFO:applying partial pitch shift to spectrum of sample 4, sequence 0
+2021-10-26 19:30:21,472:10000:INFO:starting new segment rendering iteration
+2021-10-26 19:30:21,472:10000:INFO:applying AI params to spectrum of sample 4, sequence 0
+2021-10-26 19:30:21,472:10000:INFO:shifting internal data backwards
+2021-10-26 19:30:21,472:10000:INFO:performing final rendering up to sample 4, sequence 0
+2021-10-26 19:31:45,244:23044:INFO:logging service started
+2021-10-26 19:31:45,244:23044:INFO:opening voicebank file dialog
+2021-10-26 19:31:51,871:23044:INFO:loading voicebank
+2021-10-26 19:31:52,132:23044:INFO:opening sequence file dialog
+2021-10-26 19:31:58,012:23044:INFO:reading sequence
+2021-10-26 19:31:58,012:23044:INFO:starting render manager
+2021-10-26 19:31:59,315:22616:INFO:logging service started
+2021-10-26 19:32:00,608:21812:INFO:logging service started
+2021-10-26 19:32:00,611:23044:INFO:manager started, waiting for user input
+2021-10-26 19:32:00,634:21812:INFO:render process started, reading settings
+2021-10-26 19:32:00,636:21812:INFO:starting new rendering iteration
+2021-10-26 19:32:00,637:21812:INFO:starting new sequence rendering iteration, copying data from main process
+2021-10-26 19:32:00,685:21812:INFO:setting up local data structures
+2021-10-26 19:32:00,686:21812:INFO:starting new segment rendering iteration
+2021-10-26 19:32:00,686:21812:INFO:shifting internal data backwards
+2021-10-26 19:32:00,686:21812:INFO:calling resamplers for sample 0, sequence 0
+2021-10-26 19:32:01,091:21812:INFO:performing pitch shift of sample 0, sequence 0
+2021-10-26 19:32:01,376:21812:INFO:applying partial pitch shift to spectrum of sample 0, sequence 0
+2021-10-26 19:32:01,411:21812:INFO:starting new segment rendering iteration
+2021-10-26 19:32:01,411:21812:INFO:applying AI params to spectrum of sample 0, sequence 0
+2021-10-26 19:32:01,411:21812:INFO:shifting internal data backwards
+2021-10-26 19:32:01,411:21812:INFO:calling resamplers for sample 1, sequence 0
+2021-10-26 19:32:01,617:21812:INFO:performing pitch shift of sample 1, sequence 0
+2021-10-26 19:32:02,200:21812:INFO:applying partial pitch shift to spectrum of sample 1, sequence 0
+2021-10-26 19:32:02,241:21812:INFO:starting new segment rendering iteration
+2021-10-26 19:32:02,241:21812:INFO:applying AI params to spectrum of sample 1, sequence 0
+2021-10-26 19:32:02,241:21812:INFO:shifting internal data backwards
+2021-10-26 19:32:02,242:21812:INFO:calling resamplers for sample 2, sequence 0
+2021-10-26 19:32:02,537:21812:INFO:performing pitch shift of sample 2, sequence 0
+2021-10-26 19:32:03,084:21812:INFO:applying partial pitch shift to spectrum of sample 2, sequence 0
+2021-10-26 19:32:03,125:21812:INFO:starting new segment rendering iteration
+2021-10-26 19:32:03,125:21812:INFO:applying AI params to spectrum of sample 2, sequence 0
+2021-10-26 19:32:03,125:21812:INFO:shifting internal data backwards
+2021-10-26 19:32:03,125:21812:INFO:calling resamplers for sample 3, sequence 0
+2021-10-26 19:32:03,391:21812:INFO:performing pitch shift of sample 3, sequence 0
+2021-10-26 19:32:03,965:21812:INFO:applying partial pitch shift to spectrum of sample 3, sequence 0
+2021-10-26 19:32:03,995:21812:INFO:starting new segment rendering iteration
+2021-10-26 19:32:03,996:21812:INFO:applying AI params to spectrum of sample 3, sequence 0
+2021-10-26 19:32:03,996:21812:INFO:shifting internal data backwards
+2021-10-26 19:32:03,996:21812:INFO:calling resamplers for sample 4, sequence 0
+2021-10-26 19:32:03,997:21812:INFO:performing pitch shift of sample 4, sequence 0
+2021-10-26 19:32:04,299:21812:INFO:applying partial pitch shift to spectrum of sample 4, sequence 0
+2021-10-26 19:32:04,351:21812:INFO:starting new segment rendering iteration
+2021-10-26 19:32:04,351:21812:INFO:applying AI params to spectrum of sample 4, sequence 0
+2021-10-26 19:32:04,352:21812:INFO:shifting internal data backwards
+2021-10-26 19:32:04,352:21812:INFO:performing final rendering up to sample 4, sequence 0
+2021-10-26 19:32:40,391:21636:INFO:logging service started
+2021-10-26 19:32:40,392:21636:INFO:opening voicebank file dialog
+2021-10-26 19:32:48,012:21636:INFO:loading voicebank
+2021-10-26 19:32:48,284:21636:INFO:opening sequence file dialog
+2021-10-26 19:32:55,668:21636:INFO:reading sequence
+2021-10-26 19:32:55,668:21636:INFO:starting render manager
+2021-10-26 19:32:56,956:21836:INFO:logging service started
+2021-10-26 19:32:58,248:23548:INFO:logging service started
+2021-10-26 19:32:58,251:21636:INFO:manager started, waiting for user input
+2021-10-26 19:32:58,274:23548:INFO:render process started, reading settings
+2021-10-26 19:32:58,275:23548:INFO:starting new rendering iteration
+2021-10-26 19:32:58,276:23548:INFO:starting new sequence rendering iteration, copying data from main process
+2021-10-26 19:32:58,324:23548:INFO:setting up local data structures
+2021-10-26 19:32:58,325:23548:INFO:starting new segment rendering iteration
+2021-10-26 19:32:58,325:23548:INFO:shifting internal data backwards
+2021-10-26 19:32:58,326:23548:INFO:calling resamplers for sample 0, sequence 0
+2021-10-26 19:32:58,743:23548:INFO:performing pitch shift of sample 0, sequence 0
+2021-10-26 19:32:59,021:23548:INFO:applying partial pitch shift to spectrum of sample 0, sequence 0
+2021-10-26 19:32:59,051:23548:INFO:starting new segment rendering iteration
+2021-10-26 19:32:59,051:23548:INFO:applying AI params to spectrum of sample 0, sequence 0
+2021-10-26 19:32:59,052:23548:INFO:shifting internal data backwards
+2021-10-26 19:32:59,052:23548:INFO:calling resamplers for sample 1, sequence 0
+2021-10-26 19:32:59,262:23548:INFO:performing pitch shift of sample 1, sequence 0
+2021-10-26 19:32:59,846:23548:INFO:applying partial pitch shift to spectrum of sample 1, sequence 0
+2021-10-26 19:32:59,888:23548:INFO:starting new segment rendering iteration
+2021-10-26 19:32:59,888:23548:INFO:applying AI params to spectrum of sample 1, sequence 0
+2021-10-26 19:32:59,889:23548:INFO:shifting internal data backwards
+2021-10-26 19:32:59,889:23548:INFO:calling resamplers for sample 2, sequence 0
+2021-10-26 19:33:00,176:23548:INFO:performing pitch shift of sample 2, sequence 0
+2021-10-26 19:33:00,748:23548:INFO:applying partial pitch shift to spectrum of sample 2, sequence 0
+2021-10-26 19:33:00,790:23548:INFO:starting new segment rendering iteration
+2021-10-26 19:33:00,790:23548:INFO:applying AI params to spectrum of sample 2, sequence 0
+2021-10-26 19:33:00,790:23548:INFO:shifting internal data backwards
+2021-10-26 19:33:00,791:23548:INFO:calling resamplers for sample 3, sequence 0
+2021-10-26 19:33:01,062:23548:INFO:performing pitch shift of sample 3, sequence 0
+2021-10-26 19:33:01,641:23548:INFO:applying partial pitch shift to spectrum of sample 3, sequence 0
+2021-10-26 19:33:01,673:23548:INFO:starting new segment rendering iteration
+2021-10-26 19:33:01,674:23548:INFO:applying AI params to spectrum of sample 3, sequence 0
+2021-10-26 19:33:01,674:23548:INFO:shifting internal data backwards
+2021-10-26 19:33:01,674:23548:INFO:calling resamplers for sample 4, sequence 0
+2021-10-26 19:33:01,674:23548:INFO:performing pitch shift of sample 4, sequence 0
+2021-10-26 19:33:01,975:23548:INFO:applying partial pitch shift to spectrum of sample 4, sequence 0
+2021-10-26 19:33:02,026:23548:INFO:starting new segment rendering iteration
+2021-10-26 19:33:02,026:23548:INFO:applying AI params to spectrum of sample 4, sequence 0
+2021-10-26 19:33:02,026:23548:INFO:shifting internal data backwards
+2021-10-26 19:33:02,026:23548:INFO:performing final rendering up to sample 4, sequence 0
+2021-10-26 19:33:02,054:23548:INFO:rendering process finished for all sequences, waiting for render semaphore
+2021-10-26 19:33:05,036:21636:INFO:save command received
+2021-10-26 19:33:12,485:21636:INFO:quit command received
+2021-10-26 19:33:12,485:21636:INFO:exiting program, ending logging service
