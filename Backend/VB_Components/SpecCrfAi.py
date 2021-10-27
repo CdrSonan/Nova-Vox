@@ -68,14 +68,15 @@ class SpecCrfAi(nn.Module):
         self.ReLuEnd1 = nn.ReLU()
         self.layerEnd2 = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
+        self.threshold = torch.nn.Threshold(0.001, 0.001)
 
         self.device = device
         
         self.hiddenLayerCount = hiddenLayerCount
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
-        #self.criterion = nn.L1Loss()
-        self.criterion = RelLoss()
+        self.criterion = nn.L1Loss()
+        #self.criterion = RelLoss()
         self.epoch = 0
         self.sampleCount = 0
         self.loss = None
@@ -117,12 +118,22 @@ class SpecCrfAi(nn.Module):
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
         x = torch.minimum(x, limit)
-        plt.plot(spectrum1)
+
+        spectralFilterWidth = 5 * global_consts.filterTEEMult
+        x = torch.fft.rfft(x, dim = 0)
+        cutoffWindow = torch.zeros_like(x)
+        cutoffWindow[0:int(spectralFilterWidth / 2)] = 1.
+        cutoffWindow[int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
+        x = torch.fft.irfft(cutoffWindow * x, dim = 0, n = global_consts.halfTripleBatchSize + 1)
+        x = self.threshold(x)
+
+        """plt.plot(spectrum1)
         plt.plot(spectrum2)
         plt.plot(spectrum3)
         plt.plot(spectrum4)
         plt.plot(limit)
-        plt.show()
+        plt.show()"""
+        
         return x
     
     def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
@@ -279,6 +290,7 @@ class LiteSpecCrfAi(nn.Module):
         self.ReLuEnd1 = nn.ReLU()
         self.layerEnd2 = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
+        self.threshold = torch.nn.Threshold(0.001, 0.001)
         
         self.device = device
 
@@ -329,12 +341,21 @@ class LiteSpecCrfAi(nn.Module):
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
         x = torch.minimum(x, limit)
-        plt.plot(spectrum1)
+
+        spectralFilterWidth = 5 * global_consts.filterTEEMult
+        x = torch.fft.rfft(x, dim = 0)
+        cutoffWindow = torch.zeros_like(x)
+        cutoffWindow[0:int(spectralFilterWidth / 2)] = 1.
+        cutoffWindow[int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
+        x = torch.fft.irfft(cutoffWindow * x, dim = 0, n = global_consts.halfTripleBatchSize + 1)
+        x = self.threshold(x)
+
+        """plt.plot(spectrum1)
         plt.plot(spectrum2)
         plt.plot(spectrum3)
         plt.plot(spectrum4)
         plt.plot(x.detach())
-        plt.show()
+        plt.show()"""
         return x
     
     def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
