@@ -1341,3 +1341,100 @@
 2021-10-26 19:54:27,493:22168:INFO:Phonemedict pitch update callback
 2021-10-26 19:54:27,493:22168:INFO:Phonemedict spectral update callback
 2021-10-26 19:54:31,367:22168:INFO:Root UI destroyed
+2021-10-26 19:57:32,467:23784:INFO:logging service started
+2021-10-26 19:57:32,467:23784:INFO:initializing Root UI
+2021-10-26 19:57:34,715:23784:INFO:new button callback
+2021-10-26 19:57:35,139:23784:INFO:UTAU import button callback
+2021-10-26 19:57:35,187:23784:INFO:Initializing UTAU import UI
+2021-10-26 19:57:37,342:23784:INFO:oto.ini load button callback
+2021-10-26 19:58:45,785:23784:INFO:UTAU sample list selection change callback
+2021-10-26 19:58:45,785:23784:INFO:UTAU diagram update callback
+2021-10-26 19:58:56,696:23784:INFO:UTAU import all button callback
+2021-10-26 19:59:13,108:23784:INFO:UTAU sample list focus loss callback
+2021-10-26 19:59:37,770:23784:INFO:UTAU OK button callback
+2021-10-26 19:59:46,217:23784:INFO:Crfai button callback
+2021-10-26 19:59:46,277:23784:INFO:Initializing Crfai UI
+2021-10-26 19:59:54,582:23784:INFO:Crfai train button callback
+2021-10-26 20:03:38,409:24012:INFO:logging service started
+2021-10-26 20:03:38,410:24012:INFO:initializing Root UI
+2021-10-26 20:03:39,671:24012:INFO:new button callback
+2021-10-26 20:03:40,182:24012:INFO:UTAU import button callback
+2021-10-26 20:03:40,231:24012:INFO:Initializing UTAU import UI
+2021-10-26 20:03:42,142:24012:INFO:oto.ini load button callback
+2021-10-26 20:04:44,948:24012:INFO:UTAU import all button callback
+2021-10-26 20:05:21,622:24012:INFO:UTAU OK button callback
+2021-10-26 20:05:22,995:24012:INFO:Crfai button callback
+2021-10-26 20:05:23,045:24012:INFO:Initializing Crfai UI
+2021-10-26 20:05:30,878:24012:INFO:Crfai train button callback
+2021-10-26 21:28:25,516:24012:INFO:Crfai train button callback completed
+2021-10-26 21:49:16,574:24012:INFO:save button callback
+2021-10-26 21:49:28,101:24012:INFO:Root UI destroyed
+2021-10-26 22:11:09,928:22032:INFO:logging service started
+2021-10-26 22:11:09,928:22032:INFO:initializing Root UI
+2021-10-26 22:11:11,880:22032:INFO:new button callback
+2021-10-26 22:11:12,504:22032:INFO:UTAU import button callback
+2021-10-26 22:11:12,551:22032:INFO:Initializing UTAU import UI
+2021-10-26 22:11:13,719:22032:INFO:oto.ini load button callback
+2021-10-26 22:12:20,495:19420:INFO:logging service started
+2021-10-26 22:12:20,495:19420:INFO:initializing Root UI
+2021-10-26 22:12:31,046:19420:INFO:new button callback
+2021-10-26 22:12:31,681:19420:INFO:UTAU import button callback
+2021-10-26 22:12:31,728:19420:INFO:Initializing UTAU import UI
+2021-10-26 22:12:32,861:19420:INFO:oto.ini load button callback
+2021-10-26 22:13:34,541:19420:INFO:UTAU import all button callback
+2021-10-26 22:14:08,776:19420:INFO:UTAU OK button callback
+2021-10-26 22:14:10,031:19420:INFO:Crfai button callback
+2021-10-26 22:14:10,079:19420:INFO:Initializing Crfai UI
+2021-10-26 22:14:16,713:19420:INFO:Crfai train button callback
+2021-10-26 22:27:53,946:22680:INFO:logging service started
+2021-10-26 22:27:53,947:22680:INFO:initializing Root UI
+2021-10-26 22:27:55,248:22680:INFO:new button callback
+2021-10-26 22:27:55,779:22680:INFO:UTAU import button callback
+2021-10-26 22:27:55,826:22680:INFO:Initializing UTAU import UI
+2021-10-26 22:27:57,791:22680:INFO:oto.ini load button callback
+2021-10-26 22:28:59,677:22680:INFO:UTAU import all button callback
+2021-10-26 22:29:35,691:22680:INFO:UTAU OK button callback
+2021-10-26 22:29:37,807:22680:INFO:Crfai button callback
+2021-10-26 22:29:37,854:22680:INFO:Initializing Crfai UI
+2021-10-26 22:29:41,230:22680:INFO:Crfai train button callback
+2021-10-26 23:52:44,362:22680:INFO:Crfai train button callback completed
+2021-10-26 23:57:21,238:22680:INFO:save button callback
+2021-10-27 12:24:43,516:22292:INFO:logging service started
+2021-10-27 12:24:43,516:22292:INFO:initializing Root UI
+2021-10-27 12:24:45,043:22292:INFO:new button callback
+2021-10-27 12:24:45,450:22292:INFO:UTAU import button callback
+2021-10-27 12:24:45,498:22292:INFO:Initializing UTAU import UI
+2021-10-27 12:24:47,289:22292:INFO:oto.ini load button callback
+2021-10-27 12:29:44,259:22292:INFO:UTAU import all button callback
+2021-10-27 12:30:57,870:22292:INFO:UTAU OK button callback
+2021-10-27 12:31:01,040:22292:INFO:Crfai button callback
+2021-10-27 12:31:01,088:22292:INFO:Initializing Crfai UI
+2021-10-27 12:31:07,107:22292:INFO:Crfai train button callback
+2021-10-27 12:38:09,085:17860:INFO:logging service started
+2021-10-27 12:38:09,086:17860:INFO:initializing Root UI
+2021-10-27 12:38:16,317:17860:INFO:new button callback
+2021-10-27 12:38:16,901:17860:INFO:UTAU import button callback
+2021-10-27 12:38:16,948:17860:INFO:Initializing UTAU import UI
+2021-10-27 12:38:18,806:17860:INFO:oto.ini load button callback
+2021-10-27 12:39:20,211:17860:INFO:UTAU import all button callback
+2021-10-27 12:39:54,731:17860:INFO:UTAU OK button callback
+2021-10-27 12:39:57,930:17860:INFO:Crfai button callback
+2021-10-27 12:39:57,977:17860:INFO:Initializing Crfai UI
+2021-10-27 12:40:07,510:17860:INFO:Crfai train button callback
+2021-10-27 16:14:27,590:17860:INFO:Crfai train button callback completed
+2021-10-27 16:23:52,982:17860:INFO:Crfai OK button callback
+2021-10-27 16:23:55,286:17860:INFO:save button callback
+2021-10-27 18:06:30,554:22084:INFO:logging service started
+2021-10-27 18:06:30,554:22084:INFO:initializing Root UI
+2021-10-27 18:06:38,863:22084:INFO:new button callback
+2021-10-27 18:06:39,457:22084:INFO:UTAU import button callback
+2021-10-27 18:06:39,505:22084:INFO:Initializing UTAU import UI
+2021-10-27 18:06:41,448:22084:INFO:oto.ini load button callback
+2021-10-27 18:07:52,506:22084:INFO:UTAU import all button callback
+2021-10-27 18:08:27,874:22084:INFO:UTAU OK button callback
+2021-10-27 18:08:28,675:22084:INFO:Crfai button callback
+2021-10-27 18:08:28,733:22084:INFO:Initializing Crfai UI
+2021-10-27 18:08:33,189:22084:INFO:Crfai train button callback
+2021-10-27 20:36:33,664:4720:INFO:logging service started
+2021-10-27 20:36:33,679:4720:INFO:initializing Root UI
+2021-10-27 20:36:36,192:4720:INFO:Root UI destroyed

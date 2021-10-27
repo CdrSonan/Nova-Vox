@@ -650,7 +650,7 @@ class CrfaiUi(tkinter.Frame):
         
         self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter)
-        self.sideBar.unvoicedIter.variable.set(10)
+        self.sideBar.unvoicedIter.variable.set(20)
         self.sideBar.unvoicedIter.entry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 0, to = 100)
         self.sideBar.unvoicedIter.entry["textvariable"] = self.sideBar.unvoicedIter.variable
         self.sideBar.unvoicedIter.entry.pack(side = "right", fill = "x")

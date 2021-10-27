@@ -6,6 +6,8 @@ from torch._C import device
 import torch.nn as nn
 import global_consts
 
+import matplotlib.pyplot as plt
+
 class SpecCrfAi(nn.Module):
     """class for generating crossphades between the spectra of different phonemes using AI.
     
@@ -72,8 +74,8 @@ class SpecCrfAi(nn.Module):
         self.hiddenLayerCount = hiddenLayerCount
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
-        self.criterion = nn.L1Loss()
-        #self.criterion = RelLoss()
+        #self.criterion = nn.L1Loss()
+        self.criterion = RelLoss()
         self.epoch = 0
         self.sampleCount = 0
         self.loss = None
@@ -115,6 +117,12 @@ class SpecCrfAi(nn.Module):
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
         x = torch.minimum(x, limit)
+        plt.plot(spectrum1)
+        plt.plot(spectrum2)
+        plt.plot(spectrum3)
+        plt.plot(spectrum4)
+        plt.plot(limit)
+        plt.show()
         return x
     
     def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
@@ -160,7 +168,8 @@ class SpecCrfAi(nn.Module):
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
                     print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
-                    data = torch.sqrt(data.to(device = self.device))
+                    #data = torch.sqrt(data.to(device = self.device))
+                    data = data.to(device = self.device)
                     data = torch.squeeze(data)
                     spectrum1 = data[0]
                     spectrum2 = data[1]
@@ -266,9 +275,9 @@ class LiteSpecCrfAi(nn.Module):
             hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 4 * global_consts.halfTripleBatchSize, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 2 * global_consts.halfTripleBatchSize + 2, device = device)
+        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(2 * global_consts.halfTripleBatchSize + 2, global_consts.halfTripleBatchSize + 1, device = device)
+        self.layerEnd2 = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
         
         self.device = device
@@ -320,6 +329,12 @@ class LiteSpecCrfAi(nn.Module):
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
         x = torch.minimum(x, limit)
+        plt.plot(spectrum1)
+        plt.plot(spectrum2)
+        plt.plot(spectrum3)
+        plt.plot(spectrum4)
+        plt.plot(x.detach())
+        plt.show()
         return x
     
     def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
@@ -396,8 +411,8 @@ class RelLoss(nn.Module):
             Relative error value calculated from the difference between input and target Tensor as Float"""
         
         
-        inputs = inputs.view(-1)
-        targets = targets.view(-1)
+        #inputs = inputs.view(-1)
+        #targets = targets.view(-1)
         differences = torch.abs(inputs - targets)
         refs = torch.abs(targets)
         out = (differences / refs).sum() / inputs.size()[0]

@@ -6,6 +6,9 @@ import logging
 import Backend.Resampler.Resamplers as rs
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.VB_Components.SpecCrfAi import LiteSpecCrfAi
+
+import matplotlib.pyplot as plt
+
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, outputList, rerenderFlag):
     logging.info("render process started, reading settings")
     settings = {}
@@ -126,6 +129,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                             excitation[internalInputs.borders[3 * j]:windowStartEx] = previousExcitation[internalInputs.borders[3 * j] - windowStartEx:]
                             for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2]):
                                 spectrum[k] = voicebank.crfAi.processData(previousSpectrum[-2].to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), currentSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]))
+                        
                         if internalInputs.endCaps[j]:
                             windowEnd = internalInputs.borders[3 * j + 5]
                             windowEndEx = internalInputs.borders[3 * j + 5]
@@ -136,6 +140,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, out
                             excitation[windowEndEx:internalInputs.borders[3 * j + 5]] = nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx]
                             for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
                                 spectrum[k] = voicebank.crfAi.processData(currentSpectrum[-2].to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), nextSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
+                        
+                        #implement crfai skipping if transition was already calculated in the previous frame
+                        
                         spectrum[windowStart:windowEnd] = currentSpectrum
                         excitation[windowStartEx:windowEndEx] = currentExcitation
 
