@@ -34,8 +34,7 @@ def calculateSpectra(audioSample):
             workingSpectra = torch.min(workingSpectra, audioSample.spectra)
             audioSample.spectra = workingSpectra
         """
-        signalsAbs = torch.sqrt(signalsAbs)
-        audioSample.spectra = signalsAbs.clone()
+        audioSample.spectra = torch.sqrt(signalsAbs.clone())
 
         audioSample.spectra = torch.fft.rfft(audioSample.spectra, dim = 1)
         cutoffWindow = torch.zeros(audioSample.spectra.size()[1])
@@ -48,7 +47,7 @@ def calculateSpectra(audioSample):
         audioSample._voicedExcitations *= torch.gt(signalsAbs, audioSample.spectra * audioSample.voicedFilter)
 
         excitationAbs = signalsAbs
-        voicedExcitationAbs = torch.sqrt(audioSample._voicedExcitations.abs())
+        voicedExcitationAbs = audioSample._voicedExcitations.abs()
         audioSample.excitation = torch.transpose(torch.sqrt(signals) * (excitationAbs - voicedExcitationAbs), 0, 1)
         audioSample.voicedExcitation = torch.transpose(audioSample._voicedExcitations, 0, 1)
 

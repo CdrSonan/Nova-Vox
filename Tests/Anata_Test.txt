@@ -16,10 +16,10 @@ offsets = [0, 40, 20, 0, 20]
 
 repetititionSpacing = torch.full([5], 0.5)
 
-pitch = torch.full([1500], 150)
+pitch = torch.full([1500], 170)
 
 steadiness = torch.full([1500], 0)
 
-breathiness = torch.full([1500], 0)
+breathiness = torch.full([1500], -1)
 
 sequence = VocalSequence(1500, borders, phonemes, startCaps, endCaps, offsets, repetititionSpacing, pitch, steadiness, breathiness)

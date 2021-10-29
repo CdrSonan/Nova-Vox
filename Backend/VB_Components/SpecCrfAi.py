@@ -2,7 +2,6 @@ from typing import OrderedDict
 import numpy as np
 import math
 import torch
-from torch._C import device
 import torch.nn as nn
 import global_consts
 
@@ -43,7 +42,7 @@ class SpecCrfAi(nn.Module):
     Since network performance deteriorates with skewed data, it internally passes the input through a square root function and squares the output."""
         
         
-    def __init__(self, device = None, learningRate=1e-4, hiddenLayerCount = 3):
+    def __init__(self, device = None, learningRate=5e-5, hiddenLayerCount = 3):
         """Constructor initialising NN layers and prerequisite attributes.
         
         Arguments:
@@ -64,9 +63,9 @@ class SpecCrfAi(nn.Module):
             hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 4 * global_consts.halfTripleBatchSize, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
+        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, math.ceil(global_consts.halfTripleBatchSize / 2), device = device)
         self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
+        self.layerEnd2 = torch.nn.Linear(math.ceil(global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
         self.threshold = torch.nn.Threshold(0.001, 0.001)
 
@@ -119,7 +118,7 @@ class SpecCrfAi(nn.Module):
         x = self.ReLuEnd2(x)
         x = torch.minimum(x, limit)
 
-        spectralFilterWidth = 5 * global_consts.filterTEEMult
+        spectralFilterWidth = 4 * global_consts.filterTEEMult
         x = torch.fft.rfft(x, dim = 0)
         cutoffWindow = torch.zeros_like(x)
         cutoffWindow[0:int(spectralFilterWidth / 2)] = 1.
@@ -286,9 +285,9 @@ class LiteSpecCrfAi(nn.Module):
             hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 4 * global_consts.halfTripleBatchSize, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
+        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, math.ceil(global_consts.halfTripleBatchSize / 2), device = device)
         self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
+        self.layerEnd2 = torch.nn.Linear(math.ceil(global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
         self.threshold = torch.nn.Threshold(0.001, 0.001)
         
@@ -342,7 +341,7 @@ class LiteSpecCrfAi(nn.Module):
         x = self.ReLuEnd2(x)
         x = torch.minimum(x, limit)
 
-        spectralFilterWidth = 5 * global_consts.filterTEEMult
+        spectralFilterWidth = 4 * global_consts.filterTEEMult
         x = torch.fft.rfft(x, dim = 0)
         cutoffWindow = torch.zeros_like(x)
         cutoffWindow[0:int(spectralFilterWidth / 2)] = 1.

@@ -20,7 +20,7 @@ def getSpectrum(vocalSegment, device):
     spectrum =  vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectrum.to(device = device)
     spectra = Loop.loopSamplerSpectrum(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
         
-    return torch.square(spectrum + (torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-vocalSegment.offset:windowEnd-vocalSegment.offset], 1), 2) * spectra))
+    return spectrum + (torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-vocalSegment.offset:windowEnd-vocalSegment.offset], 1), 2) * spectra)
     
 def getExcitation(vocalSegment, device):
     premul = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].excitation.size()[0] / (vocalSegment.end3 - vocalSegment.start1 + 1)
