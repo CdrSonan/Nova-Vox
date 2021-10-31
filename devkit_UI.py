@@ -351,6 +351,11 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.pSearchRange.display["text"] = loc["psearchr"]
         self.sideBar.pSearchRange.display.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.pBroadcastButton = tkinter.Button(self.sideBar)
+        self.sideBar.pBroadcastButton["text"] = loc["pit_brdc"]
+        self.sideBar.pBroadcastButton["command"] = self.onPitBrdcPress
+        self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.sideBar.voicedFilter = tkinter.Frame(self.sideBar)
         self.sideBar.voicedFilter.variable = tkinter.DoubleVar(self.sideBar.voicedFilter)
@@ -375,6 +380,11 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.unvoicedIter.display["text"] = loc["uviter"]
         self.sideBar.unvoicedIter.display.pack(side = "right", fill = "x")
         self.sideBar.unvoicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.sBroadcastButton = tkinter.Button(self.sideBar)
+        self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
+        self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
+        self.sideBar.sBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.sideBar.fileButton = tkinter.Button(self.sideBar)
         self.sideBar.fileButton["text"] = loc["cng_file"]
@@ -522,6 +532,27 @@ class PhonemedictUi(tkinter.Frame):
             self.phonemeList.list.lb.delete(index)
             self.phonemeList.list.lb.insert(index, newKey)
 
+    def onPitBrdcPress(self, event):
+        pitch = self.sideBar.expPitch.variable.get()
+        pitchRange = self.sideBar.pSearchRange.variable.get()
+        for i in loadedVB.phonemeDict:
+            if type(i).__name__ == "AudioSample":
+                if (i.expectedPitch != self.sideBar.expPitch.variable.get()) or (i.searchRange != self.sideBar.pSearchRange.variable.get()):
+                    i.expectedPitch = pitch
+                    i.searchRange = pitchRange
+                    calculatePitch(i)
+                    calculateSpectra(i)
+
+    def onSpecBrdcPress(self, event):
+        voicedFilter = self.sideBar.voicedFilter.variable.get()
+        unvoicedIter = self.sideBar.unvoicedIter.variable.get()
+        for i in loadedVB.phonemeDict:
+            if type(i).__name__ == "AudioSample":
+                if (i.voicedFilter != self.sideBar.voicedFilter.variable.get()) or (i.unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
+                    i.voicedFilter = voicedFilter
+                    i.unvoicedIterations = unvoicedIter
+                    calculateSpectra(i)
+        self.onSliderMove(self.diagram.timeSlider.get())
         
     def onPitchUpdateTrigger(self, event):
         """UI Frontend function for updating the pitch of a phoneme"""
@@ -669,6 +700,16 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.epochs.display["text"] = loc["epochs"]
         self.sideBar.epochs.display.pack(side = "right", fill = "x")
         self.sideBar.epochs.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.exportButton = tkinter.Button(self.sideBar)
+        self.sideBar.exportButton["text"] = loc["ai_smp_export"]
+        self.sideBar.exportButton["command"] = self.onExportPress
+        self.sideBar.exportButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+
+        self.sideBar.importButton = tkinter.Button(self.sideBar)
+        self.sideBar.importButton["text"] = loc["ai_smp_import"]
+        self.sideBar.importButton["command"] = self.onImportPress
+        self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.sideBar.trainButton = tkinter.Button(self.sideBar)
         self.sideBar.trainButton["text"] = loc["train"]
@@ -738,6 +779,17 @@ class CrfaiUi(tkinter.Frame):
             else:
                 self.phonemeList.list.lb.selection_set(index)
 
+    def onExportPress(self):
+        logging.info("Crfai dataset export callback")
+        global loadedVB
+        filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".dat", filetypes = ((".dat", ".dat"), (loc["all_files_desc"], "*")))
+        torch.save(loadedVB.stagedTrainSamples, filepath)
+
+    def onImportPress(self):
+        logging.info("Crfai dataset export callback")
+        global loadedVB
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
+        loadedVB.stagedTrainSamples = torch.load(filepath)
                 
     def onTrainPress(self):
         """UI Frontend function for training the AI with the specified settings and samples"""

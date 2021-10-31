@@ -77,7 +77,6 @@ class AudioSample:
         self.excitation = torch.tensor([], dtype = float)
         self.voicedExcitation = torch.tensor([], dtype = float)
         self._voicedExcitations = torch.tensor([], dtype = float)
-        self.breathinessCompensation = 1.
         
         self.expectedPitch = 249.
         self.searchRange = 0.2

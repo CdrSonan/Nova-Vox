@@ -170,7 +170,6 @@ class SpecCrfAi(nn.Module):
         
         
         if indata != False:
-            torch.save(indata, "transitions.smpl")
             if (self.epoch == 0) or self.epoch == epochs:
                 self.epoch = epochs
             else:

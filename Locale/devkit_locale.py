@@ -101,5 +101,8 @@ def getLocale():
         locale["vowel"] = "vowel"
         locale["cons_hard"] = "hard consonant"
         locale["cons_soft"] = "soft consonant"
+        locale["pit_brdc"] = "apply pitch settings to all"
+        locale["ai_smp_export"] = "export samples as AI dataset file"
+        locale["ai_smp_import"] = "import samples as AI dataset file"
         
     return locale
