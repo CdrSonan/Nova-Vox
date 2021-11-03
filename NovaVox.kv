@@ -1,0 +1,97 @@
+#:kivy 2.0.0
+
+<NovaVoxUI>:
+    FloatLayout:
+        size: (root.width, root.height)
+        canvas:
+            Color:
+                rgba: (0.137, 0.125, 0.173, 1)
+            Rectangle:
+                pos: (root.width - 65, 0)
+                size:(65, root.height)
+            Color:
+                rgba: (0.322, 0.259, 0.463, 1)
+            Rectangle:
+                pos: (0, root.height - 60)
+                size:(root.width, 60)
+        Button:
+            pos: (0, root.height - 60)
+            size_hint: (60 / root.width, 60 / root.height)
+            background_normal: "UI/TopBar/logo.gif"
+            background_down: "UI/TopBar/logo.gif"
+        Button:
+            pos: (80, root.height - 45)
+            size_hint: (42 / root.width, 30 / root.height)
+            background_normal: "UI/TopBar/Top01.png"
+            background_down: "UI/TopBar/Top01_clicked.png"
+        ToggleButton:
+            pos: (140, root.height - 56)
+            size_hint: (38 / root.width, 52 / root.height)
+            background_normal: "UI/TopBar/Top02.png"
+            background_down: "UI/TopBar/Top02_clicked.png"
+        Button:
+            pos: (190, root.height - 45)
+            size_hint: (42 / root.width, 30 / root.height)
+            background_normal: "UI/TopBar/Top03.png"
+            background_down: "UI/TopBar/Top03_clicked.png"
+        Button:
+            pos: (250, root.height - 54)
+            size_hint: (48 / root.width, 48 / root.height)
+            background_normal: "UI/TopBar/Top04.png"
+            background_down: "UI/TopBar/Top04_clicked.png"
+        Button:
+            pos: (310, root.height - 54)
+            size_hint: (48 / root.width, 48 / root.height)
+            background_normal: "UI/TopBar/Top05.png"
+            background_down: "UI/TopBar/Top05_clicked.png"
+        Button:
+            pos: (root.width - 60, root.height - 120)
+            size_hint: (55 / root.width, 55 / root.height)
+            background_normal: "UI/SideBar/Side01.png"
+            background_down: "UI/SideBar/Side01_clicked.png"
+        Button:
+            pos: (root.width - 60, root.height - 185)
+            size_hint: (55 / root.width, 55 / root.height)
+            background_normal: "UI/SideBar/Side02.png"
+            background_down: "UI/SideBar/Side02_clicked.png"
+        Button:
+            pos: (root.width - 60, root.height - 250)
+            size_hint: (55 / root.width, 55 / root.height)
+            background_normal: "UI/SideBar/Side03.png"
+            background_down: "UI/SideBar/Side03_clicked.png"
+        Button:
+            pos: (root.width - 60, root.height - 315)
+            size_hint: (55 / root.width, 55 / root.height)
+            background_normal: "UI/SideBar/Side04.png"
+            background_down: "UI/SideBar/Side04_clicked.png"
+        Button:
+            pos: (root.width - 60, root.height - 380)
+            size_hint: (55 / root.width, 55 / root.height)
+            background_normal: "UI/SideBar/Side05.png"
+            background_down: "UI/SideBar/Side05_clicked.png"
+        Button:
+            pos: (root.width - 60, root.height - 445)
+            size_hint: (55 / root.width, 55 / root.height)
+            background_normal: "UI/SideBar/Side06.png"
+            background_down: "UI/SideBar/Side06_clicked.png"
+        GridLayout:
+            cols: 2
+            pos: (0, 0)
+            size_hint: (1 - (65 / root.width), 1 - (60 / root.height))
+            Button:
+                size_hint: (200 / self.parent.width, 1 - (200 / self.parent.height))
+                text: "Singer List"
+            Button:
+                size_hint: (1 - (200 / self.parent.width), 1 - (200 / self.parent.height))
+                text: "Piano Roll"
+            Button:
+                size_hint: (200 / self.parent.width, 200 / self.parent.height)
+                text: "Parameter List"
+            Button:
+                size_hint: (1 - (200 / self.parent.width), 200 / self.parent.height)
+                text: "Parameter Editor"
+
+        #dark: 0.137 0.125 0.173
+        #medium: 0.184 0.184 0.267
+        #light: 0.204 0.204 0.294
+        #toolbar: 0.322 0.259 0.463

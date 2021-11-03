@@ -33,6 +33,11 @@ torch.backends.cudnn.allow_tf32 = tcores
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading UI libraries...")
 import tkinter.filedialog
+
+import kivy
+from kivy.app import App
+from kivy.uix.widget import Widget
+
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading Nova-Vox Backend libraries...")
 import global_consts
@@ -64,9 +69,20 @@ else:
 logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename='editor.log', level=loglevel)
 logging.info("logging service started")
 
+class NovaVoxUI(Widget):
+    pass
+
+class NovaVoxApp(App):
+    def build(self):
+        self.icon = "UI/TopBar/Logo.gif"
+        return NovaVoxUI()
+
 if __name__ == '__main__':
     mp.freeze_support()
     pyi_splash.close()
+
+    NovaVoxApp().run()
+
     logging.info("opening voicebank file dialog")
     filepath = tkinter.filedialog.askopenfilename(filetypes = ((".nvvb Voicebanks", ".nvvb"), ("all_files", "*")))
     if filepath != "":
