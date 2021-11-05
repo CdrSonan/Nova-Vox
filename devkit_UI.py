@@ -359,7 +359,7 @@ class PhonemedictUi(tkinter.Frame):
         
         self.sideBar.voicedFilter = tkinter.Frame(self.sideBar)
         self.sideBar.voicedFilter.variable = tkinter.DoubleVar(self.sideBar.voicedFilter)
-        self.sideBar.voicedFilter.entry = tkinter.Spinbox(self.sideBar.voicedFilter, from_ = 0, to = 5, increment = 0.05)
+        self.sideBar.voicedFilter.entry = tkinter.Spinbox(self.sideBar.voicedFilter, from_ = 1, to = 50)
         self.sideBar.voicedFilter.entry["textvariable"] = self.sideBar.voicedFilter.variable
         self.sideBar.voicedFilter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.voicedFilter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)

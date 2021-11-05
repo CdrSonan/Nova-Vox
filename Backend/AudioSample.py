@@ -80,7 +80,7 @@ class AudioSample:
         
         self.expectedPitch = 249.
         self.searchRange = 0.2
-        self.voicedFilter = 0.9
+        self.voicedFilter = 10
         self.unvoicedIterations = 20
         
 class LiteAudioSample:

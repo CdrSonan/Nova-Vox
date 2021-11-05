@@ -19,28 +19,20 @@ def calculateSpectra(audioSample):
         threshold = torch.nn.Threshold(0.001, 0.001)
         #perhaps lower FilterTEEMult for voiced/unvoiced separation and increase UI filter value instead
         window = torch.hann_window(global_consts.tripleBatchSize * global_consts.filterBSMult)
-        spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * global_consts.filterBSMult * global_consts.filterTEEMult / audioSample.pitch), torch.Tensor([1])).int().item()
+        #spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * global_consts.filterBSMult * global_consts.filterTEEMult / audioSample.pitch), torch.Tensor([1])).int().item()
         signals = torch.stft(audioSample.waveform, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, return_complex = True, onesided = True)
         signals = torch.transpose(signals, 0, 1)
         signalsAbs = signals.abs()
-        """
+        
         spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * global_consts.filterBSMult / audioSample.pitch), torch.Tensor([1])).int().item()
         workingSpectra = torch.sqrt(signalsAbs)
         audioSample.spectra = workingSpectra.clone()
-        for j in range(audioSample.voicedIterations):
+        for j in range(audioSample.voicedFilter):
             for i in range(spectralFilterWidth):
                 audioSample.spectra = torch.roll(workingSpectra, -i, dims = 1) + audioSample.spectra + torch.roll(workingSpectra, i, dims = 1)
             audioSample.spectra = audioSample.spectra / (2 * spectralFilterWidth + 1)
             workingSpectra = torch.min(workingSpectra, audioSample.spectra)
             audioSample.spectra = workingSpectra
-        """
-        audioSample.spectra = torch.sqrt(signalsAbs.clone())
-
-        audioSample.spectra = torch.fft.rfft(audioSample.spectra, dim = 1)
-        cutoffWindow = torch.zeros(audioSample.spectra.size()[1])
-        cutoffWindow[0:spectralFilterWidth] = 1.
-        cutoffWindow[spectralFilterWidth] = 0.5
-        audioSample.spectra = threshold(torch.fft.irfft(cutoffWindow * audioSample.spectra, dim = 1, n = global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1))
         
 
         audioSample._voicedExcitations = signals.clone()

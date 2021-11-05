@@ -25,8 +25,6 @@ for i in range(hiddenLayerNumber, hiddenLayerNumberMax):
     trainResults = []
     testResults = []
     for j in trainData:
-        encodedTypes = j[1]
-        j = j[0]
         spectrum1 = j[0]
         spectrum2 = j[1]
         spectrum3 = j[-2]
