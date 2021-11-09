@@ -34,9 +34,15 @@ if pyi_splash.is_alive():
     pyi_splash.update_text("loading UI libraries...")
 import tkinter.filedialog
 
-import kivy
 from kivy.app import App
-from kivy.uix.widget import Widget
+from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.clock import Clock
+
+from editor_UI import NovaVoxUI
+
+Window.minimum_height = 500
+Window.minimum_width = 500
 
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading Nova-Vox Backend libraries...")
@@ -69,16 +75,19 @@ else:
 logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename='editor.log', level=loglevel)
 logging.info("logging service started")
 
-class NovaVoxUI(Widget):
-    pass
-
 class NovaVoxApp(App):
     def build(self):
         self.icon = "UI/TopBar/Logo.gif"
-        return NovaVoxUI()
+        ui = NovaVoxUI()
+        Clock.schedule_interval(ui.update, 0.25)
+        return ui
 
 if __name__ == '__main__':
     mp.freeze_support()
+
+    Builder.load_file("UI/kv/ImageButton.kv")
+    Builder.load_file("UI/kv/NovaVox.kv")
+
     pyi_splash.close()
 
     NovaVoxApp().run()

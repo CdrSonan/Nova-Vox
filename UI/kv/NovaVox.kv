@@ -1,0 +1,224 @@
+#:kivy 2.0.0
+
+<NovaVoxUI>:
+    FloatLayout:
+        size: (root.width, root.height)
+        canvas:
+            Color:
+                rgba: (0.137, 0.125, 0.173, 1)
+            Rectangle:
+                pos: (root.width - 65, 0)
+                size:(65, root.height)
+            Color:
+                rgba: (0.322, 0.259, 0.463, 1)
+            Rectangle:
+                pos: (0, root.height - 60)
+                size:(root.width, 60)
+        ImageButton:
+            pos: (0, root.height - 60)
+            size_hint: (60 / root.width, 60 / root.height)
+            imageNormal: "UI/assets/TopBar/logo.gif"
+            imagePressed: "UI/assets/TopBar/logo.gif"
+        ImageButton:
+            pos: (80, root.height - 45)
+            size_hint: (42 / root.width, 30 / root.height)
+            imageNormal: "UI/assets/TopBar/Top01.png"
+            imagePressed: "UI/assets/TopBar/Top01_clicked.png"
+        ImageToggleButton:
+            pos: (140, root.height - 56)
+            size_hint: (38 / root.width, 52 / root.height)
+            imageNormal: "UI/assets/TopBar/Top02.png"
+            imagePressed: "UI/assets/TopBar/Top02_clicked.png"
+        ImageButton:
+            pos: (190, root.height - 45)
+            size_hint: (42 / root.width, 30 / root.height)
+            imageNormal: "UI/assets/TopBar/Top03.png"
+            imagePressed: "UI/assets/TopBar/Top03_clicked.png"
+        ImageButton:
+            pos: (250, root.height - 54)
+            size_hint: (48 / root.width, 48 / root.height)
+            imageNormal: "UI/assets/TopBar/Top04.png"
+            imagePressed: "UI/assets/TopBar/Top04_clicked.png"
+        ImageButton:
+            pos: (310, root.height - 54)
+            size_hint: (48 / root.width, 48 / root.height)
+            imageNormal: "UI/assets/TopBar/Top05.png"
+            imagePressed: "UI/assets/TopBar/Top05_clicked.png"
+        ImageButton:
+            pos: (root.width - 60, root.height - 120)
+            size_hint: (55 / root.width, 55 / root.height)
+            imageNormal: "UI/assets/SideBar/Side01.png"
+            imagePressed: "UI/assets/SideBar/Side01_clicked.png"
+        ImageButton:
+            pos: (root.width - 60, root.height - 185)
+            size_hint: (55 / root.width, 55 / root.height)
+            imageNormal: "UI/assets/SideBar/Side02.png"
+            imagePressed: "UI/assets/SideBar/Side02_clicked.png"
+        ImageButton:
+            pos: (root.width - 60, root.height - 250)
+            size_hint: (55 / root.width, 55 / root.height)
+            imageNormal: "UI/assets/SideBar/Side03.png"
+            imagePressed: "UI/assets/SideBar/Side03_clicked.png"
+        ImageButton:
+            pos: (root.width - 60, root.height - 315)
+            size_hint: (55 / root.width, 55 / root.height)
+            imageNormal: "UI/assets/SideBar/Side04.png"
+            imagePressed: "UI/assets/SideBar/Side04_clicked.png"
+        ImageButton:
+            pos: (root.width - 60, root.height - 380)
+            size_hint: (55 / root.width, 55 / root.height)
+            imageNormal: "UI/assets/SideBar/Side05.png"
+            imagePressed: "UI/assets/SideBar/Side05_clicked.png"
+        ImageButton:
+            pos: (root.width - 60, root.height - 445)
+            size_hint: (55 / root.width, 55 / root.height)
+            imageNormal: "UI/assets/SideBar/Side06.png"
+            imagePressed: "UI/assets/SideBar/Side06_clicked.png"
+        BoxLayout:
+            orientation: "horizontal"
+            pos: (0, 0)
+            size_hint: (None, None)#(1 - (65 / root.width), 1 - (60 / root.height))
+            size: root.width - 65, root.height - 60
+            Splitter:
+                size_hint: (0.25, 1)
+                sizable_from: "right"
+                rescale_with_parent: True
+                max_size: self.parent.width - 100
+                strip_size: 5
+                BoxLayout:
+                    orientation: "vertical"
+                    Splitter:
+                        size_hint: (1, 0.75)
+                        sizable_from: "bottom"
+                        rescale_with_parent: True
+                        max_size: self.parent.height - 100
+                        strip_size: 5
+                        Widget:
+                            canvas:
+                                Color:
+                                    rgba: (0.137, 0.125, 0.173, 1)
+                                Rectangle:
+                                    pos: self.parent.pos
+                                    size:(self.parent.width, self.parent.height)
+                            ScrollView:
+                                pos: self.parent.pos
+                                size:(self.parent.width, self.parent.height)
+                                do_scroll: (False, True)
+                                scroll_type: ["bars"]
+                                bar_width: 10
+                                BoxLayout:
+                                    size_hint: (1, None)
+                                    orientation: "vertical"
+                                    Button:
+                                        size_hint: (1, 0.5)
+                                        text: "Singer List"
+                                    Button:
+                                        size_hint: (1, 0.5)
+                                        text: "Singer List"
+                                    Button:
+                                        size_hint: (1, 0.5)
+                                        text: "Singer List"
+                                    Button:
+                                        size_hint: (1, 0.5)
+                                        text: "Singer List"
+                                    Button:
+                                        size_hint: (1, 0.5)
+                                        text: "Singer List"
+                    Widget:
+                        size_hint: (1, 0.25)
+                        canvas:
+                            Color:
+                                rgba: (0.204, 0.204, 0.294, 1)
+                            Rectangle:
+                                pos: self.parent.pos
+                                size:(self.parent.width / 2, self.parent.height / 3)
+                        ScrollView:
+                            pos: self.parent.pos
+                            size:(self.parent.width, self.parent.height)
+                            do_scroll: (False, True)
+                            scroll_type: ["bars"]
+                            bar_width: 10
+                            BoxLayout:
+                                size_hint: (1, None)
+                                orientation: "vertical"
+                                Button:
+                                    size_hint: (1, 0.5)
+                                    text: "Parameter List"
+                                Button:
+                                    size_hint: (1, 0.5)
+                                    text: "Parameter List"
+                                Button:
+                                    size_hint: (1, 0.5)
+                                    text: "Parameter List"
+                                Button:
+                                    size_hint: (1, 0.5)
+                                    text: "Parameter List"
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: (0.75, 1)
+                Splitter:
+                    size_hint: (1, 0.75)
+                    sizable_from: "bottom"
+                    rescale_with_parent: True
+                    max_size: self.parent.height - 100
+                    strip_size: 5
+                    FloatLayout:
+                        Widget:
+                            pos: self.parent.pos
+                            size_hint: (1, None)
+                            height: 30
+                            canvas:
+                                Color:
+                                    rgba: (0.322, 0.259, 0.463, 1)
+                                Rectangle:
+                                    pos: self.parent.pos
+                                    size:(self.parent.width, 30)
+                            BoxLayout:
+                                pos: self.parent.pos
+                                orientation: "horizontal"
+                                Button:
+                                    size_hint: (None, None)
+                                    size: (50, 26)
+                                    y: self.parent.y + 2
+                                    text: "test"
+                                Button:
+                                    size_hint: (None, None)
+                                    size: (50, 26)
+                                    y: self.parent.y + 2
+                                    text: "test"
+                                Button:
+                                    size_hint: (None, None)
+                                    size: (50, 26)
+                                    y: self.parent.y + 2
+                                    text: "test"
+                        ScrollView:
+                            x: self.parent.x
+                            y: self.parent.y + 30
+                            size_hint: (1, None)
+                            height: self.parent.height - 30
+                            do_scroll: (True, True)
+                            scroll_type: ["bars"]
+                            bar_width: 10
+                            Button:
+                                size_hint: (2, 2)
+                                text: "Piano Roll"
+                Widget:
+                    size_hint: (1, 0.25)
+                    canvas:
+                        Color:
+                            rgba: (0.184, 0.184, 0.267, 1)
+                        Rectangle:
+                            pos: self.parent.pos
+                            size:(self.parent.width / 2, self.parent.height / 5)
+                    StencilView:
+                        pos: self.parent.pos
+                        #size_hint: (1, 0.25)
+                        Button:
+                            size_hint: (None, 1)
+                            pos: self.parent.pos
+                            text: "Parameter Editor"
+
+        #dark: 0.137 0.125 0.173
+        #medium: 0.184 0.184 0.267
+        #light: 0.204 0.204 0.294
+        #toolbar: 0.322 0.259 0.463
