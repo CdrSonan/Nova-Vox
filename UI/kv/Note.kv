@@ -1,0 +1,16 @@
+#:kivy 2.0.0
+
+<Note>:
+    #size_hint: (None, None)
+    #size: (10 * self.parent.xScale, self.parent.yScale)
+    text: "lyrics"
+    Canvas:
+        Color:
+            rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Line:
+            points: ([0, 0], [1, 1])
+        Line:
+            points: ([0, self.parent.bottom], [0, self.parent.top])

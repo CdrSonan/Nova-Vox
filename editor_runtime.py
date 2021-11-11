@@ -40,9 +40,8 @@ from kivy.lang import Builder
 from kivy.clock import Clock
 
 from editor_UI import NovaVoxUI
-
 Window.minimum_height = 500
-Window.minimum_width = 500
+Window.minimum_width = 800
 
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading Nova-Vox Backend libraries...")
@@ -86,6 +85,10 @@ if __name__ == '__main__':
     mp.freeze_support()
 
     Builder.load_file("UI/kv/ImageButton.kv")
+    Builder.load_file("UI/kv/SingerPanel.kv")
+    Builder.load_file("UI/kv/ParamPanel.kv")
+    Builder.load_file("UI/kv/Note.kv")
+    Builder.load_file("UI/kv/PianoRoll.kv")
     Builder.load_file("UI/kv/NovaVox.kv")
 
     pyi_splash.close()

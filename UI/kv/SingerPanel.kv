@@ -1,0 +1,47 @@
+#:kivy 2.0.0
+
+<SingerPanel>:
+    anchor_x: "center"
+    anchor_y: "center"
+    size_hint: (1, None)
+    height: 200
+    ToggleButton:
+        size_hint: (None, None)
+        size: (self.parent.width - 20, self.parent.height - 20)
+        background_normal: "UI/assets/TrackList/SingerBGGrey.png"
+        background_down: "UI/assets/TrackList/SingerBGPurple.png"
+        group: "SingerPanels"
+        Label:
+            size_hint: (1, None)
+            height: 30
+            x: self.parent.x
+            y: self.parent.top - 30
+            text: "singer name"
+        Image:
+            size: (self.parent.height - 50, self.parent.height - 50)
+            x: self.parent.x + 10
+            y: self.parent.y + 10
+            source: "UI/assets/TrackList/SingerGrey04.png"
+        BoxLayout:
+            orientation: "vertical"
+            size: (self.parent.width - self.parent.height + 30, self.parent.height - 50)
+            x: self.parent.x + self.parent.height - 40
+            y: self.parent.y + 10
+            BoxLayout:
+                orientation: "horizontal"
+                ImageButton:
+                    imageNormal: "UI/assets/TrackList/SingerGrey01.png"
+                    imagePressed: "UI/assets/TrackList/SingerGrey01_clicked.png"
+                ImageButton:
+                    imageNormal: "UI/assets/TrackList/SingerGrey02.png"
+                    imagePressed: "UI/assets/TrackList/SingerGrey02_clicked.png"
+                ImageButton:
+                    imageNormal: "UI/assets/TrackList/SingerGrey03.png"
+                    imagePressed: "UI/assets/TrackList/SingerGrey03_clicked.png"
+            Slider:
+            AnchorLayout:
+                anchor_x: "center"
+                anchor_y: "center"
+                ProgressBar:
+                    size_hint_x: None
+                    width: self.parent.width - 30

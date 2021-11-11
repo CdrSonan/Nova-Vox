@@ -1,0 +1,25 @@
+#:kivy 2.0.0
+
+<ParamPanel>:
+    size_hint_y: None
+    height: 36
+    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    group: "parameters"
+    ImageToggleButton:
+        size_hint: (None, None)
+        size: (40, 30)
+        pos: (self.parent.x + 3, self.parent.y + 3)
+        imageNormal: "UI/assets/ParamList/Adaptive03.png"
+        imagePressed: "UI/assets/ParamList/Adaptive03_clicked.png"
+    ImageToggleButton:
+        size_hint: (None, None)
+        size: (30, 30)
+        pos: (self.parent.x + 43, self.parent.y + 3)
+        imageNormal: "UI/assets/ParamList/Adaptive02.png"
+        imagePressed: "UI/assets/ParamList/Adaptive01.png"
+    Label:
+        size_hint: (None, None)
+        size: (self.parent.width - 76, 30)
+        pos: (self.parent.x + 73, self.parent.y + 3)
+        text: "param name"

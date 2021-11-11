@@ -1,5 +1,5 @@
 #:kivy 2.0.0
-
+#:import Factory kivy.factory.Factory
 <NovaVoxUI>:
     FloatLayout:
         size: (root.width, root.height)
@@ -15,8 +15,8 @@
                 pos: (0, root.height - 60)
                 size:(root.width, 60)
         ImageButton:
-            pos: (0, root.height - 60)
-            size_hint: (60 / root.width, 60 / root.height)
+            pos: (4, root.height - 58)
+            size_hint: (56 / root.width, 56 / root.height)
             imageNormal: "UI/assets/TopBar/logo.gif"
             imagePressed: "UI/assets/TopBar/logo.gif"
         ImageButton:
@@ -25,8 +25,8 @@
             imageNormal: "UI/assets/TopBar/Top01.png"
             imagePressed: "UI/assets/TopBar/Top01_clicked.png"
         ImageToggleButton:
-            pos: (140, root.height - 56)
-            size_hint: (38 / root.width, 52 / root.height)
+            pos: (138, root.height - 50)
+            size_hint: (38 / root.width, 40 / root.height)
             imageNormal: "UI/assets/TopBar/Top02.png"
             imagePressed: "UI/assets/TopBar/Top02_clicked.png"
         ImageButton:
@@ -35,13 +35,13 @@
             imageNormal: "UI/assets/TopBar/Top03.png"
             imagePressed: "UI/assets/TopBar/Top03_clicked.png"
         ImageButton:
-            pos: (250, root.height - 54)
-            size_hint: (48 / root.width, 48 / root.height)
+            pos: (250, root.height - 52)
+            size_hint: (44 / root.width, 44 / root.height)
             imageNormal: "UI/assets/TopBar/Top04.png"
             imagePressed: "UI/assets/TopBar/Top04_clicked.png"
         ImageButton:
-            pos: (310, root.height - 54)
-            size_hint: (48 / root.width, 48 / root.height)
+            pos: (310, root.height - 52)
+            size_hint: (44 / root.width, 44 / root.height)
             imageNormal: "UI/assets/TopBar/Top05.png"
             imagePressed: "UI/assets/TopBar/Top05_clicked.png"
         ImageButton:
@@ -77,12 +77,13 @@
         BoxLayout:
             orientation: "horizontal"
             pos: (0, 0)
-            size_hint: (None, None)#(1 - (65 / root.width), 1 - (60 / root.height))
+            size_hint: (None, None)
             size: root.width - 65, root.height - 60
             Splitter:
                 size_hint: (0.25, 1)
                 sizable_from: "right"
                 rescale_with_parent: True
+                min_size: 100
                 max_size: self.parent.width - 100
                 strip_size: 5
                 BoxLayout:
@@ -99,31 +100,23 @@
                                     rgba: (0.137, 0.125, 0.173, 1)
                                 Rectangle:
                                     pos: self.parent.pos
-                                    size:(self.parent.width, self.parent.height)
+                                    size:(self.width, self.height)
                             ScrollView:
                                 pos: self.parent.pos
+                                #size_hint: (1, 1)
                                 size:(self.parent.width, self.parent.height)
+                                #size: (180, 400)
                                 do_scroll: (False, True)
                                 scroll_type: ["bars"]
                                 bar_width: 10
                                 BoxLayout:
-                                    size_hint: (1, None)
+                                    size_hint: (None, None)
                                     orientation: "vertical"
-                                    Button:
-                                        size_hint: (1, 0.5)
-                                        text: "Singer List"
-                                    Button:
-                                        size_hint: (1, 0.5)
-                                        text: "Singer List"
-                                    Button:
-                                        size_hint: (1, 0.5)
-                                        text: "Singer List"
-                                    Button:
-                                        size_hint: (1, 0.5)
-                                        text: "Singer List"
-                                    Button:
-                                        size_hint: (1, 0.5)
-                                        text: "Singer List"
+                                    width: self.parent.width - 12
+                                    height: self.minimum_height
+                                    SingerPanel:
+                                    SingerPanel:
+                                    SingerPanel:
                     Widget:
                         size_hint: (1, 0.25)
                         canvas:
@@ -131,7 +124,7 @@
                                 rgba: (0.204, 0.204, 0.294, 1)
                             Rectangle:
                                 pos: self.parent.pos
-                                size:(self.parent.width / 2, self.parent.height / 3)
+                                size:(self.width, self.height)
                         ScrollView:
                             pos: self.parent.pos
                             size:(self.parent.width, self.parent.height)
@@ -139,20 +132,14 @@
                             scroll_type: ["bars"]
                             bar_width: 10
                             BoxLayout:
-                                size_hint: (1, None)
+                                size_hint: (None, None)
                                 orientation: "vertical"
-                                Button:
-                                    size_hint: (1, 0.5)
-                                    text: "Parameter List"
-                                Button:
-                                    size_hint: (1, 0.5)
-                                    text: "Parameter List"
-                                Button:
-                                    size_hint: (1, 0.5)
-                                    text: "Parameter List"
-                                Button:
-                                    size_hint: (1, 0.5)
-                                    text: "Parameter List"
+                                width: self.parent.width - 10
+                                height: self.minimum_height
+                                ParamPanel:
+                                ParamPanel:
+                                ParamPanel:
+                                ParamPanel:
             BoxLayout:
                 orientation: "vertical"
                 size_hint: (0.75, 1)
@@ -166,42 +153,103 @@
                         Widget:
                             pos: self.parent.pos
                             size_hint: (1, None)
-                            height: 30
+                            height: 40
                             canvas:
                                 Color:
                                     rgba: (0.322, 0.259, 0.463, 1)
                                 Rectangle:
                                     pos: self.parent.pos
-                                    size:(self.parent.width, 30)
+                                    size:(self.width, 40)
                             BoxLayout:
                                 pos: self.parent.pos
                                 orientation: "horizontal"
-                                Button:
+                                padding: (2, 2)
+                                ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (50, 26)
-                                    y: self.parent.y + 2
-                                    text: "test"
-                                Button:
+                                    size: (40, 36)
+                                    imageNormal: "UI/assets/Toolbar/Adaptive04.png"
+                                    imagePressed: "UI/assets/Toolbar/Adaptive04_clicked.png"
+                                    group: "DisplayModes"
+                                ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (50, 26)
-                                    y: self.parent.y + 2
-                                    text: "test"
-                                Button:
+                                    size: (40, 36)
+                                    imageNormal: "UI/assets/Toolbar/Adaptive05.png"
+                                    imagePressed: "UI/assets/Toolbar/Adaptive05_clicked.png"
+                                    group: "DisplayModes"
+                                ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (50, 26)
-                                    y: self.parent.y + 2
-                                    text: "test"
+                                    size: (40, 36)
+                                    imageNormal: "UI/assets/Toolbar/Adaptive06.png"
+                                    imagePressed: "UI/assets/Toolbar/Adaptive06_clicked.png"
+                                    group: "DisplayModes"
+                                AnchorLayout:
+                                    anchor_x: "center"
+                                    anchor_y: "center"
+                                    size_hint: (None, None)
+                                    size: (74, 36)
+                                    ToggleButton:
+                                        size_hint: (None, None)
+                                        size: (70, 36)
+                                        text: "draw"
+                                        background_normal: "UI/assets/Toolbar/Adaptive08.png"
+                                        background_down: "UI/assets/Toolbar/Adaptive07.png"
+                                        group: "ToolButtons"
+                                AnchorLayout:
+                                    anchor_x: "center"
+                                    anchor_y: "center"
+                                    size_hint: (None, None)
+                                    size: (74, 36)
+                                    ToggleButton:
+                                        size_hint: (None, None)
+                                        size: (70, 36)
+                                        text: "line"
+                                        background_normal: "UI/assets/Toolbar/Adaptive08.png"
+                                        background_down: "UI/assets/Toolbar/Adaptive07.png"
+                                        group: "ToolButtons"
+                                AnchorLayout:
+                                    anchor_x: "center"
+                                    anchor_y: "center"
+                                    size_hint: (None, None)
+                                    size: (74, 36)
+                                    ToggleButton:
+                                        size_hint: (None, None)
+                                        size: (70, 36)
+                                        text: "arch"
+                                        background_normal: "UI/assets/Toolbar/Adaptive08.png"
+                                        background_down: "UI/assets/Toolbar/Adaptive07.png"
+                                        group: "ToolButtons"
+                                AnchorLayout:
+                                    anchor_x: "center"
+                                    anchor_y: "center"
+                                    size_hint: (None, None)
+                                    size: (74, 36)
+                                    ToggleButton:
+                                        size_hint: (None, None)
+                                        size: (70, 36)
+                                        text: "reset"
+                                        background_normal: "UI/assets/Toolbar/Adaptive08.png"
+                                        background_down: "UI/assets/Toolbar/Adaptive07.png"
+                                        group: "ToolButtons"
+                            Spinner:
+                                sync_height: True
+                                text_autocomplete: True
+                                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                                pos: (self.parent.x + self.parent.width - 122, self.parent.y + 2)
+                                size_hint: (None, None)
+                                size: (120, 36)
+                                option_cls: Factory.get("BackdropOptn")
+                                text: "backdrop"
+                                values: ["param1", "param2", "param3", "param4", "param5"]
                         ScrollView:
                             x: self.parent.x
-                            y: self.parent.y + 30
+                            y: self.parent.y + 40
                             size_hint: (1, None)
-                            height: self.parent.height - 30
+                            height: self.parent.height - 40
                             do_scroll: (True, True)
                             scroll_type: ["bars"]
                             bar_width: 10
-                            Button:
-                                size_hint: (2, 2)
-                                text: "Piano Roll"
+                            PianoRoll:
                 Widget:
                     size_hint: (1, 0.25)
                     canvas:
@@ -209,7 +257,7 @@
                             rgba: (0.184, 0.184, 0.267, 1)
                         Rectangle:
                             pos: self.parent.pos
-                            size:(self.parent.width / 2, self.parent.height / 5)
+                            size:(self.width, self.height)
                     StencilView:
                         pos: self.parent.pos
                         #size_hint: (1, 0.25)
