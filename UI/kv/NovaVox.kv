@@ -241,15 +241,7 @@
                                 option_cls: Factory.get("BackdropOptn")
                                 text: "backdrop"
                                 values: ["param1", "param2", "param3", "param4", "param5"]
-                        ScrollView:
-                            x: self.parent.x
-                            y: self.parent.y + 40
-                            size_hint: (1, None)
-                            height: self.parent.height - 40
-                            do_scroll: (True, True)
-                            scroll_type: ["bars"]
-                            bar_width: 10
-                            PianoRoll:
+                        PianoRoll:
                 Widget:
                     size_hint: (1, 0.25)
                     canvas:

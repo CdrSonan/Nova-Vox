@@ -1,11 +1,16 @@
 #:kivy 2.0.0
-
+#:import Factory kivy.factory.Factory
 <PianoRoll>:
-    viewclass: 'Note'
+    x: self.parent.x
+    y: self.parent.y + 40
+    size_hint: (1, None)
+    height: self.parent.height - 40
+    do_scroll: (True, True)
+    scroll_type: ["bars"]
+    bar_width: 10
+    viewclass: Factory.get("Note")
     SelectableRecycleLayout:
-        default_size: None, dp(56)
-        default_size_hint: 1, None
-        size_hint_y: None
-        height: 200
+        size_hint: (None, None)
+        size: (1000, 1000)
         multiselect: True
         touch_multiselect: True

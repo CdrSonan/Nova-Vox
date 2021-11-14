@@ -1,15 +1,17 @@
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.label import Label
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
-from kivy.uix.recyclelayout import RecycleLayout
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
+
+from kivy.uix.recyclelayout import RecycleLayout
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -29,13 +31,18 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
     imagePressed = StringProperty()
     function = ObjectProperty(None)
     def on_press(self):
-        self.source = self.imagePressed
         if self.function != None:
             self.function()
         else:
             print("NONE function callback")
     def on_release(self):
-        self.source = self.imageNormal
+        pass
+
+    def on_state(self, widget, value):
+        if value == 'down':
+            self.source = self.imagePressed
+        else:
+            self.source = self.imageNormal
 
 class SingerPanel(AnchorLayout):
     pass
@@ -56,6 +63,8 @@ class Note(RecycleDataViewBehavior, Label):
     index = None
     selected = BooleanProperty(False)
     selectable = BooleanProperty(True)
+    xPos = NumericProperty()
+    yPos = NumericProperty()
 
     def refresh_view_attrs(self, pianoRoll, index, data):
         ''' Catch and handle the view changes '''
@@ -80,8 +89,7 @@ class Note(RecycleDataViewBehavior, Label):
 class PianoRoll(RecycleView):
     def __init__(self, **kwargs):
         super(PianoRoll, self).__init__(**kwargs)
-        self.data = [{'lyrics': str(x)} for x in range(100)]
-        print(self.data)
+        self.data = [{'text': str(x), "xPos": x, "yPos": x} for x in range(10)]
 
 
 class SelectableRecycleLayout(FocusBehavior, LayoutSelectionBehavior, RecycleLayout):
