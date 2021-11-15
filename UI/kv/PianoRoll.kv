@@ -1,16 +1,152 @@
 #:kivy 2.0.0
-#:import Factory kivy.factory.Factory
+
+<PianoRollOctave>:
+    size_hint: (None, 0.25)
+    width : 100
+    canvas:
+        Color:
+            rgba: (0.25, 0.25, 0.25, 1)
+        Rectangle:
+            pos: (self.parent.x, self.y)
+            size:(self.parent.width, self.height)
+        Color:
+            rgba: (0.2, 0.2, 0.2, 1)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 1/12)
+            size:(self.parent.width, self.height * 1/12)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 3/12)
+            size:(self.parent.width, self.height * 1/12)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 6/12)
+            size:(self.parent.width, self.height * 1/12)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 8/12)
+            size:(self.parent.width, self.height * 1/12)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 10/12)
+            size:(self.parent.width, self.height * 1/12)
+        Line:
+            points:([self.parent.x + self.width, self.y], [self.parent.x + self.parent.width, self.y])
+        Line:
+            points:([self.parent.x + self.width, self.y + self.height* 5/12], [self.parent.x + self.parent.width, self.y + self.height* 5/12])
+    Image:
+        x: self.parent.x
+        y: self.parent.y
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano03.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 1/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 2/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 3/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 4/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 5/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 6/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 1/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 3/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 6/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 8/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x
+        y: self.parent.y + self.parent.height * 10/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+    
+
 <PianoRoll>:
-    x: self.parent.x
-    y: self.parent.y + 40
-    size_hint: (1, None)
-    height: self.parent.height - 40
     do_scroll: (True, True)
     scroll_type: ["bars"]
     bar_width: 10
-    viewclass: Factory.get("Note")
-    SelectableRecycleLayout:
+    xScale: 1
+    yScale: 10
+    FloatLayout:
+        pos: self.parent.pos
         size_hint: (None, None)
-        size: (1000, 1000)
-        multiselect: True
-        touch_multiselect: True
+        size: (5000, 48 * self.parent.yScale)
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 12 * self.parent.parent.yScale
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 24 * self.parent.parent.yScale
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 36 * self.parent.parent.yScale

@@ -1,17 +1,12 @@
 #:kivy 2.0.0
 
 <Note>:
-    pos: (self.xPos, self.yPos)
     size_hint: (None, None)
     size: (50, 10)
     #text: "lyrics"
     canvas:
         Color:
-            rgba: ( 0.322, 0.259, 0.463, 0.8) if self.selected else (0.204, 0.204, 0.294, 0.8)
+            rgba: ( 0.322, 0.259, 0.463, 0.8) if self.state=="down" else (0.204, 0.204, 0.294, 0.8)
         Rectangle:
             pos: self.pos
             size: self.size
-        #Color:
-        #    rgba: (1, 0, 0, 1)
-        #Line:
-        #    points: ([0, 0], [1000, 1000])

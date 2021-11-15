@@ -2,16 +2,11 @@ from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty
+from kivy.graphics import Color, Line
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.label import Label
-from kivy.uix.recycleview import RecycleView
-from kivy.uix.behaviors import FocusBehavior
-from kivy.uix.recycleview.layout import LayoutSelectionBehavior
-from kivy.uix.recycleboxlayout import RecycleBoxLayout
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
-
-from kivy.uix.recyclelayout import RecycleLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.scrollview import ScrollView
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -59,41 +54,30 @@ class PitchOptns(Widget):
 class TimingOptns(Widget):
     pass
 
-class Note(RecycleDataViewBehavior, Label):
-    index = None
+class Note(ToggleButton):
+    #index = NumericProperty()
     selected = BooleanProperty(False)
-    selectable = BooleanProperty(True)
     xPos = NumericProperty()
     yPos = NumericProperty()
+    length = NumericProperty()
+    def on_parent(self, screen, parent):
+        self.pos = (self.parent.x + self.xPos * self.parent.parent.xScale, self.parent.y + self.yPos * self.parent.parent.yScale)
+        with self.canvas:
+            Color(1, 0, 0, 1)
+            Line(points = ([self.x, self.parent.y], [self.x, self.parent.top]))
 
-    def refresh_view_attrs(self, pianoRoll, index, data):
-        ''' Catch and handle the view changes '''
-        self.index = index
-        return super(Note, self).refresh_view_attrs(pianoRoll, index, data)
+class PianoRollOctave(FloatLayout):
+    pass
 
-    def on_touch_down(self, touch):
-        ''' Add selection on touch down '''
-        if super(Note, self).on_touch_down(touch):
-            return True
-        if self.collide_point(*touch.pos) and self.selectable:
-            return self.parent.select_with_touch(self.index, touch)
-
-    def apply_selection(self, pianoRoll, index, is_selected):
-        ''' Respond to the selection of items in the view. '''
-        self.selected = is_selected
-        if is_selected:
-            print("selection changed to {0}".format(pianoRoll.data[index]))
-        else:
-            print("selection removed for {0}".format(pianoRoll.data[index]))
-
-class PianoRoll(RecycleView):
+class PianoRoll(ScrollView):
     def __init__(self, **kwargs):
         super(PianoRoll, self).__init__(**kwargs)
-        self.data = [{'text': str(x), "xPos": x, "yPos": x} for x in range(10)]
-
-
-class SelectableRecycleLayout(FocusBehavior, LayoutSelectionBehavior, RecycleLayout):
-    pass
+        self.xScale = NumericProperty()
+        self.yScale = NumericProperty()
+        self.data = [{'text': str(x), "xPos": x, "yPos": x, "length": 10 * x} for x in range(10)]
+    def generate_notes(self):
+        for d in self.data:
+            self.children[0].add_widget(Note(**d))
 
 class NovaVoxUI(Widget):
     def update(self, deltatime):

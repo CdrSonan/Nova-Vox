@@ -242,6 +242,10 @@
                                 text: "backdrop"
                                 values: ["param1", "param2", "param3", "param4", "param5"]
                         PianoRoll:
+                            x: self.parent.x
+                            y: self.parent.y + 40
+                            size_hint: (1, None)
+                            height: self.parent.height - 40
                 Widget:
                     size_hint: (1, 0.25)
                     canvas:
