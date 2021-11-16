@@ -27,11 +27,11 @@
             pos: (self.parent.x, self.y + self.height* 10/12)
             size:(self.parent.width, self.height * 1/12)
         Line:
-            points:([self.parent.x + self.width, self.y], [self.parent.x + self.parent.width, self.y])
+            points:([self.parent.x + self.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y], [self.parent.x + self.parent.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y])
         Line:
-            points:([self.parent.x + self.width, self.y + self.height* 5/12], [self.parent.x + self.parent.width, self.y + self.height* 5/12])
+            points:([self.parent.x + self.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y + self.height* 5/12], [self.parent.x + self.parent.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y + self.height* 5/12])
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y
         size_hint: (1, None)
         height: self.parent.height / 7
@@ -39,7 +39,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 1/7
         size_hint: (1, None)
         height: self.parent.height / 7
@@ -47,7 +47,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 2/7
         size_hint: (1, None)
         height: self.parent.height / 7
@@ -55,7 +55,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 3/7
         size_hint: (1, None)
         height: self.parent.height / 7
@@ -63,7 +63,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 4/7
         size_hint: (1, None)
         height: self.parent.height / 7
@@ -71,7 +71,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 5/7
         size_hint: (1, None)
         height: self.parent.height / 7
@@ -79,7 +79,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 6/7
         size_hint: (1, None)
         height: self.parent.height / 7
@@ -87,7 +87,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 1/12
         size_hint: (0.66, None)
         height: self.parent.height / 12
@@ -95,7 +95,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 3/12
         size_hint: (0.66, None)
         height: self.parent.height / 12
@@ -103,7 +103,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 6/12
         size_hint: (0.66, None)
         height: self.parent.height / 12
@@ -111,7 +111,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 8/12
         size_hint: (0.66, None)
         height: self.parent.height / 12
@@ -119,7 +119,7 @@
         allow_stretch: True
         keep_ratio: False
     Image:
-        x: self.parent.x
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y + self.parent.height * 10/12
         size_hint: (0.66, None)
         height: self.parent.height / 12

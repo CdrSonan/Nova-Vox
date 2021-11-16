@@ -1,12 +1,13 @@
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty, ListProperty
 from kivy.graphics import Color, Line
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.boxlayout import BoxLayout
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -45,14 +46,20 @@ class SingerPanel(AnchorLayout):
 class ParamPanel(ToggleButton):
     pass
 
-class ParamCurve(Widget):
-    pass
+class AdaptiveSpace(AnchorLayout):
+    id = "adaptiveSpace"
 
-class PitchOptns(Widget):
-    pass
+class ParamCurve(ScrollView):
+    xScale = NumericProperty()
+    data: ListProperty()
 
-class TimingOptns(Widget):
-    pass
+class PitchOptns(BoxLayout):
+    xScale = NumericProperty()
+    data: ListProperty()
+
+class TimingOptns(BoxLayout):
+    xScale = NumericProperty()
+    data: ListProperty()
 
 class Note(ToggleButton):
     #index = NumericProperty()
