@@ -1,12 +1,115 @@
 #:kivy 2.0.0
 <ParamCurve>:
-    canvas:
-        Color:
-            rgba: (1, 0, 0, 1)
-        Line:
-            points: self.data
+    do_scroll: (True, False)
+    scroll_type: ["bars"]
+    bar_width: 10
+    xScale: 1
+    Widget:
+        size_hint: (None, None)
+        y: self.parent.y + 10
+        width: 5000
+        height: self.parent.height - 10
+        canvas:
+            Color:
+                rgba: (0.5, 0.5, 0.5, 1)
+            Line:
+                points: [(0, self.parent.height / 2), (5000, self.parent.height / 2)]
+            Line:
+                points: [(0, 0), (5000, 0)]
+            Line:
+                points: [(0, self.parent.height), (5000, self.parent.height)]
+            Color:
+                rgba: (1, 0, 0, 1)
+            Line:
+                points: self.parent.data
+<ParamBars>:
+    do_scroll: (True, False)
+    scroll_type: ["bars"]
+    bar_width: 10
+    xScale: 1
+    Widget:
+        size_hint: (None, None)
+        y: self.parent.y + 10
+        width: 5000
+        height: self.parent.height - 10
+        canvas:
+            Color:
+                rgba: (0.5, 0.5, 0.5, 1)
+            Line:
+                points: [(0, self.parent.height / 2), (5000, self.parent.height / 2)]
+            Line:
+                points: [(0, 0), (5000, 0)]
+            Line:
+                points: [(0, self.parent.height), (5000, self.parent.height)]
+            Color:
+                rgba: (1, 0, 0, 1)
+            Rectangle:
+                pos: (self.parent.data[0][0], self.y)
+                size: (10, self.parent.data[0][1])
 <PitchOptns>:
+    do_scroll: (True, False)
+    scroll_type: ["bars"]
+    bar_width: 10
+    xScale: 1
+    Widget:
+        size_hint: (None, None)
+        y: self.parent.y + 10
+        width: 5000
+        height: self.parent.height - 10
+        canvas:
+            Color:
+                rgba: (0.5, 0.5, 0.5, 1)
+            Line:
+                points: [(0, self.parent.height / 2), (5000, self.parent.height / 2)]
+            Line:
+                points: [(0, 0), (5000, 0)]
+            Line:
+                points: [(0, self.parent.height), (5000, self.parent.height)]
+            Line:
+                points: [(0, self.parent.height / 4), (5000, self.parent.height / 4)]
+            Line:
+                points: [(0, self.parent.height * 3 / 4), (5000, self.parent.height * 3 / 4)]
+            Color:
+                rgba: (1, 0, 0, 1)
+            Line:
+                points: self.parent.data1
+            Line:
+                points: self.parent.data2
 <TimingOptns>:
+    do_scroll: (True, False)
+    scroll_type: ["bars"]
+    bar_width: 10
+    xScale: 1
+    Widget:
+        size_hint: (None, None)
+        y: self.parent.y + 10
+        width: 5000
+        height: self.parent.height - 10
+        canvas:
+            Color:
+                rgba: (0.5, 0.5, 0.5, 1)
+            Line:
+                points: [(0, self.parent.height / 2), (5000, self.parent.height / 2)]
+            Line:
+                points: [(0, 0), (5000, 0)]
+            Line:
+                points: [(0, self.parent.height), (5000, self.parent.height)]
+            Line:
+                points: [(0, self.parent.height / 4), (5000, self.parent.height / 4)]
+            Line:
+                points: [(0, self.parent.height * 3 / 4), (5000, self.parent.height * 3 / 4)]
+            Color:
+                rgba: (1, 0, 0, 1)
+            Rectangle:
+                pos: (self.parent.data1[0][0], self.y)
+                size: (10, self.parent.data1[0][1])
+            Rectangle:
+                pos: (self.parent.data2[0][0], self.y)
+                size: (10, self.parent.data2[0][1])
 <AdaptiveSpace>:
-    anchor_x: "left"
-    anchor_y: "top"
+    anchor_x: "center"
+    anchor_y: "center"
+    PitchOptns:
+    #ParamCurve:
+        #size_hint: (None, None)
+        #size: (self.parent.width - 20, self.parent.height - 20)

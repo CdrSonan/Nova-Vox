@@ -1,3 +1,4 @@
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
@@ -7,7 +8,7 @@ from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.modalview import ModalView
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -47,19 +48,25 @@ class ParamPanel(ToggleButton):
     pass
 
 class AdaptiveSpace(AnchorLayout):
-    id = "adaptiveSpace"
+    pass
 
 class ParamCurve(ScrollView):
     xScale = NumericProperty()
-    data: ListProperty()
+    data = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
 
-class PitchOptns(BoxLayout):
+class ParamBars(ScrollView):
     xScale = NumericProperty()
-    data: ListProperty()
+    data = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
 
-class TimingOptns(BoxLayout):
+class PitchOptns(ScrollView):
     xScale = NumericProperty()
-    data: ListProperty()
+    data1 = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
+    data2 = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
+
+class TimingOptns(ScrollView):
+    xScale = NumericProperty()
+    data1 = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
+    data2 = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
 
 class Note(ToggleButton):
     #index = NumericProperty()
@@ -85,6 +92,27 @@ class PianoRoll(ScrollView):
     def generate_notes(self):
         for d in self.data:
             self.children[0].add_widget(Note(**d))
+
+class SingerDetails(GridLayout):
+    pass
+
+class ParamDetails(GridLayout):
+    pass
+
+class FileSidePanel(ModalView):
+    pass
+
+class SingerSidePanel(ModalView):
+    pass
+
+class ParamSidePanel(ModalView):
+    pass
+
+class ScriptingSidePanel(ModalView):
+    pass
+
+class SettingsSidePanel(ModalView):
+    pass
 
 class NovaVoxUI(Widget):
     def update(self, deltatime):

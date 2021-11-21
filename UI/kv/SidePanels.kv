@@ -1,0 +1,281 @@
+#:kivy 2.0.0
+
+<SingerDetails>:
+    rows: 4
+    orientation: "tb-lr"
+    Label:
+        text: "Name:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        text: "Image:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        text: "Version:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        text: "License:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        id: "singer_name"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Image:
+        id: "singer_image"
+        source:: "UI/assets/Toolbar/Adaptive09.png"
+    Label:
+        id: "singer_version"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        id: "singer_license"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+
+<ParamDetails>:
+    rows: 6
+    orientation: "tb-lr"
+    Label:
+        text: "Name:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        text: "Type:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        text: "Capacity:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        text: "Recurrency:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        text: "Version:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        text: "License:"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        id: "param_name"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        id: "param_type"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        id: "param_capacity"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        id: "param_recurrency"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        id: "param_version"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    Label:
+        id: "param_license"
+        background_normal: "UI/assets/Toolbar/Adaptive09.png"
+        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+
+<FileSidePanel>:
+    size_hint_x: 0.4
+    ScrollView:
+        do_scroll: (False, True)
+        scroll_type: ["bars"]
+        bar_width: 10
+        BoxLayout:
+            orientation: "vertical"
+            FileChooserIconView:
+                on_selection: text_input.text = self.selection and self.selection[0]
+            TextImput:
+                multiline: False
+            Button:
+                text: "save"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Button:
+                text: "save as"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Button:
+                text: "load"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Button:
+                text: "import"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Button:
+                text: "export"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+
+<SingerSidePanel>:
+    size_hint_x: 0.4
+    BoxLayout:
+        orientation: "vertical"
+        ScrollView:
+            do_scroll: (False, True)
+            scroll_type: ["bars"]
+            bar_width: 10
+            BoxLayout:
+                orientation: "vertical"
+                Label:
+                    text: "Voicebank 1"
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                Label:
+                    text: "Voicebank 2"
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                Label:
+                    text: "Voicebank 3"
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ScrollView:
+            do_scroll: (False, True)
+            scroll_type: ["bars"]
+            bar_width: 10
+            SingerDetails:
+        
+
+<ParamSidePanel>:
+    size_hint_x: 0.4
+    BoxLayout:
+        orientation: "vertical"
+        ScrollView:
+            do_scroll: (False, True)
+            scroll_type: ["bars"]
+            bar_width: 10
+            BoxLayout:
+                orientation: "vertical"
+                Label:
+                    text: "Parameter 1"
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                Label:
+                    text: "Parameter 2"
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                Label:
+                    text: "Parameter 3"
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ScrollView:
+            do_scroll: (False, True)
+            scroll_type: ["bars"]
+            bar_width: 10
+            ParamDetails:
+
+<ScriptingSidePanel>:
+    size_hint_x: 0.4
+    ScrollView:
+        do_scroll: (False, True)
+        scroll_type: ["bars"]
+        bar_width: 10
+        BoxLayout:
+            orientation: "vertical"
+            Button:
+                text: "open Devkit"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            CodeInput:
+            Button:
+                text: "run"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+
+<SettingsSidePanel>:
+    size_hint_x: 0.4
+    ScrollView:
+        do_scroll: (False, True)
+        scroll_type: ["bars"]
+        bar_width: 10
+        GridLayout:
+            rows: 5
+            orientation: "tb-lr"
+            Label:
+                text: "Language:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                text: "Acceleration:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                text: "Tensor Cores:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                text: "pre-rendering:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                text: "Logging level:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Spinner:
+                sync_height: True
+                text_autocomplete: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                pos: (self.parent.x + self.parent.width - 122, self.parent.y + 2)
+                size_hint: (None, None)
+                size: (120, 36)
+                option_cls: Factory.get("BackdropOptn")
+                text: "backdrop"
+                values: ["param1", "param2", "param3", "param4", "param5"]
+            Spinner:
+                sync_height: True
+                text_autocomplete: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                pos: (self.parent.x + self.parent.width - 122, self.parent.y + 2)
+                size_hint: (None, None)
+                size: (120, 36)
+                option_cls: Factory.get("BackdropOptn")
+                text: "backdrop"
+                values: ["param1", "param2", "param3", "param4", "param5"]
+            Spinner:
+                sync_height: True
+                text_autocomplete: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                pos: (self.parent.x + self.parent.width - 122, self.parent.y + 2)
+                size_hint: (None, None)
+                size: (120, 36)
+                option_cls: Factory.get("BackdropOptn")
+                text: "backdrop"
+                values: ["param1", "param2", "param3", "param4", "param5"]
+            Spinner:
+                sync_height: True
+                text_autocomplete: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                pos: (self.parent.x + self.parent.width - 122, self.parent.y + 2)
+                size_hint: (None, None)
+                size: (120, 36)
+                option_cls: Factory.get("BackdropOptn")
+                text: "backdrop"
+                values: ["param1", "param2", "param3", "param4", "param5"]
+            Spinner:
+                sync_height: True
+                text_autocomplete: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                pos: (self.parent.x + self.parent.width - 122, self.parent.y + 2)
+                size_hint: (None, None)
+                size: (120, 36)
+                option_cls: Factory.get("BackdropOptn")
+                text: "backdrop"
+                values: ["param1", "param2", "param3", "param4", "param5"]

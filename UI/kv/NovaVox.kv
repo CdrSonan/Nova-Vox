@@ -247,14 +247,17 @@
                             size_hint: (1, None)
                             height: self.parent.height - 40
                 Widget:
+                    pos: self.parent.pos
                     size_hint: (1, 0.25)
                     canvas:
                         Color:
                             rgba: (0.184, 0.184, 0.267, 1)
                         Rectangle:
-                            pos: self.parent.pos
+                            pos: self.pos
                             size:(self.width, self.height)
                     AdaptiveSpace:
+                        pos: self.parent.pos
+                        size:(self.parent.width, self.parent.height)
 
         #dark: 0.137 0.125 0.173
         #medium: 0.184 0.184 0.267
