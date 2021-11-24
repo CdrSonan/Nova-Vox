@@ -9,6 +9,11 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.modalview import ModalView
+from kivy.uix.popup import Popup
+from kivy.uix.button import Button
+
+import os
+import torch
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -99,19 +104,55 @@ class SingerDetails(GridLayout):
 class ParamDetails(GridLayout):
     pass
 
+class ListElement(Button):
+    pass
+
 class FileSidePanel(ModalView):
     pass
 
 class SingerSidePanel(ModalView):
-    pass
+    def listVoicebanks(self):
+        Voicebanks = {}
+        files = os.listdir("Voices/")
+        for file in files:
+            if file.endswith(".nvpr"):
+                data = torch.load(os.path.join("Voices/", file))
+                Voicebanks.append(data["metadata"])
 
 class ParamSidePanel(ModalView):
-    pass
+    def listParams(self):
+        Parameters = {}
+        files = os.listdir("Params/")
+        for file in files:
+            if file.endswith(".nvpr"):
+                data = torch.load(os.path.join("Params/", file))
+                Parameters.append(data["metadata"])
 
 class ScriptingSidePanel(ModalView):
     pass
 
 class SettingsSidePanel(ModalView):
+    def readSettings(self):
+        settings = {}
+        with open("settings.ini", 'r') as f:
+            for line in f:
+                line = line.strip()
+                line = line.split(" ")
+                settings[line[0]] = line[1]
+        self.ids["settings_lang"].text = settings["language"]
+        self.ids["settings_accel"].text = settings["accelerator"]
+        self.ids["settings_tcores"].text = settings["tensorCores"]
+        self.ids["settings_prerender"].text = settings["intermediateOutputs"]
+        self.ids["settings_loglevel"].text = settings["loglevel"]
+    def writeSettings(self):
+        with open("settings.ini", 'w') as f:
+            f.write("language " + self.ids["settings_lang"].text + "\n")
+            f.write("accelerator " + self.ids["settings_accel"].text + "\n")
+            f.write("tensorCores " + self.ids["settings_tcores"].text + "\n")
+            f.write("intermediateOutputs " + self.ids["settings_prerender"].text + "\n")
+            f.write("loglevel " + self.ids["settings_loglevel"].text + "\n")
+
+class LicensePanel(Popup):
     pass
 
 class NovaVoxUI(Widget):

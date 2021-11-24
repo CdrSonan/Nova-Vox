@@ -91,6 +91,7 @@ if __name__ == '__main__':
     Builder.load_file("UI/kv/PianoRoll.kv")
     Builder.load_file("UI/kv/AdaptiveSpace.kv")
     Builder.load_file("UI/kv/SidePanels.kv")
+    Builder.load_file("UI/kv/LicensePanel.kv")
     Builder.load_file("UI/kv/NovaVox.kv")
 
     pyi_splash.close()

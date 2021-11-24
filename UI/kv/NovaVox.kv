@@ -19,6 +19,7 @@
             size_hint: (56 / root.width, 56 / root.height)
             imageNormal: "UI/assets/TopBar/logo.gif"
             imagePressed: "UI/assets/TopBar/logo.gif"
+            on_press: Factory.LicensePanel().open()
         ImageButton:
             pos: (80, root.height - 45)
             size_hint: (42 / root.width, 30 / root.height)
@@ -49,26 +50,31 @@
             size_hint: (55 / root.width, 55 / root.height)
             imageNormal: "UI/assets/SideBar/Side01.png"
             imagePressed: "UI/assets/SideBar/Side01_clicked.png"
+            on_press: Factory.FileSidePanel().open()
         ImageButton:
             pos: (root.width - 60, root.height - 185)
             size_hint: (55 / root.width, 55 / root.height)
             imageNormal: "UI/assets/SideBar/Side02.png"
             imagePressed: "UI/assets/SideBar/Side02_clicked.png"
+            on_press: Factory.SingerSidePanel().open()
         ImageButton:
             pos: (root.width - 60, root.height - 250)
             size_hint: (55 / root.width, 55 / root.height)
             imageNormal: "UI/assets/SideBar/Side03.png"
             imagePressed: "UI/assets/SideBar/Side03_clicked.png"
+            on_press: Factory.ParamSidePanel().open()
         ImageButton:
             pos: (root.width - 60, root.height - 315)
             size_hint: (55 / root.width, 55 / root.height)
             imageNormal: "UI/assets/SideBar/Side04.png"
             imagePressed: "UI/assets/SideBar/Side04_clicked.png"
+            on_press: Factory.ScriptingSidePanel().open()
         ImageButton:
             pos: (root.width - 60, root.height - 380)
             size_hint: (55 / root.width, 55 / root.height)
             imageNormal: "UI/assets/SideBar/Side05.png"
             imagePressed: "UI/assets/SideBar/Side05_clicked.png"
+            on_press: Factory.SettingsSidePanel().open()
         ImageButton:
             pos: (root.width - 60, root.height - 445)
             size_hint: (55 / root.width, 55 / root.height)
@@ -232,7 +238,6 @@
                                         group: "ToolButtons"
                             Spinner:
                                 sync_height: True
-                                text_autocomplete: True
                                 background_normal: "UI/assets/Toolbar/Adaptive09.png"
                                 background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
                                 pos: (self.parent.x + self.parent.width - 122, self.parent.y + 2)
