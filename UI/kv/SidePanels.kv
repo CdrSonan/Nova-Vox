@@ -5,141 +5,7 @@
     height: 30
     background_normal: "UI/assets/Toolbar/Adaptive09.png"
     background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-
-<SingerDetails>:
-    size_hint_y: None
-    height: self.minimum_height
-    rows: 4
-    padding: 10
-    spacing: 10
-    orientation: "tb-lr"
-    Label:
-        size_hint_y: None
-        height: 30
-        text: "Name:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 80
-        text: "Image:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        text: "Version:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        text: "License:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        id: "singer_name"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Image:
-        size_hint_y: None
-        height: 80
-        id: "singer_image"
-        source: "UI/assets/Toolbar/Adaptive09.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        id: "singer_version"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        id: "singer_license"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-
-<ParamDetails>:
-    size_hint_y: None
-    height: self.minimum_height
-    rows: 6
-    padding: 10
-    spacing: 10
-    orientation: "tb-lr"
-    Label:
-        size_hint_y: None
-        height: 30
-        text: "Name:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        text: "Type:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        text: "Capacity:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        text: "Recurrency:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        text: "Version:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        text: "License:"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        id: "param_name"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        id: "param_type"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        id: "param_capacity"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        id: "param_recurrency"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        id: "param_version"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-    Label:
-        size_hint_y: None
-        height: 30
-        id: "param_license"
-        background_normal: "UI/assets/Toolbar/Adaptive09.png"
-        background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+    on_press: self.parent.parent.parent.parent.detailElement(self.index)
 
 <FileSidePanel>:
     size_hint: (0.4, 1 - (50 / root.height))
@@ -151,8 +17,9 @@
         spacing: 10
         orientation: "vertical"
         FileChooserIconView:
-            on_selection: text_input.text = self.selection and self.selection[0]
+            on_selection: self.parent.ids["file_input"].text = self.selection and self.selection[0]
         TextInput:
+            id: file_input
             size_hint_y: None
             height: 30
             multiline: False
@@ -186,6 +53,7 @@
     pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
     background_color: [0.137, 0.125, 0.173, 0.5]
     overlay_color: [0, 0, 0, 0]
+    on_open: self.listVoicebanks()
     BoxLayout:
         orientation: "vertical"
         padding: 10
@@ -195,15 +63,75 @@
             scroll_type: ["bars"]
             bar_width: 10
             BoxLayout:
+                id: singers_list
                 size_hint_y: None
                 orientation: "vertical"
-                ListElement:
-                    text: "Voicebank 1"
-                ListElement:
-                    text: "Voicebank 2"
-                ListElement:
-                    text: "Voicebank 3"
-        SingerDetails:
+        GridLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            rows: 5
+            padding: 10
+            spacing: 10
+            orientation: "tb-lr"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Name:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 80
+                text: "Image:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Phonemes:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Version:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "License:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: singer_name
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Image:
+                size_hint_y: None
+                height: 80
+                id: singer_image
+                source: "UI/assets/Toolbar/Adaptive09.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: singer_phonemes
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: singer_version
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: singer_license
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         
 
 <ParamSidePanel>:
@@ -211,6 +139,7 @@
     pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
     background_color: [0.137, 0.125, 0.173, 0.5]
     overlay_color: [0, 0, 0, 0]
+    on_open: self.listParams()
     BoxLayout:
         orientation: "vertical"
         padding: 10
@@ -220,15 +149,88 @@
             scroll_type: ["bars"]
             bar_width: 10
             BoxLayout:
+                id: params_list
                 size_hint_y: None
                 orientation: "vertical"
-                ListElement:
-                    text: "Parameter 1"
-                ListElement:
-                    text: "Parameter 2"
-                ListElement:
-                    text: "Parameter 3"
-        ParamDetails:
+        GridLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            rows: 6
+            padding: 10
+            spacing: 10
+            orientation: "tb-lr"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Name:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Type:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Capacity:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Recurrency:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Version:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "License:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_name
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_type
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_capacity
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_recurrency
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_version
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_license
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
 
 <ScriptingSidePanel>:
     size_hint: (0.4, 1 - (50 / root.height))
@@ -240,18 +242,21 @@
         padding: 10
         spacing: 10
         CodeInput:
+            id: scripting_editor
         Button:
             size_hint_y: None
             height: 30
             text: "run"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            on_press: self.parent.parent.runScript()
         Button:
             size_hint_y: None
             height: 30
             text: "open Devkit"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            on_press: self.parent.parent.openDevkit()
 
 <SettingsSidePanel>:
     size_hint: (0.4, 1 - (50 / root.height))

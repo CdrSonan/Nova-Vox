@@ -14,6 +14,7 @@ from kivy.uix.button import Button
 
 import os
 import torch
+import subprocess
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -98,38 +99,60 @@ class PianoRoll(ScrollView):
         for d in self.data:
             self.children[0].add_widget(Note(**d))
 
-class SingerDetails(GridLayout):
-    pass
-
-class ParamDetails(GridLayout):
-    pass
-
 class ListElement(Button):
-    pass
+    index = NumericProperty()
 
 class FileSidePanel(ModalView):
     pass
 
 class SingerSidePanel(ModalView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.voicebanks = []
     def listVoicebanks(self):
-        Voicebanks = {}
         files = os.listdir("Voices/")
         for file in files:
-            if file.endswith(".nvpr"):
+            if file.endswith(".nvvb"):
                 data = torch.load(os.path.join("Voices/", file))
-                Voicebanks.append(data["metadata"])
+                self.voicebanks.append(data["metadata"])
+        j = 0
+        for i in self.voicebanks:
+            self.ids["singers_list"].add_widget(ListElement(text = i.name, index = j))
+            j += 1
+    def detailElement(self, index):
+        self.ids["singer_name"].text = self.voicebanks[index].name
+        #self.ids["singer_image"].source = self.voicebanks[index].???
+        #self.ids["singer_phonemes"].text = self.voicebanks[index].phonemes
+        #self.ids["singer_version"].text = self.voicebanks[index].version
+        #self.ids["singer_license"].text = self.voicebanks[index].license
 
 class ParamSidePanel(ModalView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.parameters = []
     def listParams(self):
-        Parameters = {}
         files = os.listdir("Params/")
         for file in files:
             if file.endswith(".nvpr"):
                 data = torch.load(os.path.join("Params/", file))
-                Parameters.append(data["metadata"])
+                self.parameters.append(data["metadata"])
+        j = 0
+        for i in self.parameters:
+            self.ids["params_list"].add_widget(ListElement(text = i.name, index = j))
+            j += 1
+    def detailElement(self, index):
+        self.ids["param_name"].text = self.voicebanks[index].name
+        self.ids["param_type"].text = self.voicebanks[index]._type
+        self.ids["param_capacity"].text = self.voicebanks[index].capacity
+        self.ids["param_recurrency"].text = self.voicebanks[index].recurrency
+        self.ids["param_version"].text = self.voicebanks[index].version
+        self.ids["param_license"].text = self.voicebanks[index].license
 
 class ScriptingSidePanel(ModalView):
-    pass
+    def openDevkit(self):
+        subprocess.Popen("Devkit.exe")
+    def runScript(self):
+        exec(self.ids["scripting_editor"].text)
 
 class SettingsSidePanel(ModalView):
     def readSettings(self):
