@@ -16,6 +16,8 @@ import os
 import torch
 import subprocess
 
+import MiddleLayer.DataHandlers as dh
+
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
     imagePressed = StringProperty()
@@ -109,12 +111,15 @@ class SingerSidePanel(ModalView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.voicebanks = []
+        self.filepaths = []
+        self.selectedIndex = None
     def listVoicebanks(self):
         files = os.listdir("Voices/")
         for file in files:
             if file.endswith(".nvvb"):
                 data = torch.load(os.path.join("Voices/", file))
                 self.voicebanks.append(data["metadata"])
+                self.filepaths.append(os.path.join("Voices/", file))
         j = 0
         for i in self.voicebanks:
             self.ids["singers_list"].add_widget(ListElement(text = i.name, index = j))
@@ -125,17 +130,21 @@ class SingerSidePanel(ModalView):
         #self.ids["singer_phonemes"].text = self.voicebanks[index].phonemes
         #self.ids["singer_version"].text = self.voicebanks[index].version
         #self.ids["singer_license"].text = self.voicebanks[index].license
+        self.selectedIndex = index
 
 class ParamSidePanel(ModalView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.parameters = []
+        self.filepaths = []
+        self.selectedIndex = None
     def listParams(self):
         files = os.listdir("Params/")
         for file in files:
             if file.endswith(".nvpr"):
                 data = torch.load(os.path.join("Params/", file))
                 self.parameters.append(data["metadata"])
+                self.filepaths.append(os.path.join("Params/", file))
         j = 0
         for i in self.parameters:
             self.ids["params_list"].add_widget(ListElement(text = i.name, index = j))
@@ -147,6 +156,7 @@ class ParamSidePanel(ModalView):
         self.ids["param_recurrency"].text = self.voicebanks[index].recurrency
         self.ids["param_version"].text = self.voicebanks[index].version
         self.ids["param_license"].text = self.voicebanks[index].license
+        self.selectedIndex = index
 
 class ScriptingSidePanel(ModalView):
     def openDevkit(self):
@@ -179,5 +189,14 @@ class LicensePanel(Popup):
     pass
 
 class NovaVoxUI(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.trackList = []
+        self.activeTrack = NumericProperty()
     def update(self, deltatime):
+        pass
+    def importVoicebank(self, path):
+        self.trackList.append(dh.Track(path))
+        self.activeTrack.set(len(self.trackList) - 1)
+    def importParam(self, path):
         pass

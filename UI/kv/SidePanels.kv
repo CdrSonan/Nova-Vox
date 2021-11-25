@@ -17,7 +17,7 @@
         spacing: 10
         orientation: "vertical"
         FileChooserIconView:
-            on_selection: self.parent.ids["file_input"].text = self.selection and self.selection[0]
+            on_selection: self.parent.parent.ids["file_input"].text = self.selection and self.selection[0]
         TextInput:
             id: file_input
             size_hint_y: None
@@ -132,6 +132,13 @@
                 id: singer_license
                 background_normal: "UI/assets/Toolbar/Adaptive09.png"
                 background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Button:
+            size_hint_y: None
+            height: 30
+            text: "import"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            on_press: root.importVoicebank(self.parent.parent.selectedIndex)
         
 
 <ParamSidePanel>:
@@ -231,6 +238,13 @@
                 id: param_license
                 background_normal: "UI/assets/Toolbar/Adaptive09.png"
                 background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Button:
+            size_hint_y: None
+            height: 30
+            text: "import"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            on_press: root.importParam(self.parent.parent.selectedIndex)
 
 <ScriptingSidePanel>:
     size_hint: (0.4, 1 - (50 / root.height))
