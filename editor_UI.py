@@ -18,6 +18,21 @@ import subprocess
 
 import MiddleLayer.DataHandlers as dh
 
+class MiddleLayer:
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.trackList = []
+        self.activeTrack = NumericProperty()
+        self.activeParam = NumericProperty()
+    def importVoicebank(self, path, name):
+        self.trackList.append(dh.Track(path))
+        self.activeTrack.set(len(self.trackList) - 1)
+        self.ids["singerList"].addWidget(SingerPanel, name = name)
+    def importParam(self, path, name):
+        self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
+        self.activeParam.set(len(self.trackList) - 1)
+        self.ids["paramList"].addWidget(ParamPanel, name = name)
+
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
     imagePressed = StringProperty()
@@ -50,10 +65,10 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
             self.source = self.imageNormal
 
 class SingerPanel(AnchorLayout):
-    pass
+    name = StringProperty()
 
 class ParamPanel(ToggleButton):
-    pass
+    name = StringProperty()
 
 class AdaptiveSpace(AnchorLayout):
     pass
@@ -108,11 +123,12 @@ class FileSidePanel(ModalView):
     pass
 
 class SingerSidePanel(ModalView):
-    def __init__(self, **kwargs):
+    def __init__(self, middleLayer, **kwargs):
         super().__init__(**kwargs)
         self.voicebanks = []
         self.filepaths = []
         self.selectedIndex = None
+        self.middleLayer = middleLayer
     def listVoicebanks(self):
         files = os.listdir("Voices/")
         for file in files:
@@ -131,6 +147,8 @@ class SingerSidePanel(ModalView):
         #self.ids["singer_version"].text = self.voicebanks[index].version
         #self.ids["singer_license"].text = self.voicebanks[index].license
         self.selectedIndex = index
+    def importVoicebank(self, path, name):
+        self.middleLayer.importVoicebank(path, name)
 
 class ParamSidePanel(ModalView):
     def __init__(self, **kwargs):
@@ -191,12 +209,7 @@ class LicensePanel(Popup):
 class NovaVoxUI(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.trackList = []
-        self.activeTrack = NumericProperty()
+        self.middleLayer = MiddleLayer()
+
     def update(self, deltatime):
-        pass
-    def importVoicebank(self, path):
-        self.trackList.append(dh.Track(path))
-        self.activeTrack.set(len(self.trackList) - 1)
-    def importParam(self, path):
         pass
