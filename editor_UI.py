@@ -12,6 +12,11 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 
+from kivy.core.image import Image as CoreImage
+from kivy.uix.image import Image as kiImage
+from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
+
 import os
 import torch
 import subprocess
@@ -123,12 +128,11 @@ class FileSidePanel(ModalView):
     pass
 
 class SingerSidePanel(ModalView):
-    def __init__(self, middleLayer, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.voicebanks = []
         self.filepaths = []
         self.selectedIndex = None
-        self.middleLayer = middleLayer
     def listVoicebanks(self):
         files = os.listdir("Voices/")
         for file in files:
@@ -142,13 +146,21 @@ class SingerSidePanel(ModalView):
             j += 1
     def detailElement(self, index):
         self.ids["singer_name"].text = self.voicebanks[index].name
-        #self.ids["singer_image"].source = self.voicebanks[index].???
+        #self.ids["singer_image"].source = self.voicebanks[index].image
+        canvas_img = self.voicebanks[index].image#Image.new('RGB', (240, 120), color=(255, 255, 255))
+        data = BytesIO()
+        canvas_img.save(data, format='png')
+        data.seek(0) # yes you actually need this
+        im = CoreImage(BytesIO(data.read()), ext='png')
+        self.beeld = kiImage() # only use this line in first code instance
+        self.beeld.texture = im.texture
         #self.ids["singer_phonemes"].text = self.voicebanks[index].phonemes
         #self.ids["singer_version"].text = self.voicebanks[index].version
         #self.ids["singer_license"].text = self.voicebanks[index].license
         self.selectedIndex = index
     def importVoicebank(self, path, name):
-        self.middleLayer.importVoicebank(path, name)
+        global middleLayer
+        middleLayer.importVoicebank(path, name)
 
 class ParamSidePanel(ModalView):
     def __init__(self, **kwargs):
@@ -175,6 +187,9 @@ class ParamSidePanel(ModalView):
         self.ids["param_version"].text = self.voicebanks[index].version
         self.ids["param_license"].text = self.voicebanks[index].license
         self.selectedIndex = index
+    def importVoicebank(self, path, name):
+        global middleLayer
+        middleLayer.importParam(path, name)
 
 class ScriptingSidePanel(ModalView):
     def openDevkit(self):
@@ -209,7 +224,7 @@ class LicensePanel(Popup):
 class NovaVoxUI(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.middleLayer = MiddleLayer()
-
+        global middleLayer
+        middleLayer = MiddleLayer()
     def update(self, deltatime):
         pass

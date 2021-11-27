@@ -235,6 +235,19 @@ class MetadataUi(tkinter.Frame):
         self.name.display["text"] = loc["name"]
         self.name.display.pack(side = "right", fill = "x")
         self.name.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        """
+        from Tkinter import *
+        import Image, ImageTk
+        root = Tk()
+        root.geometry('1000x1000')
+        canvas = Canvas(root,width=999,height=999)
+        canvas.pack()
+        pilImage = Image.open("ball.gif")
+        image = ImageTk.PhotoImage(pilImage)
+        imagesprite = canvas.create_image(400,400,image=image)
+        root.mainloop()
+        """
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
