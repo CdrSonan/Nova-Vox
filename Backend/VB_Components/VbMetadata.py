@@ -19,3 +19,8 @@ class VbMetadata:
             
             
         self.name = ""
+        self.sampleRate = 48000
+        self.image = None
+        self.version = "1.0"
+        self.description = ""
+        self.license = ""

@@ -9,7 +9,7 @@ import tkinter
 import tkinter.filedialog
 import tkinter.simpledialog
 import tkinter.messagebox
-from tkinter.ttk import Progressbar
+import Image, ImageTk
 from os import path
 import logging
 import torch
@@ -236,18 +236,50 @@ class MetadataUi(tkinter.Frame):
         self.name.display.pack(side = "right", fill = "x")
         self.name.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        """
-        from Tkinter import *
-        import Image, ImageTk
-        root = Tk()
-        root.geometry('1000x1000')
-        canvas = Canvas(root,width=999,height=999)
-        canvas.pack()
-        pilImage = Image.open("ball.gif")
-        image = ImageTk.PhotoImage(pilImage)
-        imagesprite = canvas.create_image(400,400,image=image)
-        root.mainloop()
-        """
+        self.image = tkinter.Frame(self)
+        self.name.variable = tkinter.StringVar(self.image)
+        self.image.variable.set("UI/assets/TrackList/SingerGrey04.png")
+        self.image.entry = tkinter.Button(self.image)
+        self.image.entry["text"] = self.image.variable
+        self.image.entry["command"] = self.onImagePress
+        self.image.entry.pack(side = "right", fill = "x", expand = True)
+        self.image.display = tkinter.Canvas(self.image,width=999,height=999)
+        self.image.display.pack(side = "right", fill = "x")
+        self.image.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.applyImage()
+
+        self.version = tkinter.Frame(self)
+        self.version.variable = tkinter.StringVar(self.version)
+        self.version.variable.set(loadedVB.metadata.version)
+        self.version.entry = tkinter.Entry(self.version)
+        self.version.entry["textvariable"] = self.version.variable
+        self.version.entry.pack(side = "right", fill = "x", expand = True)
+        self.version.display = tkinter.Label(self.version)
+        self.version.display["text"] = loc["version"]
+        self.version.display.pack(side = "right", fill = "x")
+        self.version.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.description = tkinter.Frame(self)
+        self.description.variable = tkinter.StringVar(self.description)
+        self.description.variable.set(loadedVB.metadata.description)
+        self.description.entry = tkinter.Entry(self.description)
+        self.description.entry["textvariable"] = self.description.variable
+        self.description.entry.pack(side = "right", fill = "x", expand = True)
+        self.description.display = tkinter.Label(self.description)
+        self.description.display["text"] = loc["description"]
+        self.description.display.pack(side = "right", fill = "x")
+        self.description.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.license = tkinter.Frame(self)
+        self.license.variable = tkinter.StringVar(self.license)
+        self.license.variable.set(loadedVB.metadata.license)
+        self.license.entry = tkinter.Entry(self.license)
+        self.license.entry["textvariable"] = self.license.variable
+        self.license.entry.pack(side = "right", fill = "x", expand = True)
+        self.license.display = tkinter.Label(self.license)
+        self.license.display["text"] = loc["license"]
+        self.license.display.pack(side = "right", fill = "x")
+        self.license.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
@@ -258,6 +290,22 @@ class MetadataUi(tkinter.Frame):
         self.loadButton["text"] = loc["load_other_VB"]
         self.loadButton["command"] = self.onLoadPress
         self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
+
+    def applyImage(self):
+        logging.info("Metadata Image change button callback")
+        """helper function for showing the image saved as part of the loaded Voicebank in the UI"""
+        global loadedVB
+        image = ImageTk.PhotoImage(loadedVB.metadata.image)
+        imagesprite = self.image.display.create_image(400,400,image=image)
+
+    def onImagePress(self):
+        logging.info("Metadata Image change button callback")
+        """opens a file browser to select a different image file for the Voicebank"""
+        global loadedVB
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"),))
+        pilImage = Image.open(filepath)
+        loadedVB.metadata.image = pilImage
+        self.applyImage()
         
     def onOkPress(self):
         logging.info("Metadata OK button callback")
@@ -265,6 +313,9 @@ class MetadataUi(tkinter.Frame):
         global loadedVB
         loadedVB.metadata.name = self.name.variable.get()
         loadedVB.metadata.sampleRate = global_consts.sampleRate
+        loadedVB.metadata.version = self.version.variable.get()
+        loadedVB.metadata.description = self.description.variable.get()
+        loadedVB.metadata.license = self.license.variable.get()
         self.master.destroy()
 
     def onLoadPress(self):
@@ -274,6 +325,7 @@ class MetadataUi(tkinter.Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         loadedVB.loadMetadata(filepath)
         self.name.variable.set(loadedVB.metadata.name)
+        self.applyImage()
         
 class PhonemedictUi(tkinter.Frame):
     """Class of the phoneme dictionnary UI window"""
