@@ -11,6 +11,7 @@
         background_normal: "UI/assets/TrackList/SingerBGGrey.png"
         background_down: "UI/assets/TrackList/SingerBGPurple.png"
         group: "SingerPanels"
+        on_state: if self.state == 'down': self.parent.changeTrack()
         Label:
             size_hint: (1, None)
             height: 30
@@ -18,15 +19,14 @@
             y: self.parent.top - 30
             text: self.parent.parent.name
         Image:
-            size: (self.parent.height - 50, self.parent.height - 50)
+            size: (0.5 * self.parent.width, self.parent.height - 50) if 0.5 * self.parent.width < self.parent.height - 50 else (self.parent.height - 50, self.parent.height - 50)
             x: self.parent.x + 10
             y: self.parent.y + 10
-            #source: "UI/assets/TrackList/SingerGrey04.png"
             texture: self.parent.parent.image
         BoxLayout:
             orientation: "vertical"
-            size: (self.parent.width - self.parent.height + 30, self.parent.height - 50)
-            x: self.parent.x + self.parent.height - 40
+            size: (0.5 * self.parent.width, self.parent.height - 50) if 0.5 * self.parent.width < self.parent.height - 50 else (self.parent.width - self.parent.height + 30, self.parent.height - 50)
+            x: self.parent.x + 0.5 * self.parent.width if 0.5 * self.parent.width < self.parent.height - 40 else self.parent.x + self.parent.height - 40
             y: self.parent.y + 10
             BoxLayout:
                 orientation: "horizontal"
@@ -36,9 +36,11 @@
                 ImageButton:
                     imageNormal: "UI/assets/TrackList/SingerGrey02.png"
                     imagePressed: "UI/assets/TrackList/SingerGrey02_clicked.png"
+                    on_press: self.parent.parent.parent.parent.copyTrack()
                 ImageButton:
                     imageNormal: "UI/assets/TrackList/SingerGrey03.png"
                     imagePressed: "UI/assets/TrackList/SingerGrey03_clicked.png"
+                    on_press: self.parent.parent.parent.parent.deleteTrack()
             Slider:
             AnchorLayout:
                 anchor_x: "center"

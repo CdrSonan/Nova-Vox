@@ -1668,3 +1668,76 @@
 2021-11-30 00:07:32,134:25228:INFO:PhonemeDict button callback
 2021-11-30 00:07:32,182:25228:INFO:Initializing Phonemedict UI
 2021-11-30 00:07:41,194:25228:INFO:Phonemedict OK button callback
+2021-11-30 16:39:56,525:28516:INFO:logging service started
+2021-11-30 16:39:56,539:28516:INFO:initializing Root UI
+2021-11-30 16:40:01,389:28516:INFO:new button callback
+2021-11-30 16:40:05,986:28516:INFO:UTAU import button callback
+2021-11-30 16:40:06,038:28516:INFO:Initializing UTAU import UI
+2021-11-30 16:40:09,293:28516:INFO:oto.ini load button callback
+2021-11-30 16:41:28,473:28516:INFO:UTAU sample list selection change callback
+2021-11-30 16:41:28,474:28516:INFO:UTAU diagram update callback
+2021-11-30 16:41:53,490:28516:INFO:UTAU import button callback
+2021-11-30 16:41:53,800:28516:INFO:UTAU diagram update callback
+2021-11-30 16:41:59,467:28516:INFO:UTAU sample list selection change callback
+2021-11-30 16:41:59,468:28516:INFO:UTAU diagram update callback
+2021-11-30 16:42:04,266:28516:INFO:UTAU OK button callback
+2021-11-30 16:42:04,266:28516:INFO:UTAU sample key change callback
+2021-11-30 16:42:04,266:28516:INFO:UTAU sample frame update callback
+2021-11-30 16:42:04,267:28516:INFO:UTAU diagram update callback
+2021-11-30 16:42:08,825:28516:INFO:Metadata button callback
+2021-11-30 16:42:08,878:28516:INFO:Initializing Metadata UI
+2021-11-30 16:42:08,880:28516:INFO:Metadata Image change button callback
+2021-11-30 16:42:19,967:28516:INFO:Metadata OK button callback
+2021-11-30 16:42:20,859:28516:INFO:PhonemeDict button callback
+2021-11-30 16:42:20,912:28516:INFO:Initializing Phonemedict UI
+2021-11-30 16:42:22,278:28516:INFO:Phonemedict selection change callback
+2021-11-30 16:42:22,280:28516:INFO:Phonemedict slider properties update callback
+2021-11-30 16:42:22,280:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:27,157:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:27,276:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:27,449:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:27,585:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:27,766:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:27,903:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:28,023:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:28,147:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:28,288:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:28,412:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:28,532:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:28,658:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:28,782:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:28,912:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:29,026:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:29,145:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:29,268:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:29,387:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:29,517:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:29,643:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:29,765:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:29,892:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:30,028:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:30,155:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:30,287:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:30,408:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:30,531:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:30,660:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:30,797:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:30,915:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:31,031:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:31,155:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:31,272:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:31,774:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:31,897:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:32,016:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:32,142:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:32,266:28516:INFO:Phonemedict slider movement callback
+2021-11-30 16:42:46,374:28516:INFO:Phonemedict OK button callback
+2021-11-30 16:42:46,374:28516:INFO:Phonemedict key change callback
+2021-11-30 16:42:46,374:28516:INFO:Phonemedict pitch update callback
+2021-11-30 16:42:46,375:28516:INFO:Phonemedict spectral update callback
+2021-11-30 16:42:47,722:28516:INFO:Parameter button callback
+2021-11-30 16:42:49,726:28516:INFO:Crfai button callback
+2021-11-30 16:42:49,779:28516:INFO:Initializing Crfai UI
+2021-11-30 16:42:53,919:28516:INFO:Crfai OK button callback
+2021-11-30 16:42:55,647:28516:INFO:Worddict button callback
+2021-11-30 16:43:00,740:28516:INFO:Root UI destroyed

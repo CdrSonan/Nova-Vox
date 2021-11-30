@@ -1,3 +1,4 @@
+from logging import root
 from kivy.core.image import Image as CoreImage
 from PIL import Image as PilImage, ImageDraw, ImageFont
 
@@ -38,10 +39,26 @@ class MiddleLayer:
         data.seek(0)
         im = CoreImage(BytesIO(data.read()), ext='png')
         image = im.texture
-        self.ids["singerList"].add_widget(SingerPanel(name = name, image = image))
+        self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
     def importParam(self, path, name):
         self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
         self.ids["paramList"].add_widget(ParamPanel, name = name)
+    def changeTrack(self, index):
+        self.activeTrack = index
+    def copyTrack(self, index, name, inImage):
+        self.trackList.append(dh.Track(None))
+        self.trackList[len(self.trackList) - 1].voicebank = self.trackList[index].voicebank
+        image = inImage
+        self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
+    def deleteTrack(self, index):
+        self.trackList.pop(index)
+        if index <= self.activeTrack:
+            self.changeTrack(self.activeTrack - 1)
+        for i in self.ids["singerList"].children:
+            if i.index == index:
+                i.parent.remove_widget(i)
+            if i.index > index:
+                i.index = i.index - 1
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -77,6 +94,16 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
 class SingerPanel(AnchorLayout):
     name = StringProperty()
     image = ObjectProperty()
+    index = NumericProperty()
+    def changeTrack(self):
+        global middleLayer
+        middleLayer.changeTrack(self.index)
+    def copyTrack(self):
+        global middleLayer
+        middleLayer.copyTrack(self.index, self.name, self.image)
+    def deleteTrack(self):
+        global middleLayer
+        middleLayer.deleteTrack(self.index)
 
 class ParamPanel(ToggleButton):
     name = StringProperty()
