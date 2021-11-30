@@ -1,3 +1,4 @@
+from PIL import Image
 class VbMetadata:
     """Helper class for holding Voicebank metadata. To be expanded.
     
@@ -20,7 +21,7 @@ class VbMetadata:
             
         self.name = ""
         self.sampleRate = 48000
-        self.image = None
+        self.image = Image.new('RGB', (200, 200), color=(55, 55, 55))
         self.version = "1.0"
         self.description = ""
         self.license = ""

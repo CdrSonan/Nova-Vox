@@ -9,7 +9,7 @@ import tkinter
 import tkinter.filedialog
 import tkinter.simpledialog
 import tkinter.messagebox
-import Image, ImageTk
+from PIL import Image, ImageTk
 from os import path
 import logging
 import torch
@@ -237,14 +237,17 @@ class MetadataUi(tkinter.Frame):
         self.name.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.image = tkinter.Frame(self)
-        self.name.variable = tkinter.StringVar(self.image)
+        self.image.variable = tkinter.StringVar(self.image)
         self.image.variable.set("UI/assets/TrackList/SingerGrey04.png")
         self.image.entry = tkinter.Button(self.image)
-        self.image.entry["text"] = self.image.variable
+        self.image.entry["text"] = loc["change"]
         self.image.entry["command"] = self.onImagePress
-        self.image.entry.pack(side = "right", fill = "x", expand = True)
-        self.image.display = tkinter.Canvas(self.image,width=999,height=999)
+        self.image.entry.pack(side = "bottom", fill = "x", expand = True)
+        self.image.display = tkinter.Canvas(self.image,width=200,height=200)
         self.image.display.pack(side = "right", fill = "x")
+        self.image.label = tkinter.Label(self.image)
+        self.image.label["text"] = loc["image"]
+        self.image.label.pack(side = "left", fill = "x")
         self.image.pack(side = "top", fill = "x", padx = 5, pady = 2)
         self.applyImage()
 
@@ -295,8 +298,10 @@ class MetadataUi(tkinter.Frame):
         logging.info("Metadata Image change button callback")
         """helper function for showing the image saved as part of the loaded Voicebank in the UI"""
         global loadedVB
-        image = ImageTk.PhotoImage(loadedVB.metadata.image)
-        imagesprite = self.image.display.create_image(400,400,image=image)
+        self.storedImage = ImageTk.PhotoImage(loadedVB.metadata.image, master = self.image.display)
+        self.image.display.delete(1)
+        imagesprite = self.image.display.create_image(100, 100, image = self.storedImage)
+        
 
     def onImagePress(self):
         logging.info("Metadata Image change button callback")
@@ -304,6 +309,7 @@ class MetadataUi(tkinter.Frame):
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"),))
         pilImage = Image.open(filepath)
+        pilImage = pilImage.resize((200, 200), resample = 3)
         loadedVB.metadata.image = pilImage
         self.applyImage()
         

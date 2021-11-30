@@ -10,7 +10,7 @@ class Track:
     def __init__(self, path):
         self.voicebank = LiteVoicebank(path)
         self.notes = []
-        self.pitch = torch.tensor()
-        self.breathiness = torch.tensor()
-        self.steadiness = torch.tensor()
+        self.pitch = torch.tensor([])
+        self.breathiness = torch.tensor([])
+        self.steadiness = torch.tensor([])
         self.paramStack = []

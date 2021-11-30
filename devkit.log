@@ -1464,3 +1464,207 @@
 2021-10-29 01:41:48,974:9548:INFO:Crfai OK button callback
 2021-10-29 01:41:51,830:9548:INFO:save button callback
 2021-10-29 01:42:02,293:9548:INFO:Root UI destroyed
+2021-11-29 20:29:31,671:18796:INFO:logging service started
+2021-11-29 20:29:31,671:18796:INFO:initializing Root UI
+2021-11-29 20:29:39,191:18796:INFO:new button callback
+2021-11-29 20:29:40,393:18796:INFO:Metadata button callback
+2021-11-29 20:29:40,443:18796:INFO:Initializing Metadata UI
+2021-11-29 20:29:55,944:22572:INFO:logging service started
+2021-11-29 20:29:55,944:22572:INFO:initializing Root UI
+2021-11-29 20:29:57,816:22572:INFO:new button callback
+2021-11-29 20:29:58,736:22572:INFO:Metadata button callback
+2021-11-29 20:29:58,786:22572:INFO:Initializing Metadata UI
+2021-11-29 20:29:58,787:22572:INFO:Metadata Image change button callback
+2021-11-29 20:31:05,950:18780:INFO:logging service started
+2021-11-29 20:31:05,951:18780:INFO:initializing Root UI
+2021-11-29 20:31:07,492:18780:INFO:new button callback
+2021-11-29 20:31:08,651:18780:INFO:Metadata button callback
+2021-11-29 20:31:08,701:18780:INFO:Initializing Metadata UI
+2021-11-29 20:31:08,703:18780:INFO:Metadata Image change button callback
+2021-11-29 20:34:47,824:20812:INFO:logging service started
+2021-11-29 20:34:47,825:20812:INFO:initializing Root UI
+2021-11-29 20:34:49,818:20812:INFO:new button callback
+2021-11-29 20:34:52,128:20812:INFO:Metadata button callback
+2021-11-29 20:34:52,177:20812:INFO:Initializing Metadata UI
+2021-11-29 20:34:52,179:20812:INFO:Metadata Image change button callback
+2021-11-29 20:36:12,454:24236:INFO:logging service started
+2021-11-29 20:36:12,455:24236:INFO:initializing Root UI
+2021-11-29 20:36:13,904:24236:INFO:new button callback
+2021-11-29 20:36:14,756:24236:INFO:Metadata button callback
+2021-11-29 20:36:14,805:24236:INFO:Initializing Metadata UI
+2021-11-29 20:36:14,806:24236:INFO:Metadata Image change button callback
+2021-11-29 20:36:50,342:20232:INFO:logging service started
+2021-11-29 20:36:50,343:20232:INFO:initializing Root UI
+2021-11-29 20:36:52,102:20232:INFO:new button callback
+2021-11-29 20:36:52,811:20232:INFO:Metadata button callback
+2021-11-29 20:36:52,861:20232:INFO:Initializing Metadata UI
+2021-11-29 20:36:52,862:20232:INFO:Metadata Image change button callback
+2021-11-29 20:36:59,203:20232:INFO:Metadata Image change button callback
+2021-11-29 20:37:05,601:20232:INFO:Metadata Image change button callback
+2021-11-29 20:37:12,948:20232:INFO:Metadata OK button callback
+2021-11-29 20:47:55,824:5564:INFO:logging service started
+2021-11-29 20:47:55,824:5564:INFO:initializing Root UI
+2021-11-29 20:47:57,284:5564:INFO:new button callback
+2021-11-29 20:47:57,930:5564:INFO:Metadata button callback
+2021-11-29 20:47:57,981:5564:INFO:Initializing Metadata UI
+2021-11-29 20:47:57,982:5564:INFO:Metadata Image change button callback
+2021-11-29 20:50:08,331:27680:INFO:logging service started
+2021-11-29 20:50:08,332:27680:INFO:initializing Root UI
+2021-11-29 20:50:09,806:27680:INFO:new button callback
+2021-11-29 20:50:10,488:27680:INFO:Metadata button callback
+2021-11-29 20:50:10,538:27680:INFO:Initializing Metadata UI
+2021-11-29 20:50:10,540:27680:INFO:Metadata Image change button callback
+2021-11-29 20:50:14,213:27680:INFO:Metadata Image change button callback
+2021-11-29 20:50:16,011:27680:INFO:Metadata Image change button callback
+2021-11-29 20:51:20,982:13656:INFO:logging service started
+2021-11-29 20:51:20,982:13656:INFO:initializing Root UI
+2021-11-29 20:51:22,220:13656:INFO:new button callback
+2021-11-29 20:51:22,730:13656:INFO:Metadata button callback
+2021-11-29 20:51:22,786:13656:INFO:Initializing Metadata UI
+2021-11-29 20:51:22,808:13656:INFO:Metadata Image change button callback
+2021-11-29 20:51:24,067:13656:INFO:Metadata Image change button callback
+2021-11-29 20:51:25,714:13656:INFO:Metadata Image change button callback
+2021-11-29 20:51:27,532:13656:INFO:Metadata OK button callback
+2021-11-29 20:51:28,824:13656:INFO:Root UI destroyed
+2021-11-29 20:52:39,188:9652:INFO:logging service started
+2021-11-29 20:52:39,188:9652:INFO:initializing Root UI
+2021-11-29 20:52:40,482:9652:INFO:new button callback
+2021-11-29 20:52:41,029:9652:INFO:Metadata button callback
+2021-11-29 20:52:41,078:9652:INFO:Initializing Metadata UI
+2021-11-29 20:52:41,080:9652:INFO:Metadata Image change button callback
+2021-11-29 20:52:43,199:9652:INFO:Metadata Image change button callback
+2021-11-29 20:52:44,870:9652:INFO:Metadata Image change button callback
+2021-11-29 20:52:46,943:9652:INFO:Metadata OK button callback
+2021-11-29 20:53:09,164:22864:INFO:logging service started
+2021-11-29 20:53:09,164:22864:INFO:initializing Root UI
+2021-11-29 20:53:10,164:22864:INFO:new button callback
+2021-11-29 20:53:11,044:22864:INFO:Metadata button callback
+2021-11-29 20:53:11,094:22864:INFO:Initializing Metadata UI
+2021-11-29 20:53:11,095:22864:INFO:Metadata Image change button callback
+2021-11-29 20:53:14,554:22864:INFO:Metadata Image change button callback
+2021-11-29 20:53:16,230:22864:INFO:Metadata Image change button callback
+2021-11-29 20:54:01,428:27184:INFO:logging service started
+2021-11-29 20:54:01,428:27184:INFO:initializing Root UI
+2021-11-29 20:54:02,520:27184:INFO:new button callback
+2021-11-29 20:54:03,120:27184:INFO:Metadata button callback
+2021-11-29 20:54:03,170:27184:INFO:Initializing Metadata UI
+2021-11-29 20:54:03,172:27184:INFO:Metadata Image change button callback
+2021-11-29 20:55:27,352:26008:INFO:logging service started
+2021-11-29 20:55:27,353:26008:INFO:initializing Root UI
+2021-11-29 20:55:28,600:26008:INFO:new button callback
+2021-11-29 20:55:29,278:26008:INFO:Metadata button callback
+2021-11-29 20:55:29,327:26008:INFO:Initializing Metadata UI
+2021-11-29 20:55:29,329:26008:INFO:Metadata Image change button callback
+2021-11-29 20:55:48,387:26468:INFO:logging service started
+2021-11-29 20:55:48,387:26468:INFO:initializing Root UI
+2021-11-29 20:55:49,407:26468:INFO:new button callback
+2021-11-29 20:55:50,040:26468:INFO:Metadata button callback
+2021-11-29 20:55:50,089:26468:INFO:Initializing Metadata UI
+2021-11-29 20:55:50,091:26468:INFO:Metadata Image change button callback
+2021-11-29 20:56:32,617:24924:INFO:logging service started
+2021-11-29 20:56:32,618:24924:INFO:initializing Root UI
+2021-11-29 20:56:33,722:24924:INFO:new button callback
+2021-11-29 20:56:34,356:24924:INFO:Metadata button callback
+2021-11-29 20:56:34,406:24924:INFO:Initializing Metadata UI
+2021-11-29 20:56:34,408:24924:INFO:Metadata Image change button callback
+2021-11-29 20:56:36,387:24924:INFO:Metadata Image change button callback
+2021-11-29 20:56:38,074:24924:INFO:Metadata Image change button callback
+2021-11-29 20:57:56,151:26628:INFO:logging service started
+2021-11-29 20:57:56,152:26628:INFO:initializing Root UI
+2021-11-29 20:57:57,332:26628:INFO:new button callback
+2021-11-29 20:57:58,042:26628:INFO:Metadata button callback
+2021-11-29 20:57:58,091:26628:INFO:Initializing Metadata UI
+2021-11-29 20:57:58,093:26628:INFO:Metadata Image change button callback
+2021-11-29 20:58:01,956:26628:INFO:Metadata Image change button callback
+2021-11-29 20:58:03,402:26628:INFO:Metadata Image change button callback
+2021-11-29 20:58:08,482:26628:INFO:Metadata Image change button callback
+2021-11-29 20:58:14,053:26628:INFO:Metadata Image change button callback
+2021-11-29 20:58:20,732:26628:INFO:Metadata OK button callback
+2021-11-29 23:48:02,708:24016:INFO:logging service started
+2021-11-29 23:48:02,708:24016:INFO:initializing Root UI
+2021-11-29 23:48:04,202:24016:INFO:new button callback
+2021-11-29 23:48:04,807:24016:INFO:Metadata button callback
+2021-11-29 23:48:04,856:24016:INFO:Initializing Metadata UI
+2021-11-29 23:48:04,857:24016:INFO:Metadata Image change button callback
+2021-11-29 23:48:34,615:17148:INFO:logging service started
+2021-11-29 23:48:34,615:17148:INFO:initializing Root UI
+2021-11-29 23:48:35,968:17148:INFO:new button callback
+2021-11-29 23:48:36,620:17148:INFO:Metadata button callback
+2021-11-29 23:48:36,670:17148:INFO:Initializing Metadata UI
+2021-11-29 23:48:36,671:17148:INFO:Metadata Image change button callback
+2021-11-29 23:48:40,261:17148:INFO:Metadata OK button callback
+2021-11-29 23:48:59,239:23432:INFO:logging service started
+2021-11-29 23:48:59,240:23432:INFO:initializing Root UI
+2021-11-29 23:49:00,977:23432:INFO:new button callback
+2021-11-29 23:49:02,370:23432:INFO:Metadata button callback
+2021-11-29 23:49:02,420:23432:INFO:Initializing Metadata UI
+2021-11-29 23:49:02,422:23432:INFO:Metadata Image change button callback
+2021-11-29 23:56:07,000:29588:INFO:logging service started
+2021-11-29 23:56:07,001:29588:INFO:initializing Root UI
+2021-11-29 23:56:08,146:29588:INFO:new button callback
+2021-11-29 23:56:08,894:29588:INFO:Metadata button callback
+2021-11-29 23:56:08,943:29588:INFO:Initializing Metadata UI
+2021-11-29 23:56:08,945:29588:INFO:Metadata Image change button callback
+2021-11-29 23:56:15,359:29588:INFO:Metadata Image change button callback
+2021-11-29 23:56:17,561:29588:INFO:Metadata Image change button callback
+2021-11-29 23:56:21,703:29588:INFO:Metadata Image change button callback
+2021-11-29 23:56:23,567:29588:INFO:Metadata Image change button callback
+2021-11-29 23:58:17,760:16940:INFO:logging service started
+2021-11-29 23:58:17,760:16940:INFO:initializing Root UI
+2021-11-29 23:58:19,223:16940:INFO:new button callback
+2021-11-29 23:58:20,038:16940:INFO:Metadata button callback
+2021-11-29 23:58:20,088:16940:INFO:Initializing Metadata UI
+2021-11-29 23:58:20,090:16940:INFO:Metadata Image change button callback
+2021-11-29 23:58:32,283:16940:INFO:Metadata OK button callback
+2021-11-29 23:59:04,653:3928:INFO:logging service started
+2021-11-29 23:59:04,654:3928:INFO:initializing Root UI
+2021-11-29 23:59:05,966:3928:INFO:new button callback
+2021-11-29 23:59:06,579:3928:INFO:Metadata button callback
+2021-11-29 23:59:06,628:3928:INFO:Initializing Metadata UI
+2021-11-29 23:59:06,630:3928:INFO:Metadata Image change button callback
+2021-11-30 00:00:35,202:17356:INFO:logging service started
+2021-11-30 00:00:35,202:17356:INFO:initializing Root UI
+2021-11-30 00:00:52,984:17356:INFO:new button callback
+2021-11-30 00:00:53,556:17356:INFO:Metadata button callback
+2021-11-30 00:00:53,605:17356:INFO:Initializing Metadata UI
+2021-11-30 00:00:53,606:17356:INFO:Metadata Image change button callback
+2021-11-30 00:00:56,918:17356:INFO:Metadata Image change button callback
+2021-11-30 00:01:11,541:17356:INFO:Metadata Image change button callback
+2021-11-30 00:01:22,132:17356:INFO:Metadata Image change button callback
+2021-11-30 00:01:24,771:17356:INFO:Metadata Image change button callback
+2021-11-30 00:02:02,580:26540:INFO:logging service started
+2021-11-30 00:02:02,580:26540:INFO:initializing Root UI
+2021-11-30 00:02:03,772:26540:INFO:new button callback
+2021-11-30 00:02:04,614:26540:INFO:Metadata button callback
+2021-11-30 00:02:04,663:26540:INFO:Initializing Metadata UI
+2021-11-30 00:02:04,665:26540:INFO:Metadata Image change button callback
+2021-11-30 00:02:18,114:26540:INFO:Metadata Image change button callback
+2021-11-30 00:02:49,701:22520:INFO:logging service started
+2021-11-30 00:02:49,701:22520:INFO:initializing Root UI
+2021-11-30 00:02:50,799:22520:INFO:new button callback
+2021-11-30 00:02:52,651:22520:INFO:UTAU import button callback
+2021-11-30 00:02:52,700:22520:INFO:Initializing UTAU import UI
+2021-11-30 00:02:55,135:22520:INFO:oto.ini load button callback
+2021-11-30 00:04:07,935:22520:INFO:UTAU sample list selection change callback
+2021-11-30 00:04:07,936:22520:INFO:UTAU diagram update callback
+2021-11-30 00:04:20,402:22520:INFO:UTAU import all button callback
+2021-11-30 00:04:55,255:22520:INFO:UTAU OK button callback
+2021-11-30 00:04:56,108:22520:INFO:PhonemeDict button callback
+2021-11-30 00:04:56,157:22520:INFO:Initializing Phonemedict UI
+2021-11-30 00:05:53,682:22520:INFO:Metadata button callback
+2021-11-30 00:05:53,731:22520:INFO:Initializing Metadata UI
+2021-11-30 00:05:53,732:22520:INFO:Metadata Image change button callback
+2021-11-30 00:06:09,740:22520:INFO:Metadata OK button callback
+2021-11-30 00:06:12,893:22520:INFO:Crfai button callback
+2021-11-30 00:06:12,941:22520:INFO:Initializing Crfai UI
+2021-11-30 00:06:14,925:22520:INFO:Crfai selection change callback
+2021-11-30 00:06:15,632:22520:INFO:Crfai selection change callback
+2021-11-30 00:06:18,719:22520:INFO:Crfai OK button callback
+2021-11-30 00:06:20,361:22520:INFO:save button callback
+2021-11-30 00:06:38,400:22520:INFO:Root UI destroyed
+2021-11-30 00:07:29,590:25228:INFO:logging service started
+2021-11-30 00:07:29,590:25228:INFO:initializing Root UI
+2021-11-30 00:07:31,526:25228:INFO:new button callback
+2021-11-30 00:07:32,134:25228:INFO:PhonemeDict button callback
+2021-11-30 00:07:32,182:25228:INFO:Initializing Phonemedict UI
+2021-11-30 00:07:41,194:25228:INFO:Phonemedict OK button callback

@@ -24,19 +24,24 @@ import subprocess
 import MiddleLayer.DataHandlers as dh
 
 class MiddleLayer:
-    def __init__(self, **kwargs):
+    def __init__(self, ids, **kwargs):
         super().__init__(**kwargs)
+        self.ids = ids
         self.trackList = []
         self.activeTrack = NumericProperty()
         self.activeParam = NumericProperty()
-    def importVoicebank(self, path, name):
+    def importVoicebank(self, path, name, inImage):
         self.trackList.append(dh.Track(path))
-        self.activeTrack.set(len(self.trackList) - 1)
-        self.ids["singerList"].addWidget(SingerPanel, name = name)
+        canvas_img = inImage
+        data = BytesIO()
+        canvas_img.save(data, format='png')
+        data.seek(0)
+        im = CoreImage(BytesIO(data.read()), ext='png')
+        image = im.texture
+        self.ids["singerList"].add_widget(SingerPanel(name = name, image = image))
     def importParam(self, path, name):
         self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
-        self.activeParam.set(len(self.trackList) - 1)
-        self.ids["paramList"].addWidget(ParamPanel, name = name)
+        self.ids["paramList"].add_widget(ParamPanel, name = name)
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -71,6 +76,7 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
 
 class SingerPanel(AnchorLayout):
     name = StringProperty()
+    image = ObjectProperty()
 
 class ParamPanel(ToggleButton):
     name = StringProperty()
@@ -157,9 +163,9 @@ class SingerSidePanel(ModalView):
         self.ids["singer_description"].text = self.voicebanks[index].description
         self.ids["singer_license"].text = self.voicebanks[index].license
         self.selectedIndex = index
-    def importVoicebank(self, path, name):
+    def importVoicebank(self, path, name, image):
         global middleLayer
-        middleLayer.importVoicebank(path, name)
+        middleLayer.importVoicebank(path, name, image)
 
 class ParamSidePanel(ModalView):
     def __init__(self, **kwargs):
@@ -224,6 +230,6 @@ class NovaVoxUI(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         global middleLayer
-        middleLayer = MiddleLayer()
+        middleLayer = MiddleLayer(self.ids)
     def update(self, deltatime):
         pass
