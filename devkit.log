@@ -1741,3 +1741,150 @@
 2021-11-30 16:42:53,919:28516:INFO:Crfai OK button callback
 2021-11-30 16:42:55,647:28516:INFO:Worddict button callback
 2021-11-30 16:43:00,740:28516:INFO:Root UI destroyed
+2021-12-02 16:44:58,967:17884:INFO:logging service started
+2021-12-02 16:44:58,980:17884:INFO:initializing Root UI
+2021-12-02 16:45:01,735:17884:INFO:new button callback
+2021-12-02 16:45:03,631:17884:INFO:Metadata button callback
+2021-12-02 16:45:03,679:17884:INFO:Initializing Metadata UI
+2021-12-02 16:45:03,681:17884:INFO:Metadata Image change button callback
+2021-12-02 16:46:14,648:17884:INFO:Metadata OK button callback
+2021-12-02 16:46:15,685:17884:INFO:PhonemeDict button callback
+2021-12-02 16:46:15,733:17884:INFO:Initializing Phonemedict UI
+2021-12-02 16:46:19,802:17884:INFO:Phonemedict add button callback
+2021-12-02 16:46:49,787:31324:INFO:logging service started
+2021-12-02 16:46:49,787:31324:INFO:initializing Root UI
+2021-12-02 16:46:51,204:31324:INFO:new button callback
+2021-12-02 16:46:51,850:31324:INFO:PhonemeDict button callback
+2021-12-02 16:46:51,899:31324:INFO:Initializing Phonemedict UI
+2021-12-02 16:46:52,873:31324:INFO:Phonemedict add button callback
+2021-12-02 16:46:58,083:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:46:58,084:31324:INFO:Phonemedict slider properties update callback
+2021-12-02 16:46:58,084:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:46:59,823:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:46:59,933:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:00,080:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:00,199:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:00,319:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:00,438:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:00,555:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:00,694:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:00,814:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:00,935:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:01,064:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:01,180:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:01,317:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:01,452:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:01,584:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:01,713:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:01,834:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:01,969:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:02,090:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:02,221:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:02,358:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:02,485:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:02,600:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:02,711:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:04,042:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:04,149:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:04,307:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:04,420:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:04,788:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:04,930:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:05,077:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:05,579:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:05,696:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:05,812:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:05,925:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:47:07,779:31324:INFO:Phonemedict add button callback
+2021-12-02 16:47:08,494:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:10,268:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:13,853:31324:INFO:Phonemedict add button callback
+2021-12-02 16:47:14,703:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:16,400:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:19,513:31324:INFO:Phonemedict add button callback
+2021-12-02 16:47:20,351:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:22,522:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:28,691:31324:INFO:Phonemedict add button callback
+2021-12-02 16:47:29,643:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:31,354:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:35,845:31324:INFO:Phonemedict add button callback
+2021-12-02 16:47:36,772:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:36,801:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:47:38,444:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:42,770:31324:INFO:Phonemedict add button callback
+2021-12-02 16:47:43,502:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:45,186:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:50,405:31324:INFO:Phonemedict add button callback
+2021-12-02 16:47:51,214:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:52,755:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:57,550:31324:INFO:Phonemedict add button callback
+2021-12-02 16:47:58,357:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:47:59,842:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:48:03,199:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:48:03,201:31324:INFO:Phonemedict slider properties update callback
+2021-12-02 16:48:03,201:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:04,951:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:05,115:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:05,334:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:05,589:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:05,782:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:05,920:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:06,039:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:06,156:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:06,281:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:06,401:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:06,512:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:06,646:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:06,763:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:06,892:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:07,032:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:07,257:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:07,368:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:07,488:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:07,613:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:07,720:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:07,842:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:07,964:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:08,117:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:08,280:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:09,435:31324:INFO:Phonemedict add button callback
+2021-12-02 16:48:10,348:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:48:10,374:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:48:11,996:31324:INFO:Phonemedict list focus loss callback
+2021-12-02 16:48:17,469:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:48:17,470:31324:INFO:Phonemedict slider properties update callback
+2021-12-02 16:48:17,471:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:18,124:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:48:18,124:31324:INFO:Phonemedict slider properties update callback
+2021-12-02 16:48:18,125:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:18,589:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:48:18,589:31324:INFO:Phonemedict slider properties update callback
+2021-12-02 16:48:18,590:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:18,991:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:48:18,992:31324:INFO:Phonemedict slider properties update callback
+2021-12-02 16:48:18,993:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:19,514:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:48:19,515:31324:INFO:Phonemedict slider properties update callback
+2021-12-02 16:48:19,516:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:19,996:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:48:19,997:31324:INFO:Phonemedict slider properties update callback
+2021-12-02 16:48:19,998:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:20,599:31324:INFO:Phonemedict selection change callback
+2021-12-02 16:48:20,600:31324:INFO:Phonemedict slider properties update callback
+2021-12-02 16:48:20,601:31324:INFO:Phonemedict slider movement callback
+2021-12-02 16:48:28,262:31324:INFO:Phonemedict OK button callback
+2021-12-02 16:48:28,263:31324:INFO:Phonemedict key change callback
+2021-12-02 16:48:28,263:31324:INFO:Phonemedict pitch update callback
+2021-12-02 16:48:28,263:31324:INFO:Phonemedict spectral update callback
+2021-12-02 16:48:30,303:31324:INFO:Metadata button callback
+2021-12-02 16:48:30,374:31324:INFO:Initializing Metadata UI
+2021-12-02 16:48:30,375:31324:INFO:Metadata Image change button callback
+2021-12-02 16:49:21,360:31324:INFO:Metadata OK button callback
+2021-12-02 16:49:24,898:31324:INFO:save button callback
+2021-12-02 16:49:42,234:31324:INFO:Crfai button callback
+2021-12-02 16:49:42,281:31324:INFO:Initializing Crfai UI
+2021-12-02 16:49:44,297:31324:INFO:Crfai add button callback
+2021-12-02 16:50:23,513:31324:INFO:Crfai train button callback
+2021-12-02 18:40:54,043:31324:INFO:Crfai train button callback completed
+2021-12-02 18:51:22,282:31324:INFO:Crfai OK button callback
+2021-12-02 18:51:24,697:31324:INFO:save button callback

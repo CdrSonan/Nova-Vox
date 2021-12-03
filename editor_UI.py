@@ -6,7 +6,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty, ListProperty
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty, ListProperty, OptionProperty
 from kivy.graphics import Color, Line
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.togglebutton import ToggleButton
@@ -31,6 +31,7 @@ class MiddleLayer:
         self.trackList = []
         self.activeTrack = NumericProperty()
         self.activeParam = NumericProperty()
+        self.mode = OptionProperty(options = ["notes", "timing", "pitch"])
     def importVoicebank(self, path, name, inImage):
         self.trackList.append(dh.Track(path))
         canvas_img = inImage
@@ -42,7 +43,7 @@ class MiddleLayer:
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
     def importParam(self, path, name):
         self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
-        self.ids["paramList"].add_widget(ParamPanel, name = name)
+        self.ids["paramList"].add_widget(ParamPanel(name = name))
     def changeTrack(self, index):
         self.activeTrack = index
     def copyTrack(self, index, name, inImage):
@@ -59,6 +60,53 @@ class MiddleLayer:
                 i.parent.remove_widget(i)
             if i.index > index:
                 i.index = i.index - 1
+    def deleteParam(self, index):
+        self.trackList.pop(index)
+        if index <= self.activeParam:
+            self.changeParam(self.activeParam - 1)
+        for i in self.ids["paramList"].children:
+            if i.index == index:
+                i.parent.remove_widget(i)
+            if i.index > index:
+                i.index = i.index - 1
+    def enableParam(self, index):
+        pass
+    def disableParam(self):
+        pass
+    def moveParam(self, name, switchable, sortable, index, delta):
+        param = self.paramList[index]
+        if delta > 0:
+            for i in range(delta):
+                self.paramList[index + i] = self.paramList[index + i + 1]
+            self.paramList[index + delta] = param
+        if delta < 0:
+            for i in range(-delta):
+                self.paramList[index - i] = self.paramList[index - i - 1]
+            self.paramList[index - delta] = param
+        for i in self.ids["paramList"].children:
+            if i.index == index:
+                i.parent.remove_widget(i)
+                break
+        self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = switchable, sortable = sortable, index = index), index = index + delta)
+        self.changeParam(index + delta)
+    def updateParamPanel(self):
+        for i in self.ids["paramList"].children:
+            i.parent.remove_widget(i)
+        if self.mode == "notes":
+            self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", index = None))
+            self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", index = None))
+            counter = 0
+            for i in self.trackList[self.activeTrack].paramStack:
+                self.ids["paramList"].add_widget(ParamPanel(name = i.name, index = counter))
+                counter += 1
+        if self.mode == "timing":
+            self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", index = None))
+            self.ids["paramList"].add_widget(ParamPanel(name = "loop offset", index = None))
+        if self.mode == "pitch":
+            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", index = None))
+            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", index = None))
+    def changeParam(self, index):
+        pass
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -107,6 +155,21 @@ class SingerPanel(AnchorLayout):
 
 class ParamPanel(ToggleButton):
     name = StringProperty()
+    switchable = BooleanProperty()
+    sortable = BooleanProperty()
+    index = NumericProperty()
+    def enableParam(self):
+        global middleLayer
+        middleLayer.enableParam(self.index)
+    def disableParam(self):
+        global middleLayer
+        middleLayer.disableParam(self.index)
+    def moveParam(self, delta):
+        global middleLayer
+        middleLayer.moveParam(self.name, self.switchable, self.sortable, self.index, delta)
+    def deleteParam(self):
+        global middleLayer
+        middleLayer.deleteParam(self.index)
 
 class AdaptiveSpace(AnchorLayout):
     pass

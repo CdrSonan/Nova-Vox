@@ -168,7 +168,7 @@ class Voicebank:
             filepath: a String representing the filepath to the .wav audio file of the phoneme sample"""
             
             
-        self.phonemeDict[key] = AudioSample(filepath, "V")
+        self.phonemeDict[key] = AudioSample(filepath)
         calculatePitch(self.phonemeDict[key])
         calculateSpectra(self.phonemeDict[key])
 
