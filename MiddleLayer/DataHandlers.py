@@ -6,6 +6,7 @@ class Parameter:
         #self.nn = LiteParameter(path)
         self.curve = torch.tensor()
         self.name = ""
+        self.enabled = True
 
 class Track:
     def __init__(self, path):

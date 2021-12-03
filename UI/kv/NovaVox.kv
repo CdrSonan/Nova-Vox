@@ -141,10 +141,6 @@
                                 orientation: "vertical"
                                 width: self.parent.width - 10
                                 height: self.minimum_height
-                                ParamPanel:
-                                ParamPanel:
-                                ParamPanel:
-                                ParamPanel:
             BoxLayout:
                 orientation: "vertical"
                 size_hint: (0.75, 1)
@@ -175,18 +171,21 @@
                                     imageNormal: "UI/assets/Toolbar/Adaptive04.png"
                                     imagePressed: "UI/assets/Toolbar/Adaptive04_clicked.png"
                                     group: "DisplayModes"
+                                    on_press: root.middleLayer.mode = "notes"
                                 ImageToggleButton:
                                     size_hint: (None, None)
                                     size: (40, 36)
                                     imageNormal: "UI/assets/Toolbar/Adaptive05.png"
                                     imagePressed: "UI/assets/Toolbar/Adaptive05_clicked.png"
                                     group: "DisplayModes"
+                                    on_press: root.middleLayer.mode = "timing"
                                 ImageToggleButton:
                                     size_hint: (None, None)
                                     size: (40, 36)
                                     imageNormal: "UI/assets/Toolbar/Adaptive06.png"
                                     imagePressed: "UI/assets/Toolbar/Adaptive06_clicked.png"
                                     group: "DisplayModes"
+                                    on_press: root.middleLayer.mode = "pitch"
                                 AnchorLayout:
                                     anchor_x: "center"
                                     anchor_y: "center"
@@ -262,6 +261,7 @@
                     AdaptiveSpace:
                         pos: self.parent.pos
                         size:(self.parent.width, self.parent.height)
+                        id: adaptiveSpace
 
         #dark: 0.137 0.125 0.173
         #medium: 0.184 0.184 0.267

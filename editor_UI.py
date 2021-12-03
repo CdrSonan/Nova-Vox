@@ -24,14 +24,14 @@ import subprocess
 
 import MiddleLayer.DataHandlers as dh
 
-class MiddleLayer:
+class MiddleLayer(Widget):
     def __init__(self, ids, **kwargs):
         super().__init__(**kwargs)
         self.ids = ids
         self.trackList = []
         self.activeTrack = NumericProperty()
         self.activeParam = NumericProperty()
-        self.mode = OptionProperty(options = ["notes", "timing", "pitch"])
+        self.mode = OptionProperty("notes", options = ["notes", "timing", "pitch"])
     def importVoicebank(self, path, name, inImage):
         self.trackList.append(dh.Track(path))
         canvas_img = inImage
@@ -61,7 +61,7 @@ class MiddleLayer:
             if i.index > index:
                 i.index = i.index - 1
     def deleteParam(self, index):
-        self.trackList.pop(index)
+        self.trackList[self.activeTrack].paramStack.pop(index)
         if index <= self.activeParam:
             self.changeParam(self.activeParam - 1)
         for i in self.ids["paramList"].children:
@@ -70,19 +70,19 @@ class MiddleLayer:
             if i.index > index:
                 i.index = i.index - 1
     def enableParam(self, index):
-        pass
-    def disableParam(self):
-        pass
+        self.trackList[self.activeTrack].paramStack[index].enabled = True
+    def disableParam(self, index):
+        self.trackList[self.activeTrack].paramStack[index].enabled = False
     def moveParam(self, name, switchable, sortable, index, delta):
-        param = self.paramList[index]
+        param = self.trackList[self.activeTrack].paramStack[index]
         if delta > 0:
             for i in range(delta):
-                self.paramList[index + i] = self.paramList[index + i + 1]
-            self.paramList[index + delta] = param
+                self.trackList[self.activeTrack].paramStack[index + i] = self.trackList[self.activeTrack].paramStack[index + i + 1]
+            self.trackList[self.activeTrack].paramStack[index + delta] = param
         if delta < 0:
             for i in range(-delta):
-                self.paramList[index - i] = self.paramList[index - i - 1]
-            self.paramList[index - delta] = param
+                self.trackList[self.activeTrack].paramStack[index - i] = self.trackList[self.activeTrack].paramStack[index - i - 1]
+            self.trackList[self.activeTrack].paramStack[index - delta] = param
         for i in self.ids["paramList"].children:
             if i.index == index:
                 i.parent.remove_widget(i)
@@ -105,8 +105,13 @@ class MiddleLayer:
         if self.mode == "pitch":
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", index = None))
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", index = None))
+        self.changeParam(0)
     def changeParam(self, index):
-        pass
+        if self.mode == "notes":
+            self.activeParam = index
+            self.ids["adaptiveSpace"].data = self.trackList[self.activeTrack].paramStack[index].curve
+    def on_mode(self, widget, value):
+        self.updateParamPanel()
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
