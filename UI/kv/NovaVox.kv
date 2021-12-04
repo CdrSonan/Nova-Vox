@@ -171,21 +171,21 @@
                                     imageNormal: "UI/assets/Toolbar/Adaptive04.png"
                                     imagePressed: "UI/assets/Toolbar/Adaptive04_clicked.png"
                                     group: "DisplayModes"
-                                    on_press: root.middleLayer.mode = "notes"
+                                    on_press: root.setMode("notes")
                                 ImageToggleButton:
                                     size_hint: (None, None)
                                     size: (40, 36)
                                     imageNormal: "UI/assets/Toolbar/Adaptive05.png"
                                     imagePressed: "UI/assets/Toolbar/Adaptive05_clicked.png"
                                     group: "DisplayModes"
-                                    on_press: root.middleLayer.mode = "timing"
+                                    on_press: root.setMode("timing")
                                 ImageToggleButton:
                                     size_hint: (None, None)
                                     size: (40, 36)
                                     imageNormal: "UI/assets/Toolbar/Adaptive06.png"
                                     imagePressed: "UI/assets/Toolbar/Adaptive06_clicked.png"
                                     group: "DisplayModes"
-                                    on_press: root.middleLayer.mode = "pitch"
+                                    on_press: root.setMode("pitch")
                                 AnchorLayout:
                                     anchor_x: "center"
                                     anchor_y: "center"

@@ -6,30 +6,3 @@
     background_normal: "UI/assets/Toolbar/Adaptive09.png"
     background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
     group: "parameters"
-    ImageToggleButton:
-        size_hint: (None, None)
-        size: (30, 30)
-        pos: (self.parent.x + 3, self.parent.y + 3)
-        imageNormal: "UI/assets/ParamList/Adaptive02.png"
-        imagePressed: "UI/assets/ParamList/Adaptive01.png"
-        on_state: self.parent.enableParam() if self.state == "down" else self.parent.disableParam()
-    ImageButton:
-        size_hint: (None, None)
-        size: (40, 30)
-        pos: (self.parent.x + 33, self.parent.y + 3)
-        imageNormal: "UI/assets/ParamList/Adaptive03.png"
-        imagePressed: "UI/assets/ParamList/Adaptive03_clicked.png"
-        always_release: True
-        on_release: self.parent.moveParam(0)
-    ImageButton:
-        size_hint: (None, None)
-        size: (30, 30)
-        pos: (self.parent.x + 73, self.parent.y + 3)
-        imageNormal: "UI/assets/TrackList/SingerGrey03.png"
-        imagePressed: "UI/assets/TrackList/SingerGrey03_clicked.png"
-        on_press: self.parent.deleteParam()
-    Label:
-        size_hint: (None, None)
-        size: (self.parent.width - 76, 30)
-        pos: (self.parent.x + 103, self.parent.y + 3)
-        text: self.parent.name
