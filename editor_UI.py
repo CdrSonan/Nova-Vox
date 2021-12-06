@@ -19,6 +19,8 @@ from kivy.uix.label import Label
 
 from io import BytesIO
 
+from copy import deepcopy
+
 import os
 import torch
 import subprocess
@@ -97,9 +99,7 @@ class MiddleLayer(Widget):
         self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = switchable, sortable = sortable, deletable = deletable, index = index), index = index + delta)
         self.changeParam(index + delta)
     def updateParamPanel(self):
-        for i in self.ids["paramList"].children:
-            i.parent.remove_widget(i)
-            print("delete")
+        self.ids["paramList"].clear_widgets()
         if self.mode == "notes":
             self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1))
             self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1))
@@ -179,11 +179,8 @@ class ParamPanel(ToggleButton):
         self.sortable = sortable
         self.deletable = deletable
         self.index = index
-        self.add_widget(Label(
-            size_hint = (None, None),
-            size = (self.width - 76, 30),
-            pos = (self.x + 103, self.y + 3),
-            text = self.name))
+        self.background_color = (1, 1, 1, 0.3)
+        self.add_widget(Label(size_hint = (None, None), size = (self.width - 76, 30), pos = (self.x + 103, self.y + 3), text = self.name))
         if self.switchable:
             self.add_widget(ImageToggleButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 3, self.y + 3), imageNormal = "UI/assets/ParamList/Adaptive02.png", imagePressed = "UI/assets/ParamList/Adaptive01.png", on_state = self.enableParam))
         if self.sortable:
