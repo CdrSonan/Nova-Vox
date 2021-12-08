@@ -15,4 +15,13 @@ class Track:
         self.pitch = torch.tensor([])
         self.breathiness = torch.tensor([])
         self.steadiness = torch.tensor([])
+        self.loopOverlap = torch.tensor([])
+        self.loopOffset = torch.tensor([])
+        self.vibratoSpeed = torch.tensor([])
+        self.vibratoStrength = torch.tensor([])
+        self.usePitch = False
+        self.useBreathiness = False
+        self.useSteadiness = False
+        self.useVibratoSpeed = False
+        self.useVibratoStrength = False
         self.paramStack = []

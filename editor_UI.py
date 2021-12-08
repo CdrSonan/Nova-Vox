@@ -7,7 +7,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty, ListProperty, OptionProperty
-from kivy.graphics import Color, Line
+from kivy.graphics import Color, Line, Rectangle
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
@@ -19,7 +19,7 @@ from kivy.uix.label import Label
 
 from io import BytesIO
 
-from copy import deepcopy
+from kivy.clock import mainthread
 
 import os
 import torch
@@ -72,14 +72,28 @@ class MiddleLayer(Widget):
                 i.parent.remove_widget(i)
             if i.index > index:
                 i.index = i.index - 1
-    def enableParam(self, index):
+    def enableParam(self, index, name):
         if index == -1:
-            pass
+            if name == "steadiness":
+                self.trackList[self.activeTrack].useSteadiness = True
+            if name == "breathiness":
+                self.trackList[self.activeTrack].useBreathiness = True
+            if name == "vibrato speed":
+                self.trackList[self.activeTrack].useVibratoSpeed = True
+            if name == "vibrato strength":
+                self.trackList[self.activeTrack].useVibratoStrength = True
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = True
-    def disableParam(self, index):
+    def disableParam(self, index, name):
         if index == -1:
-            pass
+            if name == "steadiness":
+                self.trackList[self.activeTrack].useSteadiness = False
+            if name == "breathiness":
+                self.trackList[self.activeTrack].useBreathiness = False
+            if name == "vibrato speed":
+                self.trackList[self.activeTrack].useVibratoSpeed = False
+            if name == "vibrato strength":
+                self.trackList[self.activeTrack].useVibratoStrength = False
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = False
     def moveParam(self, name, switchable, sortable, deletable, index, delta):
@@ -100,9 +114,11 @@ class MiddleLayer(Widget):
         self.changeParam(index + delta)
     def updateParamPanel(self):
         self.ids["paramList"].clear_widgets()
+        self.ids["adaptiveSpace"].clear_widgets()
         if self.mode == "notes":
             self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1))
             self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1))
+            self.ids["adaptiveSpace"].add_widget(ParamCurve())
             counter = 0
             for i in self.trackList[self.activeTrack].paramStack:
                 self.ids["paramList"].add_widget(ParamPanel(name = i.name, index = counter))
@@ -110,16 +126,30 @@ class MiddleLayer(Widget):
         if self.mode == "timing":
             self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", switchable = False, sortable = False, deletable = False, index = -1))
             self.ids["paramList"].add_widget(ParamPanel(name = "loop offset", switchable = False, sortable = False, deletable = False, index = -1))
+            self.ids["adaptiveSpace"].add_widget(TimingOptns())
         if self.mode == "pitch":
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1))
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1))
-    def changeParam(self, index):
-        if self.mode == "notes":
-            if index == -1:
-                pass
-            else:
-                self.activeParam = index
-                self.ids["adaptiveSpace"].data = self.trackList[self.activeTrack].paramStack[index].curve
+            self.ids["adaptiveSpace"].add_widget(PitchOptns())
+    def changeParam(self, index, name):
+        if index == -1:
+            if name == "steadiness":
+                self.ids["adaptiveSpace"].data = self.trackList[self.activeTrack].steadiness
+                self.ids["adaptiveSpace"].redraw()
+            if name == "breathiness":
+                self.ids["adaptiveSpace"].data = self.trackList[self.activeTrack].breathiness
+                self.ids["adaptiveSpace"].redraw()
+            if name == "loop overlap" or name == "loop offset":
+                self.ids["adaptiveSpace"].data1 = self.trackList[self.activeTrack].loopOverlap
+                self.ids["adaptiveSpace"].data2 = self.trackList[self.activeTrack].loopOffset
+                self.ids["adaptiveSpace"].redraw()
+            if name == "vibrato speed" or name == "vibrato strength":
+                self.ids["adaptiveSpace"].data1 = self.trackList[self.activeTrack].vibratoSpeed
+                self.ids["adaptiveSpace"].data2 = self.trackList[self.activeTrack].vibratoStrength
+                self.ids["adaptiveSpace"].redraw()
+        else:
+            self.activeParam = index
+            self.ids["adaptiveSpace"].data = self.trackList[self.activeTrack].paramStack[index].curve
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -180,7 +210,10 @@ class ParamPanel(ToggleButton):
         self.deletable = deletable
         self.index = index
         self.background_color = (1, 1, 1, 0.3)
-        self.add_widget(Label(size_hint = (None, None), size = (self.width - 76, 30), pos = (self.x + 103, self.y + 3), text = self.name))
+        self.makeWidgets()
+    @mainthread
+    def makeWidgets(self):
+        self.add_widget(Label(size_hint = (None, None), size = (self.width - 106, 30), pos = (self.x + 103, self.y + 3), text = self.name))
         if self.switchable:
             self.add_widget(ImageToggleButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 3, self.y + 3), imageNormal = "UI/assets/ParamList/Adaptive02.png", imagePressed = "UI/assets/ParamList/Adaptive01.png", on_state = self.enableParam))
         if self.sortable:
@@ -190,9 +223,9 @@ class ParamPanel(ToggleButton):
     def enableParam(self):
         global middleLayer
         if self.state == "down":
-            middleLayer.enableParam(self.index)
+            middleLayer.enableParam(self.index, self.name)
         else:
-            middleLayer.disableParam(self.index)
+            middleLayer.disableParam(self.index, self.name)
     def moveParam(self):
         global middleLayer
         delta = 0
@@ -200,27 +233,76 @@ class ParamPanel(ToggleButton):
     def deleteParam(self):
         global middleLayer
         middleLayer.deleteParam(self.index)
+    def changeParam(self):
+        global middleLayer
+        middleLayer.changeParam(self.index, self.name)
 
 class AdaptiveSpace(AnchorLayout):
-    pass
+    def redraw(self):
+        print(self.children)
+        self.children[0].redraw()
 
 class ParamCurve(ScrollView):
     xScale = NumericProperty()
-    data = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    data = ListProperty([])
+    points = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    line = Line()
+    def redraw(self):
+        self.children[0].canvas.remove(self.line)
+        with self.children[0].canvas:
+            Color(1, 0, 0, 1)
+            self.line = Line(points = self.points)
 
 class ParamBars(ScrollView):
     xScale = NumericProperty()
-    data = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
-
-class PitchOptns(ScrollView):
-    xScale = NumericProperty()
-    data1 = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
-    data2 = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
+    data = ListProperty([])
+    points = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    rectangles = ListProperty([])
+    def redraw(self):
+        for i in self.rectangles:
+            self.children[0].canvas.remove(i)
+        with self.children[0].canvas:
+            Color(1, 0, 0, 1)
+            for i in self.points:
+                self.rectangles.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))
 
 class TimingOptns(ScrollView):
     xScale = NumericProperty()
-    data1 = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
-    data2 = ListProperty([(0, 0), (20, 20), (100, 100), (5000, 30)])
+    data1 = ListProperty([])
+    data2 = ListProperty([])
+    points1 = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    points2 = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    rectangles1 = ListProperty([])
+    rectangles2 = ListProperty([])
+    def redraw(self):
+        for i in self.rectangles1:
+            self.children[0].canvas.remove(i)
+        for i in self.rectangles2:
+            self.children[0].canvas.remove(i)
+        with self.children[0].canvas:
+            Color(1, 0, 0, 1)
+            for i in self.points1:
+                rectangle = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
+                self.rectangles1.append(rectangle)
+            for i in self.points2:
+                rectangle = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
+                self.rectangles2.append(rectangle)
+
+class PitchOptns(ScrollView):
+    xScale = NumericProperty()
+    data1 = ListProperty([])
+    data2 = ListProperty([])
+    points1 = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    points2 = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    line1 = Line()
+    line2 = Line()
+    def redraw(self):
+        self.children[0].canvas.remove(self.line1)
+        self.children[0].canvas.remove(self.line2)
+        with self.children[0].canvas:
+            Color(1, 0, 0, 1)
+            self.line1 = Line(points = self.points1)
+            self.line2 = Line(points = self.points2)
 
 class Note(ToggleButton):
     #index = NumericProperty()
