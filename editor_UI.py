@@ -35,6 +35,8 @@ class MiddleLayer(Widget):
         self.activeTrack = None
         self.activeParam = None
         self.mode = OptionProperty("notes", options = ["notes", "timing", "pitch"])
+        self.mode = OptionProperty("draw", options = ["draw", "line", "arch"])
+        self.scrollValue = 0.
     def importVoicebank(self, path, name, inImage):
         self.trackList.append(dh.Track(path))
         canvas_img = inImage
@@ -134,22 +136,19 @@ class MiddleLayer(Widget):
     def changeParam(self, index, name):
         if index == -1:
             if name == "steadiness":
-                self.ids["adaptiveSpace"].data = self.trackList[self.activeTrack].steadiness
-                self.ids["adaptiveSpace"].redraw()
+                self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].steadiness)
             if name == "breathiness":
-                self.ids["adaptiveSpace"].data = self.trackList[self.activeTrack].breathiness
-                self.ids["adaptiveSpace"].redraw()
+                self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].breathiness)
             if name == "loop overlap" or name == "loop offset":
-                self.ids["adaptiveSpace"].data1 = self.trackList[self.activeTrack].loopOverlap
-                self.ids["adaptiveSpace"].data2 = self.trackList[self.activeTrack].loopOffset
-                self.ids["adaptiveSpace"].redraw()
+                self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].loopOverlap, self.trackList[self.activeTrack].loopOffset)
             if name == "vibrato speed" or name == "vibrato strength":
-                self.ids["adaptiveSpace"].data1 = self.trackList[self.activeTrack].vibratoSpeed
-                self.ids["adaptiveSpace"].data2 = self.trackList[self.activeTrack].vibratoStrength
-                self.ids["adaptiveSpace"].redraw()
+                self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].vibratoSpeed, self.trackList[self.activeTrack].vibratoStrength)
         else:
             self.activeParam = index
-            self.ids["adaptiveSpace"].data = self.trackList[self.activeTrack].paramStack[index].curve
+            self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].paramStack[index].curve)
+    def applyScroll(self):
+        self.ids["pianoRoll"].applyScroll(self.scrollValue)
+        self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -238,25 +237,35 @@ class ParamPanel(ToggleButton):
         middleLayer.changeParam(self.index, self.name)
 
 class AdaptiveSpace(AnchorLayout):
+    xScale = NumericProperty(1)
     def redraw(self):
-        print(self.children)
         self.children[0].redraw()
+    def applyScroll(self, scrollValue):
+        self.children[0].scroll_x = scrollValue
+    def triggerScroll(self):
+        global middleLayer
+        middleLayer.scrollValue = self.children[0].scroll_x
+        middleLayer.applyScroll()
 
 class ParamCurve(ScrollView):
     xScale = NumericProperty()
-    data = ListProperty([])
-    points = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    points = ListProperty()
     line = Line()
     def redraw(self):
         self.children[0].canvas.remove(self.line)
         with self.children[0].canvas:
             Color(1, 0, 0, 1)
             self.line = Line(points = self.points)
+    def dataToLine(self, data):
+        self.points = []
+        c = 0
+        for i in data:
+            self.points.append((self.parent.xScale * c, int((1 + i) * self.height / 2)))
+        self.redraw()
 
 class ParamBars(ScrollView):
     xScale = NumericProperty()
-    data = ListProperty([])
-    points = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    points = ListProperty()
     rectangles = ListProperty([])
     def redraw(self):
         for i in self.rectangles:
@@ -265,13 +274,18 @@ class ParamBars(ScrollView):
             Color(1, 0, 0, 1)
             for i in self.points:
                 self.rectangles.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))
+    def dataToLine(self, data):
+        self.points = []
+        c = 0
+        for i in data:
+            self.points.append((self.parent.xScale * i[0], i[1] * self.height))
+            c += 1
+        self.redraw()
 
 class TimingOptns(ScrollView):
     xScale = NumericProperty()
-    data1 = ListProperty([])
-    data2 = ListProperty([])
-    points1 = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
-    points2 = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    points1 = ListProperty()
+    points2 = ListProperty()
     rectangles1 = ListProperty([])
     rectangles2 = ListProperty([])
     def redraw(self):
@@ -287,13 +301,19 @@ class TimingOptns(ScrollView):
             for i in self.points2:
                 rectangle = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
                 self.rectangles2.append(rectangle)
+    def dataToLine(self, data1, data2):
+        self.points1 = []
+        self.points2 = []
+        for i in data1:
+            self.points.append((self.parent.xScale * i[0], int(i[1] * self.height / 2)))
+        for i in data2:
+            self.points.append((self.parent.xScale * i[0], int((1 + i[1]) * self.height / 2)))
+        self.redraw()
 
 class PitchOptns(ScrollView):
     xScale = NumericProperty()
-    data1 = ListProperty([])
-    data2 = ListProperty([])
-    points1 = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
-    points2 = ListProperty([(0, 0), (20, 20), (100, -10), (5000, 30)])
+    points1 = ListProperty()
+    points2 = ListProperty()
     line1 = Line()
     line2 = Line()
     def redraw(self):
@@ -303,6 +323,18 @@ class PitchOptns(ScrollView):
             Color(1, 0, 0, 1)
             self.line1 = Line(points = self.points1)
             self.line2 = Line(points = self.points2)
+    def dataToLine(self, data1, data2):
+        self.points1 = []
+        self.points2 = []
+        c = 0
+        for i in data1:
+            self.points1.append((self.parent.xScale * c, int((1 + i) * self.height / 4)))
+            c += 1
+        c = 0
+        for i in data2:
+            self.points2.append((self.parent.xScale * c, int((3 + i) * self.height / 4)))
+            c += 1
+        self.redraw()
 
 class Note(ToggleButton):
     #index = NumericProperty()
@@ -328,6 +360,12 @@ class PianoRoll(ScrollView):
     def generate_notes(self):
         for d in self.data:
             self.children[0].add_widget(Note(**d))
+    def applyScroll(self, scrollValue):
+        self.scroll_x = scrollValue
+    def triggerScroll(self):
+        global middleLayer
+        middleLayer.scrollValue = self.scroll_x
+        middleLayer.applyScroll()
 
 class ListElement(Button):
     index = NumericProperty()

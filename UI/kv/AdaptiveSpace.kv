@@ -1,5 +1,6 @@
 #:kivy 2.0.0
 <ParamCurve>:
+    on_scroll_x: self.parent.triggerScroll()
     do_scroll: (True, False)
     scroll_type: ["bars"]
     bar_width: 10
@@ -19,6 +20,7 @@
             Line:
                 points: [(0, self.parent.height), (5000, self.parent.height)]
 <ParamBars>:
+    on_scroll_x: self.parent.triggerScroll()
     do_scroll: (True, False)
     scroll_type: ["bars"]
     bar_width: 10
@@ -38,6 +40,7 @@
             Line:
                 points: [(0, self.parent.height), (5000, self.parent.height)]
 <PitchOptns>:
+    on_scroll_x: self.parent.triggerScroll()
     do_scroll: (True, False)
     scroll_type: ["bars"]
     bar_width: 10
@@ -61,6 +64,7 @@
             Line:
                 points: [(0, self.parent.height * 3 / 4), (5000, self.parent.height * 3 / 4)]
 <TimingOptns>:
+    on_scroll_x: self.parent.triggerScroll()
     do_scroll: (True, False)
     scroll_type: ["bars"]
     bar_width: 10
