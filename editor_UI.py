@@ -35,8 +35,9 @@ class MiddleLayer(Widget):
         self.activeTrack = None
         self.activeParam = None
         self.mode = OptionProperty("notes", options = ["notes", "timing", "pitch"])
-        self.mode = OptionProperty("draw", options = ["draw", "line", "arch"])
+        self.tool = OptionProperty("draw", options = ["draw", "line", "arch"])
         self.scrollValue = 0.
+        self.seqLength = 0
     def importVoicebank(self, path, name, inImage):
         self.trackList.append(dh.Track(path))
         canvas_img = inImage
@@ -125,23 +126,30 @@ class MiddleLayer(Widget):
             for i in self.trackList[self.activeTrack].paramStack:
                 self.ids["paramList"].add_widget(ParamPanel(name = i.name, index = counter))
                 counter += 1
+            self.changeParam(-1, "steadiness")
         if self.mode == "timing":
             self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", switchable = False, sortable = False, deletable = False, index = -1))
             self.ids["paramList"].add_widget(ParamPanel(name = "loop offset", switchable = False, sortable = False, deletable = False, index = -1))
             self.ids["adaptiveSpace"].add_widget(TimingOptns())
+            self.changeParam(-1, "loop overlap")
         if self.mode == "pitch":
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1))
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1))
             self.ids["adaptiveSpace"].add_widget(PitchOptns())
+            self.changeParam(-1, "vibrato speed")
     def changeParam(self, index, name):
         if index == -1:
             if name == "steadiness":
+                self.activeParam = "steadiness"
                 self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].steadiness)
             if name == "breathiness":
+                self.activeParam = "breathiness"
                 self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].breathiness)
             if name == "loop overlap" or name == "loop offset":
+                self.activeParam = "loop"
                 self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].loopOverlap, self.trackList[self.activeTrack].loopOffset)
             if name == "vibrato speed" or name == "vibrato strength":
+                self.activeParam = "vibrato"
                 self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].vibratoSpeed, self.trackList[self.activeTrack].vibratoStrength)
         else:
             self.activeParam = index
@@ -237,7 +245,6 @@ class ParamPanel(ToggleButton):
         middleLayer.changeParam(self.index, self.name)
 
 class AdaptiveSpace(AnchorLayout):
-    xScale = NumericProperty(1)
     def redraw(self):
         self.children[0].redraw()
     def applyScroll(self, scrollValue):
@@ -248,7 +255,8 @@ class AdaptiveSpace(AnchorLayout):
         middleLayer.applyScroll()
 
 class ParamCurve(ScrollView):
-    xScale = NumericProperty()
+    xScale = NumericProperty(1)
+    seqLength = NumericProperty(1000)
     points = ListProperty()
     line = Line()
     def redraw(self):
@@ -262,9 +270,44 @@ class ParamCurve(ScrollView):
         for i in data:
             self.points.append((self.parent.xScale * c, int((1 + i) * self.height / 2)))
         self.redraw()
-
+    def on_touch_down(self, touch):
+        with self.children[0].canvas:
+            Color(0, 0, 1)
+            touch.ud['line'] = Line(points=[touch.x, touch.y])
+            touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
+            touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), touch.ud['startPoint'][1]]
+    def on_touch_move(self, touch):
+        global middleLayer
+        coord = self.to_local(touch.x, touch.y)
+        x = int(coord[0] / self.xScale)
+        y = coord[1]
+        if middleLayer.tool == "draw":
+            p = x - touch.ud['startPoint'][0]
+            if p < len(touch.ud['line'].points):
+                touch.ud['line'].points[p] = [x * self.xScale, y]
+            elif p == len(touch.ud['line'].points):
+                touch.ud['line'].points += [x * self.xScale, y]
+            else:
+                diff = p - len(touch.ud['line'].points)
+                for i in range(diff):
+                    touch.ud['line'].points += [len(touch.ud['line'].points) * self.xScale, y]
+        elif middleLayer.tool == "line":
+            pass
+        else:
+            pass
+    def on_touch_up(self, touch):
+        global middleLayer
+        if middleLayer.activeParam == "steadiness":
+            data = middleLayer.trackList[middleLayer.activeTrack].steadiness
+        elif middleLayer.activeParam == "breathiness":
+            data = middleLayer.trackList[middleLayer.activeTrack].steadiness
+        else:
+            data = middleLayer.trackList[middleLayer.activeTrack].paramStack[middleLayer.activeParam]
+        #for i in touch.ud['line'].points:
+            #data[int(i[0] / self.parent.xScale)] = (i[1] * 2 / self.height) - 1
 class ParamBars(ScrollView):
-    xScale = NumericProperty()
+    xScale = NumericProperty(1)
+    seqLength = NumericProperty(1000)
     points = ListProperty()
     rectangles = ListProperty([])
     def redraw(self):
@@ -283,7 +326,8 @@ class ParamBars(ScrollView):
         self.redraw()
 
 class TimingOptns(ScrollView):
-    xScale = NumericProperty()
+    xScale = NumericProperty(1)
+    seqLength = NumericProperty(1000)
     points1 = ListProperty()
     points2 = ListProperty()
     rectangles1 = ListProperty([])
@@ -311,7 +355,8 @@ class TimingOptns(ScrollView):
         self.redraw()
 
 class PitchOptns(ScrollView):
-    xScale = NumericProperty()
+    xScale = NumericProperty(1)
+    seqLength = NumericProperty(1000)
     points1 = ListProperty()
     points2 = ListProperty()
     line1 = Line()
@@ -477,3 +522,6 @@ class NovaVoxUI(Widget):
         global middleLayer
         middleLayer.mode = mode
         middleLayer.updateParamPanel()
+    def setTool(self, tool):
+        global middleLayer
+        middleLayer.tool = tool
