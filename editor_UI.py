@@ -255,7 +255,7 @@ class AdaptiveSpace(AnchorLayout):
         middleLayer.applyScroll()
 
 class ParamCurve(ScrollView):
-    xScale = NumericProperty(1)
+    xScale = NumericProperty(10)
     seqLength = NumericProperty(1000)
     points = ListProperty()
     line = Line()
@@ -283,14 +283,22 @@ class ParamCurve(ScrollView):
         y = coord[1]
         if middleLayer.tool == "draw":
             p = x - touch.ud['startPoint'][0]
-            if p < len(touch.ud['line'].points):
-                touch.ud['line'].points[p] = [x * self.xScale, y]
-            elif p == len(touch.ud['line'].points):
+            if p < 0:
+                for i in range(-p):
+                    touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
+                    touch.ud['startPoint'][0] -= 1
+                    print(i)
+            elif p < int(len(touch.ud['line'].points) / 2):
+                points = touch.ud['line'].points
+                points[2 * p] = x * self.xScale
+                points[2 * p + 1] = y
+                touch.ud['line'].points = points
+            elif p == int(len(touch.ud['line'].points) / 2):
                 touch.ud['line'].points += [x * self.xScale, y]
             else:
-                diff = p - len(touch.ud['line'].points)
+                diff = p - int(len(touch.ud['line'].points) / 2)
                 for i in range(diff):
-                    touch.ud['line'].points += [len(touch.ud['line'].points) * self.xScale, y]
+                    touch.ud['line'].points += [touch.ud['startPoint'][0] + len(touch.ud['line'].points) * self.xScale, y]
         elif middleLayer.tool == "line":
             pass
         else:
