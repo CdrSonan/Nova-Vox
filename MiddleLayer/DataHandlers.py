@@ -4,21 +4,22 @@ import torch
 class Parameter:
     def __init__(self, path):
         #self.nn = LiteParameter(path)
-        self.curve = torch.tensor()
+        self.curve = torch.full([1000], 0)
         self.name = ""
         self.enabled = True
 
 class Track:
     def __init__(self, path):
+        print("INIT!!!")
         self.voicebank = LiteVoicebank(path)
         self.notes = []
-        self.pitch = torch.tensor([])
-        self.breathiness = torch.tensor([])
-        self.steadiness = torch.tensor([])
-        self.loopOverlap = torch.tensor([])
-        self.loopOffset = torch.tensor([])
-        self.vibratoSpeed = torch.tensor([])
-        self.vibratoStrength = torch.tensor([])
+        self.pitch = torch.full((1000,), 0, dtype = torch.half)
+        self.breathiness = torch.full((1000,), 0, dtype = torch.half)
+        self.steadiness = torch.full((1000,), 0, dtype = torch.half)
+        self.loopOverlap = torch.full((1000,), 0, dtype = torch.half)
+        self.loopOffset = torch.full((1000,), 0, dtype = torch.half)
+        self.vibratoSpeed = torch.full((1000,), 0, dtype = torch.half)
+        self.vibratoStrength = torch.full((1000,), 0, dtype = torch.half)
         self.usePitch = False
         self.useBreathiness = False
         self.useSteadiness = False

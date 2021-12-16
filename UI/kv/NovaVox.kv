@@ -172,6 +172,7 @@
                                     imagePressed: "UI/assets/Toolbar/Adaptive04_clicked.png"
                                     group: "DisplayModes"
                                     on_press: root.setMode("notes")
+                                    state: "down"
                                 ImageToggleButton:
                                     size_hint: (None, None)
                                     size: (40, 36)
@@ -199,6 +200,7 @@
                                         background_down: "UI/assets/Toolbar/Adaptive07.png"
                                         group: "ToolButtons"
                                         on_press: root.setTool("draw")
+                                        state: "down"
                                 AnchorLayout:
                                     anchor_x: "center"
                                     anchor_y: "center"
@@ -237,6 +239,7 @@
                                         background_normal: "UI/assets/Toolbar/Adaptive08.png"
                                         background_down: "UI/assets/Toolbar/Adaptive07.png"
                                         group: "ToolButtons"
+                                        on_press: root.setTool("reset")
                             Spinner:
                                 sync_height: True
                                 background_normal: "UI/assets/Toolbar/Adaptive09.png"

@@ -33,9 +33,11 @@ class MiddleLayer(Widget):
         self.ids = ids
         self.trackList = []
         self.activeTrack = None
-        self.activeParam = None
+        self.activeParam = "steadiness"
         self.mode = OptionProperty("notes", options = ["notes", "timing", "pitch"])
-        self.tool = OptionProperty("draw", options = ["draw", "line", "arch"])
+        self.mode = "notes"
+        self.tool = OptionProperty("draw", options = ["draw", "line", "arch", "reset"])
+        self.tool = "draw"
         self.scrollValue = 0.
         self.seqLength = 0
     def importVoicebank(self, path, name, inImage):
@@ -52,6 +54,7 @@ class MiddleLayer(Widget):
         self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = True, sortable = True, deletable = True, index = len(self.trackList[self.activeTrack].paramStack) - 1))
     def changeTrack(self, index):
         self.activeTrack = index
+        self.updateParamPanel()
     def copyTrack(self, index, name, inImage):
         self.trackList.append(dh.Track(None))
         self.trackList[len(self.trackList) - 1].voicebank = self.trackList[index].voicebank
@@ -119,7 +122,7 @@ class MiddleLayer(Widget):
         self.ids["paramList"].clear_widgets()
         self.ids["adaptiveSpace"].clear_widgets()
         if self.mode == "notes":
-            self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1))
+            self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, state = "down"))
             self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1))
             self.ids["adaptiveSpace"].add_widget(ParamCurve())
             counter = 0
@@ -128,12 +131,12 @@ class MiddleLayer(Widget):
                 counter += 1
             self.changeParam(-1, "steadiness")
         if self.mode == "timing":
-            self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", switchable = False, sortable = False, deletable = False, index = -1))
+            self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", switchable = False, sortable = False, deletable = False, index = -1, state = "down"))
             self.ids["paramList"].add_widget(ParamPanel(name = "loop offset", switchable = False, sortable = False, deletable = False, index = -1))
             self.ids["adaptiveSpace"].add_widget(TimingOptns())
             self.changeParam(-1, "loop overlap")
         if self.mode == "pitch":
-            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1))
+            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1, state = "down"))
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1))
             self.ids["adaptiveSpace"].add_widget(PitchOptns())
             self.changeParam(-1, "vibrato speed")
@@ -141,22 +144,25 @@ class MiddleLayer(Widget):
         if index == -1:
             if name == "steadiness":
                 self.activeParam = "steadiness"
-                self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].steadiness)
             if name == "breathiness":
                 self.activeParam = "breathiness"
-                self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].breathiness)
             if name == "loop overlap" or name == "loop offset":
                 self.activeParam = "loop"
-                self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].loopOverlap, self.trackList[self.activeTrack].loopOffset)
             if name == "vibrato speed" or name == "vibrato strength":
                 self.activeParam = "vibrato"
-                self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].vibratoSpeed, self.trackList[self.activeTrack].vibratoStrength)
         else:
             self.activeParam = index
-            self.ids["adaptiveSpace"].children[0].dataToLine(self.trackList[self.activeTrack].paramStack[index].curve)
+        self.ids["adaptiveSpace"].children[0].redraw()
     def applyScroll(self):
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
+    def applyParamChanges(self, data, start):
+        if self.activeParam == "steadiness":
+            self.trackList[self.activeTrack].steadiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+        elif self.activeParam == "breathiness":
+            self.trackList[self.activeTrack].breathiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+        else:
+            self.trackList[self.activeTrack].paramStack[self.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
 
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -257,62 +263,104 @@ class AdaptiveSpace(AnchorLayout):
 class ParamCurve(ScrollView):
     xScale = NumericProperty(10)
     seqLength = NumericProperty(1000)
-    points = ListProperty()
     line = Line()
     def redraw(self):
-        self.children[0].canvas.remove(self.line)
-        with self.children[0].canvas:
-            Color(1, 0, 0, 1)
-            self.line = Line(points = self.points)
-    def dataToLine(self, data):
-        self.points = []
-        c = 0
-        for i in data:
-            self.points.append((self.parent.xScale * c, int((1 + i) * self.height / 2)))
-        self.redraw()
-    def on_touch_down(self, touch):
-        with self.children[0].canvas:
-            Color(0, 0, 1)
-            touch.ud['line'] = Line(points=[touch.x, touch.y])
-            touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
-            touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), touch.ud['startPoint'][1]]
-    def on_touch_move(self, touch):
-        global middleLayer
-        coord = self.to_local(touch.x, touch.y)
-        x = int(coord[0] / self.xScale)
-        y = coord[1]
-        if middleLayer.tool == "draw":
-            p = x - touch.ud['startPoint'][0]
-            if p < 0:
-                for i in range(-p):
-                    touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
-                    touch.ud['startPoint'][0] -= 1
-                    print(i)
-            elif p < int(len(touch.ud['line'].points) / 2):
-                points = touch.ud['line'].points
-                points[2 * p] = x * self.xScale
-                points[2 * p + 1] = y
-                touch.ud['line'].points = points
-            elif p == int(len(touch.ud['line'].points) / 2):
-                touch.ud['line'].points += [x * self.xScale, y]
-            else:
-                diff = p - int(len(touch.ud['line'].points) / 2)
-                for i in range(diff):
-                    touch.ud['line'].points += [touch.ud['startPoint'][0] + len(touch.ud['line'].points) * self.xScale, y]
-        elif middleLayer.tool == "line":
-            pass
-        else:
-            pass
-    def on_touch_up(self, touch):
-        global middleLayer
         if middleLayer.activeParam == "steadiness":
             data = middleLayer.trackList[middleLayer.activeTrack].steadiness
         elif middleLayer.activeParam == "breathiness":
-            data = middleLayer.trackList[middleLayer.activeTrack].steadiness
+            data = middleLayer.trackList[middleLayer.activeTrack].breathiness
         else:
-            data = middleLayer.trackList[middleLayer.activeTrack].paramStack[middleLayer.activeParam]
-        #for i in touch.ud['line'].points:
-            #data[int(i[0] / self.parent.xScale)] = (i[1] * 2 / self.height) - 1
+            data = middleLayer.trackList[middleLayer.activeTrack].paramStack[middleLayer.activeParam].curve
+        points = []
+        c = 0
+        for i in data:
+            points.append(c * self.xScale)
+            points.append((i.item() + 1) * self.height / 2)
+            c += 1
+        self.children[0].canvas.remove(self.line)
+        with self.children[0].canvas:
+            Color(1, 0, 0, 1)
+            self.line = Line(points = points)
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            with self.children[0].canvas:
+                Color(0, 0, 1)
+                touch.ud['line'] = Line(points=[touch.x, touch.y])
+                touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
+                touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
+                touch.ud['startPointOffset'] = 0
+    def on_touch_move(self, touch):
+        if 'startPoint' in touch.ud:
+            global middleLayer
+            coord = self.to_local(touch.x, touch.y)
+            x = int(coord[0] / self.xScale)
+            y = min(max(coord[1], 0.), self.height)
+            p = x - touch.ud['startPoint'][0]
+            if middleLayer.tool == "draw":
+                if p < 0:
+                    for i in range(-p):
+                        touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
+                        touch.ud['startPoint'][0] -= 1
+                elif p < int(len(touch.ud['line'].points) / 2):
+                    points = touch.ud['line'].points
+                    points[2 * p] = x * self.xScale
+                    points[2 * p + 1] = y
+                    touch.ud['line'].points = points
+                else:
+                    diff = p - int(len(touch.ud['line'].points) / 2)
+                    for i in range(diff):
+                        touch.ud['line'].points += [(touch.ud['startPoint'][0] + int(len(touch.ud['line'].points) / 2)) * self.xScale, y]
+            elif middleLayer.tool == "line":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * -i / p]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * i / p]
+            elif middleLayer.tool == "arch":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * (-i / p) * (-i / p)]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * (i / p) * (i / p)]
+            elif middleLayer.tool == "reset":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+    def on_touch_up(self, touch):
+        global middleLayer
+        if 'startPoint' in touch.ud:
+            data = []
+            if touch.ud['startPointOffset'] == 0:
+                for i in range(int(len(touch.ud['line'].points) / 2)):
+                    data.append((touch.ud['line'].points[2 * i + 1] * 2 / self.height) - 1)
+            else:
+                for i in range(int(len(touch.ud['line'].points) / 2)):
+                    data.append((touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] * 2 / self.height) - 1)
+            middleLayer.applyParamChanges(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'])
+            self.children[0].canvas.remove(touch.ud['line'])
+            self.redraw()
+
 class ParamBars(ScrollView):
     xScale = NumericProperty(1)
     seqLength = NumericProperty(1000)
