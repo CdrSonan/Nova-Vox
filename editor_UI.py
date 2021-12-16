@@ -156,11 +156,21 @@ class MiddleLayer(Widget):
     def applyScroll(self):
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
-    def applyParamChanges(self, data, start):
+    def applyParamChanges(self, data, start, section = False):
         if self.activeParam == "steadiness":
             self.trackList[self.activeTrack].steadiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
         elif self.activeParam == "breathiness":
             self.trackList[self.activeTrack].breathiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+        elif self.activeParam == "loop":
+            if section:
+                self.trackList[self.activeTrack].loopOverlap[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+            else:
+                self.trackList[self.activeTrack].loopOffset[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+        elif self.activeParam == "vibrato":
+            if section:
+                self.trackList[self.activeTrack].vibratoSpeed[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+            else:
+                self.trackList[self.activeTrack].vibratoStrength[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
         else:
             self.trackList[self.activeTrack].paramStack[self.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
 
@@ -283,13 +293,15 @@ class ParamCurve(ScrollView):
             self.line = Line(points = points)
 
     def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
+        if touch.is_mouse_scrolling == False and self.collide_point(*touch.pos):
             with self.children[0].canvas:
                 Color(0, 0, 1)
                 touch.ud['line'] = Line(points=[touch.x, touch.y])
                 touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                 touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
                 touch.ud['startPointOffset'] = 0
+        else:
+            return super(ParamCurve, self).on_touch_down(touch)
     def on_touch_move(self, touch):
         if 'startPoint' in touch.ud:
             global middleLayer
@@ -347,6 +359,8 @@ class ParamCurve(ScrollView):
                 if p >= 0:
                     for i in range(p):
                         touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+        else:
+            return super(ParamCurve, self).on_touch_move(touch)
     def on_touch_up(self, touch):
         global middleLayer
         if 'startPoint' in touch.ud:
@@ -360,6 +374,8 @@ class ParamCurve(ScrollView):
             middleLayer.applyParamChanges(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'])
             self.children[0].canvas.remove(touch.ud['line'])
             self.redraw()
+        else:
+            return super(ParamCurve, self).on_touch_up(touch)
 
 class ParamBars(ScrollView):
     xScale = NumericProperty(1)
@@ -367,19 +383,18 @@ class ParamBars(ScrollView):
     points = ListProperty()
     rectangles = ListProperty([])
     def redraw(self):
+        data = []
+        self.points = []
         for i in self.rectangles:
             self.children[0].canvas.remove(i)
-        with self.children[0].canvas:
-            Color(1, 0, 0, 1)
-            for i in self.points:
-                self.rectangles.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))
-    def dataToLine(self, data):
-        self.points = []
         c = 0
         for i in data:
             self.points.append((self.parent.xScale * i[0], i[1] * self.height))
             c += 1
-        self.redraw()
+        with self.children[0].canvas:
+            Color(1, 0, 0, 1)
+            for i in self.points:
+                self.rectangles.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))
 
 class TimingOptns(ScrollView):
     xScale = NumericProperty(1)
@@ -393,6 +408,14 @@ class TimingOptns(ScrollView):
             self.children[0].canvas.remove(i)
         for i in self.rectangles2:
             self.children[0].canvas.remove(i)
+        data1 = middleLayer.trackList[middleLayer.activeTrack].loopOverlap
+        data2 = middleLayer.trackList[middleLayer.activeTrack].loopOffset
+        self.points1 = []
+        self.points2 = []
+        for i in data1:
+            self.points.append((self.parent.xScale * i[0], int(i[1] * self.height / 2)))
+        for i in data2:
+            self.points.append((self.parent.xScale * i[0], int((1 + i[1]) * self.height / 2)))
         with self.children[0].canvas:
             Color(1, 0, 0, 1)
             for i in self.points1:
@@ -401,42 +424,127 @@ class TimingOptns(ScrollView):
             for i in self.points2:
                 rectangle = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
                 self.rectangles2.append(rectangle)
-    def dataToLine(self, data1, data2):
-        self.points1 = []
-        self.points2 = []
-        for i in data1:
-            self.points.append((self.parent.xScale * i[0], int(i[1] * self.height / 2)))
-        for i in data2:
-            self.points.append((self.parent.xScale * i[0], int((1 + i[1]) * self.height / 2)))
-        self.redraw()
 
 class PitchOptns(ScrollView):
     xScale = NumericProperty(1)
     seqLength = NumericProperty(1000)
-    points1 = ListProperty()
-    points2 = ListProperty()
     line1 = Line()
     line2 = Line()
     def redraw(self):
         self.children[0].canvas.remove(self.line1)
         self.children[0].canvas.remove(self.line2)
-        with self.children[0].canvas:
-            Color(1, 0, 0, 1)
-            self.line1 = Line(points = self.points1)
-            self.line2 = Line(points = self.points2)
-    def dataToLine(self, data1, data2):
-        self.points1 = []
-        self.points2 = []
+        data1 = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength
+        data2 = middleLayer.trackList[middleLayer.activeTrack].vibratoSpeed
+        points1 = []
+        points2 = []
         c = 0
         for i in data1:
-            self.points1.append((self.parent.xScale * c, int((1 + i) * self.height / 4)))
+            points1.append((self.parent.xScale * c, int((1 + i) * self.height / 4)))
             c += 1
         c = 0
         for i in data2:
-            self.points2.append((self.parent.xScale * c, int((3 + i) * self.height / 4)))
+            points2.append((self.parent.xScale * c, int((3 + i) * self.height / 4)))
             c += 1
-        self.redraw()
-
+        with self.children[0].canvas:
+            Color(1, 0, 0, 1)
+            self.line1 = Line(points = points1)
+            self.line2 = Line(points = points2)
+    def on_touch_down(self, touch):
+        if touch.is_mouse_scrolling == False and self.collide_point(*touch.pos):
+            with self.children[0].canvas:
+                Color(0, 0, 1)
+                touch.ud['line'] = Line(points=[touch.x, touch.y])
+                touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
+                touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
+                touch.ud['startPointOffset'] = 0
+                touch.ud['section'] = touch.ud['startPoint'][1] > self.height / 2
+        else:
+            return super(PitchOptns, self).on_touch_down(touch)
+    def on_touch_move(self, touch):
+        if 'startPoint' in touch.ud:
+            global middleLayer
+            coord = self.to_local(touch.x, touch.y)
+            x = int(coord[0] / self.xScale)
+            if touch.ud['section']:
+                y = min(max(coord[1], self.height / 2), self.height)
+            else:
+                y = min(max(coord[1], 0.), self.height / 2)
+            p = x - touch.ud['startPoint'][0]
+            if middleLayer.tool == "draw":
+                if p < 0:
+                    for i in range(-p):
+                        touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
+                        touch.ud['startPoint'][0] -= 1
+                elif p < int(len(touch.ud['line'].points) / 2):
+                    points = touch.ud['line'].points
+                    points[2 * p] = x * self.xScale
+                    points[2 * p + 1] = y
+                    touch.ud['line'].points = points
+                else:
+                    diff = p - int(len(touch.ud['line'].points) / 2)
+                    for i in range(diff):
+                        touch.ud['line'].points += [(touch.ud['startPoint'][0] + int(len(touch.ud['line'].points) / 2)) * self.xScale, y]
+            elif middleLayer.tool == "line":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * -i / p]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * i / p]
+            elif middleLayer.tool == "arch":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * (-i / p) * (-i / p)]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * (i / p) * (i / p)]
+            elif middleLayer.tool == "reset":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+        else:
+            return super(PitchOptns, self).on_touch_move(touch)
+    def on_touch_up(self, touch):
+        global middleLayer
+        if 'startPoint' in touch.ud:
+            data = []
+            if touch.ud['section']:
+                if touch.ud['startPointOffset'] == 0:
+                    for i in range(int(len(touch.ud['line'].points) / 2)):
+                        data.append((touch.ud['line'].points[2 * i + 1] * 4 / self.height) - 3)
+                else:
+                    for i in range(int(len(touch.ud['line'].points) / 2)):
+                        data.append((touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] * 4 / self.height) - 3)
+            else:
+                if touch.ud['startPointOffset'] == 0:
+                    for i in range(int(len(touch.ud['line'].points) / 2)):
+                        data.append((touch.ud['line'].points[2 * i + 1] * 4 / self.height) - 1)
+                else:
+                    for i in range(int(len(touch.ud['line'].points) / 2)):
+                        data.append((touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] * 4 / self.height) - 1)
+            middleLayer.applyParamChanges(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'], section = touch.ud['section'])
+            self.children[0].canvas.remove(touch.ud['line'])
+            self.redraw()
+        else:
+            return super(PitchOptns, self).on_touch_up(touch)
 class Note(ToggleButton):
     #index = NumericProperty()
     selected = BooleanProperty(False)

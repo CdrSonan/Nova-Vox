@@ -13,6 +13,7 @@ class Track:
         print("INIT!!!")
         self.voicebank = LiteVoicebank(path)
         self.notes = []
+        self.sequence = []
         self.pitch = torch.full((1000,), 0, dtype = torch.half)
         self.breathiness = torch.full((1000,), 0, dtype = torch.half)
         self.steadiness = torch.full((1000,), 0, dtype = torch.half)
