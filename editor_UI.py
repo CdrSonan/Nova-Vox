@@ -585,16 +585,22 @@ class PitchOptns(ScrollView):
         else:
             return super(PitchOptns, self).on_touch_up(touch)
 class Note(ToggleButton):
-    #index = NumericProperty()
-    selected = BooleanProperty(False)
+    index = NumericProperty()
     xPos = NumericProperty()
     yPos = NumericProperty()
     length = NumericProperty()
     def on_parent(self, screen, parent):
-        self.pos = (self.parent.x + self.xPos * self.parent.parent.xScale, self.parent.y + self.yPos * self.parent.parent.yScale)
-        with self.canvas:
-            Color(1, 0, 0, 1)
-            Line(points = ([self.x, self.parent.y], [self.x, self.parent.top]))
+        self.redraw()
+    def redraw(self):
+        self.pos = (self.xPos * self.parent.parent.xScale, self.yPos * self.parent.parent.yScale)
+        self.width = self.length * self.parent.parent.xScale
+        self.height = self.parent.parent.yScale
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            print("test")
+            return True
+        else:
+            return super().on_touch_down(touch)
 
 class PianoRollOctave(FloatLayout):
     pass
@@ -617,24 +623,77 @@ class PianoRoll(ScrollView):
     def on_touch_down(self, touch):
         global middleLayer
         if self.collide_point(*touch.pos):
-            if touch.is_mouse_scrolling and middleLayer.shift:
-                if touch.button == 'scrollup':
-                    newvalue = self.scroll_x + self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
-                    if newvalue < 1:
-                        self.scroll_x = newvalue
-                    else:
-                        self.scroll_x = 1.
-                elif touch.button == 'scrolldown':
-                    newvalue = self.scroll_x - self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
-                    if newvalue > 0:
-                        self.scroll_x = newvalue
-                    else:
-                        self.scroll_x = 0.
-            #elif FIX THIS!!! Note index in UD
+            if touch.is_mouse_scrolling:
+                if middleLayer.shift:
+                    if touch.button == 'scrollup':
+                        newvalue = self.scroll_x + self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                        if newvalue < 1:
+                            self.scroll_x = newvalue
+                        else:
+                            self.scroll_x = 1.
+                    elif touch.button == 'scrolldown':
+                        newvalue = self.scroll_x - self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                        if newvalue > 0:
+                            self.scroll_x = newvalue
+                        else:
+                            self.scroll_x = 0.
+                else:
+                    return super(PianoRoll, self).on_touch_down(touch)
             else:
-                return super(PianoRoll, self).on_touch_down(touch)
+                coord = self.to_local(touch.x, touch.y)
+                x = int(coord[0] / self.xScale)
+                y = int(coord[1] / self.yScale)
+                if middleLayer.mode == "notes":
+                    index = 0
+                    for i in self.children[0].children:#middleLayer.trackList[middleLayer.activeTrack].notes:
+                        if i.__class__.__name__ == "Note":
+                            if i.xPos < x:
+                                index += 1
+                            elif i.xPos > x:
+                                i.index += 1
+                            else:
+                                index += 1
+                                x += 1
+                    middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, dh.Note(x, y))
+                    self.children[0].add_widget(Note(index = index, xPos = x, yPos = y, length = 1))
+                    touch.ud["noteIndex"] = index
+                    touch.ud["grabMode"] = "end"
+                elif middleLayer.mode == "timing":
+                    pass
+                elif middleLayer.mode == "pitch":
+                    pass
         else:
-            return super(PianoRoll, self).on_touch_down(touch)
+            pass
+    def on_touch_move(self, touch):
+        coord = self.to_local(touch.x, touch.y)
+        x = int(coord[0] / self.xScale)
+        y = int(coord[1] / self.yScale)
+        if middleLayer.mode == "notes":
+            if "noteIndex" in touch.ud:
+                for i in self.children[0].children:
+                    if i.__class__.__name__ == "Note" and i.index == touch.ud["noteIndex"]:
+                        note = i
+                        break
+                if touch.ud["grabMode"] == "start":
+                    pass
+                elif touch.ud["grabMode"] == "mid":
+                    pass
+                elif touch.ud["grabMode"] == "end":
+                    length = max(x - note.xPos, 1)
+                    note.length = length
+                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].length = length
+                    note.redraw()
+        elif middleLayer.mode == "timing":
+            pass
+        elif middleLayer.mode == "pitch":
+            pass
+        else:
+            return super().on_touch_move(touch)
+    def on_touch_up(self, touch):
+        if touch.is_mouse_scrolling:
+            return super().on_touch_up(touch)
+        else:
+            pass
 
 class ListElement(Button):
     index = NumericProperty()
@@ -755,7 +814,6 @@ class NovaVoxUI(Widget):
         global middleLayer
         middleLayer.tool = tool
     def on_keyboard_down(self, window, keycode, text, modifiers):
-        print(keycode)
         if keycode[0] == 303 or keycode[0] == 304: 
             middleLayer.shift = True
         else:

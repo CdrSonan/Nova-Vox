@@ -10,7 +10,6 @@ class Parameter:
 
 class Track:
     def __init__(self, path):
-        print("INIT!!!")
         self.voicebank = LiteVoicebank(path)
         self.notes = []
         self.sequence = []
@@ -27,3 +26,11 @@ class Track:
         self.useVibratoSpeed = False
         self.useVibratoStrength = False
         self.paramStack = []
+
+class Note:
+    def __init__(self, xPos, yPos):
+        self.length = 1
+        self.xPos = xPos
+        self.yPos = yPos
+        self.phonemeMode = False
+        self.content = ""
