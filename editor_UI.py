@@ -2,7 +2,7 @@ from logging import root
 from kivy.core.image import Image as CoreImage
 from PIL import Image as PilImage, ImageDraw, ImageFont
 
-from kivy.uix.gridlayout import GridLayout
+from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
@@ -38,6 +38,8 @@ class MiddleLayer(Widget):
         self.mode = "notes"
         self.tool = OptionProperty("draw", options = ["draw", "line", "arch", "reset"])
         self.tool = "draw"
+        self.shift = BooleanProperty()
+        self.shift = False
         self.scrollValue = 0.
         self.seqLength = 0
     def importVoicebank(self, path, name, inImage):
@@ -293,13 +295,27 @@ class ParamCurve(ScrollView):
             self.line = Line(points = points)
 
     def on_touch_down(self, touch):
-        if touch.is_mouse_scrolling == False and self.collide_point(*touch.pos):
-            with self.children[0].canvas:
-                Color(0, 0, 1)
-                touch.ud['line'] = Line(points=[touch.x, touch.y])
-                touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
-                touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
-                touch.ud['startPointOffset'] = 0
+        if self.collide_point(*touch.pos):
+            if touch.is_mouse_scrolling:
+                if touch.button == 'scrollup':
+                    newvalue = self.scroll_x + self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                    if newvalue < 1:
+                        self.scroll_x = newvalue
+                    else:
+                        self.scroll_x = 1.
+                elif touch.button == 'scrolldown':
+                    newvalue = self.scroll_x - self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                    if newvalue > 0:
+                        self.scroll_x = newvalue
+                    else:
+                        self.scroll_x = 0.
+            else:
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points=[touch.x, touch.y])
+                    touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
+                    touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
+                    touch.ud['startPointOffset'] = 0
         else:
             return super(ParamCurve, self).on_touch_down(touch)
     def on_touch_move(self, touch):
@@ -450,14 +466,29 @@ class PitchOptns(ScrollView):
             self.line1 = Line(points = points1)
             self.line2 = Line(points = points2)
     def on_touch_down(self, touch):
-        if touch.is_mouse_scrolling == False and self.collide_point(*touch.pos):
-            with self.children[0].canvas:
-                Color(0, 0, 1)
-                touch.ud['line'] = Line(points=[touch.x, touch.y])
-                touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
-                touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
-                touch.ud['startPointOffset'] = 0
-                touch.ud['section'] = touch.ud['startPoint'][1] > self.height / 2
+        if self.collide_point(*touch.pos):
+            if touch.is_mouse_scrolling:
+                if touch.button == 'scrollup':
+                    newvalue = self.scroll_x + self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                    if newvalue < 1:
+                        self.scroll_x = newvalue
+                    else:
+                        self.scroll_x = 1.
+                elif touch.button == 'scrolldown':
+                    newvalue = self.scroll_x - self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                    if newvalue > 0:
+                        self.scroll_x = newvalue
+                    else:
+                        self.scroll_x = 0.
+            else:
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points=[touch.x, touch.y])
+                    touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
+                    touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
+                    touch.ud['startPointOffset'] = 0
+                    touch.ud['section'] = touch.ud['startPoint'][1] > self.height / 2
+                    touch.ud['lastPoint'] = touch.ud['startPoint'][0]
         else:
             return super(PitchOptns, self).on_touch_down(touch)
     def on_touch_move(self, touch):
@@ -475,15 +506,23 @@ class PitchOptns(ScrollView):
                     for i in range(-p):
                         touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
                         touch.ud['startPoint'][0] -= 1
+                        touch.ud['lastPoint'] = touch.ud['line'].points[0] / self.xScale
                 elif p < int(len(touch.ud['line'].points) / 2):
                     points = touch.ud['line'].points
-                    points[2 * p] = x * self.xScale
-                    points[2 * p + 1] = y
+                    if x >= touch.ud['lastPoint']:
+                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
+                    else:
+                        domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
+                    for i in domain:
+                        points[2 * i + 1] = y
                     touch.ud['line'].points = points
+                    touch.ud['lastPoint'] = points[2 * p] / self.xScale
                 else:
                     diff = p - int(len(touch.ud['line'].points) / 2)
                     for i in range(diff):
                         touch.ud['line'].points += [(touch.ud['startPoint'][0] + int(len(touch.ud['line'].points) / 2)) * self.xScale, y]
+                    touch.ud['lastPoint'] = touch.ud['line'].points[len(touch.ud['line'].points) - 2] / self.xScale
+                    print(touch.ud['lastPoint'])
             elif middleLayer.tool == "line":
                 self.children[0].canvas.remove(touch.ud['line'])
                 with self.children[0].canvas:
@@ -575,6 +614,27 @@ class PianoRoll(ScrollView):
         global middleLayer
         middleLayer.scrollValue = self.scroll_x
         middleLayer.applyScroll()
+    def on_touch_down(self, touch):
+        global middleLayer
+        if self.collide_point(*touch.pos):
+            if touch.is_mouse_scrolling and middleLayer.shift:
+                if touch.button == 'scrollup':
+                    newvalue = self.scroll_x + self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                    if newvalue < 1:
+                        self.scroll_x = newvalue
+                    else:
+                        self.scroll_x = 1.
+                elif touch.button == 'scrolldown':
+                    newvalue = self.scroll_x - self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                    if newvalue > 0:
+                        self.scroll_x = newvalue
+                    else:
+                        self.scroll_x = 0.
+            #elif FIX THIS!!! Note index in UD
+            else:
+                return super(PianoRoll, self).on_touch_down(touch)
+        else:
+            return super(PianoRoll, self).on_touch_down(touch)
 
 class ListElement(Button):
     index = NumericProperty()
@@ -680,6 +740,11 @@ class NovaVoxUI(Widget):
         super().__init__(**kwargs)
         global middleLayer
         middleLayer = MiddleLayer(self.ids)
+        self._keyboard = Window.request_keyboard(None, self, 'text')
+        if self._keyboard.widget:
+            pass
+        self._keyboard.bind(on_key_down = self.on_keyboard_down)
+        self._keyboard.bind(on_key_up = self.on_keyboard_up)
     def update(self, deltatime):
         pass
     def setMode(self, mode):
@@ -689,3 +754,16 @@ class NovaVoxUI(Widget):
     def setTool(self, tool):
         global middleLayer
         middleLayer.tool = tool
+    def on_keyboard_down(self, window, keycode, text, modifiers):
+        print(keycode)
+        if keycode[0] == 303 or keycode[0] == 304: 
+            middleLayer.shift = True
+        else:
+            pass
+        return True
+    def on_keyboard_up(self, keyboard, keycode):
+        if keycode[0] == 303 or keycode[0] == 304: 
+            middleLayer.shift = False
+        else:
+            pass
+        return True
