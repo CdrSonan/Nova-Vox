@@ -316,8 +316,9 @@ class ParamCurve(ScrollView):
                     touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                     touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
                     touch.ud['startPointOffset'] = 0
+            return True
         else:
-            return super(ParamCurve, self).on_touch_down(touch)
+            return False
     def on_touch_move(self, touch):
         if 'startPoint' in touch.ud:
             global middleLayer
@@ -489,8 +490,9 @@ class PitchOptns(ScrollView):
                     touch.ud['startPointOffset'] = 0
                     touch.ud['section'] = touch.ud['startPoint'][1] > self.height / 2
                     touch.ud['lastPoint'] = touch.ud['startPoint'][0]
+            return True
         else:
-            return super(PitchOptns, self).on_touch_down(touch)
+            return False#super(PitchOptns, self).on_touch_down(touch)
     def on_touch_move(self, touch):
         if 'startPoint' in touch.ud:
             global middleLayer
@@ -597,10 +599,33 @@ class Note(ToggleButton):
         self.height = self.parent.parent.yScale
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            print("test")
+            coord = self.to_local(touch.x, touch.y)
+            touch.ud["initialPos"] = coord
+            if coord[0] <= self.x + self.width and coord[0] > max(self.x, self.x + self.width - 10):
+                touch.ud["noteIndex"] = self.index
+                touch.ud["grabMode"] = "end"
+            elif coord[0] >= self.x and coord[0] < min(self.x + 10, self.x + self.width):
+                touch.ud["noteIndex"] = self.index
+                touch.ud["grabMode"] = "start"
+            else:
+                touch.ud["noteIndex"] = self.index
+                touch.ud["grabMode"] = "mid"
+                touch.ud["xOffset"] = (self.pos[0] - coord[0]) / self.parent.parent.xScale
+                touch.ud["yOffset"] = (self.pos[1] - coord[1]) / self.parent.parent.yScale
             return True
         else:
             return super().on_touch_down(touch)
+    def on_touch_up(self, touch):
+        coord = self.to_local(touch.x, touch.y)
+        print(touch.ud["initialPos"][0] - coord[0], touch.ud["initialPos"][1] - coord[1])
+        if (abs(touch.ud["initialPos"][0] - coord[0]) <= 2) and (abs(touch.ud["initialPos"][1] - coord[1]) <= 2) and self.collide_point(*coord):
+            if middleLayer.tool == "reset":
+                middleLayer.trackList[middleLayer.activeTrack].notes.pop(touch.ud["noteIndex"])
+                self.parent.remove_widget(self)
+                return True
+            self.trigger_action()
+            return True
+        return False
 
 class PianoRollOctave(FloatLayout):
     pass
@@ -622,6 +647,8 @@ class PianoRoll(ScrollView):
         middleLayer.applyScroll()
     def on_touch_down(self, touch):
         global middleLayer
+        if super(PianoRoll, self).on_touch_down(touch):
+            return True
         if self.collide_point(*touch.pos):
             if touch.is_mouse_scrolling:
                 if middleLayer.shift:
@@ -658,12 +685,14 @@ class PianoRoll(ScrollView):
                     self.children[0].add_widget(Note(index = index, xPos = x, yPos = y, length = 1))
                     touch.ud["noteIndex"] = index
                     touch.ud["grabMode"] = "end"
+                    touch.ud["initialPos"] = coord
                 elif middleLayer.mode == "timing":
                     pass
                 elif middleLayer.mode == "pitch":
                     pass
+                return True
         else:
-            pass
+            return False
     def on_touch_move(self, touch):
         coord = self.to_local(touch.x, touch.y)
         x = int(coord[0] / self.xScale)
@@ -675,25 +704,37 @@ class PianoRoll(ScrollView):
                         note = i
                         break
                 if touch.ud["grabMode"] == "start":
-                    pass
+                    length = max(note.xPos + note.length - x, 1)
+                    note.length = length
+                    note.xPos = x
+                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].length = length
+                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].xPos = x
+                    note.redraw()
                 elif touch.ud["grabMode"] == "mid":
-                    pass
+                    note.xPos = int(x + touch.ud["xOffset"])
+                    note.yPos = int(y + touch.ud["yOffset"])
+                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].xPos = x + touch.ud["xOffset"]
+                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].yPos = y + touch.ud["yOffset"]
+                    note.redraw()
                 elif touch.ud["grabMode"] == "end":
                     length = max(x - note.xPos, 1)
                     note.length = length
                     middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].length = length
                     note.redraw()
+                return True
+            else:
+                return False
         elif middleLayer.mode == "timing":
             pass
         elif middleLayer.mode == "pitch":
             pass
         else:
             return super().on_touch_move(touch)
-    def on_touch_up(self, touch):
-        if touch.is_mouse_scrolling:
-            return super().on_touch_up(touch)
-        else:
-            pass
+    #def on_touch_up(self, touch):
+        #if touch.is_mouse_scrolling:
+            #return super().on_touch_up(touch)
+        #else:
+            #return super().on_touch_up(touch)
 
 class ListElement(Button):
     index = NumericProperty()
