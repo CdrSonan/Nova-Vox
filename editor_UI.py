@@ -16,6 +16,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.bubble import Bubble
 
 from io import BytesIO
 
@@ -155,6 +156,8 @@ class MiddleLayer(Widget):
         else:
             self.activeParam = index
         self.ids["adaptiveSpace"].children[0].redraw()
+    def updatePianoRoll(self):
+        self.ids["pianoRoll"].changeMode()
     def applyScroll(self):
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
@@ -430,9 +433,9 @@ class TimingOptns(ScrollView):
         self.points1 = []
         self.points2 = []
         for i in data1:
-            self.points.append((self.parent.xScale * i[0], int(i[1] * self.height / 2)))
+            self.points1.append((self.parent.xScale * i[0], int(i[1] * self.height / 2)))
         for i in data2:
-            self.points.append((self.parent.xScale * i[0], int((1 + i[1]) * self.height / 2)))
+            self.points2.append((self.parent.xScale * i[0], int((1 + i[1]) * self.height / 2)))
         with self.children[0].canvas:
             Color(1, 0, 0, 1)
             for i in self.points1:
@@ -586,6 +589,8 @@ class PitchOptns(ScrollView):
             self.redraw()
         else:
             return super(PitchOptns, self).on_touch_up(touch)
+class NoteProperties(Bubble):
+    pass
 class Note(ToggleButton):
     index = NumericProperty()
     xPos = NumericProperty()
@@ -598,17 +603,17 @@ class Note(ToggleButton):
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
     def on_touch_down(self, touch):
+        if middleLayer.mode != "notes":
+            return False
         if self.collide_point(*touch.pos):
             coord = self.to_local(touch.x, touch.y)
             touch.ud["initialPos"] = coord
+            touch.ud["noteIndex"] = self.index
             if coord[0] <= self.x + self.width and coord[0] > max(self.x, self.x + self.width - 10):
-                touch.ud["noteIndex"] = self.index
                 touch.ud["grabMode"] = "end"
             elif coord[0] >= self.x and coord[0] < min(self.x + 10, self.x + self.width):
-                touch.ud["noteIndex"] = self.index
                 touch.ud["grabMode"] = "start"
             else:
-                touch.ud["noteIndex"] = self.index
                 touch.ud["grabMode"] = "mid"
                 touch.ud["xOffset"] = (self.pos[0] - coord[0]) / self.parent.parent.xScale
                 touch.ud["yOffset"] = (self.pos[1] - coord[1]) / self.parent.parent.yScale
@@ -616,16 +621,21 @@ class Note(ToggleButton):
         else:
             return super().on_touch_down(touch)
     def on_touch_up(self, touch):
+        if middleLayer.mode != "notes" or touch.is_mouse_scrolling:
+            return False
         coord = self.to_local(touch.x, touch.y)
-        print(touch.ud["initialPos"][0] - coord[0], touch.ud["initialPos"][1] - coord[1])
         if (abs(touch.ud["initialPos"][0] - coord[0]) <= 2) and (abs(touch.ud["initialPos"][1] - coord[1]) <= 2) and self.collide_point(*coord):
-            if middleLayer.tool == "reset":
-                middleLayer.trackList[middleLayer.activeTrack].notes.pop(touch.ud["noteIndex"])
-                self.parent.remove_widget(self)
-                return True
-            self.trigger_action()
+            if self.state == "down":
+                self.function()
+            else:
+                self.trigger_action()
             return True
         return False
+    def function(self):
+        print("down")
+        #open text input field
+    def on_release(self):
+        self.add_widget(NoteProperties())
 
 class PianoRollOctave(FloatLayout):
     pass
@@ -635,10 +645,18 @@ class PianoRoll(ScrollView):
         super(PianoRoll, self).__init__(**kwargs)
         self.xScale = NumericProperty()
         self.yScale = NumericProperty()
-        self.data = [{'text': str(x), "xPos": x, "yPos": x, "length": 10 * x} for x in range(10)]
+        self.currentNote = ObjectProperty()
+        #self.data = [{'text': str(x), "xPos": x, "yPos": x, "length": 10 * x} for x in range(10)]
     def generate_notes(self):
         for d in self.data:
             self.children[0].add_widget(Note(**d))
+    def changeMode(self):
+        if middleLayer.mode == "notes":
+            pass
+        if middleLayer.mode == "timing":
+            pass
+        if middleLayer.mode == "pitch":
+            pass
     def applyScroll(self, scrollValue):
         self.scroll_x = scrollValue
     def triggerScroll(self):
@@ -682,7 +700,7 @@ class PianoRoll(ScrollView):
                                 index += 1
                                 x += 1
                     middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, dh.Note(x, y))
-                    self.children[0].add_widget(Note(index = index, xPos = x, yPos = y, length = 1))
+                    self.children[0].add_widget(Note(index = index, xPos = x, yPos = y, length = 1, height = self.yScale))
                     touch.ud["noteIndex"] = index
                     touch.ud["grabMode"] = "end"
                     touch.ud["initialPos"] = coord
@@ -711,10 +729,10 @@ class PianoRoll(ScrollView):
                     middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].xPos = x
                     note.redraw()
                 elif touch.ud["grabMode"] == "mid":
-                    note.xPos = int(x + touch.ud["xOffset"])
-                    note.yPos = int(y + touch.ud["yOffset"])
-                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].xPos = x + touch.ud["xOffset"]
-                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].yPos = y + touch.ud["yOffset"]
+                    note.xPos = int(x + touch.ud["xOffset"] + 1)
+                    note.yPos = int(y + touch.ud["yOffset"] + 1)
+                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].xPos = int(x + touch.ud["xOffset"] + 1)
+                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].yPos = int(y + touch.ud["yOffset"] + 1)
                     note.redraw()
                 elif touch.ud["grabMode"] == "end":
                     length = max(x - note.xPos, 1)
@@ -851,6 +869,7 @@ class NovaVoxUI(Widget):
         global middleLayer
         middleLayer.mode = mode
         middleLayer.updateParamPanel()
+        middleLayer.updatePianoRoll()
     def setTool(self, tool):
         global middleLayer
         middleLayer.tool = tool

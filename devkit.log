@@ -1888,3 +1888,14 @@
 2021-12-02 18:40:54,043:31324:INFO:Crfai train button callback completed
 2021-12-02 18:51:22,282:31324:INFO:Crfai OK button callback
 2021-12-02 18:51:24,697:31324:INFO:save button callback
+2021-12-24 11:03:30,333:3317:INFO:logging service started
+2021-12-24 11:03:30,334:3317:INFO:initializing Root UI
+2021-12-24 11:03:54,786:3317:INFO:new button callback
+2021-12-24 11:04:00,533:3317:INFO:Metadata button callback
+2021-12-24 11:04:00,599:3317:INFO:Initializing Metadata UI
+2021-12-24 11:04:00,610:3317:INFO:Metadata Image change button callback
+2021-12-24 11:04:07,815:3317:INFO:Metadata OK button callback
+2021-12-24 11:04:09,666:3317:INFO:PhonemeDict button callback
+2021-12-24 11:04:09,717:3317:INFO:Initializing Phonemedict UI
+2021-12-24 11:05:07,669:3317:INFO:Phonemedict OK button callback
+2021-12-24 11:05:09,853:3317:INFO:Root UI destroyed
