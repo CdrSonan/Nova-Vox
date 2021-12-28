@@ -1,4 +1,5 @@
 from logging import root
+from typing import Text
 from kivy.core.image import Image as CoreImage
 from PIL import Image as PilImage, ImageDraw, ImageFont
 
@@ -17,6 +18,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble
+from kivy.uix.textinput import TextInput
 
 from io import BytesIO
 
@@ -589,13 +591,18 @@ class PitchOptns(ScrollView):
             self.redraw()
         else:
             return super(PitchOptns, self).on_touch_up(touch)
-class NoteProperties(Bubble):
-    pass
+class NotePropertiesPhonemes(Bubble):
+    reference = ObjectProperty()
+
+class NotePropertiesLyrics(Bubble):
+    reference = ObjectProperty()
+
 class Note(ToggleButton):
     index = NumericProperty()
     xPos = NumericProperty()
     yPos = NumericProperty()
     length = NumericProperty()
+    phonemeMode = BooleanProperty()
     def on_parent(self, screen, parent):
         self.redraw()
     def redraw(self):
@@ -621,7 +628,7 @@ class Note(ToggleButton):
         else:
             return super().on_touch_down(touch)
     def on_touch_up(self, touch):
-        if middleLayer.mode != "notes" or touch.is_mouse_scrolling:
+        if middleLayer.mode != "notes" or touch.is_mouse_scrolling or "initialPos" not in touch.ud.keys():
             return False
         coord = self.to_local(touch.x, touch.y)
         if (abs(touch.ud["initialPos"][0] - coord[0]) <= 2) and (abs(touch.ud["initialPos"][1] - coord[1]) <= 2) and self.collide_point(*coord):
@@ -632,10 +639,17 @@ class Note(ToggleButton):
             return True
         return False
     def function(self):
-        print("down")
-        #open text input field
+        print(self.children)
+        #self.add_widget()
     def on_release(self):
-        self.add_widget(NoteProperties())
+        if self.phonemeMode:
+            self.add_widget(NotePropertiesPhonemes(reference = self))
+        else:
+            self.add_widget(NotePropertiesLyrics(reference = self))
+    def changePhonemeMode(self):
+        pass
+    def delete(self):
+        pass
 
 class PianoRollOctave(FloatLayout):
     pass
