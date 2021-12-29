@@ -1,26 +1,17 @@
 #:kivy 2.0.0
 
-<NotePropertiesLyrics>:
-    size_hint: (None, None)
-    size: (200, 80)
-    pos: (self.reference.x, self.reference.y - 80)if self.reference.width > 200 else (self.reference.x + (self.reference.width / 2) - 100, self.reference.y - 80)
-    orientation: 'vertical'
-    arrow_pos: "top_left"
-    BubbleButton:
-        text: "change to phoneme mode"
-    BubbleButton:
-        text: "delete"
-
-<NotePropertiesPhonemes>:
+<NoteProperties>:
     size_hint: (None, None)
     size: (200, 80)
     pos: (self.reference.x, self.reference.y - 80)if self.reference.width > 200 else (self.reference.x + (self.reference.width / 2) - 100, self.reference.y - 80)
     orientation: 'vertical'
     arrow_pos: "top_mid"
-    BubbleButton:
-        text: "change to lyrics mode"
-    BubbleButton:
+    ReferencingButton:
+        text: "change input mode"
+        on_press: self.reference.changeInputMode()
+    ReferencingButton:
         text: "delete"
+        on_press: self.reference.delete()
 
 <Note>:
     size_hint: (None, None)
@@ -29,5 +20,10 @@
     TextInput:
         pos: self.parent.x, self.parent.y + (self.parent.height / 2) - 10
         size: self.parent.width, 20
+        font_size: 16
+        padding: (6, 2, 6, 2)
         multiline: False
-        background_color: (0, 0, 0, 0)
+        text_validate_unfocus: True
+        foreground_color: (0.9, 0.9, 0, 1) if self.parent.inputMode else (1, 1, 1, 1)
+        background_color: (0, 0, 0, 0.5)
+        on_text_validate: self.parent.changeLyrics(self.text)
