@@ -10,7 +10,8 @@ class Parameter:
 
 class Track:
     def __init__(self, path):
-        self.voicebank = LiteVoicebank(path)
+        self.vbPath = path
+        #self.voicebank = LiteVoicebank(path)
         self.notes = []
         self.sequence = []
         self.pitch = torch.full((1000,), 0, dtype = torch.half)

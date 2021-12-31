@@ -18,12 +18,12 @@
     group: "Notes"
     border: (3, 3, 3, 3)
     TextInput:
-        pos: self.parent.x, self.parent.y + (self.parent.height / 2) - 10
-        size: self.parent.width, 20
+        pos: self.parent.x, self.parent.y
+        size: self.parent.width, self.parent.height
         font_size: 16
-        padding: (6, 2, 6, 2)
+        padding: (6, self.parent.height / 2 - 8, 6, self.parent.height / 2 - 8) if self.parent.height > 16 else (6, 0, 6, 0)
         multiline: False
         text_validate_unfocus: True
         foreground_color: (0.9, 0.9, 0, 1) if self.parent.inputMode else (1, 1, 1, 1)
-        background_color: (0, 0, 0, 0.5)
+        background_color: (0, 0, 0, 0)
         on_text_validate: self.parent.changeLyrics(self.text)

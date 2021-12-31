@@ -18,7 +18,6 @@ from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble, BubbleButton
-from kivy.uix.textinput import TextInput
 
 from io import BytesIO
 
@@ -61,8 +60,7 @@ class MiddleLayer(Widget):
         self.activeTrack = index
         self.updateParamPanel()
     def copyTrack(self, index, name, inImage):
-        self.trackList.append(dh.Track(None))
-        self.trackList[len(self.trackList) - 1].voicebank = self.trackList[index].voicebank
+        self.trackList.append(dh.Track(self.trackList[index].vbPath))
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
     def deleteTrack(self, index):
@@ -175,7 +173,7 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].vibratoStrength[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
         else:
             self.trackList[self.activeTrack].paramStack[self.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
-    def updatePianoRoll(self):
+    def changePianoRollMode(self):
         self.ids["pianoRoll"].changeMode()
     def applyScroll(self):
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
@@ -614,6 +612,8 @@ class Note(ToggleButton):
     yPos = NumericProperty()
     length = NumericProperty()
     inputMode = BooleanProperty()
+    phonemeStart = NumericProperty()
+    phonemeEnd = NumericProperty()
     def on_parent(self, screen, parent):
         if parent == None:
             return
@@ -893,7 +893,7 @@ class NovaVoxUI(Widget):
         global middleLayer
         middleLayer.mode = mode
         middleLayer.updateParamPanel()
-        middleLayer.updatePianoRoll()
+        middleLayer.changePianoRollMode()
     def setTool(self, tool):
         global middleLayer
         middleLayer.tool = tool

@@ -46,12 +46,9 @@ Window.minimum_width = 800
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading Nova-Vox Backend libraries...")
 import global_consts
-import Backend.VB_Components.Voicebank
-Voicebank = Backend.VB_Components.Voicebank.LiteVoicebank
-import Backend.DataHandler.VocalSequence
-VocalSequence = Backend.DataHandler.VocalSequence.VocalSequence
-import Backend.DataHandler.Manager
-RenderManager = Backend.DataHandler.Manager.RenderManager
+from Backend.VB_Components.Voicebank import LiteVoicebank as Voicebank
+from Backend.DataHandler.VocalSequence import VocalSequence
+from Backend.DataHandler.Manager import RenderManager
 import sys
 
 if pyi_splash.is_alive():
@@ -80,7 +77,7 @@ class NovaVoxApp(App):
         ui = NovaVoxUI()
         Clock.schedule_interval(ui.update, 0.25)
         return ui
-
+print(__name__)
 if __name__ == '__main__':
     mp.freeze_support()
 
@@ -94,10 +91,26 @@ if __name__ == '__main__':
     Builder.load_file("UI/kv/LicensePanel.kv")
     Builder.load_file("UI/kv/NovaVox.kv")
 
+    logging.info("starting render manager")
+    if pyi_splash.is_alive():
+        pyi_splash.update_text("starting rendering subprocess")
+    if (sys.platform.startswith('win')) == False: 
+        mp.set_start_method("spawn")
+    global manager
+    global sequenceList
+    global voicebankList
+    global aiParamStackList
+    sequenceList = []
+    voicebankList = []
+    aiParamStackList = []
+    #manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
+
     pyi_splash.close()
 
     NovaVoxApp().run()
 
+    logging.info("exiting program, ending logging service")
+"""
     logging.info("opening voicebank file dialog")
     filepath = tkinter.filedialog.askopenfilename(filetypes = ((".nvvb Voicebanks", ".nvvb"), ("all_files", "*")))
     if filepath != "":
@@ -138,4 +151,4 @@ if __name__ == '__main__':
                     elif userInput == "save":
                         logging.info("save command received")
                         torchaudio.save("output.wav", torch.unsqueeze(manager.outputList[0].waveform.detach(), 0), global_consts.sampleRate, format="wav", encoding="PCM_S", bits_per_sample=32)
-                logging.info("exiting program, ending logging service")
+                logging.info("exiting program, ending logging service")"""
