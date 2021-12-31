@@ -1239,3 +1239,40 @@
 2021-10-29 01:59:47,556:20732:INFO:save command received
 2021-10-29 01:59:50,814:20732:INFO:quit command received
 2021-10-29 01:59:50,814:20732:INFO:exiting program, ending logging service
+2021-12-31 19:11:43,173:832:INFO:logging service started
+2021-12-31 19:11:43,563:832:[1;32mINFO[0m:[Logger      ] Record log in /Users/Johannes/.kivy/logs/kivy_21-12-31_33.txt
+2021-12-31 19:11:43,561:832:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2021-12-31 19:11:43,564:832:[1;32mINFO[0m:[Kivy        ] Installed at "/Users/Johannes/Library/Python/3.9/lib/python/site-packages/kivy/__init__.py"
+2021-12-31 19:11:43,564:832:[1;32mINFO[0m:[Python      ] v3.9.9 (v3.9.9:ccb0e6a345, Nov 15 2021, 13:06:05) 
+[Clang 13.0.0 (clang-1300.0.29.3)]
+2021-12-31 19:11:43,564:832:[1;32mINFO[0m:[Python      ] Interpreter at "/usr/local/bin/python3"
+2021-12-31 19:11:43,728:832:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2021-12-31 19:11:44,112:832:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_imageio, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2021-12-31 19:11:44,314:832:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2021-12-31 19:11:44,599:832:[1;32mINFO[0m:[GL          ] Using the "OpenGL ES 2" graphics system
+2021-12-31 19:11:44,616:832:[1;32mINFO[0m:[GL          ] Backend used <sdl2>
+2021-12-31 19:11:44,617:832:[1;32mINFO[0m:[GL          ] OpenGL version <b'2.1 INTEL-18.3.5'>
+2021-12-31 19:11:44,618:832:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'Intel Inc.'>
+2021-12-31 19:11:44,618:832:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Intel HD Graphics 5000 OpenGL Engine'>
+2021-12-31 19:11:44,619:832:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 2, 1
+2021-12-31 19:11:44,619:832:[1;32mINFO[0m:[GL          ] Shading version <b'1.20'>
+2021-12-31 19:11:44,620:832:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2021-12-31 19:11:44,620:832:[1;32mINFO[0m:[GL          ] Texture max units <16>
+2021-12-31 19:11:44,779:832:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2021-12-31 19:11:44,825:832:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2021-12-31 19:11:44,911:832:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2021-12-31 19:11:44,949:832:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2021-12-31 19:11:45,066:832:[1;32mINFO[0m:starting render manager
+2021-12-31 19:11:50,556:840:INFO:logging service started
+2021-12-31 19:11:50,923:832:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2021-12-31 19:11:51,408:832:[1;32mINFO[0m:[Base        ] Start application main loop
+2021-12-31 19:11:58,449:848:INFO:logging service started
+2021-12-31 19:11:58,512:848:INFO:render process started, reading settings
+2021-12-31 19:11:58,559:848:INFO:starting new rendering iteration
+2021-12-31 19:11:58,564:848:INFO:rendering process finished for all sequences, waiting for render semaphore
+2021-12-31 19:12:30,192:832:WARNING:stderr: ValueError: list.remove(x): x not in list
+2021-12-31 19:12:30,193:832:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2021-12-31 19:12:30,194:832:WARNING:stderr: Traceback (most recent call last):
+2021-12-31 19:12:30,194:832:WARNING:stderr:   File "/Users/Johannes/Desktop/Git/Nova-Vox/editor_UI.py", line 301, in redraw
+2021-12-31 19:12:30,196:832:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2021-12-31 19:12:30,196:832:WARNING:stderr: ValueError: list.remove(x): x not in list

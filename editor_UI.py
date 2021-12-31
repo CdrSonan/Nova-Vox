@@ -178,13 +178,36 @@ class MiddleLayer(Widget):
     def applyScroll(self):
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
+    def offsetPhonemes(self, index, offset):
+        if offset > 0:
+            for i in offset:
+                self.trackList[self.activeTrack].sequence.insert("", index)
+        elif offset < 0:
+            for i in offset:
+                self.trackList[self.activeTrack].sequence.pop(index)
+        for i in self.trackList[self.activeTrack].notes[index:]:
+            i.phonemeStart += offset
+            i.phonemeEnd += offset
+        self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
+
     def addNote(self, index, x, y):
-        self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y))
+        self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart + 1))
     def removeNote(self, index):
         self.trackList[self.activeTrack].notes.pop(index)
     def changeLyrics(self, index, text, mode):
-        pass
-
+        self.trackList[self.activeTrack].notes[index].content = text
+        if mode:
+            text = text.split(" ")
+        else:
+            text = ""
+        out = []
+        for i in text:
+            if i in self.trackList[self.activeTrack].phonemeDict:
+                out.append(i)
+        offset = len(out) - self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart
+        self.offsetPhonemes(self.trackList[self.activeTrack].notes[index].phonemeStart, offset)
+        self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = out
+        
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
     imagePressed = StringProperty()
@@ -612,8 +635,6 @@ class Note(ToggleButton):
     yPos = NumericProperty()
     length = NumericProperty()
     inputMode = BooleanProperty()
-    phonemeStart = NumericProperty()
-    phonemeEnd = NumericProperty()
     def on_parent(self, screen, parent):
         if parent == None:
             return

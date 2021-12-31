@@ -29,9 +29,11 @@ class Track:
         self.paramStack = []
 
 class Note:
-    def __init__(self, xPos, yPos):
+    def __init__(self, xPos, yPos, start = 0, end = 1):
         self.length = 1
         self.xPos = xPos
         self.yPos = yPos
         self.phonemeMode = False
         self.content = ""
+        self.phonemeStart = start
+        self.phonemeEnd = end

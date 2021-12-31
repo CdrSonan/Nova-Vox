@@ -30,18 +30,6 @@ else:
     tcores = False
 torch.backends.cuda.matmul.allow_tf32 = tcores
 torch.backends.cudnn.allow_tf32 = tcores
-if pyi_splash.is_alive():
-    pyi_splash.update_text("loading UI libraries...")
-import tkinter.filedialog
-
-from kivy.app import App
-from kivy.core.window import Window
-from kivy.lang import Builder
-from kivy.clock import Clock
-
-from editor_UI import NovaVoxUI
-Window.minimum_height = 500
-Window.minimum_width = 800
 
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading Nova-Vox Backend libraries...")
@@ -52,7 +40,7 @@ from Backend.DataHandler.Manager import RenderManager
 import sys
 
 if pyi_splash.is_alive():
-    pyi_splash.update_text("starting logging and main processes...")
+    pyi_splash.update_text("starting logging process...")
 import logging
 if settings["loglevel"] == "debug":
     loglevel = logging.DEBUG
@@ -71,15 +59,25 @@ else:
 logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename='editor.log', level=loglevel)
 logging.info("logging service started")
 
-class NovaVoxApp(App):
-    def build(self):
-        self.icon = "UI/TopBar/Logo.gif"
-        ui = NovaVoxUI()
-        Clock.schedule_interval(ui.update, 0.25)
-        return ui
 print(__name__)
 if __name__ == '__main__':
     mp.freeze_support()
+    if pyi_splash.is_alive():
+        pyi_splash.update_text("loading UI libraries...")
+    import tkinter.filedialog
+    from kivy.app import App
+    from kivy.core.window import Window
+    from kivy.lang import Builder
+    from kivy.clock import Clock
+    class NovaVoxApp(App):
+        def build(self):
+            self.icon = "UI/TopBar/Logo.gif"
+            ui = NovaVoxUI()
+            Clock.schedule_interval(ui.update, 0.25)
+            return ui
+    from editor_UI import NovaVoxUI
+    Window.minimum_height = 500
+    Window.minimum_width = 800
 
     Builder.load_file("UI/kv/ImageButton.kv")
     Builder.load_file("UI/kv/SingerPanel.kv")
@@ -93,7 +91,7 @@ if __name__ == '__main__':
 
     logging.info("starting render manager")
     if pyi_splash.is_alive():
-        pyi_splash.update_text("starting rendering subprocess")
+        pyi_splash.update_text("starting renderer subprocess")
     if (sys.platform.startswith('win')) == False: 
         mp.set_start_method("spawn")
     global manager
@@ -103,7 +101,7 @@ if __name__ == '__main__':
     sequenceList = []
     voicebankList = []
     aiParamStackList = []
-    #manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
+    manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
 
     pyi_splash.close()
 
