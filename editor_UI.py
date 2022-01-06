@@ -60,7 +60,7 @@ class MiddleLayer(Widget):
         self.activeTrack = index
         self.updateParamPanel()
     def copyTrack(self, index, name, inImage):
-        self.trackList.append(dh.Track(self.trackList[index].vbPath))
+        self.trackList.append(self.trackList[index])
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
     def deleteTrack(self, index):
@@ -180,10 +180,10 @@ class MiddleLayer(Widget):
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
     def offsetPhonemes(self, index, offset):
         if offset > 0:
-            for i in offset:
-                self.trackList[self.activeTrack].sequence.insert("", index)
+            for i in range(offset):
+                self.trackList[self.activeTrack].sequence.insert(index, "")
         elif offset < 0:
-            for i in offset:
+            for i in range(offset):
                 self.trackList[self.activeTrack].sequence.pop(index)
         for i in self.trackList[self.activeTrack].notes[index:]:
             i.phonemeStart += offset
@@ -191,20 +191,29 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
 
     def addNote(self, index, x, y):
-        self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart + 1))
+        if index == 0:
+            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 1))
+        elif index == len(self.trackList[self.activeTrack].notes):
+            self.trackList[self.activeTrack].notes.append(dh.Note(x, y, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd + 1))
+        else:
+            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart + 1))
     def removeNote(self, index):
+        self.offsetPhonemes(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart)
         self.trackList[self.activeTrack].notes.pop(index)
     def changeLyrics(self, index, text, mode):
         self.trackList[self.activeTrack].notes[index].content = text
         if mode:
             text = text.split(" ")
         else:
-            text = ""
+            text = ""#TO DO: Dictionary lookup here
         out = []
+        """
         for i in text:
             if i in self.trackList[self.activeTrack].phonemeDict:
                 out.append(i)
-        offset = len(out) - self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart
+        """
+        out = text#TO DO: Input validation
+        offset = len(out) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
         self.offsetPhonemes(self.trackList[self.activeTrack].notes[index].phonemeStart, offset)
         self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = out
         
@@ -681,6 +690,9 @@ class Note(ToggleButton):
         self.inputMode = not self.inputMode
     def delete(self):
         middleLayer.removeNote(self.index)
+        for i in self.parent.children:
+            if i.index > self.index:
+                i.index -= 1
         self.parent.remove_widget(self)
     def changeLyrics(self, text):
         middleLayer.changeLyrics(self.index, text, self.inputMode)
@@ -713,8 +725,9 @@ class PianoRoll(ScrollView):
         middleLayer.applyScroll()
     def on_touch_down(self, touch):
         global middleLayer
-        if super(PianoRoll, self).on_touch_down(touch):
-            return True
+        if touch.is_mouse_scrolling == False:
+            if super(PianoRoll, self).on_touch_down(touch):
+                return True
         if self.collide_point(*touch.pos):
             if touch.is_mouse_scrolling:
                 if middleLayer.shift:
@@ -730,8 +743,8 @@ class PianoRoll(ScrollView):
                             self.scroll_x = newvalue
                         else:
                             self.scroll_x = 0.
-                else:
-                    return super(PianoRoll, self).on_touch_down(touch)
+                    return True
+                return super(PianoRoll, self).on_touch_down(touch)
             else:
                 coord = self.to_local(touch.x, touch.y)
                 x = int(coord[0] / self.xScale)
@@ -757,8 +770,7 @@ class PianoRoll(ScrollView):
                 elif middleLayer.mode == "pitch":
                     pass
                 return True
-        else:
-            return False
+        return False
     def on_touch_move(self, touch):
         if middleLayer.mode == "notes":
             if "noteIndex" in touch.ud:
