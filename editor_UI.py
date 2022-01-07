@@ -179,17 +179,44 @@ class MiddleLayer(Widget):
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
     def offsetPhonemes(self, index, offset):
+        phonIndex = self.trackList[self.activeTrack].notes[index].phonemeStart
         if offset > 0:
             for i in range(offset):
-                self.trackList[self.activeTrack].sequence.insert(index, "")
+                self.trackList[self.activeTrack].sequence.insert(phonIndex, "")
+                for j in range(3):
+                    self.trackList[self.activeTrack].borders.insert(phonIndex * 3, 0)
         elif offset < 0:
             for i in range(offset):
-                self.trackList[self.activeTrack].sequence.pop(index)
+                self.trackList[self.activeTrack].sequence.pop(phonIndex)
+                for j in range(3):
+                    self.trackList[self.activeTrack].borders.pop(phonIndex * 3)
         for i in self.trackList[self.activeTrack].notes[index:]:
             i.phonemeStart += offset
             i.phonemeEnd += offset
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
-
+    def makeAutoPauses(self, index):
+        if index > 0:
+            if self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
+                self.trackList[self.activeTrack].sequence.pop(self.trackList[self.activeTrack].notes[index].phonemeStart)
+                for i in self.trackList[self.activeTrack].notes[index:]:
+                    i.phonemeStart -= 1
+                    i.phonemeEnd -= 1
+            if self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length > self.trackList[self.activeTrack].pauseThreshold:
+                self.trackList[self.activeTrack].sequence.insert(self.trackList[self.activeTrack].notes[index].phonemeStart, "_autopause")
+                for i in self.trackList[self.activeTrack].notes[index:]:
+                    i.phonemeStart += 1
+                    i.phonemeEnd += 1
+        if index < len(self.trackList[self.activeTrack].notes - 1):
+            if self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeEnd] == "_autopause":
+                self.trackList[self.activeTrack].sequence.pop(self.trackList[self.activeTrack].notes[index].phonemeEnd)
+                for i in self.trackList[self.activeTrack].notes[index + 1:]:
+                    i.phonemeStart -= 1
+                    i.phonemeEnd -= 1
+            if self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index].length > self.trackList[self.activeTrack].pauseThreshold:
+                self.trackList[self.activeTrack].sequence.insert(self.trackList[self.activeTrack].notes[index + 1].phonemeStart, "_autopause")
+                for i in self.trackList[self.activeTrack].notes[index + 1:]:
+                    i.phonemeStart += 1
+                    i.phonemeEnd += 1
     def addNote(self, index, x, y):
         if index == 0:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 1))
@@ -198,7 +225,7 @@ class MiddleLayer(Widget):
         else:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart + 1))
     def removeNote(self, index):
-        self.offsetPhonemes(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart)
+        self.offsetPhonemes(index, self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart)
         self.trackList[self.activeTrack].notes.pop(index)
     def changeLyrics(self, index, text, mode):
         self.trackList[self.activeTrack].notes[index].content = text
@@ -206,16 +233,28 @@ class MiddleLayer(Widget):
             text = text.split(" ")
         else:
             text = ""#TO DO: Dictionary lookup here
-        out = []
+        phonemes = []
         """
         for i in text:
             if i in self.trackList[self.activeTrack].phonemeDict:
-                out.append(i)
+                phonemes.append(i)
         """
-        out = text#TO DO: Input validation
-        offset = len(out) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
-        self.offsetPhonemes(self.trackList[self.activeTrack].notes[index].phonemeStart, offset)
-        self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = out
+        phonemes = text#TO DO: Input validation, phoneme type awareness
+        offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
+        self.offsetPhonemes(index, offset)
+        self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
+        
+        start = self.trackList[self.activeTrack].notes[index].xPos
+        end = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
+        if index < len(self.trackList[self.activeTrack].notes) - 1:
+            end = min(end, self.trackList[self.activeTrack].notes[index + 1].xPos)
+        divisor = (len(phonemes) + 1) * 3
+        if self.trackList[self.activeTrack].notes[index].phonemeEnd == "_autopause":
+            for i in range(self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart):
+                j = i + self.trackList[self.activeTrack].notes[index].phonemeStart
+                self.trackList[self.activeTrack].notes[index].borders[3 * j] = start + int((start - end) * (i / divisor))
+        
+        
         
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -691,8 +730,9 @@ class Note(ToggleButton):
     def delete(self):
         middleLayer.removeNote(self.index)
         for i in self.parent.children:
-            if i.index > self.index:
-                i.index -= 1
+            if i.__class__.__name__ == "Note":
+                if i.index > self.index:
+                    i.index -= 1
         self.parent.remove_widget(self)
     def changeLyrics(self, text):
         middleLayer.changeLyrics(self.index, text, self.inputMode)
