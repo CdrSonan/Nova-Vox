@@ -217,16 +217,45 @@ class MiddleLayer(Widget):
                 for i in self.trackList[self.activeTrack].notes[index + 1:]:
                     i.phonemeStart += 1
                     i.phonemeEnd += 1
-    def addNote(self, index, x, y):
+    def switchNote(self, index):
+        #change to remove, add and changeLyrics
+        if self.trackList[self.activeTrack].notes[index].xPos > self.trackList[self.activeTrack].notes[index + 1].xPos:
+            note = self.trackList[self.activeTrack].notes.pop(index + 1)
+            self.trackList[self.activeTrack].notes.insert(index, note)
+            phonemeMid = note.phonemeEnd - note.phonemeStart
+            self.trackList[self.activeTrack].notes[index].phonemeStart = self.trackList[self.activeTrack].notes[index + 1].phonemeStart
+            self.trackList[self.activeTrack].notes[index + 1].phonemeEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
+            self.trackList[self.activeTrack].notes[index].phonemeEnd = self.trackList[self.activeTrack].notes[index].phonemeStart + phonemeMid
+            self.trackList[self.activeTrack].notes[index + 1].phonemeStart = self.trackList[self.activeTrack].notes[index].phonemeStart + phonemeMid
+            return True
+        if self.trackList[self.activeTrack].notes[index].xPos < self.trackList[self.activeTrack].notes[index - 1].xPos:
+            note = self.trackList[self.activeTrack].notes.pop(index)
+            self.trackList[self.activeTrack].notes.insert(index - 1, note)
+            phonemeMid = note.phonemeEnd - note.phonemeStart
+            self.trackList[self.activeTrack].notes[index - 1].phonemeStart = self.trackList[self.activeTrack].notes[index].phonemeStart
+            self.trackList[self.activeTrack].notes[index].phonemeEnd = self.trackList[self.activeTrack].notes[index - 1].phonemeEnd
+            self.trackList[self.activeTrack].notes[index - 1].phonemeEnd = self.trackList[self.activeTrack].notes[index - 1].phonemeStart + phonemeMid
+            self.trackList[self.activeTrack].notes[index].phonemeStart = self.trackList[self.activeTrack].notes[index - 1].phonemeStart + phonemeMid
+            return False
+        return None
+    def addNote(self, index, x, y, reference):
         if index == 0:
-            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 1))
+            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 1, reference))
         elif index == len(self.trackList[self.activeTrack].notes):
-            self.trackList[self.activeTrack].notes.append(dh.Note(x, y, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd + 1))
+            self.trackList[self.activeTrack].notes.append(dh.Note(x, y, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd + 1, reference))
         else:
-            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart + 1))
+            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart + 1, reference))
     def removeNote(self, index):
         self.offsetPhonemes(index, self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart)
         self.trackList[self.activeTrack].notes.pop(index)
+    def changeNoteLength(self, index, x, length):
+        self.trackList[self.activeTrack].notes[index].length = length
+        self.trackList[self.activeTrack].notes[index].xPos = x
+        return self.switchNote(index)
+    def moveNote(self, index, x, y):
+        self.trackList[self.activeTrack].notes[index].xPos = x
+        self.trackList[self.activeTrack].notes[index].yPos = y
+        return self.switchNote(index)
     def changeLyrics(self, index, text, mode):
         self.trackList[self.activeTrack].notes[index].content = text
         if mode:
@@ -800,8 +829,9 @@ class PianoRoll(ScrollView):
                             else:
                                 index += 1
                                 x += 1
-                    middleLayer.addNote(index, x, y)
-                    self.children[0].add_widget(Note(index = index, xPos = x, yPos = y, length = 100, height = self.yScale))
+                    newNote = Note(index = index, xPos = x, yPos = y, length = 100, height = self.yScale)
+                    middleLayer.addNote(index, x, y, newNote)
+                    self.children[0].add_widget(newNote)
                     touch.ud["noteIndex"] = index
                     touch.ud["grabMode"] = "end"
                     touch.ud["initialPos"] = coord
@@ -817,24 +847,37 @@ class PianoRoll(ScrollView):
                 coord = self.to_local(touch.x, touch.y)
                 x = int(coord[0] / self.xScale)
                 y = int(coord[1] / self.yScale)
+                """
                 for i in self.children[0].children:
                     if i.__class__.__name__ == "Note" and i.index == touch.ud["noteIndex"]:
                         note = i
                         break
+                """
+                note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
                 if abs(touch.ud["initialPos"][0] - coord[0]) < 4 and abs(touch.ud["initialPos"][1] - coord[1]) < 4:
                     return True
                 if touch.ud["grabMode"] == "start":
                     length = max(note.xPos + note.length - x, 1)
                     note.length = length
                     note.xPos = x
-                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].length = length
-                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].xPos = x
+                    switch = middleLayer.changeNoteLength(touch.ud["noteIndex"], x, length)
+                    if switch == True:
+                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] + 1].reference.index -= 1
+                        note.index += 1
+                    elif switch == False:
+                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] - 1].reference.index += 1
+                        note.index -= 1
                     note.redraw()
                 elif touch.ud["grabMode"] == "mid":
                     note.xPos = int(x + touch.ud["xOffset"] + 1)
                     note.yPos = int(y + touch.ud["yOffset"] + 1)
-                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].xPos = int(x + touch.ud["xOffset"] + 1)
-                    middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].yPos = int(y + touch.ud["yOffset"] + 1)
+                    switch = middleLayer.moveNote(touch.ud["noteIndex"], int(x + touch.ud["xOffset"] + 1), int(x + touch.ud["yOffset"] + 1))
+                    if switch == True:
+                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] + 1].reference.index -= 1
+                        note.index += 1
+                    elif switch == False:
+                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] - 1].reference.index += 1
+                        note.index -= 1
                     note.redraw()
                 elif touch.ud["grabMode"] == "end":
                     length = max(x - note.xPos, 1)
