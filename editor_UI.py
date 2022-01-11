@@ -218,24 +218,39 @@ class MiddleLayer(Widget):
                     i.phonemeStart += 1
                     i.phonemeEnd += 1
     def switchNote(self, index):
-        #change to remove, add and changeLyrics
         if self.trackList[self.activeTrack].notes[index].xPos > self.trackList[self.activeTrack].notes[index + 1].xPos:
             note = self.trackList[self.activeTrack].notes.pop(index + 1)
+            seq1 = self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd]
+            seq2 = self.trackList[self.activeTrack].sequence[note.phonemeStart:note.phonemeEnd]
+            brd1 = self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd]
+            brd2 = self.trackList[self.activeTrack].borders[3 * note.phonemeStart:3 * note.phonemeEnd]
             self.trackList[self.activeTrack].notes.insert(index, note)
             phonemeMid = note.phonemeEnd - note.phonemeStart
             self.trackList[self.activeTrack].notes[index].phonemeStart = self.trackList[self.activeTrack].notes[index + 1].phonemeStart
             self.trackList[self.activeTrack].notes[index + 1].phonemeEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
             self.trackList[self.activeTrack].notes[index].phonemeEnd = self.trackList[self.activeTrack].notes[index].phonemeStart + phonemeMid
             self.trackList[self.activeTrack].notes[index + 1].phonemeStart = self.trackList[self.activeTrack].notes[index].phonemeStart + phonemeMid
+            self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = seq2
+            self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = seq1
+            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = brd2
+            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart:3 * self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = brd1
             return True
         if self.trackList[self.activeTrack].notes[index].xPos < self.trackList[self.activeTrack].notes[index - 1].xPos:
             note = self.trackList[self.activeTrack].notes.pop(index)
+            seq1 = self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index - 1].phonemeStart:self.trackList[self.activeTrack].notes[index - 1].phonemeEnd]
+            seq2 = self.trackList[self.activeTrack].sequence[note.phonemeStart:note.phonemeEnd]
+            brd1 = self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index - 1].phonemeStart:3 * self.trackList[self.activeTrack].notes[index - 1].phonemeEnd]
+            brd2 = self.trackList[self.activeTrack].borders[3 * note.phonemeStart:3 * note.phonemeEnd]
             self.trackList[self.activeTrack].notes.insert(index - 1, note)
             phonemeMid = note.phonemeEnd - note.phonemeStart
             self.trackList[self.activeTrack].notes[index - 1].phonemeStart = self.trackList[self.activeTrack].notes[index].phonemeStart
             self.trackList[self.activeTrack].notes[index].phonemeEnd = self.trackList[self.activeTrack].notes[index - 1].phonemeEnd
             self.trackList[self.activeTrack].notes[index - 1].phonemeEnd = self.trackList[self.activeTrack].notes[index - 1].phonemeStart + phonemeMid
             self.trackList[self.activeTrack].notes[index].phonemeStart = self.trackList[self.activeTrack].notes[index - 1].phonemeStart + phonemeMid
+            self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index - 1].phonemeStart:self.trackList[self.activeTrack].notes[index - 1].phonemeEnd] = seq2
+            self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = seq1
+            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index - 1].phonemeStart:3 * self.trackList[self.activeTrack].notes[index - 1].phonemeEnd] = brd2
+            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = brd1
             return False
         return None
     def addNote(self, index, x, y, reference):
@@ -272,16 +287,20 @@ class MiddleLayer(Widget):
         offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
         self.offsetPhonemes(index, offset)
         self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
-        
         start = self.trackList[self.activeTrack].notes[index].xPos
         end = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
         if index < len(self.trackList[self.activeTrack].notes) - 1:
             end = min(end, self.trackList[self.activeTrack].notes[index + 1].xPos)
         divisor = (len(phonemes) + 1) * 3
-        if self.trackList[self.activeTrack].notes[index].phonemeEnd == "_autopause":
-            for i in range(self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart):
-                j = i + self.trackList[self.activeTrack].notes[index].phonemeStart
-                self.trackList[self.activeTrack].notes[index].borders[3 * j] = start + int((start - end) * (i / divisor))
+        for i in range(self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart):
+            j = i + self.trackList[self.activeTrack].notes[index].phonemeStart
+            self.trackList[self.activeTrack].borders[3 * j] = start + int((start - end) * (3 * i) / divisor)
+            self.trackList[self.activeTrack].borders[3 * j + 1] = start + int((start - end) * (3 * i + 1) / divisor)
+            self.trackList[self.activeTrack].borders[3 * j + 2] = start + int((start - end) * (3 * i + 2) / divisor)
+        if self.trackList[self.activeTrack].notes[index].phonemeEnd != "_autopause":
+            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = end - 2
+            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 1] = end - 1
+            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 2] = end
         
         
         
