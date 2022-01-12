@@ -182,15 +182,15 @@ class MiddleLayer(Widget):
         phonIndex = self.trackList[self.activeTrack].notes[index].phonemeStart
         if offset > 0:
             for i in range(offset):
-                self.trackList[self.activeTrack].sequence.insert(phonIndex, "")
+                self.trackList[self.activeTrack].sequence.insert(phonIndex, "X")
                 for j in range(3):
                     self.trackList[self.activeTrack].borders.insert(phonIndex * 3, 0)
         elif offset < 0:
-            for i in range(offset):
+            for i in range(-offset):
                 self.trackList[self.activeTrack].sequence.pop(phonIndex)
                 for j in range(3):
                     self.trackList[self.activeTrack].borders.pop(phonIndex * 3)
-        for i in self.trackList[self.activeTrack].notes[index:]:
+        for i in self.trackList[self.activeTrack].notes[index + 1:]:
             i.phonemeStart += offset
             i.phonemeEnd += offset
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
@@ -255,22 +255,30 @@ class MiddleLayer(Widget):
         return None
     def addNote(self, index, x, y, reference):
         if index == 0:
-            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 1, reference))
+            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 0, reference))
         elif index == len(self.trackList[self.activeTrack].notes):
-            self.trackList[self.activeTrack].notes.append(dh.Note(x, y, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd + 1, reference))
+            self.trackList[self.activeTrack].notes.append(dh.Note(x, y, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, reference))
         else:
-            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart + 1, reference))
+            self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart, reference))
     def removeNote(self, index):
-        self.offsetPhonemes(index, self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart)
+        self.offsetPhonemes(index, self.trackList[self.activeTrack].notes[index].phonemeStart - self.trackList[self.activeTrack].notes[index].phonemeEnd)
         self.trackList[self.activeTrack].notes.pop(index)
     def changeNoteLength(self, index, x, length):
+        for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd):
+            self.trackList[self.activeTrack].borders[3 * i] = (self.trackList[self.activeTrack].borders[3 * i] - self.trackList[self.activeTrack].notes[index].xPos) / self.trackList[self.activeTrack].notes[index].length * length + x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 1] = (self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].notes[index].xPos) / self.trackList[self.activeTrack].notes[index].length * length + x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 2] = (self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].notes[index].xPos) / self.trackList[self.activeTrack].notes[index].length * length + x - self.trackList[self.activeTrack].notes[index].xPos
         self.trackList[self.activeTrack].notes[index].length = length
         self.trackList[self.activeTrack].notes[index].xPos = x
-        return self.switchNote(index)
+        return None#self.switchNote(index)
     def moveNote(self, index, x, y):
+        for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd):
+            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
         self.trackList[self.activeTrack].notes[index].xPos = x
         self.trackList[self.activeTrack].notes[index].yPos = y
-        return self.switchNote(index)
+        return None#self.switchNote(index)
     def changeLyrics(self, index, text, mode):
         self.trackList[self.activeTrack].notes[index].content = text
         if mode:
@@ -286,21 +294,22 @@ class MiddleLayer(Widget):
         phonemes = text#TO DO: Input validation, phoneme type awareness
         offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
         self.offsetPhonemes(index, offset)
-        self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
+        print(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd, index)
+        self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes#FIX HERE
         start = self.trackList[self.activeTrack].notes[index].xPos
         end = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
         if index < len(self.trackList[self.activeTrack].notes) - 1:
             end = min(end, self.trackList[self.activeTrack].notes[index + 1].xPos)
         divisor = (len(phonemes) + 1) * 3
-        for i in range(self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart):
-            j = i + self.trackList[self.activeTrack].notes[index].phonemeStart
-            self.trackList[self.activeTrack].borders[3 * j] = start + int((start - end) * (3 * i) / divisor)
-            self.trackList[self.activeTrack].borders[3 * j + 1] = start + int((start - end) * (3 * i + 1) / divisor)
-            self.trackList[self.activeTrack].borders[3 * j + 2] = start + int((start - end) * (3 * i + 2) / divisor)
-        if self.trackList[self.activeTrack].notes[index].phonemeEnd != "_autopause":
-            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = end - 2
-            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 1] = end - 1
-            self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 2] = end
+        for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd):
+            j = i - self.trackList[self.activeTrack].notes[index].phonemeStart
+            self.trackList[self.activeTrack].borders[3 * i] = start + int((end - start) * (3 * j) / divisor)
+            self.trackList[self.activeTrack].borders[3 * i + 1] = start + int((end - start) * (3 * j + 1) / divisor)
+            self.trackList[self.activeTrack].borders[3 * i + 2] = start + int((end - start) * (3 * j + 2) / divisor)
+        #if self.trackList[self.activeTrack].notes[index].phonemeEnd != "_autopause":
+            #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = end - 2
+            #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 1] = end - 1
+            #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 2] = end
         
         
         
@@ -740,6 +749,8 @@ class Note(ToggleButton):
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
     def on_touch_down(self, touch):
+        print(middleLayer.trackList[middleLayer.activeTrack].sequence)
+        print(middleLayer.trackList[middleLayer.activeTrack].borders)
         if middleLayer.mode != "notes":
             return False
         if self.collide_point(*touch.pos):

@@ -1,4 +1,4 @@
-from Backend.VB_Components.Voicebank import LiteVoicebank
+from kivy.properties import ObjectProperty
 import torch
 
 class Parameter:
@@ -27,9 +27,12 @@ class Track:
         self.useVibratoSpeed = False
         self.useVibratoStrength = False
         self.paramStack = []
+        self.borders = [0, 1, 2]
 
 class Note:
-    def __init__(self, xPos, yPos, start = 0, end = 1):
+    def __init__(self, xPos, yPos, start = 0, end = 1, reference = None):
+        self.reference = ObjectProperty()
+        self.reference = reference
         self.length = 1
         self.xPos = xPos
         self.yPos = yPos

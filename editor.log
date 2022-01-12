@@ -1,0 +1,1148 @@
+2022-01-11 13:35:34,779:24356:INFO:logging service started
+2022-01-11 13:35:34,959:24356:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_0.txt
+2022-01-11 13:35:34,958:24356:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 13:35:34,960:24356:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 13:35:34,960:24356:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 13:35:34,960:24356:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 13:35:34,961:24356:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 13:35:34,961:24356:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 13:35:34,962:24356:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 13:35:35,411:24356:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 13:35:36,584:24356:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 13:35:37,802:24356:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 13:35:39,460:24356:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 13:35:39,462:24356:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 13:35:39,463:24356:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 13:35:39,464:24356:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 13:35:39,464:24356:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 13:35:39,465:24356:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 13:35:39,465:24356:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 13:35:39,465:24356:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 13:35:39,466:24356:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 13:35:39,466:24356:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 13:35:39,654:24356:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 13:35:39,659:24356:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 13:35:40,240:24356:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 13:35:40,473:24356:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 13:35:40,673:24356:[1;32mINFO[0m:starting render manager
+2022-01-11 13:35:42,553:10360:INFO:logging service started
+2022-01-11 13:35:42,690:24356:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 13:35:43,586:24356:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 13:35:44,370:27120:INFO:logging service started
+2022-01-11 13:35:44,386:27120:INFO:render process started, reading settings
+2022-01-11 13:35:44,388:27120:INFO:starting new rendering iteration
+2022-01-11 13:35:44,389:27120:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 13:35:58,110:24356:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 13:35:58,111:24356:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 13:35:58,111:24356:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 13:35:58,112:24356:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 13:35:58,112:24356:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 13:35:58,113:24356:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 13:37:52,924:19916:INFO:logging service started
+2022-01-11 13:37:52,956:19916:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_1.txt
+2022-01-11 13:37:52,955:19916:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 13:37:52,957:19916:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 13:37:52,958:19916:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 13:37:52,958:19916:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 13:37:52,958:19916:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 13:37:52,959:19916:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 13:37:52,959:19916:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 13:37:53,009:19916:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 13:37:53,116:19916:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 13:37:53,190:19916:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 13:37:53,681:19916:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 13:37:53,683:19916:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 13:37:53,683:19916:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 13:37:53,684:19916:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 13:37:53,685:19916:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 13:37:53,685:19916:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 13:37:53,685:19916:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 13:37:53,686:19916:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 13:37:53,686:19916:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 13:37:53,686:19916:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 13:37:53,723:19916:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 13:37:53,725:19916:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 13:37:53,756:19916:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 13:37:53,806:19916:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 13:37:53,856:19916:[1;32mINFO[0m:starting render manager
+2022-01-11 13:37:55,584:12312:INFO:logging service started
+2022-01-11 13:37:55,664:19916:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 13:37:55,858:19916:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 13:37:57,390:2860:INFO:logging service started
+2022-01-11 13:37:57,407:2860:INFO:render process started, reading settings
+2022-01-11 13:37:57,408:2860:INFO:starting new rendering iteration
+2022-01-11 13:37:57,410:2860:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 13:37:59,870:19916:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 13:37:59,870:19916:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 13:37:59,871:19916:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 13:37:59,871:19916:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 13:37:59,872:19916:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 13:37:59,872:19916:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 13:38:45,507:3860:INFO:logging service started
+2022-01-11 13:38:45,540:3860:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_2.txt
+2022-01-11 13:38:45,539:3860:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 13:38:45,541:3860:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 13:38:45,542:3860:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 13:38:45,542:3860:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 13:38:45,542:3860:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 13:38:45,543:3860:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 13:38:45,543:3860:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 13:38:45,593:3860:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 13:38:45,701:3860:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 13:38:45,776:3860:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 13:38:46,269:3860:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 13:38:46,271:3860:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 13:38:46,271:3860:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 13:38:46,273:3860:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 13:38:46,273:3860:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 13:38:46,273:3860:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 13:38:46,274:3860:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 13:38:46,274:3860:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 13:38:46,274:3860:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 13:38:46,274:3860:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 13:38:46,309:3860:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 13:38:46,311:3860:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 13:38:46,330:3860:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 13:38:46,393:3860:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 13:38:46,443:3860:[1;32mINFO[0m:starting render manager
+2022-01-11 13:38:48,175:16996:INFO:logging service started
+2022-01-11 13:38:48,255:3860:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 13:38:48,447:3860:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 13:38:49,981:31136:INFO:logging service started
+2022-01-11 13:38:49,999:31136:INFO:render process started, reading settings
+2022-01-11 13:38:50,000:31136:INFO:starting new rendering iteration
+2022-01-11 13:38:50,002:31136:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 13:38:51,853:3860:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 13:38:51,854:3860:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 13:38:51,854:3860:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 13:38:51,854:3860:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 13:38:51,855:3860:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 13:38:51,855:3860:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 13:39:36,598:23116:INFO:logging service started
+2022-01-11 13:39:36,631:23116:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_3.txt
+2022-01-11 13:39:36,630:23116:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 13:39:36,632:23116:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 13:39:36,632:23116:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 13:39:36,632:23116:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 13:39:36,633:23116:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 13:39:36,633:23116:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 13:39:36,633:23116:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 13:39:36,683:23116:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 13:39:36,790:23116:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 13:39:36,866:23116:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 13:39:37,341:23116:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 13:39:37,342:23116:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 13:39:37,343:23116:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 13:39:37,344:23116:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 13:39:37,344:23116:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 13:39:37,344:23116:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 13:39:37,345:23116:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 13:39:37,345:23116:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 13:39:37,345:23116:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 13:39:37,346:23116:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 13:39:37,380:23116:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 13:39:37,382:23116:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 13:39:37,402:23116:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 13:39:37,446:23116:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 13:39:37,494:23116:[1;32mINFO[0m:starting render manager
+2022-01-11 13:39:39,247:31228:INFO:logging service started
+2022-01-11 13:39:39,328:23116:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 13:39:39,523:23116:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 13:39:41,046:15860:INFO:logging service started
+2022-01-11 13:39:41,063:15860:INFO:render process started, reading settings
+2022-01-11 13:39:41,064:15860:INFO:starting new rendering iteration
+2022-01-11 13:39:41,066:15860:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 13:39:43,350:23116:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 13:39:43,351:23116:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 13:39:43,351:23116:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 13:39:43,351:23116:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 13:39:43,352:23116:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 13:39:43,352:23116:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:02:51,401:3676:INFO:logging service started
+2022-01-11 14:02:51,436:3676:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_4.txt
+2022-01-11 14:02:51,435:3676:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 14:02:51,437:3676:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 14:02:51,438:3676:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 14:02:51,438:3676:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 14:02:51,438:3676:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 14:02:51,438:3676:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 14:02:51,439:3676:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 14:02:51,488:3676:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 14:02:51,598:3676:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 14:02:51,678:3676:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 14:02:52,202:3676:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 14:02:52,203:3676:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 14:02:52,204:3676:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 14:02:52,204:3676:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 14:02:52,204:3676:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 14:02:52,205:3676:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 14:02:52,205:3676:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 14:02:52,205:3676:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 14:02:52,206:3676:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 14:02:52,206:3676:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 14:02:52,240:3676:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 14:02:52,242:3676:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 14:02:52,301:3676:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 14:02:52,331:3676:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 14:02:52,381:3676:[1;32mINFO[0m:starting render manager
+2022-01-11 14:02:54,130:24716:INFO:logging service started
+2022-01-11 14:02:54,209:3676:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 14:02:54,399:3676:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 14:02:55,929:22076:INFO:logging service started
+2022-01-11 14:02:55,946:22076:INFO:render process started, reading settings
+2022-01-11 14:02:55,947:22076:INFO:starting new rendering iteration
+2022-01-11 14:02:55,949:22076:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 14:02:58,469:3676:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:02:58,470:3676:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 14:02:58,470:3676:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 14:02:58,470:3676:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 14:02:58,471:3676:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 14:02:58,471:3676:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:04:48,498:7392:INFO:logging service started
+2022-01-11 14:04:48,531:7392:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_5.txt
+2022-01-11 14:04:48,530:7392:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 14:04:48,532:7392:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 14:04:48,532:7392:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 14:04:48,533:7392:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 14:04:48,533:7392:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 14:04:48,533:7392:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 14:04:48,533:7392:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 14:04:48,584:7392:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 14:04:48,695:7392:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 14:04:48,771:7392:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 14:04:49,250:7392:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 14:04:49,251:7392:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 14:04:49,251:7392:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 14:04:49,252:7392:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 14:04:49,253:7392:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 14:04:49,253:7392:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 14:04:49,253:7392:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 14:04:49,254:7392:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 14:04:49,254:7392:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 14:04:49,254:7392:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 14:04:49,288:7392:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 14:04:49,290:7392:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 14:04:49,321:7392:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 14:04:49,368:7392:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 14:04:49,416:7392:[1;32mINFO[0m:starting render manager
+2022-01-11 14:04:51,150:4240:INFO:logging service started
+2022-01-11 14:04:51,230:7392:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 14:04:51,422:7392:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 14:04:52,941:23040:INFO:logging service started
+2022-01-11 14:04:52,958:23040:INFO:render process started, reading settings
+2022-01-11 14:04:52,959:23040:INFO:starting new rendering iteration
+2022-01-11 14:04:52,961:23040:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 14:04:54,844:7392:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:04:54,845:7392:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 14:04:54,845:7392:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 14:04:54,845:7392:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 14:04:54,846:7392:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 14:04:54,846:7392:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:07:13,923:27772:INFO:logging service started
+2022-01-11 14:07:13,955:27772:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_6.txt
+2022-01-11 14:07:13,954:27772:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 14:07:13,956:27772:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 14:07:13,956:27772:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 14:07:13,957:27772:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 14:07:13,957:27772:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 14:07:13,957:27772:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 14:07:13,957:27772:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 14:07:14,010:27772:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 14:07:14,117:27772:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 14:07:14,191:27772:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 14:07:14,694:27772:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 14:07:14,696:27772:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 14:07:14,696:27772:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 14:07:14,697:27772:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 14:07:14,697:27772:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 14:07:14,697:27772:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 14:07:14,697:27772:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 14:07:14,698:27772:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 14:07:14,698:27772:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 14:07:14,698:27772:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 14:07:14,732:27772:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 14:07:14,734:27772:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 14:07:14,777:27772:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 14:07:14,805:27772:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 14:07:14,857:27772:[1;32mINFO[0m:starting render manager
+2022-01-11 14:07:16,581:18872:INFO:logging service started
+2022-01-11 14:07:16,661:27772:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 14:07:16,847:27772:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 14:07:18,371:31620:INFO:logging service started
+2022-01-11 14:07:18,388:31620:INFO:render process started, reading settings
+2022-01-11 14:07:18,390:31620:INFO:starting new rendering iteration
+2022-01-11 14:07:18,391:31620:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 14:07:23,760:27772:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:07:23,761:27772:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 14:07:23,761:27772:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 14:07:23,761:27772:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 14:07:23,762:27772:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 14:07:23,762:27772:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:08:10,400:21836:INFO:logging service started
+2022-01-11 14:08:10,434:21836:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_7.txt
+2022-01-11 14:08:10,433:21836:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 14:08:10,435:21836:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 14:08:10,435:21836:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 14:08:10,436:21836:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 14:08:10,436:21836:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 14:08:10,436:21836:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 14:08:10,436:21836:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 14:08:10,491:21836:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 14:08:10,599:21836:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 14:08:10,673:21836:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 14:08:11,173:21836:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 14:08:11,175:21836:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 14:08:11,175:21836:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 14:08:11,176:21836:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 14:08:11,176:21836:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 14:08:11,177:21836:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 14:08:11,177:21836:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 14:08:11,177:21836:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 14:08:11,177:21836:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 14:08:11,178:21836:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 14:08:11,212:21836:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 14:08:11,214:21836:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 14:08:11,267:21836:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 14:08:11,283:21836:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 14:08:11,331:21836:[1;32mINFO[0m:starting render manager
+2022-01-11 14:08:13,056:3864:INFO:logging service started
+2022-01-11 14:08:13,135:21836:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 14:08:13,329:21836:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 14:08:14,866:28348:INFO:logging service started
+2022-01-11 14:08:14,883:28348:INFO:render process started, reading settings
+2022-01-11 14:08:14,884:28348:INFO:starting new rendering iteration
+2022-01-11 14:08:14,886:28348:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 14:08:16,587:21836:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:08:16,588:21836:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 14:08:16,588:21836:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 14:08:16,588:21836:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 14:08:16,589:21836:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 14:08:16,589:21836:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:08:41,159:14236:INFO:logging service started
+2022-01-11 14:08:41,192:14236:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_8.txt
+2022-01-11 14:08:41,190:14236:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 14:08:41,193:14236:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 14:08:41,193:14236:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 14:08:41,193:14236:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 14:08:41,193:14236:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 14:08:41,194:14236:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 14:08:41,194:14236:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 14:08:41,244:14236:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 14:08:41,355:14236:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 14:08:41,430:14236:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 14:08:41,939:14236:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 14:08:41,940:14236:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 14:08:41,941:14236:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 14:08:41,941:14236:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 14:08:41,942:14236:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 14:08:41,942:14236:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 14:08:41,942:14236:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 14:08:41,943:14236:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 14:08:41,943:14236:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 14:08:41,943:14236:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 14:08:41,979:14236:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 14:08:41,980:14236:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 14:08:42,035:14236:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 14:08:42,051:14236:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 14:08:42,099:14236:[1;32mINFO[0m:starting render manager
+2022-01-11 14:08:43,826:22416:INFO:logging service started
+2022-01-11 14:08:43,905:14236:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 14:08:44,093:14236:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 14:08:45,607:27980:INFO:logging service started
+2022-01-11 14:08:45,624:27980:INFO:render process started, reading settings
+2022-01-11 14:08:45,626:27980:INFO:starting new rendering iteration
+2022-01-11 14:08:45,628:27980:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 14:08:47,843:14236:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:08:47,844:14236:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 14:08:47,844:14236:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 14:08:47,844:14236:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 14:08:47,845:14236:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 14:08:47,845:14236:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:24:44,342:26484:INFO:logging service started
+2022-01-11 14:24:44,376:26484:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_9.txt
+2022-01-11 14:24:44,375:26484:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 14:24:44,377:26484:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 14:24:44,377:26484:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 14:24:44,377:26484:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 14:24:44,378:26484:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 14:24:44,378:26484:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 14:24:44,378:26484:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 14:24:44,430:26484:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 14:24:44,540:26484:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 14:24:44,618:26484:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 14:24:45,157:26484:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 14:24:45,159:26484:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 14:24:45,159:26484:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 14:24:45,160:26484:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 14:24:45,160:26484:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 14:24:45,161:26484:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 14:24:45,161:26484:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 14:24:45,161:26484:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 14:24:45,162:26484:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 14:24:45,162:26484:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 14:24:45,197:26484:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 14:24:45,199:26484:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 14:24:45,253:26484:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 14:24:45,270:26484:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 14:24:45,318:26484:[1;32mINFO[0m:starting render manager
+2022-01-11 14:24:47,085:26932:INFO:logging service started
+2022-01-11 14:24:47,168:26484:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 14:24:47,380:26484:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 14:24:48,943:29144:INFO:logging service started
+2022-01-11 14:24:48,960:29144:INFO:render process started, reading settings
+2022-01-11 14:24:48,962:29144:INFO:starting new rendering iteration
+2022-01-11 14:24:48,963:29144:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 14:24:50,606:26484:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:24:50,607:26484:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 14:24:50,607:26484:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 14:24:50,607:26484:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 14:24:50,608:26484:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 14:24:50,608:26484:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:27:14,967:19856:INFO:logging service started
+2022-01-11 14:27:15,001:19856:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_10.txt
+2022-01-11 14:27:14,999:19856:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 14:27:15,002:19856:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 14:27:15,002:19856:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 14:27:15,002:19856:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 14:27:15,002:19856:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 14:27:15,003:19856:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 14:27:15,003:19856:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 14:27:15,053:19856:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 14:27:15,160:19856:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 14:27:15,235:19856:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 14:27:15,739:19856:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 14:27:15,740:19856:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 14:27:15,741:19856:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 14:27:15,742:19856:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 14:27:15,742:19856:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 14:27:15,742:19856:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 14:27:15,743:19856:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 14:27:15,743:19856:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 14:27:15,743:19856:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 14:27:15,743:19856:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 14:27:15,779:19856:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 14:27:15,780:19856:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 14:27:15,834:19856:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 14:27:15,850:19856:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 14:27:15,899:19856:[1;32mINFO[0m:starting render manager
+2022-01-11 14:27:17,685:30828:INFO:logging service started
+2022-01-11 14:27:17,766:19856:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 14:27:17,960:19856:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 14:27:19,480:23560:INFO:logging service started
+2022-01-11 14:27:19,497:23560:INFO:render process started, reading settings
+2022-01-11 14:27:19,498:23560:INFO:starting new rendering iteration
+2022-01-11 14:27:19,500:23560:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 14:27:20,971:19856:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 14:27:20,972:19856:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 14:27:20,972:19856:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 14:27:20,972:19856:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 14:27:20,973:19856:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 14:27:20,973:19856:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 20:38:07,325:7460:INFO:logging service started
+2022-01-11 20:38:07,396:7460:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_11.txt
+2022-01-11 20:38:07,394:7460:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 20:38:07,396:7460:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 20:38:07,397:7460:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 20:38:07,397:7460:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 20:38:07,397:7460:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 20:38:07,397:7460:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 20:38:07,398:7460:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 20:38:07,510:7460:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 20:38:07,731:7460:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 20:38:07,936:7460:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 20:38:08,550:7460:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 20:38:08,557:7460:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 20:38:08,558:7460:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 20:38:08,559:7460:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 20:38:08,559:7460:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 20:38:08,559:7460:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 20:38:08,560:7460:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 20:38:08,560:7460:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 20:38:08,561:7460:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 20:38:08,561:7460:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 20:38:08,600:7460:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 20:38:08,624:7460:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 20:38:08,766:7460:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 20:38:08,829:7460:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 20:38:08,981:7460:[1;32mINFO[0m:starting render manager
+2022-01-11 20:38:10,818:2900:INFO:logging service started
+2022-01-11 20:38:10,912:7460:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 20:38:11,180:7460:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 20:38:12,594:25412:INFO:logging service started
+2022-01-11 20:38:12,611:25412:INFO:render process started, reading settings
+2022-01-11 20:38:12,627:25412:INFO:starting new rendering iteration
+2022-01-11 20:38:12,629:25412:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 20:38:17,303:7460:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 20:38:17,304:7460:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 20:38:17,304:7460:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 20:38:17,304:7460:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 20:38:17,306:7460:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 20:38:17,306:7460:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 20:39:54,988:22852:INFO:logging service started
+2022-01-11 20:39:55,018:22852:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_12.txt
+2022-01-11 20:39:55,017:22852:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 20:39:55,019:22852:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 20:39:55,019:22852:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 20:39:55,020:22852:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 20:39:55,020:22852:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 20:39:55,020:22852:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 20:39:55,020:22852:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 20:39:55,068:22852:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 20:39:55,172:22852:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 20:39:55,244:22852:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 20:39:55,728:22852:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 20:39:55,729:22852:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 20:39:55,730:22852:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 20:39:55,731:22852:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 20:39:55,731:22852:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 20:39:55,731:22852:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 20:39:55,732:22852:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 20:39:55,732:22852:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 20:39:55,732:22852:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 20:39:55,732:22852:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 20:39:55,764:22852:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 20:39:55,765:22852:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 20:39:55,796:22852:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 20:39:55,817:22852:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 20:39:55,863:22852:[1;32mINFO[0m:starting render manager
+2022-01-11 20:39:57,553:4656:INFO:logging service started
+2022-01-11 20:39:57,630:22852:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 20:39:57,816:22852:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 20:39:59,297:21456:INFO:logging service started
+2022-01-11 20:39:59,315:21456:INFO:render process started, reading settings
+2022-01-11 20:39:59,316:21456:INFO:starting new rendering iteration
+2022-01-11 20:39:59,318:21456:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 20:40:03,241:22852:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 20:40:03,242:22852:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 20:40:03,242:22852:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 20:40:03,242:22852:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 20:40:03,243:22852:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 20:40:03,243:22852:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 20:42:09,482:11192:INFO:logging service started
+2022-01-11 20:42:09,512:11192:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_13.txt
+2022-01-11 20:42:09,511:11192:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 20:42:09,513:11192:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 20:42:09,513:11192:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 20:42:09,514:11192:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 20:42:09,514:11192:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 20:42:09,514:11192:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 20:42:09,514:11192:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 20:42:09,563:11192:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 20:42:09,667:11192:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 20:42:09,738:11192:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 20:42:10,215:11192:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 20:42:10,217:11192:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 20:42:10,217:11192:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 20:42:10,218:11192:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 20:42:10,218:11192:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 20:42:10,219:11192:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 20:42:10,219:11192:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 20:42:10,219:11192:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 20:42:10,219:11192:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 20:42:10,220:11192:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 20:42:10,251:11192:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 20:42:10,253:11192:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 20:42:10,294:11192:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 20:42:10,310:11192:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 20:42:10,357:11192:[1;32mINFO[0m:starting render manager
+2022-01-11 20:42:12,042:18340:INFO:logging service started
+2022-01-11 20:42:12,119:11192:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 20:42:12,306:11192:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 20:42:13,785:21716:INFO:logging service started
+2022-01-11 20:42:13,802:21716:INFO:render process started, reading settings
+2022-01-11 20:42:13,803:21716:INFO:starting new rendering iteration
+2022-01-11 20:42:13,805:21716:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 20:42:15,430:11192:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 20:42:15,431:11192:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 20:42:15,431:11192:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 20:42:15,431:11192:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 20:42:15,432:11192:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 20:42:15,433:11192:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 20:56:33,036:13672:INFO:logging service started
+2022-01-11 20:56:33,067:13672:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_14.txt
+2022-01-11 20:56:33,065:13672:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 20:56:33,068:13672:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 20:56:33,068:13672:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 20:56:33,068:13672:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 20:56:33,069:13672:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 20:56:33,069:13672:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 20:56:33,069:13672:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 20:56:33,121:13672:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 20:56:33,229:13672:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 20:56:33,308:13672:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 20:56:33,862:13672:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 20:56:33,864:13672:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 20:56:33,864:13672:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 20:56:33,865:13672:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 20:56:33,865:13672:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 20:56:33,866:13672:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 20:56:33,866:13672:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 20:56:33,866:13672:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 20:56:33,866:13672:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 20:56:33,867:13672:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 20:56:33,898:13672:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 20:56:33,900:13672:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 20:56:33,963:13672:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 20:56:33,979:13672:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 20:56:34,025:13672:[1;32mINFO[0m:starting render manager
+2022-01-11 20:56:35,680:17396:INFO:logging service started
+2022-01-11 20:56:35,757:13672:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 20:56:35,943:13672:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 20:56:37,431:15804:INFO:logging service started
+2022-01-11 20:56:37,447:15804:INFO:render process started, reading settings
+2022-01-11 20:56:37,448:15804:INFO:starting new rendering iteration
+2022-01-11 20:56:37,450:15804:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 20:56:39,955:13672:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 20:56:39,956:13672:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 20:56:39,956:13672:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 20:56:39,956:13672:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 420, in redraw
+2022-01-11 20:56:39,957:13672:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 20:56:39,957:13672:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 21:05:34,130:25876:INFO:logging service started
+2022-01-11 21:05:34,313:25876:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_15.txt
+2022-01-11 21:05:34,311:25876:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 21:05:34,313:25876:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 21:05:34,314:25876:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 21:05:34,314:25876:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 21:05:34,314:25876:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 21:05:34,314:25876:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 21:05:34,315:25876:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 21:05:34,933:25876:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 21:05:35,688:25876:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 21:05:36,486:25876:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 21:05:37,941:25876:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 21:05:37,943:25876:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 21:05:37,943:25876:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 21:05:37,944:25876:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 21:05:37,944:25876:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 21:05:37,945:25876:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 21:05:37,945:25876:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 21:05:37,945:25876:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 21:05:37,946:25876:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 21:05:37,946:25876:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 21:05:38,050:25876:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 21:05:38,054:25876:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 21:05:38,384:25876:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 21:05:38,571:25876:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 21:05:38,734:25876:[1;32mINFO[0m:starting render manager
+2022-01-11 21:05:40,501:32908:INFO:logging service started
+2022-01-11 21:05:40,635:25876:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 21:05:41,425:25876:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 21:05:42,311:31492:INFO:logging service started
+2022-01-11 21:05:42,347:31492:INFO:render process started, reading settings
+2022-01-11 21:05:42,348:31492:INFO:starting new rendering iteration
+2022-01-11 21:05:42,350:31492:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 21:05:45,016:25876:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 21:05:45,016:25876:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 21:05:45,016:25876:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 21:05:45,017:25876:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 421, in redraw
+2022-01-11 21:05:45,017:25876:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 21:05:45,018:25876:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 21:07:09,070:28196:INFO:logging service started
+2022-01-11 21:07:09,101:28196:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-11_16.txt
+2022-01-11 21:07:09,100:28196:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-11 21:07:09,102:28196:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-11 21:07:09,103:28196:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-11 21:07:09,103:28196:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-11 21:07:09,103:28196:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-11 21:07:09,103:28196:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-11 21:07:09,104:28196:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-11 21:07:09,153:28196:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-11 21:07:09,257:28196:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-11 21:07:09,328:28196:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-11 21:07:09,801:28196:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-11 21:07:09,803:28196:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-11 21:07:09,803:28196:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-11 21:07:09,804:28196:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-11 21:07:09,804:28196:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-11 21:07:09,805:28196:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-11 21:07:09,805:28196:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-11 21:07:09,805:28196:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-11 21:07:09,805:28196:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-11 21:07:09,806:28196:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-11 21:07:09,838:28196:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-11 21:07:09,839:28196:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-11 21:07:09,893:28196:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-11 21:07:09,909:28196:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-11 21:07:09,956:28196:[1;32mINFO[0m:starting render manager
+2022-01-11 21:07:11,629:31404:INFO:logging service started
+2022-01-11 21:07:11,707:28196:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-11 21:07:11,892:28196:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-11 21:07:13,340:26140:INFO:logging service started
+2022-01-11 21:07:13,357:26140:INFO:render process started, reading settings
+2022-01-11 21:07:13,358:26140:INFO:starting new rendering iteration
+2022-01-11 21:07:13,360:26140:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-11 21:07:17,074:28196:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-11 21:07:17,075:28196:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-11 21:07:17,075:28196:WARNING:stderr: Traceback (most recent call last):
+2022-01-11 21:07:17,075:28196:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 421, in redraw
+2022-01-11 21:07:17,076:28196:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-11 21:07:17,076:28196:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:21:37,256:20968:INFO:logging service started
+2022-01-12 01:21:37,414:20968:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_0.txt
+2022-01-12 01:21:37,413:20968:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:21:37,415:20968:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:21:37,415:20968:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:21:37,415:20968:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:21:37,415:20968:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:21:37,415:20968:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:21:37,416:20968:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:21:37,713:20968:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:21:38,499:20968:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:21:39,326:20968:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:21:40,285:20968:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:21:40,287:20968:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:21:40,287:20968:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:21:40,288:20968:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:21:40,288:20968:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:21:40,289:20968:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:21:40,290:20968:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:21:40,290:20968:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:21:40,290:20968:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:21:40,290:20968:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:21:40,394:20968:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:21:40,400:20968:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:21:40,678:20968:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:21:40,892:20968:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:21:41,082:20968:[1;32mINFO[0m:starting render manager
+2022-01-12 01:21:42,846:31784:INFO:logging service started
+2022-01-12 01:21:42,989:20968:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:21:43,277:20968:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:21:44,650:32104:INFO:logging service started
+2022-01-12 01:21:44,667:32104:INFO:render process started, reading settings
+2022-01-12 01:21:44,678:32104:INFO:starting new rendering iteration
+2022-01-12 01:21:44,680:32104:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:22:27,825:792:INFO:logging service started
+2022-01-12 01:22:27,855:792:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_1.txt
+2022-01-12 01:22:27,854:792:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:22:27,855:792:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:22:27,856:792:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:22:27,856:792:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:22:27,857:792:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:22:27,857:792:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:22:27,857:792:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:22:27,906:792:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:22:28,012:792:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:22:28,082:792:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:22:28,571:792:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:22:28,573:792:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:22:28,573:792:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:22:28,574:792:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:22:28,574:792:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:22:28,574:792:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:22:28,575:792:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:22:28,575:792:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:22:28,575:792:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:22:28,575:792:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:22:28,606:792:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:22:28,608:792:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:22:28,661:792:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:22:28,677:792:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:22:28,722:792:[1;32mINFO[0m:starting render manager
+2022-01-12 01:22:30,398:1776:INFO:logging service started
+2022-01-12 01:22:30,476:792:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:22:30,662:792:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:22:32,155:5528:INFO:logging service started
+2022-01-12 01:22:32,171:5528:INFO:render process started, reading settings
+2022-01-12 01:22:32,172:5528:INFO:starting new rendering iteration
+2022-01-12 01:22:32,174:5528:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:22:36,270:792:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:22:36,271:792:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:22:36,271:792:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:22:36,271:792:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 421, in redraw
+2022-01-12 01:22:36,272:792:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:22:36,272:792:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:24:12,594:23752:INFO:logging service started
+2022-01-12 01:24:12,624:23752:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_2.txt
+2022-01-12 01:24:12,623:23752:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:24:12,625:23752:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:24:12,625:23752:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:24:12,625:23752:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:24:12,626:23752:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:24:12,626:23752:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:24:12,626:23752:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:24:12,674:23752:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:24:12,778:23752:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:24:12,847:23752:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:24:13,321:23752:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:24:13,323:23752:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:24:13,323:23752:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:24:13,324:23752:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:24:13,325:23752:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:24:13,325:23752:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:24:13,325:23752:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:24:13,325:23752:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:24:13,326:23752:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:24:13,326:23752:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:24:13,358:23752:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:24:13,359:23752:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:24:13,390:23752:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:24:13,407:23752:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:24:13,454:23752:[1;32mINFO[0m:starting render manager
+2022-01-12 01:24:15,126:2776:INFO:logging service started
+2022-01-12 01:24:15,203:23752:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:24:15,387:23752:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:24:16,793:12376:INFO:logging service started
+2022-01-12 01:24:16,809:12376:INFO:render process started, reading settings
+2022-01-12 01:24:16,810:12376:INFO:starting new rendering iteration
+2022-01-12 01:24:16,812:12376:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:24:20,878:23752:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:24:20,879:23752:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:24:20,879:23752:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:24:20,879:23752:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 421, in redraw
+2022-01-12 01:24:20,880:23752:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:24:20,880:23752:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:28:46,921:31908:INFO:logging service started
+2022-01-12 01:28:46,951:31908:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_3.txt
+2022-01-12 01:28:46,950:31908:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:28:46,952:31908:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:28:46,952:31908:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:28:46,953:31908:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:28:46,955:31908:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:28:46,955:31908:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:28:46,955:31908:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:28:47,005:31908:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:28:47,110:31908:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:28:47,181:31908:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:28:47,653:31908:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:28:47,655:31908:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:28:47,655:31908:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:28:47,656:31908:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:28:47,656:31908:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:28:47,656:31908:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:28:47,657:31908:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:28:47,657:31908:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:28:47,657:31908:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:28:47,658:31908:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:28:47,688:31908:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:28:47,690:31908:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:28:47,733:31908:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:28:47,749:31908:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:28:47,794:31908:[1;32mINFO[0m:starting render manager
+2022-01-12 01:28:49,452:23048:INFO:logging service started
+2022-01-12 01:28:49,529:31908:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:28:49,715:31908:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:28:51,137:3856:INFO:logging service started
+2022-01-12 01:28:51,153:3856:INFO:render process started, reading settings
+2022-01-12 01:28:51,154:3856:INFO:starting new rendering iteration
+2022-01-12 01:28:51,156:3856:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:28:54,806:31908:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:28:54,807:31908:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:28:54,807:31908:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:28:54,807:31908:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 421, in redraw
+2022-01-12 01:28:54,808:31908:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:28:54,808:31908:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:29:36,935:13400:INFO:logging service started
+2022-01-12 01:29:36,964:13400:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_4.txt
+2022-01-12 01:29:36,963:13400:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:29:36,965:13400:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:29:36,965:13400:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:29:36,966:13400:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:29:36,966:13400:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:29:36,966:13400:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:29:36,967:13400:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:29:37,015:13400:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:29:37,119:13400:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:29:37,188:13400:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:29:37,657:13400:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:29:37,658:13400:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:29:37,659:13400:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:29:37,660:13400:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:29:37,660:13400:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:29:37,660:13400:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:29:37,660:13400:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:29:37,661:13400:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:29:37,661:13400:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:29:37,661:13400:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:29:37,692:13400:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:29:37,694:13400:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:29:37,747:13400:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:29:37,763:13400:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:29:37,809:13400:[1;32mINFO[0m:starting render manager
+2022-01-12 01:29:39,461:20228:INFO:logging service started
+2022-01-12 01:29:39,538:13400:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:29:39,722:13400:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:29:41,147:24840:INFO:logging service started
+2022-01-12 01:29:41,164:24840:INFO:render process started, reading settings
+2022-01-12 01:29:41,165:24840:INFO:starting new rendering iteration
+2022-01-12 01:29:41,167:24840:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:29:45,080:13400:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:29:45,081:13400:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:29:45,081:13400:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:29:45,081:13400:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 421, in redraw
+2022-01-12 01:29:45,082:13400:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:29:45,082:13400:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:32:29,358:23016:INFO:logging service started
+2022-01-12 01:32:29,388:23016:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_5.txt
+2022-01-12 01:32:29,387:23016:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:32:29,389:23016:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:32:29,389:23016:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:32:29,389:23016:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:32:29,389:23016:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:32:29,390:23016:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:32:29,390:23016:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:32:29,439:23016:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:32:29,543:23016:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:32:29,613:23016:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:32:30,077:23016:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:32:30,078:23016:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:32:30,078:23016:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:32:30,079:23016:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:32:30,079:23016:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:32:30,080:23016:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:32:30,080:23016:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:32:30,080:23016:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:32:30,080:23016:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:32:30,081:23016:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:32:30,112:23016:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:32:30,113:23016:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:32:30,168:23016:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:32:30,184:23016:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:32:30,231:23016:[1;32mINFO[0m:starting render manager
+2022-01-12 01:32:31,880:10356:INFO:logging service started
+2022-01-12 01:32:31,956:23016:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:32:32,142:23016:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:32:33,555:17604:INFO:logging service started
+2022-01-12 01:32:33,571:17604:INFO:render process started, reading settings
+2022-01-12 01:32:33,572:17604:INFO:starting new rendering iteration
+2022-01-12 01:32:33,574:17604:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:32:37,609:23016:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:32:37,610:23016:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:32:37,610:23016:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:32:37,610:23016:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 421, in redraw
+2022-01-12 01:32:37,611:23016:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:32:37,611:23016:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:33:07,058:3408:INFO:logging service started
+2022-01-12 01:33:07,088:3408:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_6.txt
+2022-01-12 01:33:07,087:3408:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:33:07,088:3408:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:33:07,089:3408:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:33:07,089:3408:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:33:07,089:3408:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:33:07,089:3408:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:33:07,090:3408:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:33:07,138:3408:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:33:07,244:3408:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:33:07,316:3408:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:33:07,788:3408:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:33:07,789:3408:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:33:07,789:3408:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:33:07,790:3408:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:33:07,791:3408:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:33:07,791:3408:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:33:07,791:3408:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:33:07,792:3408:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:33:07,792:3408:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:33:07,792:3408:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:33:07,823:3408:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:33:07,824:3408:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:33:07,855:3408:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:33:07,871:3408:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:33:07,917:3408:[1;32mINFO[0m:starting render manager
+2022-01-12 01:33:09,619:28704:INFO:logging service started
+2022-01-12 01:33:09,695:3408:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:33:09,881:3408:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:33:11,306:19816:INFO:logging service started
+2022-01-12 01:33:11,323:19816:INFO:render process started, reading settings
+2022-01-12 01:33:11,324:19816:INFO:starting new rendering iteration
+2022-01-12 01:33:11,325:19816:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:33:15,890:29644:INFO:logging service started
+2022-01-12 01:33:15,920:29644:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_7.txt
+2022-01-12 01:33:15,919:29644:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:33:15,920:29644:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:33:15,921:29644:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:33:15,921:29644:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:33:15,921:29644:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:33:15,921:29644:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:33:15,922:29644:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:33:15,970:29644:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:33:16,076:29644:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:33:16,148:29644:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:33:16,652:29644:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:33:16,654:29644:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:33:16,654:29644:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:33:16,655:29644:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:33:16,656:29644:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:33:16,656:29644:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:33:16,656:29644:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:33:16,657:29644:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:33:16,657:29644:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:33:16,657:29644:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:33:16,689:29644:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:33:16,690:29644:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:33:16,710:29644:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:33:16,726:29644:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:33:16,775:29644:[1;32mINFO[0m:starting render manager
+2022-01-12 01:33:18,418:21912:INFO:logging service started
+2022-01-12 01:33:18,494:29644:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:33:18,680:29644:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:33:20,132:16820:INFO:logging service started
+2022-01-12 01:33:20,149:16820:INFO:render process started, reading settings
+2022-01-12 01:33:20,150:16820:INFO:starting new rendering iteration
+2022-01-12 01:33:20,152:16820:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:33:21,900:29644:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:33:21,901:29644:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:33:21,901:29644:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:33:21,901:29644:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 421, in redraw
+2022-01-12 01:33:21,902:29644:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:33:21,902:29644:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:35:13,569:10048:INFO:logging service started
+2022-01-12 01:35:13,602:10048:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_8.txt
+2022-01-12 01:35:13,601:10048:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:35:13,603:10048:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:35:13,603:10048:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:35:13,604:10048:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:35:13,604:10048:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:35:13,604:10048:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:35:13,605:10048:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:35:13,659:10048:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:35:13,766:10048:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:35:13,836:10048:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:35:14,311:10048:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:35:14,312:10048:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:35:14,313:10048:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:35:14,314:10048:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:35:14,314:10048:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:35:14,314:10048:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:35:14,315:10048:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:35:14,315:10048:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:35:14,315:10048:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:35:14,339:10048:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:35:14,370:10048:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:35:14,372:10048:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:35:14,414:10048:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:35:14,429:10048:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:35:14,476:10048:[1;32mINFO[0m:starting render manager
+2022-01-12 01:35:16,143:32788:INFO:logging service started
+2022-01-12 01:35:16,219:10048:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:35:16,404:10048:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:35:17,830:15456:INFO:logging service started
+2022-01-12 01:35:17,846:15456:INFO:render process started, reading settings
+2022-01-12 01:35:17,847:15456:INFO:starting new rendering iteration
+2022-01-12 01:35:17,849:15456:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:35:20,757:10048:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:35:20,758:10048:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:35:20,758:10048:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:35:20,758:10048:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 421, in redraw
+2022-01-12 01:35:20,759:10048:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:35:20,759:10048:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:55:08,262:27108:INFO:logging service started
+2022-01-12 01:55:08,291:27108:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_9.txt
+2022-01-12 01:55:08,290:27108:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:55:08,292:27108:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:55:08,292:27108:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:55:08,293:27108:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:55:08,293:27108:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:55:08,293:27108:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:55:08,293:27108:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:55:08,341:27108:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:55:08,445:27108:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:55:08,514:27108:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:55:09,016:27108:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:55:09,018:27108:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:55:09,018:27108:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:55:09,018:27108:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:55:09,019:27108:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:55:09,019:27108:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:55:09,020:27108:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:55:09,020:27108:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:55:09,020:27108:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:55:09,020:27108:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:55:09,051:27108:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:55:09,052:27108:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:55:09,105:27108:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:55:09,121:27108:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:55:09,166:27108:[1;32mINFO[0m:starting render manager
+2022-01-12 01:55:10,829:24572:INFO:logging service started
+2022-01-12 01:55:10,905:27108:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:55:11,103:27108:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:55:12,550:33252:INFO:logging service started
+2022-01-12 01:55:12,566:33252:INFO:render process started, reading settings
+2022-01-12 01:55:12,567:33252:INFO:starting new rendering iteration
+2022-01-12 01:55:12,569:33252:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:55:14,540:27108:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:55:14,541:27108:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:55:14,541:27108:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:55:14,541:27108:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 429, in redraw
+2022-01-12 01:55:14,542:27108:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:55:14,542:27108:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:56:58,977:25788:INFO:logging service started
+2022-01-12 01:56:59,007:25788:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_10.txt
+2022-01-12 01:56:59,006:25788:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:56:59,007:25788:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:56:59,008:25788:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:56:59,008:25788:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:56:59,008:25788:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:56:59,008:25788:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:56:59,009:25788:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:56:59,056:25788:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:56:59,159:25788:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:56:59,229:25788:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:56:59,696:25788:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:56:59,698:25788:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:56:59,698:25788:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:56:59,699:25788:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:56:59,700:25788:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:56:59,700:25788:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:56:59,701:25788:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:56:59,701:25788:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:56:59,701:25788:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:56:59,701:25788:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:56:59,732:25788:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:56:59,733:25788:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:56:59,785:25788:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:56:59,802:25788:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:56:59,847:25788:[1;32mINFO[0m:starting render manager
+2022-01-12 01:57:01,510:32356:INFO:logging service started
+2022-01-12 01:57:01,588:25788:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:57:01,773:25788:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:57:03,229:31544:INFO:logging service started
+2022-01-12 01:57:03,245:31544:INFO:render process started, reading settings
+2022-01-12 01:57:03,246:31544:INFO:starting new rendering iteration
+2022-01-12 01:57:03,248:31544:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:57:04,851:25788:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:57:04,851:25788:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:57:04,852:25788:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:57:04,852:25788:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 429, in redraw
+2022-01-12 01:57:04,853:25788:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:57:04,853:25788:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:58:27,165:33240:INFO:logging service started
+2022-01-12 01:58:27,195:33240:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-12_11.txt
+2022-01-12 01:58:27,194:33240:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-12 01:58:27,195:33240:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-12 01:58:27,196:33240:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-12 01:58:27,196:33240:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-12 01:58:27,196:33240:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-12 01:58:27,196:33240:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-12 01:58:27,197:33240:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-12 01:58:27,245:33240:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-12 01:58:27,348:33240:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-12 01:58:27,417:33240:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-12 01:58:27,890:33240:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-12 01:58:27,891:33240:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-12 01:58:27,892:33240:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-12 01:58:27,892:33240:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-12 01:58:27,893:33240:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-12 01:58:27,893:33240:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-12 01:58:27,893:33240:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-12 01:58:27,893:33240:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-12 01:58:27,894:33240:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-12 01:58:27,894:33240:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-12 01:58:27,925:33240:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-12 01:58:27,927:33240:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-12 01:58:27,958:33240:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-12 01:58:27,974:33240:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-12 01:58:28,019:33240:[1;32mINFO[0m:starting render manager
+2022-01-12 01:58:29,658:5772:INFO:logging service started
+2022-01-12 01:58:29,733:33240:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-01-12 01:58:29,919:33240:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-01-12 01:58:31,362:32644:INFO:logging service started
+2022-01-12 01:58:31,380:32644:INFO:render process started, reading settings
+2022-01-12 01:58:31,381:32644:INFO:starting new rendering iteration
+2022-01-12 01:58:31,382:32644:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-12 01:58:33,603:33240:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-01-12 01:58:33,604:33240:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-01-12 01:58:33,604:33240:WARNING:stderr: Traceback (most recent call last):
+2022-01-12 01:58:33,604:33240:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 429, in redraw
+2022-01-12 01:58:33,605:33240:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-01-12 01:58:33,605:33240:WARNING:stderr: ValueError: list.remove(x): x not in list
