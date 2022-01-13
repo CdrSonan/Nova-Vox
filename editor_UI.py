@@ -217,7 +217,7 @@ class MiddleLayer(Widget):
                 for i in self.trackList[self.activeTrack].notes[index + 1:]:
                     i.phonemeStart += 1
                     i.phonemeEnd += 1
-    def switchNote(self, index):
+    def switchNote(self, index, oldLength, oldPos):
         def switch(self, index):
             note = self.trackList[self.activeTrack].notes.pop(index + 1)
             seq1 = self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd]
@@ -234,33 +234,36 @@ class MiddleLayer(Widget):
             self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = seq1
             self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = brd2
             self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart:3 * self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = brd1
-        def scale(self, index):
-            length = self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos
-            for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd):
-                print(length / self.trackList[self.activeTrack].notes[index].length, self.trackList[self.activeTrack].borders[3 * i + 1], self.trackList[self.activeTrack].notes[index].xPos)
-                #old length calculated incorrectly; replace readout with dynaminc minimum at the right time
-                self.trackList[self.activeTrack].borders[3 * i] = (self.trackList[self.activeTrack].borders[3 * i] - self.trackList[self.activeTrack].notes[index].xPos) * length / self.trackList[self.activeTrack].notes[index].length + self.trackList[self.activeTrack].notes[index].xPos
-                self.trackList[self.activeTrack].borders[3 * i + 1] = (self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].notes[index].xPos) * length / self.trackList[self.activeTrack].notes[index].length + self.trackList[self.activeTrack].notes[index].xPos
-                self.trackList[self.activeTrack].borders[3 * i + 2] = (self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].notes[index].xPos) * length / self.trackList[self.activeTrack].notes[index].length + self.trackList[self.activeTrack].notes[index].xPos
+        def scale(self, index, oldLength):
+            length = self.trackList[self.activeTrack].notes[index].length
+            iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
+            if index + 1 < len(self.trackList[self.activeTrack].notes):
+                length = min(length, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
+            else: iterationEnd += 1
+            for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
+                self.trackList[self.activeTrack].borders[3 * i] = (self.trackList[self.activeTrack].borders[3 * i] - self.trackList[self.activeTrack].notes[index].xPos) * length / oldLength + self.trackList[self.activeTrack].notes[index].xPos
+                self.trackList[self.activeTrack].borders[3 * i + 1] = (self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].notes[index].xPos) * length / oldLength + self.trackList[self.activeTrack].notes[index].xPos
+                self.trackList[self.activeTrack].borders[3 * i + 2] = (self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].notes[index].xPos) * length / oldLength + self.trackList[self.activeTrack].notes[index].xPos
         result = None
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             if self.trackList[self.activeTrack].notes[index].xPos > self.trackList[self.activeTrack].notes[index + 1].xPos:
                 switch(self, index)
                 result = True
-            if self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos < self.trackList[self.activeTrack].notes[index].length:
-                scale(self, index)
+        scale(self, index, oldLength)
         if index > 0:
             if self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
                 switch(self, index - 1)
                 result = False
-            if self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index - 1].xPos < self.trackList[self.activeTrack].notes[index - 1].length:
-                scale(self, index - 1)
+            scale(self, index - 1, min(oldPos - self.trackList[self.activeTrack].notes[index - 1].xPos, self.trackList[self.activeTrack].notes[index - 1].length))
         return result
     def addNote(self, index, x, y, reference):
         if index == 0:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 0, reference))
         elif index == len(self.trackList[self.activeTrack].notes):
             self.trackList[self.activeTrack].notes.append(dh.Note(x, y, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, reference))
+            self.trackList[self.activeTrack].borders[len(self.trackList[self.activeTrack].sequence) - 3] = x + 33
+            self.trackList[self.activeTrack].borders[len(self.trackList[self.activeTrack].sequence) - 2] = x + 66
+            self.trackList[self.activeTrack].borders[len(self.trackList[self.activeTrack].sequence) - 1] = x + 100
         else:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart, reference))
     def removeNote(self, index):
@@ -268,20 +271,28 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes.pop(index)
     def changeNoteLength(self, index, x, length):
         for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd):
-            self.trackList[self.activeTrack].borders[3 * i] = (self.trackList[self.activeTrack].borders[3 * i] - self.trackList[self.activeTrack].notes[index].xPos) * length / self.trackList[self.activeTrack].notes[index].length + x
-            self.trackList[self.activeTrack].borders[3 * i + 1] = (self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].notes[index].xPos) * length / self.trackList[self.activeTrack].notes[index].length + x
-            self.trackList[self.activeTrack].borders[3 * i + 2] = (self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].notes[index].xPos) * length / self.trackList[self.activeTrack].notes[index].length + x
+            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
+        oldLength = self.trackList[self.activeTrack].notes[index].length
+        if index + 1 < len(self.trackList[self.activeTrack].notes):
+            oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
+        oldPos = self.trackList[self.activeTrack].notes[index].xPos
         self.trackList[self.activeTrack].notes[index].length = length
         self.trackList[self.activeTrack].notes[index].xPos = x
-        return self.switchNote(index)
+        return self.switchNote(index, oldLength, oldPos)
     def moveNote(self, index, x, y):
         for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd):
             self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
+        oldLength = self.trackList[self.activeTrack].notes[index].length
+        if index + 1 < len(self.trackList[self.activeTrack].notes):
+            oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
+        oldPos = self.trackList[self.activeTrack].notes[index].xPos
         self.trackList[self.activeTrack].notes[index].xPos = x
         self.trackList[self.activeTrack].notes[index].yPos = y
-        return self.switchNote(index)
+        return self.switchNote(index, oldLength, oldPos)
     def changeLyrics(self, index, text, mode):
         self.trackList[self.activeTrack].notes[index].content = text
         if mode:
@@ -303,7 +314,10 @@ class MiddleLayer(Widget):
         if index < len(self.trackList[self.activeTrack].notes) - 1:
             end = min(end, self.trackList[self.activeTrack].notes[index + 1].xPos)
         divisor = (len(phonemes) + 1) * 3
-        for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd):
+        iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
+        if index + 1 == len(self.trackList[self.activeTrack].notes):
+            iterationEnd += 1
+        for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
             j = i - self.trackList[self.activeTrack].notes[index].phonemeStart
             self.trackList[self.activeTrack].borders[3 * i] = start + int((end - start) * (3 * j) / divisor)
             self.trackList[self.activeTrack].borders[3 * i + 1] = start + int((end - start) * (3 * j + 1) / divisor)
