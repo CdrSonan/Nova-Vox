@@ -59,7 +59,6 @@ else:
 logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename='editor.log', level=loglevel)
 logging.info("logging service started")
 
-print(__name__)
 if __name__ == '__main__':
     mp.freeze_support()
     if pyi_splash.is_alive():

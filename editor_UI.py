@@ -259,11 +259,15 @@ class MiddleLayer(Widget):
     def addNote(self, index, x, y, reference):
         if index == 0:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 0, reference))
+            if len(self.trackList[self.activeTrack].notes) == 1:
+                self.trackList[self.activeTrack].borders[0] = x + 33
+                self.trackList[self.activeTrack].borders[1] = x + 66
+                self.trackList[self.activeTrack].borders[2] = x + 100
         elif index == len(self.trackList[self.activeTrack].notes):
             self.trackList[self.activeTrack].notes.append(dh.Note(x, y, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, reference))
-            self.trackList[self.activeTrack].borders[len(self.trackList[self.activeTrack].sequence) - 3] = x + 33
-            self.trackList[self.activeTrack].borders[len(self.trackList[self.activeTrack].sequence) - 2] = x + 66
-            self.trackList[self.activeTrack].borders[len(self.trackList[self.activeTrack].sequence) - 1] = x + 100
+            self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].sequence)] = x + 33
+            self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].sequence) + 1] = x + 66
+            self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].sequence) + 2] = x + 100
         else:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart, reference))
     def removeNote(self, index):
@@ -282,13 +286,17 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].xPos = x
         return self.switchNote(index, oldLength, oldPos)
     def moveNote(self, index, x, y):
-        for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeEnd):
+        oldLength = self.trackList[self.activeTrack].notes[index].length
+        iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
+        if index + 1 < len(self.trackList[self.activeTrack].notes):
+            oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
+        else:
+            iterationEnd += 1
+        for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
             self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
-        oldLength = self.trackList[self.activeTrack].notes[index].length
-        if index + 1 < len(self.trackList[self.activeTrack].notes):
-            oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
+        
         oldPos = self.trackList[self.activeTrack].notes[index].xPos
         self.trackList[self.activeTrack].notes[index].xPos = x
         self.trackList[self.activeTrack].notes[index].yPos = y
@@ -820,7 +828,6 @@ class PianoRoll(ScrollView):
         self.xScale = NumericProperty()
         self.yScale = NumericProperty()
         self.currentNote = ObjectProperty()
-        #self.data = [{'text': str(x), "xPos": x, "yPos": x, "length": 10 * x} for x in range(10)]
     def generate_notes(self):
         for d in self.data:
             self.children[0].add_widget(Note(**d))
@@ -889,15 +896,10 @@ class PianoRoll(ScrollView):
     def on_touch_move(self, touch):
         if middleLayer.mode == "notes":
             if "noteIndex" in touch.ud:
+                print("borders:", middleLayer.trackList[middleLayer.activeTrack].borders)
                 coord = self.to_local(touch.x, touch.y)
                 x = int(coord[0] / self.xScale)
                 y = int(coord[1] / self.yScale)
-                """
-                for i in self.children[0].children:
-                    if i.__class__.__name__ == "Note" and i.index == touch.ud["noteIndex"]:
-                        note = i
-                        break
-                """
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
                 if abs(touch.ud["initialPos"][0] - coord[0]) < 4 and abs(touch.ud["initialPos"][1] - coord[1]) < 4:
                     return True
