@@ -183,11 +183,15 @@ class MiddleLayer(Widget):
         if offset > 0:
             for i in range(offset):
                 self.trackList[self.activeTrack].sequence.insert(phonIndex, "X")
+                self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOverlap[phonIndex:]], dim = 0)
+                self.trackList[self.activeTrack].loopOffset = torch.cat([self.trackList[self.activeTrack].loopOffset[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOffset[phonIndex:]], dim = 0)
                 for j in range(3):
                     self.trackList[self.activeTrack].borders.insert(phonIndex * 3, 0)
         elif offset < 0:
             for i in range(-offset):
                 self.trackList[self.activeTrack].sequence.pop(phonIndex)
+                self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], self.trackList[self.activeTrack].loopOverlap[phonIndex + 1:]], dim = 0)
+                self.trackList[self.activeTrack].loopOffset = torch.cat([self.trackList[self.activeTrack].loopOffset[0:phonIndex], self.trackList[self.activeTrack].loopOffset[phonIndex + 1:]], dim = 0)
                 for j in range(3):
                     self.trackList[self.activeTrack].borders.pop(phonIndex * 3)
         for i in self.trackList[self.activeTrack].notes[index + 1:]:
@@ -218,26 +222,18 @@ class MiddleLayer(Widget):
                     i.phonemeStart += 1
                     i.phonemeEnd += 1
     def switchNote(self, index):
-
-        print("brd1", self.trackList[self.activeTrack].borders)
-
         note = self.trackList[self.activeTrack].notes.pop(index + 1)
         seq1 = self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd]
         seq2 = self.trackList[self.activeTrack].sequence[note.phonemeStart:note.phonemeEnd]
         brd1 = self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd]
         brd2 = self.trackList[self.activeTrack].borders[3 * note.phonemeStart:3 * note.phonemeEnd]
-
         if index == len(self.trackList[self.activeTrack].notes) - 1:#notes are 1 element shorter because of pop
             scalingFactor = (self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart + 1) / (note.phonemeEnd - note.phonemeStart + 1)
             print("last", scalingFactor)
             for i in range(len(self.trackList[self.activeTrack].borders) - 3, len(self.trackList[self.activeTrack].borders)):
                 self.trackList[self.activeTrack].borders[i] = (self.trackList[self.activeTrack].borders[i] - note.xPos) * scalingFactor / note.length * (self.trackList[self.activeTrack].notes[index].xPos - note.xPos) + self.trackList[self.activeTrack].notes[index].xPos
             for i in range(3 * note.phonemeEnd - 3 * note.phonemeStart):
-                brd2[i] = (brd2[i] - note.xPos) * scalingFactor + note.xPos#false offset
-                #final border scaling goes wrong when moving note in reverse;result wrong here
-
-        print("brd2", self.trackList[self.activeTrack].borders)
-
+                brd2[i] = (brd2[i] - note.xPos) * scalingFactor + note.xPos
         self.trackList[self.activeTrack].notes.insert(index, note)
         phonemeMid = note.phonemeEnd - note.phonemeStart
         self.trackList[self.activeTrack].notes[index].phonemeStart = self.trackList[self.activeTrack].notes[index + 1].phonemeStart
@@ -248,9 +244,6 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = seq1
         self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = brd2
         self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart:3 * self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = brd1
-
-        print("brd3", self.trackList[self.activeTrack].borders)
-
     def scaleNote(self, index, oldLength):
         length = self.trackList[self.activeTrack].notes[index].length
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
@@ -272,11 +265,9 @@ class MiddleLayer(Widget):
                     nextLength = max(min(nextLength, self.trackList[self.activeTrack].notes[index + 2].xPos - self.trackList[self.activeTrack].notes[index + 1].xPos), 1)
                 self.switchNote(index)
                 result = True
-                #figure out correct scaling
                 self.scaleNote(index + 1, oldLength)
         self.scaleNote(index, nextLength)
         if index > 0:
-            #self.repairNotes(index - 1)
             if self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
                 self.switchNote(index - 1)
                 result = False
@@ -285,16 +276,6 @@ class MiddleLayer(Widget):
             else:
                 self.scaleNote(index - 1, max(min(oldPos - self.trackList[self.activeTrack].notes[index - 1].xPos, self.trackList[self.activeTrack].notes[index - 1].length), 1))
         return result
-    """
-    def repairNotes(self, index):
-        if index == 0 or index == len(self.trackList[self.activeTrack].notes):
-            return None
-        if self.trackList[self.activeTrack].notes[index].xPos == self.trackList[self.activeTrack].notes[index - 1].xPos:
-            print("triggered", index)
-            self.trackList[self.activeTrack].notes[index].xPos += 1
-            self.repairNotes(index + 1)
-        return None
-    """
     def addNote(self, index, x, y, reference):
         if index == 0:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 0, reference))
@@ -319,13 +300,10 @@ class MiddleLayer(Widget):
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
-        #else:
-            #self.repairNotes(index + 1)
         for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
             self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
-        #self.repairNotes(index)
         oldLength = self.trackList[self.activeTrack].notes[index].length
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
@@ -338,13 +316,10 @@ class MiddleLayer(Widget):
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
-        #else:
-            #self.repairNotes(index + 1)
         for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
             self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
-        #self.repairNotes(index)
         oldLength = self.trackList[self.activeTrack].notes[index].length
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
@@ -659,18 +634,168 @@ class TimingOptns(ScrollView):
         data2 = middleLayer.trackList[middleLayer.activeTrack].loopOffset
         self.points1 = []
         self.points2 = []
-        for i in data1:
-            self.points1.append((self.parent.xScale * i[0], int(i[1] * self.height / 2)))
-        for i in data2:
-            self.points2.append((self.parent.xScale * i[0], int((1 + i[1]) * self.height / 2)))
+        for i in range(data1.size()[0]):
+            self.points1.append((self.parent.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 1], data1[i].item() * self.height / 2))
+            self.points2.append((self.parent.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 1],  (data2[i].item() * self.height) / 2))
         with self.children[0].canvas:
             Color(1, 0, 0, 1)
             for i in self.points1:
                 rectangle = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
                 self.rectangles1.append(rectangle)
             for i in self.points2:
-                rectangle = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
+                rectangle = Rectangle(pos = (i[0], self.y + 0.5 * self.height), size = (10, i[1]))
                 self.rectangles2.append(rectangle)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            if touch.is_mouse_scrolling:
+                if touch.button == 'scrollup':
+                    newvalue = self.scroll_x + self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                    if newvalue < 1:
+                        self.scroll_x = newvalue
+                    else:
+                        self.scroll_x = 1.
+                elif touch.button == 'scrolldown':
+                    newvalue = self.scroll_x - self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
+                    if newvalue > 0:
+                        self.scroll_x = newvalue
+                    else:
+                        self.scroll_x = 0.
+            else:
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points=[touch.x, touch.y])
+                    touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
+                    touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
+                    touch.ud['startPointOffset'] = 0
+                    touch.ud['section'] = touch.ud['startPoint'][1] > self.height / 2
+                    touch.ud['lastPoint'] = touch.ud['startPoint'][0]
+            return True
+        else:
+            return False
+    def on_touch_move(self, touch):
+        if 'startPoint' in touch.ud:
+            global middleLayer
+            coord = self.to_local(touch.x, touch.y)
+            x = int(coord[0] / self.xScale)
+            if touch.ud['section']:
+                y = min(max(coord[1], self.height / 2), self.height)
+            else:
+                y = min(max(coord[1], 0.), self.height / 2)
+            p = x - touch.ud['startPoint'][0]
+            if middleLayer.tool == "draw":
+                if p < 0:
+                    for i in range(-p):
+                        touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
+                        touch.ud['startPoint'][0] -= 1
+                        touch.ud['lastPoint'] = touch.ud['line'].points[0] / self.xScale
+                elif p < int(len(touch.ud['line'].points) / 2):
+                    points = touch.ud['line'].points
+                    if x >= touch.ud['lastPoint']:
+                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
+                    else:
+                        domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
+                    for i in domain:
+                        points[2 * i + 1] = y
+                    touch.ud['line'].points = points
+                    touch.ud['lastPoint'] = points[2 * p] / self.xScale
+                else:
+                    diff = p - int(len(touch.ud['line'].points) / 2)
+                    for i in range(diff):
+                        touch.ud['line'].points += [(touch.ud['startPoint'][0] + int(len(touch.ud['line'].points) / 2)) * self.xScale, y]
+                    touch.ud['lastPoint'] = touch.ud['line'].points[len(touch.ud['line'].points) - 2] / self.xScale
+            elif middleLayer.tool == "line":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * -i / p]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * i / p]
+            elif middleLayer.tool == "arch":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * (-i / p) * (-i / p)]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (y - touch.ud['startPoint'][1]) * (i / p) * (i / p)]
+            elif middleLayer.tool == "reset":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+        else:
+            return super(PitchOptns, self).on_touch_move(touch)
+    def on_touch_up(self, touch):
+        global middleLayer
+        if 'startPoint' in touch.ud:
+            data = []
+            if touch.ud['section']:
+                if touch.ud['startPointOffset'] == 0:
+                    for i in range(int(len(touch.ud['line'].points) / 2)):
+                        data.append((touch.ud['line'].points[2 * i + 1] * 4 / self.height) - 3)
+                else:
+                    for i in range(int(len(touch.ud['line'].points) / 2)):
+                        data.append((touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] * 4 / self.height) - 3)
+            else:
+                if touch.ud['startPointOffset'] == 0:
+                    for i in range(int(len(touch.ud['line'].points) / 2)):
+                        data.append((touch.ud['line'].points[2 * i + 1] * 4 / self.height) - 1)
+                else:
+                    for i in range(int(len(touch.ud['line'].points) / 2)):
+                        data.append((touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] * 4 / self.height) - 1)
+            middleLayer.applyParamChanges(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'], section = touch.ud['section'])
+            self.children[0].canvas.remove(touch.ud['line'])
+            self.redraw()
+        else:
+            return super(PitchOptns, self).on_touch_up(touch)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class PitchOptns(ScrollView):
     xScale = NumericProperty(1)
@@ -895,16 +1020,49 @@ class PianoRoll(ScrollView):
         self.xScale = NumericProperty()
         self.yScale = NumericProperty()
         self.currentNote = ObjectProperty()
+        self.timingMarkers = ListProperty()
+        self.pitchLine = ObjectProperty()
+        self.timingMarkers = []
+        self.pitchLine = None
     def generate_notes(self):
         for d in self.data:
             self.children[0].add_widget(Note(**d))
+    def redrawPitch(self):
+        data = middleLayer.trackList[middleLayer.activeTrack].pitch
+        points = []
+        c = 0
+        for i in data:
+            points.append(c * self.xScale)
+            points.append((i.item() + 1) * self.height / 2)
+            c += 1
+        self.children[0].canvas.remove(self.pitchLine)
+        with self.children[0].canvas:
+            Color(1, 0, 0, 1)
+            self.pitchLine = Line(points = points)
     def changeMode(self):
         if middleLayer.mode == "notes":
-            pass
+            for i in self.timingMarkers:
+                self.children[0].canvas.remove(i)
+            if self.pitchLine != None:
+                self.children[0].canvas.remove(self.pitchLine)
+                self.pitchLine = None
         if middleLayer.mode == "timing":
-            pass
+            for i in self.children[0].children:
+                i.state = "normal"
+            if self.pitchLine != None:
+                self.children[0].canvas.remove(self.pitchLine)
+                self.pitchLine = None
+            with self.children[0].canvas:
+                Color(1, 0, 0)
+                for i in middleLayer.trackList[middleLayer.activeTrack].borders:
+                    line = Line(points = [self.xScale * i, 0, self.xScale * i, self.children[0].height])
+                    self.timingMarkers.append(line)
         if middleLayer.mode == "pitch":
-            pass
+            for i in self.children[0].children:
+                i.state = "normal"
+            for i in self.timingMarkers:
+                self.children[0].canvas.remove(i)
+            self.redrawPitch()
     def applyScroll(self, scrollValue):
         self.scroll_x = scrollValue
     def triggerScroll(self):
