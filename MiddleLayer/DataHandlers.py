@@ -14,7 +14,7 @@ class Track:
         #self.voicebank = LiteVoicebank(path)
         self.notes = []
         self.sequence = []
-        self.pitch = torch.full((1000,), 0, dtype = torch.half)
+        self.pitch = torch.full((1000,), 1., dtype = torch.half)
         self.breathiness = torch.full((1000,), 0, dtype = torch.half)
         self.steadiness = torch.full((1000,), 0, dtype = torch.half)
         self.loopOverlap = torch.tensor([], dtype = torch.half)

@@ -8,7 +8,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty, ListProperty, OptionProperty
-from kivy.graphics import Color, Line, Rectangle
+from kivy.graphics import Color, Line, Rectangle, InstructionGroup
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
@@ -480,6 +480,7 @@ class AdaptiveSpace(AnchorLayout):
 class ParamCurve(ScrollView):
     xScale = NumericProperty(10)
     seqLength = NumericProperty(1000)
+    line = ObjectProperty()
     line = Line()
     def redraw(self):
         if middleLayer.activeParam == "steadiness":
@@ -599,7 +600,7 @@ class ParamCurve(ScrollView):
         else:
             return super(ParamCurve, self).on_touch_up(touch)
 
-class ParamBars(ScrollView):
+"""class ParamBars(ScrollView):
     xScale = NumericProperty(1)
     seqLength = NumericProperty(1000)
     points = ListProperty()
@@ -616,15 +617,15 @@ class ParamBars(ScrollView):
         with self.children[0].canvas:
             Color(1, 0, 0, 1)
             for i in self.points:
-                self.rectangles.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))
+                self.rectangles.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))"""
 
 class TimingOptns(ScrollView):
     xScale = NumericProperty(1)
     seqLength = NumericProperty(1000)
     points1 = ListProperty()
     points2 = ListProperty()
-    rectangles1 = ListProperty([])
-    rectangles2 = ListProperty([])
+    rectangles1 = ListProperty()
+    rectangles2 = ListProperty()
     def redraw(self):
         for i in self.rectangles1:
             self.children[0].canvas.remove(i)
@@ -640,11 +641,9 @@ class TimingOptns(ScrollView):
         with self.children[0].canvas:
             Color(1, 0, 0, 1)
             for i in self.points1:
-                rectangle = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
-                self.rectangles1.append(rectangle)
+                self.rectangles1.append(Rectangle(pos = (i[0], self.y + 0.5 * self.height), size = (10, i[1])))
             for i in self.points2:
-                rectangle = Rectangle(pos = (i[0], self.y + 0.5 * self.height), size = (10, i[1]))
-                self.rectangles2.append(rectangle)
+                self.rectangles2.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))
     
 
 
@@ -679,17 +678,40 @@ class TimingOptns(ScrollView):
                         self.scroll_x = 0.
             else:
                 with self.children[0].canvas:
-                    Color(0, 0, 1)
-                    touch.ud['line'] = Line(points=[touch.x, touch.y])
                     touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                     touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
-                    touch.ud['startPointOffset'] = 0
                     touch.ud['section'] = touch.ud['startPoint'][1] > self.height / 2
-                    touch.ud['lastPoint'] = touch.ud['startPoint'][0]
+                    if middleLayer.tool != "draw":
+                        Color(0, 0, 1)
+                        touch.ud['line'] = Line(points=[touch.x, touch.y])
+                        touch.ud['startPointOffset'] = 0
+                        touch.ud['lastPoint'] = touch.ud['startPoint'][0]
             return True
         else:
             return False
     def on_touch_move(self, touch):
+        def getPreviousBar(self, x):
+            if touch.ud['section']:
+                for i in range(len(self.points1)):
+                    if x > self.points1[i][0]:
+                        return i
+            else:
+                for i in range(len(self.points2)):
+                    if x > self.points1[i][0]:
+                        return i
+            return None
+        def barToPos(self, bar, x):
+            if bar == None:
+                return x
+            if touch.ud['section']:
+                return self.points1[bar][0]
+            else:
+                return self.points2[bar][0]
+        def barToValue(self, bar):
+            if touch.ud['section']:
+                return (self.points2[bar][1] - 1) * 2 / self.height
+            else:
+                return self.points1[bar][1] * 2 / self.height
         if 'startPoint' in touch.ud:
             global middleLayer
             coord = self.to_local(touch.x, touch.y)
@@ -700,26 +722,23 @@ class TimingOptns(ScrollView):
                 y = min(max(coord[1], 0.), self.height / 2)
             p = x - touch.ud['startPoint'][0]
             if middleLayer.tool == "draw":
-                if p < 0:
-                    for i in range(-p):
-                        touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
-                        touch.ud['startPoint'][0] -= 1
-                        touch.ud['lastPoint'] = touch.ud['line'].points[0] / self.xScale
-                elif p < int(len(touch.ud['line'].points) / 2):
-                    points = touch.ud['line'].points
-                    if x >= touch.ud['lastPoint']:
-                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
-                    else:
-                        domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
-                    for i in domain:
-                        points[2 * i + 1] = y
-                    touch.ud['line'].points = points
-                    touch.ud['lastPoint'] = points[2 * p] / self.xScale
+                bar = getPreviousBar(self, x)
+                if bar == None:
+                    return True
+                if touch.ud["section"]:
+                    middleLayer.trackList[middleLayer.activeTrack].loopOverlap[bar] = y * 2 / self.height - 1
+                    self.points1[bar] = (self.points1[bar][0], y)
+                    self.children[0].canvas.remove(self.rectangles1[bar])
+                    with self.children[0].canvas:
+                        Color(1, 0, 0, 1)
+                        self.rectangles1.append(Rectangle(pos = (barToPos(self, bar, x), self.y + 0.5 * self.height), size = (10, self.points1[bar][1] - 0.5 * self.height)))
                 else:
-                    diff = p - int(len(touch.ud['line'].points) / 2)
-                    for i in range(diff):
-                        touch.ud['line'].points += [(touch.ud['startPoint'][0] + int(len(touch.ud['line'].points) / 2)) * self.xScale, y]
-                    touch.ud['lastPoint'] = touch.ud['line'].points[len(touch.ud['line'].points) - 2] / self.xScale
+                    middleLayer.trackList[middleLayer.activeTrack].loopOffset[bar] = y * 2 / self.height
+                    self.points2[bar] = (self.points2[bar][0], y)
+                    self.children[0].canvas.remove(self.rectangles2[bar])
+                    with self.children[0].canvas:
+                        Color(1, 0, 0, 1)
+                        self.rectangles2.append(Rectangle(pos = (barToPos(self, bar, x), self.y), size = (10, self.points2[bar][1])))
             elif middleLayer.tool == "line":
                 self.children[0].canvas.remove(touch.ud['line'])
                 with self.children[0].canvas:
@@ -757,10 +776,12 @@ class TimingOptns(ScrollView):
                     for i in range(p):
                         touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
         else:
-            return super(PitchOptns, self).on_touch_move(touch)
+            return super(TimingOptns, self).on_touch_move(touch)
     def on_touch_up(self, touch):
         global middleLayer
-        if 'startPoint' in touch.ud:
+        if middleLayer.tool == "draw":
+            pass #submit data to backend
+        elif 'startPoint' in touch.ud:
             data = []
             if touch.ud['section']:
                 if touch.ud['startPointOffset'] == 0:
@@ -780,7 +801,7 @@ class TimingOptns(ScrollView):
             self.children[0].canvas.remove(touch.ud['line'])
             self.redraw()
         else:
-            return super(PitchOptns, self).on_touch_up(touch)
+            return super(TimingOptns, self).on_touch_up(touch)
 
 
 
@@ -800,8 +821,13 @@ class TimingOptns(ScrollView):
 class PitchOptns(ScrollView):
     xScale = NumericProperty(1)
     seqLength = NumericProperty(1000)
-    line1 = Line()
-    line2 = Line()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.line1 = ObjectProperty()
+        self.line2 = ObjectProperty()
+        with self.children[0].canvas:
+            self.line1 = Line()
+            self.line2 = Line()
     def redraw(self):
         self.children[0].canvas.remove(self.line1)
         self.children[0].canvas.remove(self.line2)
@@ -1035,7 +1061,8 @@ class PianoRoll(ScrollView):
             points.append(c * self.xScale)
             points.append((i.item() + 1) * self.height / 2)
             c += 1
-        self.children[0].canvas.remove(self.pitchLine)
+        if self.pitchLine != None:
+            self.children[0].canvas.remove(self.pitchLine)
         with self.children[0].canvas:
             Color(1, 0, 0, 1)
             self.pitchLine = Line(points = points)
@@ -1043,6 +1070,7 @@ class PianoRoll(ScrollView):
         if middleLayer.mode == "notes":
             for i in self.timingMarkers:
                 self.children[0].canvas.remove(i)
+            del self.timingMarkers[:]
             if self.pitchLine != None:
                 self.children[0].canvas.remove(self.pitchLine)
                 self.pitchLine = None
@@ -1055,13 +1083,14 @@ class PianoRoll(ScrollView):
             with self.children[0].canvas:
                 Color(1, 0, 0)
                 for i in middleLayer.trackList[middleLayer.activeTrack].borders:
-                    line = Line(points = [self.xScale * i, 0, self.xScale * i, self.children[0].height])
-                    self.timingMarkers.append(line)
+                    self.timingMarkers.append(ObjectProperty())
+                    self.timingMarkers[-1] = Line(points = [self.xScale * i, 0, self.xScale * i, self.children[0].height])
         if middleLayer.mode == "pitch":
             for i in self.children[0].children:
                 i.state = "normal"
             for i in self.timingMarkers:
                 self.children[0].canvas.remove(i)
+            del self.timingMarkers[:]
             self.redrawPitch()
     def applyScroll(self, scrollValue):
         self.scroll_x = scrollValue
