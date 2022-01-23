@@ -27,6 +27,7 @@ from kivy.clock import mainthread
 import os
 import torch
 import subprocess
+import math
 
 import MiddleLayer.DataHandlers as dh
 
@@ -362,7 +363,10 @@ class MiddleLayer(Widget):
             #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = end - 2
             #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 1] = end - 1
             #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 2] = end
-    def submitNoteChanges(self, index):
+    def changeBorder(self, border, pos):
+        self.trackList[self.activeTrack].borders[border] = pos
+        self.submitSequenceChanges(math.floor(border / 3), 1)
+    def aAaAaAa(self, index):#deprecated
         def repairBorders(self, index):
             if index == len(self.trackList[self.activeTrack].notes):
                 return None
@@ -377,6 +381,8 @@ class MiddleLayer(Widget):
         for i in range(3 * self.trackList[self.activeTrack].notes[index].phonemeStart, 3 * iterationEnd):
             repairBorders(self, i)
         return None
+    def submitSequenceChanges(self, index, length):
+        pass
     def submitParamChanges(self, param):
         pass
         
@@ -1140,17 +1146,29 @@ class PianoRoll(ScrollView):
                     touch.ud["grabMode"] = "end"
                     touch.ud["initialPos"] = coord
                 elif middleLayer.mode == "timing":
-                    pass
+                    def getNearestBorder(x):
+                        nextBorder = 0
+                        for i in range(len(middleLayer.trackList[middleLayer.activeTrack].borders) - 1):
+                            previousBorder = nextBorder
+                            nextBorder = (middleLayer.trackList[middleLayer.activeTrack].borders[i] + middleLayer.trackList[middleLayer.activeTrack].borders[i + 1]) / 2
+                            if previousBorder < x and x <= nextBorder:
+                                return i
+                        return len(middleLayer.trackList[middleLayer.activeTrack].borders) - 1
+                    border = getNearestBorder(x)
+                    touch.ud["border"] = border
+                    touch.ud["offset"] = x - middleLayer.trackList[middleLayer.activeTrack].borders[border]
                 elif middleLayer.mode == "pitch":
                     pass
                 return True
         return False
     def on_touch_move(self, touch):
+        if self.collide_point(*touch.pos) == False:
+            return False
+        coord = self.to_local(touch.x, touch.y)
+        x = int(coord[0] / self.xScale)
+        y = int(coord[1] / self.yScale)
         if middleLayer.mode == "notes":
             if "noteIndex" in touch.ud:
-                coord = self.to_local(touch.x, touch.y)
-                x = int(coord[0] / self.xScale)
-                y = int(coord[1] / self.yScale)
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
                 if abs(touch.ud["initialPos"][0] - coord[0]) < 4 and abs(touch.ud["initialPos"][1] - coord[1]) < 4:
                     return True
@@ -1191,7 +1209,13 @@ class PianoRoll(ScrollView):
             else:
                 return False
         elif middleLayer.mode == "timing":
-            pass
+            self.children[0].canvas.remove(self.timingMarkers[touch.ud["border"]])
+            del self.timingMarkers[touch.ud["border"]]
+            self.timingMarkers.insert(touch.ud["border"], ObjectProperty())
+            newPos = x - touch.ud["offset"]
+            with self.children[0].canvas:
+                self.timingMarkers[touch.ud["border"]] = Line(points = [self.xScale * newPos, 0, self.xScale * newPos, self.children[0].height])
+            middleLayer.changeBorder(touch.ud["border"], newPos)
         elif middleLayer.mode == "pitch":
             pass
         else:
