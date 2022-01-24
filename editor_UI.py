@@ -175,6 +175,8 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].vibratoStrength[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
         else:
             self.trackList[self.activeTrack].paramStack[self.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+    def applyPitchChanges(self, data, start):
+        self.trackList[self.activeTrack].pitch[start:start + len(data)] = torch.tensor(data, dtype = torch.float32)
     def changePianoRollMode(self):
         self.ids["pianoRoll"].changeMode()
     def applyScroll(self):
@@ -875,11 +877,12 @@ class PitchOptns(ScrollView):
                     touch.ud['startPointOffset'] = 0
                     touch.ud['section'] = touch.ud['startPoint'][1] > self.height / 2
                     touch.ud['lastPoint'] = touch.ud['startPoint'][0]
+                    touch.ud['param'] = True
             return True
         else:
             return False#super(PitchOptns, self).on_touch_down(touch)
     def on_touch_move(self, touch):
-        if 'startPoint' in touch.ud:
+        if 'startPoint' in touch.ud and touch.ud['param']:
             global middleLayer
             coord = self.to_local(touch.x, touch.y)
             x = int(coord[0] / self.xScale)
@@ -949,7 +952,7 @@ class PitchOptns(ScrollView):
             return super(PitchOptns, self).on_touch_move(touch)
     def on_touch_up(self, touch):
         global middleLayer
-        if 'startPoint' in touch.ud:
+        if 'startPoint' in touch.ud and touch.ud['param']:
             data = []
             if touch.ud['section']:
                 if touch.ud['startPointOffset'] == 0:
@@ -1010,6 +1013,7 @@ class Note(ToggleButton):
                 touch.ud["grabMode"] = "mid"
                 touch.ud["xOffset"] = (self.pos[0] - coord[0]) / self.parent.parent.xScale
                 touch.ud["yOffset"] = (self.pos[1] - coord[1]) / self.parent.parent.yScale
+            touch.ud['param'] = False
             return True
         return super().on_touch_down(touch)
     def on_touch_up(self, touch):
@@ -1063,7 +1067,7 @@ class PianoRoll(ScrollView):
         c = 0
         for i in data:
             points.append(c * self.xScale)
-            points.append((i.item() + 1) * self.height / 2)
+            points.append(i.item() * self.yScale)
             c += 1
         if self.pitchLine != None:
             self.children[0].canvas.remove(self.pitchLine)
@@ -1158,15 +1162,22 @@ class PianoRoll(ScrollView):
                     touch.ud["border"] = border
                     touch.ud["offset"] = x - middleLayer.trackList[middleLayer.activeTrack].borders[border]
                 elif middleLayer.mode == "pitch":
-                    pass
+                    with self.children[0].canvas:
+                        Color(0, 0, 1)
+                        touch.ud['line'] = Line(points=[touch.x, touch.y])
+                        touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
+                        touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
+                        touch.ud['startPointOffset'] = 0
+                touch.ud['param'] = False
                 return True
         return False
     def on_touch_move(self, touch):
-        if self.collide_point(*touch.pos) == False:
+        if self.collide_point(*touch.pos) == False or touch.ud['param']:
             return False
         coord = self.to_local(touch.x, touch.y)
         x = int(coord[0] / self.xScale)
         y = int(coord[1] / self.yScale)
+        yMod = coord[1]
         if middleLayer.mode == "notes":
             if "noteIndex" in touch.ud:
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
@@ -1217,9 +1228,74 @@ class PianoRoll(ScrollView):
                 self.timingMarkers[touch.ud["border"]] = Line(points = [self.xScale * newPos, 0, self.xScale * newPos, self.children[0].height])
             middleLayer.changeBorder(touch.ud["border"], newPos)
         elif middleLayer.mode == "pitch":
-            pass
+            p = x - int(touch.ud['startPoint'][0] / self.xScale)
+            if middleLayer.tool == "draw":
+                if p < 0:
+                    for i in range(-p):
+                        touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, yMod] + touch.ud['line'].points
+                        touch.ud['startPoint'][0] -= 1
+                elif p < int(len(touch.ud['line'].points) / 2):
+                    points = touch.ud['line'].points
+                    points[2 * p] = x * self.xScale
+                    points[2 * p + 1] = yMod
+                    touch.ud['line'].points = points
+                else:
+                    diff = p - int(len(touch.ud['line'].points) / 2)
+                    for i in range(diff):
+                        touch.ud['line'].points += [(touch.ud['startPoint'][0] + int(len(touch.ud['line'].points) / 2)) * self.xScale, yMod]
+            elif middleLayer.tool == "line":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (yMod - touch.ud['startPoint'][1]) * -i / p]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (yMod - touch.ud['startPoint'][1]) * i / p]
+            elif middleLayer.tool == "arch":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (yMod - touch.ud['startPoint'][1]) * (-i / p) * (-i / p)]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, touch.ud['startPoint'][1] + (yMod - touch.ud['startPoint'][1]) * (i / p) * (i / p)]
+            elif middleLayer.tool == "reset":
+                self.children[0].canvas.remove(touch.ud['line'])
+                with self.children[0].canvas:
+                    Color(0, 0, 1)
+                    touch.ud['line'] = Line(points = [])
+                if p < 0:
+                    touch.ud['startPointOffset'] = -p
+                    for i in range(-p):
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+                if p >= 0:
+                    for i in range(p):
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
         else:
             return super().on_touch_move(touch)
+    def on_touch_up(self, touch):
+        global middleLayer
+        if 'startPoint' in touch.ud and touch.ud['param'] == False:
+            data = []
+            if touch.ud['startPointOffset'] == 0:
+                for i in range(int(len(touch.ud['line'].points) / 2)):
+                    data.append(touch.ud['line'].points[2 * i + 1] / self.yScale)
+            else:
+                for i in range(int(len(touch.ud['line'].points) / 2)):
+                    data.append(touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] / self.yScale)
+            middleLayer.applyPitchChanges(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'])
+            self.children[0].canvas.remove(touch.ud['line'])
+            self.redrawPitch()
+        else:
+            return super(PianoRoll, self).on_touch_up(touch)
 
 class ListElement(Button):
     index = NumericProperty()
