@@ -30,7 +30,7 @@ import subprocess
 import math
 
 import MiddleLayer.DataHandlers as dh
-from Backend.DataHandler.Manager import RenderManager
+from Backend.NV_Multiprocessing.Manager import RenderManager
 
 class MiddleLayer(Widget):
     def __init__(self, ids, **kwargs):
