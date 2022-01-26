@@ -93,14 +93,6 @@ if __name__ == '__main__':
         pyi_splash.update_text("starting renderer subprocess")
     if (sys.platform.startswith('win')) == False: 
         mp.set_start_method("spawn")
-    global manager
-    global sequenceList
-    global voicebankList
-    global aiParamStackList
-    sequenceList = []
-    voicebankList = []
-    aiParamStackList = []
-    manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
 
     pyi_splash.close()
 

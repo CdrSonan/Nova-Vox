@@ -30,6 +30,7 @@ import subprocess
 import math
 
 import MiddleLayer.DataHandlers as dh
+from Backend.DataHandler.Manager import RenderManager
 
 class MiddleLayer(Widget):
     def __init__(self, ids, **kwargs):
@@ -1400,7 +1401,15 @@ class NovaVoxUI(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         global middleLayer
+        global manager
+        global sequenceList
+        global voicebankList
+        global aiParamStackList
         middleLayer = MiddleLayer(self.ids)
+        sequenceList = []
+        voicebankList = []
+        aiParamStackList = []
+        manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
         self._keyboard = Window.request_keyboard(None, self, 'text')
         if self._keyboard.widget:
             pass
