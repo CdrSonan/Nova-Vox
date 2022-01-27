@@ -36,7 +36,7 @@ if pyi_splash.is_alive():
 import global_consts
 from Backend.VB_Components.Voicebank import LiteVoicebank as Voicebank
 from Backend.DataHandler.VocalSequence import VocalSequence
-from Backend.DataHandler.Manager import RenderManager
+from Backend.NV_Multiprocessing.Manager import RenderManager
 import sys
 
 if pyi_splash.is_alive():

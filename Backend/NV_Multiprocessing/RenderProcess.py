@@ -1,3 +1,4 @@
+from lib2to3.pgen2.literals import evalString
 import math
 import torch
 import global_consts
@@ -20,38 +21,59 @@ class StatusChange():
         self.type = type
 
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection):
+    def posToSegment(pos1, pos2):
+        pass#TODO
     def updateFromMain():
-        if connection.poll:
-            change = connection.recv()
-            if change.type == "addTrack":
-                statusControl.append(SequenceStatusControl(change.data2))
-                voicebankList.append(LiteVoicebank(change.data1))
-                aiParamStackList.append(AiParamStack(change.data2))
-                inputList.append(Inputs(change.data2))
-            elif change.type == "removeTrack":
-                del statusControl[change.data1]
-                del voicebankList[change.data1]
-                del aiParamStackList[change.data1]
-                del inputList[change.data1]
-            elif change.type == "duplicateTrack":
-                statusControl.append(copy(statusControl[change.data1]))
-                voicebankList.append(copy(voicebankList[change.data1]))
-                aiParamStackList.append(copy(aiParamStackList[change.data1]))
-                inputList.append(copy(inputList[change.data1]))
-            elif change.type == "changeVB":
-                del voicebankList[change.data1]
-                voicebankList.insert(change.data1, LiteVoicebank(change.data2))
-                statusControl[change.data1].rs *= 0
-                statusControl[change.data1].ai *= 0
-            elif change.type == "addParam":
-                aiParamStackList[change.data1].addParam(change.data2, change.data3)
-                statusControl[change.data1].ai *= 0
-            elif change.type == "removeParam":
-                aiParamStackList[change.data1].removeParam(change.data2)
-                statusControl[change.data1].ai *= 0
-            elif change.type == "changeInput":
-                pass
-            updateFromMain()
+        change = connection.recv()
+        if change.type == "terminate":
+            return True
+        elif change.type == "addTrack":
+            statusControl.append(SequenceStatusControl(change.data2))
+            voicebankList.append(LiteVoicebank(change.data1))
+            aiParamStackList.append(AiParamStack(change.data2))
+            inputList.append(change.data2)
+        elif change.type == "removeTrack":
+            del statusControl[change.data1]
+            del voicebankList[change.data1]
+            del aiParamStackList[change.data1]
+            del inputList[change.data1]
+        elif change.type == "duplicateTrack":
+            statusControl.append(copy(statusControl[change.data1]))
+            voicebankList.append(copy(voicebankList[change.data1]))
+            aiParamStackList.append(copy(aiParamStackList[change.data1]))
+            inputList.append(copy(inputList[change.data1]))
+        elif change.type == "changeVB":
+            del voicebankList[change.data1]
+            voicebankList.insert(change.data1, LiteVoicebank(change.data2))
+            statusControl[change.data1].rs *= 0
+            statusControl[change.data1].ai *= 0
+        elif change.type == "addParam":
+            aiParamStackList[change.data1].addParam(change.data2, change.data3)
+            statusControl[change.data1].ai *= 0
+        elif change.type == "removeParam":
+            aiParamStackList[change.data1].removeParam(change.data2)
+            statusControl[change.data1].ai *= 0
+        elif change.type == "changeInput":
+            if change.data2 in ["phonemes", "offsets", "repetititionSpacing"]:
+                eval("inputList[change.data1]." + change.data2)[change.data3] = change.data4
+                statusControl[change.data1].rs[change.data3] *= 0
+                statusControl[change.data1].ai[change.data3] *= 0
+            elif change.data2 == "borders":
+                inputList[change.data1].borders[change.data3:change.data4] = change.data5
+                statusControl[change.data1].rs[change.data3:change.data4] *= 0
+                statusControl[change.data1].ai[change.data3:change.data4] *= 0
+            elif change.data2 in ["pitch", "steadiness", "breathiness"]:
+                positions = posToSegment(change.data3, change.data4)
+                eval("inputList[change.data1]." + change.data2)[change.data3:change.data4] = change.data5
+                statusControl[change.data1].rs[positions[0]:positions[1]] *= 0
+                statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
+            else:
+                positions = posToSegment(change.data3, change.data4)
+                inputList[change.data1].aiParamInputs[change.data2][change.data3:change.data4] = change.data5
+                statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
+        if connection.poll or (change.final == False):
+            return updateFromMain()
+        return False
     logging.info("render process started, reading settings")
     settings = {}
     with open("settings.ini", 'r') as f:
@@ -242,8 +264,10 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         print("rendering finished!")
         print("command? >>>")
         rerenderFlag.wait()
-        updateFromMain()
         rerenderFlag.clear()
+        if connection.poll:
+            if updateFromMain():
+                break
 
 
 
