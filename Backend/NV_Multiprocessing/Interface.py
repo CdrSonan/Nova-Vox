@@ -9,28 +9,20 @@ class SequenceStatusControl:
             phonemeLength = sequence.phonemeLength
             self.ai = torch.zeros(phonemeLength)
             self.rs = torch.zeros(phonemeLength)
-"""
-class Inputs:
-    def __init__(self, sequence = None):
-        if sequence == None:
-            self.borders = torch.Tensor([0, 1, 2])
-            self.startCaps = torch.zeros(0, dtype = torch.bool)
-            self.endCaps = torch.zeros(0, dtype = torch.bool)
-            self.phonemes = []
-            self.offsets = torch.zeros(0)
-            self.repetititionSpacing = torch.ones(0)
-            self.pitch = torch.ones(0)
-            self.steadiness = torch.zeros(0)
-            self.breathiness = torch.zeros(0)
-            self.aiParamInputs = []
-        else:
-            self.borders = sequence.borders
-            self.phonemes = sequence.phonemes
-            self.startCaps = sequence.startCaps
-            self.endCaps = sequence.endCaps
-            self.offsets = sequence.offsets
-            self.repetititionSpacing = sequence.repetititionSpacing
-            self.pitch = sequence.pitch
-            self.steadiness = sequence.steadiness
-            self.breathiness = sequence.breathiness
-            self.aiParamInputs = sequence.aiParamInputs"""
+
+class StatusChange:
+    def __init__(self, track, index, value, type = False):
+        self.track = track
+        self.index = index
+        self.value = value
+        self.type = type
+
+class InputChange:
+    def __init__(self, type, final, data1, data2, data3, data4, data5):
+        self.type = type
+        self.final = final
+        self.data1 = data1
+        self.data2 = data2
+        self.data3 = data3
+        self.data4 = data4
+        self.data5 = data5

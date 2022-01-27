@@ -388,8 +388,10 @@ class MiddleLayer(Widget):
         pass
     def submitParamChanges(self, param):
         pass
-        
-        
+    def updateRenderStatus(self, track, index, value):
+        pass
+    def updateAudioBuffer(self, track, index, value):
+        pass
         
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -1416,7 +1418,11 @@ class NovaVoxUI(Widget):
         self._keyboard.bind(on_key_down = self.on_keyboard_down)
         self._keyboard.bind(on_key_up = self.on_keyboard_up)
     def update(self, deltatime):
-        pass
+        change = manager.receiveChange()
+        if change.type == False:
+            middleLayer.updateRenderStatus(change.track, change.index, change.value)
+        elif change.type == True:
+            middleLayer.updateAudioBuffer(change.track, change.index, change.value)
     def setMode(self, mode):
         global middleLayer
         middleLayer.mode = mode

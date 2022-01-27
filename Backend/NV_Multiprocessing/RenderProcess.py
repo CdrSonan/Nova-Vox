@@ -6,23 +6,24 @@ import logging
 import Backend.Resampler.Resamplers as rs
 from copy import copy
 from Backend.DataHandler.VocalSegment import VocalSegment
-from Backend.DataHandler.AiPAramStack import AiParamStack
+from Backend.DataHandler.AiParams import AiParamStack
 from Backend.VB_Components.SpecCrfAi import LiteSpecCrfAi
 from Backend.VB_Components.Voicebank import LiteVoicebank
-from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, Inputs
+from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
 
 import matplotlib.pyplot as plt
 
-class StatusChange():
-    def __init__(self, track, index, value, type = False):
-        self.track = track
-        self.index = index
-        self.value = value
-        self.type = type
-
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection):
-    def posToSegment(pos1, pos2):
-        pass#TODO
+    def posToSegment(index, pos1, pos2):
+        pos1 = 0
+        firstBorder = False
+        for i in range(1, int(len(inputList[index].borders) / 3)):
+            if inputList[index].borders[3 * i] > pos1 and firstBorder == False:
+                pos1 = i
+                firstBorder = True
+            if inputList[index].borders[3 * i + 2] > pos2 and firstBorder == True:
+                pos2 = i
+                break
     def updateFromMain():
         change = connection.recv()
         if change.type == "terminate":
@@ -53,6 +54,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         elif change.type == "removeParam":
             aiParamStackList[change.data1].removeParam(change.data2)
             statusControl[change.data1].ai *= 0
+        elif change.type == "enableParam":
+            aiParamStackList[change.data1].enableParam(change.data2)
+            statusControl[change.data1].ai *= 0
+        elif change.type == "disableParam":
+            aiParamStackList[change.data1].disableParam(change.data2)
+            statusControl[change.data1].ai *= 0
         elif change.type == "changeInput":
             if change.data2 in ["phonemes", "offsets", "repetititionSpacing"]:
                 eval("inputList[change.data1]." + change.data2)[change.data3] = change.data4
@@ -63,12 +70,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 statusControl[change.data1].rs[change.data3:change.data4] *= 0
                 statusControl[change.data1].ai[change.data3:change.data4] *= 0
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
-                positions = posToSegment(change.data3, change.data4)
+                positions = posToSegment(change.data1, change.data3, change.data4)
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data4] = change.data5
                 statusControl[change.data1].rs[positions[0]:positions[1]] *= 0
                 statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
             else:
-                positions = posToSegment(change.data3, change.data4)
+                positions = posToSegment(change.data1, change.data3, change.data4)
                 inputList[change.data1].aiParamInputs[change.data2][change.data3:change.data4] = change.data5
                 statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
         if connection.poll or (change.final == False):

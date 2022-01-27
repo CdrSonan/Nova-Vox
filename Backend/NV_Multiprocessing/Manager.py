@@ -1,17 +1,6 @@
 import torch.multiprocessing as mp
 import Backend.NV_Multiprocessing.RenderProcess
-from Backend.NV_Multiprocessing.Interface import SequenceStatusControl
-"""
-class Outputs:
-    
-    def __init__(self):
-        self.waveform = torch.zeros(0)
-        self.status = torch.zeros(0)
-    
-    def __init__(self, sequence):
-        self.waveform = torch.zeros(sequence.length * global_consts.batchSize)
-        self.status = torch.zeros(sequence.phonemeLength)
-"""
+from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, InputChange, StatusChange
 
 class RenderManager:
     def __init__(self, sequenceList, voicebankList, aiParamStackList):
@@ -29,8 +18,14 @@ class RenderManager:
     def addParam(self, sequenceList, voicebankList, aiParamStackList):
     def removeParam(self, index, sequence, voicebankList, aiParamStackList):
     """
+    def receiveChange(self):
+        if self.connection.poll():
+            return self.connection.recv()#TODO: secure against editing of removed tracks
+        return StatusChange(None, None, None, None)
+    def sendChange(self, index, final = True, data1 = None, data2 = None, data3 = None, data4 = None, data5 = None):
+        self.connection.send(InputChange(index, data1, data2, data3, data4, data5))
     def restart(self, sequenceList, voicebankList, aiParamStackList):
-        #stop()
+        self.stop()
         del self.statusControl[:]
         for i in sequenceList:
             self.statusControl.append(SequenceStatusControl(i))
