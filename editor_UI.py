@@ -368,25 +368,34 @@ class MiddleLayer(Widget):
             #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 2] = end
     def changeBorder(self, border, pos):
         self.trackList[self.activeTrack].borders[border] = pos
-        self.submitSequenceChanges(math.floor(border / 3), 1)
-    def aAaAaAa(self, index):#deprecated
-        def repairBorders(self, index):
-            if index == len(self.trackList[self.activeTrack].notes):
-                return None
-            if self.trackList[self.activeTrack].notes[index].xPos == self.trackList[self.activeTrack].notes[index - 1].xPos:
-                self.trackList[self.activeTrack].notes[index].xPos += 1
-                repairBorders(self, index + 1)
-        iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
-        if index + 1 == len(self.trackList[self.activeTrack].notes):
-            iterationEnd += 1
-        for i in range(3 * self.trackList[self.activeTrack].notes[index].phonemeStart, 3 * iterationEnd):
-            self.trackList[self.activeTrack].borders[i] = int(self.trackList[self.activeTrack].borders[i])
-        for i in range(3 * self.trackList[self.activeTrack].notes[index].phonemeStart, 3 * iterationEnd):
-            repairBorders(self, i)
-        return None
-    def submitSequenceChanges(self, index, length):
+        self.submitBorderChanges(border, pos)
+    def repairBorders(self, index):
+        if index == len(self.trackList[self.activeTrack].notes):
+            return None
+        if self.trackList[self.activeTrack].notes[index].xPos == self.trackList[self.activeTrack].notes[index - 1].xPos:
+            self.trackList[self.activeTrack].notes[index].xPos += 1
+            self.repairBorders(self, index + 1)
+    def submitTerminate(self):
         pass
-    def submitParamChanges(self, param):
+    def submitAddTrack(self):
+        pass
+    def submitRemoveTrack(self):
+        pass
+    def submitChangeVB(self):
+        pass
+    def submitAddParam(self):
+        pass
+    def submitRemoveParam(self):
+        pass
+    def submitEnableParam(self):
+        pass
+    def submitDisableParam(self):
+        pass
+    def submitBorderChange(self, index, length):
+        pass
+    def submitNamedParamChange(self, param, start, end, data):
+        pass
+    def submitParamChange(self, param, start, end, data):
         pass
     def updateRenderStatus(self, track, index, value):
         pass

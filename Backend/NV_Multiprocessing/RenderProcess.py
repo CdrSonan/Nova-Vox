@@ -24,6 +24,11 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             if inputList[index].borders[3 * i + 2] > pos2 and firstBorder == True:
                 pos2 = i
                 break
+    def trimSequence(type, index, delta):
+        if delta > 0:
+            param = torch.cat([param[0:change.data3], torch.empty([delta,]), param[change.data3:]], 0)
+        elif delta < 0:
+            param = torch.cat([param[0:change.data3], param[change.data3 - delta:]], 0)
     def updateFromMain():
         change = connection.recv()
         if change.type == "terminate":
@@ -61,17 +66,19 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             aiParamStackList[change.data1].disableParam(change.data2)
             statusControl[change.data1].ai *= 0
         elif change.type == "changeInput":
-            if change.data2 in ["phonemes", "offsets", "repetititionSpacing"]:
-                eval("inputList[change.data1]." + change.data2)[change.data3] = change.data4
-                statusControl[change.data1].rs[change.data3] *= 0
-                statusControl[change.data1].ai[change.data3] *= 0
-            elif change.data2 == "borders":
-                inputList[change.data1].borders[change.data3:change.data4] = change.data5
+            if change.data2 in ["phonemes", "offsets", "repetititionSpacing", "borders"]:
+                param = eval("inputList[change.data1]." + change.data2)
+                delta = change.data5 - change.data4 + change.data3
+                trimSequence(False, change.data3, delta)
+                param[change.data3:change.data4] = change.data5
                 statusControl[change.data1].rs[change.data3:change.data4] *= 0
                 statusControl[change.data1].ai[change.data3:change.data4] *= 0
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
+                param = eval("inputList[change.data1]." + change.data2)
+                delta = change.data5 - change.data4 + change.data3
+                trimSequence(True, change.data3, delta)
                 positions = posToSegment(change.data1, change.data3, change.data4)
-                eval("inputList[change.data1]." + change.data2)[change.data3:change.data4] = change.data5
+                param[change.data3:change.data4] = change.data5
                 statusControl[change.data1].rs[positions[0]:positions[1]] *= 0
                 statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
             else:
