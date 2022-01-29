@@ -47,8 +47,10 @@ class MiddleLayer(Widget):
         self.shift = False
         self.scrollValue = 0.
         self.seqLength = 0
+        self.deletions = []
     def importVoicebank(self, path, name, inImage):
-        self.trackList.append(dh.Track(path))
+        track = dh.Track(path)
+        self.trackList.append(track)
         canvas_img = inImage
         data = BytesIO()
         canvas_img.save(data, format='png')
@@ -56,6 +58,7 @@ class MiddleLayer(Widget):
         im = CoreImage(BytesIO(data.read()), ext='png')
         image = im.texture
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
+        self.submitAddTrack(track)
     def importParam(self, path, name):
         self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
         self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = True, sortable = True, deletable = True, index = len(self.trackList[self.activeTrack].paramStack) - 1))
@@ -75,6 +78,8 @@ class MiddleLayer(Widget):
                 i.parent.remove_widget(i)
             if i.index > index:
                 i.index = i.index - 1
+        self.deletions.append(index)
+        self.submitRemoveTrack(index)
     def deleteParam(self, index):
         self.trackList[self.activeTrack].paramStack.pop(index)
         if index <= self.activeParam:
@@ -376,30 +381,33 @@ class MiddleLayer(Widget):
             self.trackList[self.activeTrack].notes[index].xPos += 1
             self.repairBorders(self, index + 1)
     def submitTerminate(self):
-        pass
-    def submitAddTrack(self):
-        pass
-    def submitRemoveTrack(self):
-        pass
-    def submitChangeVB(self):
-        pass
-    def submitAddParam(self):
-        pass
-    def submitRemoveParam(self):
-        pass
-    def submitEnableParam(self):
-        pass
-    def submitDisableParam(self):
-        pass
-    def submitBorderChange(self, index, length):
-        pass
-    def submitNamedParamChange(self, param, start, end, data):
-        pass
-    def submitParamChange(self, param, start, end, data):
-        pass
+        manager.sendChange("terminate", True)
+    def submitAddTrack(self, track):
+        manager.sendChange("addTrack", True, track.vbPath, track.to_sequence())
+    def submitRemoveTrack(self, index):
+        manager.sendChange("removeTrack", True, index)
+    def submitChangeVB(self, index, path):
+        manager.sendChange("changeVB", True, index, path)
+    def submitAddParam(self, path):
+        manager.sendChange("addParam", True, self.activeTrack, path)
+    def submitRemoveParam(self, index):
+        manager.sendChange("removeParam", True, self.activeTrack, index)
+    def submitEnableParam(self, index):
+        manager.sendChange("enableParam", True, self.activeTrack, index)
+    def submitDisableParam(self, index):
+        manager.sendChange("disableParam", True, self.activeTrack, index)
+    def submitBorderChange(self, final, index, data, delta):
+        manager.sendChange("changeInput", final, self.activeTrack, "borders", index, data, delta)
+    def submitNamedParamChange(self, final, param, index, data):
+        manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
+    def submitNamedPhonParamChange(self, final, param, index, data, delta):
+        manager.sendChange("changeInput", final, self.activeTrack, param, index, data, delta)
+    def submitParamChange(self, final, param, index, data):
+        manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     def updateRenderStatus(self, track, index, value):
         pass
     def updateAudioBuffer(self, track, index, value):
+        self.deletions
         pass
         
 class ImageButton(ButtonBehavior, Image):
@@ -1432,6 +1440,8 @@ class NovaVoxUI(Widget):
             middleLayer.updateRenderStatus(change.track, change.index, change.value)
         elif change.type == True:
             middleLayer.updateAudioBuffer(change.track, change.index, change.value)
+        else:
+            middleLayer.deletions.pop(0)
     def setMode(self, mode):
         global middleLayer
         middleLayer.mode = mode

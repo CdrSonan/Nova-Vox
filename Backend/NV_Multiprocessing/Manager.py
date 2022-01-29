@@ -12,18 +12,12 @@ class RenderManager:
             self.statusControl.append(SequenceStatusControl(i))
         self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, aiParamStackList, sequenceList, self.rerenderFlag, remoteConnection), name = "Nova-Vox rendering process", daemon = True)
         self.renderProcess.start()
-    """
-    def addTrack(self, sequence, voicebankList, aiParamStackList):
-    def removeTrack(self, index, voicebankList, aiParamStackList):
-    def addParam(self, sequenceList, voicebankList, aiParamStackList):
-    def removeParam(self, index, sequence, voicebankList, aiParamStackList):
-    """
     def receiveChange(self):
         if self.connection.poll():
-            return self.connection.recv()#TODO: secure against editing of removed tracks
+            return self.connection.recv()
         return StatusChange(None, None, None, None)
-    def sendChange(self, index, final = True, data1 = None, data2 = None, data3 = None, data4 = None, data5 = None):
-        self.connection.send(InputChange(index, data1, data2, data3, data4, data5))
+    def sendChange(self, type, final = True, data1 = None, data2 = None, data3 = None, data4 = None, data5 = None):
+        self.connection.send(InputChange(type, final, data1, data2, data3, data4, data5))
     def restart(self, sequenceList, voicebankList, aiParamStackList):
         self.stop()
         del self.statusControl[:]
