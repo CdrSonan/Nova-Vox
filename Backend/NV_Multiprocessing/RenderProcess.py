@@ -33,12 +33,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             phonemes = torch.cat([phonemes[0:position], torch.empty([delta,]), phonemes[position:]], 0)
             offsets = torch.cat([offsets[0:position], torch.empty([delta,]), offsets[position:]], 0)
             repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.empty([delta,]), repetititionSpacing[position:]], 0)
-            borders = torch.cat([borders[0:position], torch.empty([3 * delta,]), borders[position:]], 0)
+            borders = torch.cat([borders[0:3 * position], torch.empty([3 * delta,]), borders[3 * position:]], 0)
         elif delta < 0:
             phonemes = torch.cat([phonemes[0:position], phonemes[position - delta:]], 0)
             offsets = torch.cat([offsets[0:position], offsets[position - delta:]], 0)
             repetititionSpacing = torch.cat([repetititionSpacing[0:position], repetititionSpacing[position - delta:]], 0)
-            borders = torch.cat([borders[0:position], borders[position - delta:]], 0)
+            borders = torch.cat([borders[0:3 * position], borders[3 * position - delta:]], 0)
     def updateFromMain():
         change = connection.recv()
         if change.type == "terminate":
@@ -71,21 +71,24 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             aiParamStackList[change.data1].removeParam(change.data2)
             statusControl[change.data1].ai *= 0
         elif change.type == "enableParam":
-            aiParamStackList[change.data1].enableParam(change.data2)
+            aiParamStackList[change.data1].enableParam(change.data2)#add named params
             statusControl[change.data1].ai *= 0
         elif change.type == "disableParam":
-            aiParamStackList[change.data1].disableParam(change.data2)
+            aiParamStackList[change.data1].disableParam(change.data2)#add named params
+            statusControl[change.data1].ai *= 0
+        elif change.type == "moveParam":
+            aiParamStackList[change.data1].insert(change.data3, aiParamStackList[change.data1].pop(change.data2))
             statusControl[change.data1].ai *= 0
         elif change.type == "changeInput":
             if change.data2 in ["phonemes", "offsets", "repetititionSpacing"]:
                 param = eval("inputList[change.data1]." + change.data2)
-                trimSequence(change.data1, change.data3, change.data5)
+                #trimSequence(change.data1, change.data3, change.data5)
                 param[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[change.data3:change.data3 + len(change.data4)] *= 0
                 statusControl[change.data1].ai[change.data3:change.data3 + len(change.data4)] *= 0
             elif change.data2 == "borders":
                 param = inputList[change.data1].borders
-                trimSequence(change.data1, math.ceil(change.data3 / 3), change.data5)
+                #trimSequence(change.data1, math.ceil(change.data3 / 3), change.data5)
                 param[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
                 statusControl[change.data1].ai[math.floor(change.data3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
@@ -99,6 +102,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))
                 inputList[change.data1].aiParamInputs[change.data2][change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
+        elif change.type == "offset":
+            trimSequence(change.data1, change.data2, change.data3)
         if connection.poll or (change.final == False):
             return updateFromMain()
         return False

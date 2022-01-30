@@ -62,6 +62,7 @@ class MiddleLayer(Widget):
     def importParam(self, path, name):
         self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
         self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = True, sortable = True, deletable = True, index = len(self.trackList[self.activeTrack].paramStack) - 1))
+        self.submitAddParam(path)
     def changeTrack(self, index):
         self.activeTrack = index
         self.updateParamPanel()
@@ -69,6 +70,7 @@ class MiddleLayer(Widget):
         self.trackList.append(self.trackList[index])
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
+        self.submitDuplicateTrack(index)
     def deleteTrack(self, index):
         self.trackList.pop(index)
         if index <= self.activeTrack:
@@ -89,6 +91,7 @@ class MiddleLayer(Widget):
                 i.parent.remove_widget(i)
             if i.index > index:
                 i.index = i.index - 1
+        self.submitRemoveParam(index)
     def enableParam(self, index, name):
         if index == -1:
             if name == "steadiness":
@@ -101,6 +104,7 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].useVibratoStrength = True
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = True
+        self.submitEnableParam(index, name)
     def disableParam(self, index, name):
         if index == -1:
             if name == "steadiness":
@@ -113,6 +117,7 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].useVibratoStrength = False
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = False
+        self.submitEnableParam(index, name)
     def moveParam(self, name, switchable, sortable, deletable, index, delta):
         param = self.trackList[self.activeTrack].paramStack[index]
         if delta > 0:
@@ -167,22 +172,30 @@ class MiddleLayer(Widget):
     def applyParamChanges(self, data, start, section = False):
         if self.activeParam == "steadiness":
             self.trackList[self.activeTrack].steadiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+            self.submitNamedParamChange(True, "steadiness", start, torch.tensor(data, dtype = torch.half))
         elif self.activeParam == "breathiness":
             self.trackList[self.activeTrack].breathiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+            self.submitNamedParamChange(True, "breathiness", start, torch.tensor(data, dtype = torch.half))
         elif self.activeParam == "loop":
             if section:
                 self.trackList[self.activeTrack].loopOverlap[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+                self.submitNamedPhonParamChange(True, "repetititionSpacing", start, torch.tensor(data, dtype = torch.half))
             else:
                 self.trackList[self.activeTrack].loopOffset[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+                self.submitNamedPhonParamChange(True, "offsets", start, torch.tensor(data, dtype = torch.half))
         elif self.activeParam == "vibrato":
             if section:
                 self.trackList[self.activeTrack].vibratoSpeed[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+                self.submitNamedParamChange(True, "vibratoSpeed", start, torch.tensor(data, dtype = torch.half))
             else:
                 self.trackList[self.activeTrack].vibratoStrength[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+                self.submitNamedParamChange(True, "vibratoStrength", start, torch.tensor(data, dtype = torch.half))
         else:
             self.trackList[self.activeTrack].paramStack[self.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+            self.submitParamChange(True, self.activeParam, start, torch.tensor(data, dtype = torch.half))
     def applyPitchChanges(self, data, start):
         self.trackList[self.activeTrack].pitch[start:start + len(data)] = torch.tensor(data, dtype = torch.float32)
+        self.submitNamedPhonParamChange(True, "pitch", start, torch.tensor(data, dtype = torch.half))
     def changePianoRollMode(self):
         self.ids["pianoRoll"].changeMode()
     def applyScroll(self):
@@ -208,6 +221,7 @@ class MiddleLayer(Widget):
             i.phonemeStart += offset
             i.phonemeEnd += offset
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
+        self.submitOffset(False, index, offset)
     def makeAutoPauses(self, index):
         if index > 0:
             if self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
@@ -254,6 +268,10 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = seq1
         self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = brd2
         self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart:3 * self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = brd1
+        self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, seq2)
+        self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, seq1)
+        self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index].phonemeStart, brd2)
+        self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart, brd1)
     def scaleNote(self, index, oldLength):
         length = self.trackList[self.activeTrack].notes[index].length
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
@@ -265,6 +283,7 @@ class MiddleLayer(Widget):
             self.trackList[self.activeTrack].borders[3 * i] = (self.trackList[self.activeTrack].borders[3 * i] - self.trackList[self.activeTrack].notes[index].xPos) * length / oldLength + self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 1] = (self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].notes[index].xPos) * length / oldLength + self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 2] = (self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].notes[index].xPos) * length / oldLength + self.trackList[self.activeTrack].notes[index].xPos
+        self.submitNamedPhonParamChange(True, "borders", 3 * self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * iterationEnd + 2])
     def adjustNote(self, index, oldLength, oldPos):
         result = None
         nextLength = oldLength
@@ -293,6 +312,7 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].borders[0] = x + 33
                 self.trackList[self.activeTrack].borders[1] = x + 66
                 self.trackList[self.activeTrack].borders[2] = x + 100
+                #TODO continue here
         elif index == len(self.trackList[self.activeTrack].notes):
             self.trackList[self.activeTrack].notes.append(dh.Note(x, y, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, reference))
             self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].sequence)] = x + 33
@@ -386,24 +406,34 @@ class MiddleLayer(Widget):
         manager.sendChange("addTrack", True, track.vbPath, track.to_sequence())
     def submitRemoveTrack(self, index):
         manager.sendChange("removeTrack", True, index)
+    def submitDuplicateTrack(self, index):
+        manager.sendChange("duplicateTrack", True, index)
     def submitChangeVB(self, index, path):
         manager.sendChange("changeVB", True, index, path)
     def submitAddParam(self, path):
         manager.sendChange("addParam", True, self.activeTrack, path)
     def submitRemoveParam(self, index):
         manager.sendChange("removeParam", True, self.activeTrack, index)
-    def submitEnableParam(self, index):
-        manager.sendChange("enableParam", True, self.activeTrack, index)
-    def submitDisableParam(self, index):
-        manager.sendChange("disableParam", True, self.activeTrack, index)
+    def submitEnableParam(self, index, name):
+        if index == -1:
+            manager.sendChange("enableParam", True, self.activeTrack, name)
+        else:
+            manager.sendChange("enableParam", True, self.activeTrack, index)
+    def submitDisableParam(self, index, name):
+        if index == -1:
+            manager.sendChange("disableParam", True, self.activeTrack, name)
+        else:
+            manager.sendChange("disableParam", True, self.activeTrack, index)
     def submitBorderChange(self, final, index, data, delta):
         manager.sendChange("changeInput", final, self.activeTrack, "borders", index, data, delta)
     def submitNamedParamChange(self, final, param, index, data):
         manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
-    def submitNamedPhonParamChange(self, final, param, index, data, delta):
-        manager.sendChange("changeInput", final, self.activeTrack, param, index, data, delta)
+    def submitNamedPhonParamChange(self, final, param, index, data):
+        manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     def submitParamChange(self, final, param, index, data):
         manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
+    def submitOffset(self, final, index, offset):
+        manager.sendChange("offset", final, self.activeTrack, index, offset)
     def updateRenderStatus(self, track, index, value):
         pass
     def updateAudioBuffer(self, track, index, value):
