@@ -31,6 +31,7 @@ class Track:
         self.useVibratoStrength = False
         self.paramStack = []
         self.borders = [0, 1, 2]
+        self.length = 1000
     def generateCaps(self):
         noneList = []
         for i in self.phonemes:

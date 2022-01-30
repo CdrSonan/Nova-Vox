@@ -278,7 +278,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                         waveform += excitationSignal.to(device = torch.device("cpu"))
 
-                        connection.send(StatusChange(i, internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize, waveform, True))
+                        #connection.send(StatusChange(i, internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize, waveform, True))
+                        connection.send(StatusChange(i, 0, waveform, True))
                         connection.send(StatusChange(i, j - 1, 5))
                         if internalInputs.endCaps[j - 1] == True:
                             aiActive = False
