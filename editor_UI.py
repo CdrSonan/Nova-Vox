@@ -28,6 +28,7 @@ import os
 import torch
 import subprocess
 import math
+from Backend.Param_Components.AiParams import AiParamStack
 
 import MiddleLayer.DataHandlers as dh
 from Backend.NV_Multiprocessing.Manager import RenderManager
@@ -60,6 +61,7 @@ class MiddleLayer(Widget):
         image = im.texture
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.audioBuffer.append(torch.zeros([track.length,]))
+        aiParamStackList.append(AiParamStack([]))
         self.submitAddTrack(track)
     def importParam(self, path, name):
         self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
@@ -73,8 +75,10 @@ class MiddleLayer(Widget):
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.submitDuplicateTrack(index)
+        aiParamStackList.append(AiParamStack([]))
     def deleteTrack(self, index):
         self.trackList.pop(index)
+        aiParamStackList.pop(index)
         if index <= self.activeTrack:
             self.changeTrack(self.activeTrack - 1)
         for i in self.ids["singerList"].children:
@@ -208,14 +212,14 @@ class MiddleLayer(Widget):
         phonIndex = self.trackList[self.activeTrack].notes[index].phonemeStart
         if offset > 0:
             for i in range(offset):
-                self.trackList[self.activeTrack].sequence.insert(phonIndex, "X")
+                self.trackList[self.activeTrack].phonemes.insert(phonIndex, "X")
                 self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOverlap[phonIndex:]], dim = 0)
                 self.trackList[self.activeTrack].loopOffset = torch.cat([self.trackList[self.activeTrack].loopOffset[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOffset[phonIndex:]], dim = 0)
                 for j in range(3):
                     self.trackList[self.activeTrack].borders.insert(phonIndex * 3, 0)
         elif offset < 0:
             for i in range(-offset):
-                self.trackList[self.activeTrack].sequence.pop(phonIndex)
+                self.trackList[self.activeTrack].phonemes.pop(phonIndex)
                 self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], self.trackList[self.activeTrack].loopOverlap[phonIndex + 1:]], dim = 0)
                 self.trackList[self.activeTrack].loopOffset = torch.cat([self.trackList[self.activeTrack].loopOffset[0:phonIndex], self.trackList[self.activeTrack].loopOffset[phonIndex + 1:]], dim = 0)
                 for j in range(3):
@@ -227,31 +231,31 @@ class MiddleLayer(Widget):
         self.submitOffset(False, index, offset)
     def makeAutoPauses(self, index):
         if index > 0:
-            if self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
-                self.trackList[self.activeTrack].sequence.pop(self.trackList[self.activeTrack].notes[index].phonemeStart)
+            if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
+                self.trackList[self.activeTrack].phonemes.pop(self.trackList[self.activeTrack].notes[index].phonemeStart)
                 for i in self.trackList[self.activeTrack].notes[index:]:
                     i.phonemeStart -= 1
                     i.phonemeEnd -= 1
             if self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length > self.trackList[self.activeTrack].pauseThreshold:
-                self.trackList[self.activeTrack].sequence.insert(self.trackList[self.activeTrack].notes[index].phonemeStart, "_autopause")
+                self.trackList[self.activeTrack].phonemes.insert(self.trackList[self.activeTrack].notes[index].phonemeStart, "_autopause")
                 for i in self.trackList[self.activeTrack].notes[index:]:
                     i.phonemeStart += 1
                     i.phonemeEnd += 1
         if index < len(self.trackList[self.activeTrack].notes - 1):
-            if self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeEnd] == "_autopause":
-                self.trackList[self.activeTrack].sequence.pop(self.trackList[self.activeTrack].notes[index].phonemeEnd)
+            if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeEnd] == "_autopause":
+                self.trackList[self.activeTrack].phonemes.pop(self.trackList[self.activeTrack].notes[index].phonemeEnd)
                 for i in self.trackList[self.activeTrack].notes[index + 1:]:
                     i.phonemeStart -= 1
                     i.phonemeEnd -= 1
             if self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index].length > self.trackList[self.activeTrack].pauseThreshold:
-                self.trackList[self.activeTrack].sequence.insert(self.trackList[self.activeTrack].notes[index + 1].phonemeStart, "_autopause")
+                self.trackList[self.activeTrack].phonemes.insert(self.trackList[self.activeTrack].notes[index + 1].phonemeStart, "_autopause")
                 for i in self.trackList[self.activeTrack].notes[index + 1:]:
                     i.phonemeStart += 1
                     i.phonemeEnd += 1
     def switchNote(self, index):
         note = self.trackList[self.activeTrack].notes.pop(index + 1)
-        seq1 = self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd]
-        seq2 = self.trackList[self.activeTrack].sequence[note.phonemeStart:note.phonemeEnd]
+        seq1 = self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd]
+        seq2 = self.trackList[self.activeTrack].phonemes[note.phonemeStart:note.phonemeEnd]
         brd1 = self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd]
         brd2 = self.trackList[self.activeTrack].borders[3 * note.phonemeStart:3 * note.phonemeEnd]
         if index == len(self.trackList[self.activeTrack].notes) - 1:#notes are 1 element shorter because of pop
@@ -267,8 +271,8 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index + 1].phonemeEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         self.trackList[self.activeTrack].notes[index].phonemeEnd = self.trackList[self.activeTrack].notes[index].phonemeStart + phonemeMid
         self.trackList[self.activeTrack].notes[index + 1].phonemeStart = self.trackList[self.activeTrack].notes[index].phonemeStart + phonemeMid
-        self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = seq2
-        self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = seq1
+        self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = seq2
+        self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = seq1
         self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = brd2
         self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart:3 * self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = brd1
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, seq2)
@@ -318,10 +322,10 @@ class MiddleLayer(Widget):
                 self.submitNamedPhonParamChange(False, "borders", 0, [33, 66, 100])
         elif index == len(self.trackList[self.activeTrack].notes):
             self.trackList[self.activeTrack].notes.append(dh.Note(x, y, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, self.trackList[self.activeTrack].notes[index - 1].phonemeEnd, reference))
-            self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].sequence)] = x + 33
-            self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].sequence) + 1] = x + 66
-            self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].sequence) + 2] = x + 100
-            self.submitNamedPhonParamChange(False, "borders", 3 * len(self.trackList[self.activeTrack].sequence), [x + 33, x + 66, x + 100])
+            self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].phonemes)] = x + 33
+            self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].phonemes) + 1] = x + 66
+            self.trackList[self.activeTrack].borders[3 * len(self.trackList[self.activeTrack].phonemes) + 2] = x + 100
+            self.submitNamedPhonParamChange(False, "borders", 3 * len(self.trackList[self.activeTrack].phonemes), [x + 33, x + 66, x + 100])
         else:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart, reference))
         self.adjustNote(index, 100, x)
@@ -379,7 +383,7 @@ class MiddleLayer(Widget):
         phonemes = text#TO DO: Input validation, phoneme type awareness
         offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
         self.offsetPhonemes(index, offset)
-        self.trackList[self.activeTrack].sequence[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
+        self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, phonemes)
         start = self.trackList[self.activeTrack].notes[index].xPos
         end = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
@@ -399,9 +403,10 @@ class MiddleLayer(Widget):
             #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = end - 2
             #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 1] = end - 1
             #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 2] = end
+        self.submitFinalize()
     def changeBorder(self, border, pos):
         self.trackList[self.activeTrack].borders[border] = pos
-        self.submitNamedPhonParamChange(False, "borders", border, pos)
+        self.submitBorderChange(True, border, [pos,])
     def repairNotes(self, index):
         if index == len(self.trackList[self.activeTrack].notes):
             return None
@@ -411,7 +416,7 @@ class MiddleLayer(Widget):
     def submitTerminate(self):
         manager.sendChange("terminate", True)
     def submitAddTrack(self, track):
-        manager.sendChange("addTrack", True, track.vbPath, track.to_sequence())
+        manager.sendChange("addTrack", True, track.vbPath, track.to_sequence(), aiParamStackList[-1])
     def submitRemoveTrack(self, index):
         manager.sendChange("removeTrack", True, index)
     def submitDuplicateTrack(self, index):
@@ -432,8 +437,8 @@ class MiddleLayer(Widget):
             manager.sendChange("disableParam", True, self.activeTrack, name)
         else:
             manager.sendChange("disableParam", True, self.activeTrack, index)
-    def submitBorderChange(self, final, index, data, delta):
-        manager.sendChange("changeInput", final, self.activeTrack, "borders", index, data, delta)
+    def submitBorderChange(self, final, index, data):
+        manager.sendChange("changeInput", final, self.activeTrack, "borders", index, data)
     def submitNamedParamChange(self, final, param, index, data):
         manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     def submitNamedPhonParamChange(self, final, param, index, data):
@@ -442,13 +447,14 @@ class MiddleLayer(Widget):
         manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     def submitOffset(self, final, index, offset):
         manager.sendChange("offset", final, self.activeTrack, index, offset)
+    def submitFinalize(self):
+        manager.sendChange("finalize", True)
     def updateRenderStatus(self, track, index, value):
         for i in self.deletions:
             if i == track:
                 return None
             elif i < track:
                 track -= 1
-        
     def updateAudioBuffer(self, track, index, data):
         for i in self.deletions:
             if i == track:
@@ -599,6 +605,7 @@ class ParamCurve(ScrollView):
                     touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                     touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
                     touch.ud['startPointOffset'] = 0
+                    touch.ud['param'] = True
             return True
         else:
             return False
@@ -745,6 +752,7 @@ class TimingOptns(ScrollView):
                     touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                     touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
                     touch.ud['section'] = touch.ud['startPoint'][1] > self.height / 2
+                    touch.ud['param'] = True
                     if middleLayer.tool != "draw":
                         Color(0, 0, 1)
                         touch.ud['line'] = Line(points=[touch.x, touch.y])
@@ -1484,12 +1492,16 @@ class NovaVoxUI(Widget):
         self._keyboard.bind(on_key_up = self.on_keyboard_up)
     def update(self, deltatime):
         change = manager.receiveChange()
+        if change == None:
+            return None
         if change.type == False:
             middleLayer.updateRenderStatus(change.track, change.index, change.value)
         elif change.type == True:
             middleLayer.updateAudioBuffer(change.track, change.index, change.value)
         else:
             middleLayer.deletions.pop(0)
+        self.update(deltatime)
+        print(change.track, change.index, change.value)
     def setMode(self, mode):
         global middleLayer
         middleLayer.mode = mode

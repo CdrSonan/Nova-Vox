@@ -16,7 +16,7 @@ class Track:
     def __init__(self, path):
         self.vbPath = path
         self.notes = []
-        self.sequence = []
+        self.phonemes = []
         self.pitch = torch.full((1000,), 1., dtype = torch.half)
         self.breathiness = torch.full((1000,), 0, dtype = torch.half)
         self.steadiness = torch.full((1000,), 0, dtype = torch.half)
@@ -37,9 +37,9 @@ class Track:
         for i in self.phonemes:
             noneList.append(False)
         return [noneList, noneList]
-    def to_sequence(self, length):
-        caps = self.generateCaps(self)
-        return VocalSequence(length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, self.pitch, self.steadiness, self.breathiness)
+    def to_sequence(self):
+        caps = self.generateCaps()
+        return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, self.pitch, self.steadiness, self.breathiness)
 
 class Note:
     def __init__(self, xPos, yPos, start = 0, end = 1, reference = None):

@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection):
     def posToSegment(index, pos1, pos2):
         pos1 = 0
+        pos2 = 0
         firstBorder = False
         for i in range(1, int(len(inputList[index].borders) / 3)):
             if inputList[index].borders[3 * i] > pos1 and firstBorder == False:
@@ -24,29 +25,51 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             if inputList[index].borders[3 * i + 2] > pos2 and firstBorder == True:
                 pos2 = i
                 break
+        return (pos1, pos2)
     def trimSequence(index, position, delta):
         phonemes = inputList[index].phonemes
         offsets = inputList[index].offsets
         repetititionSpacing = inputList[index].repetititionSpacing
         borders = inputList[index].borders
+        startCaps = inputList[index].startCaps
+        endCaps = inputList[index].endCaps
         if delta > 0:
-            phonemes = torch.cat([phonemes[0:position], torch.empty([delta,]), phonemes[position:]], 0)
+            phonemes = phonemes[0:position] + [0] * delta + phonemes[position:]
             offsets = torch.cat([offsets[0:position], torch.empty([delta,]), offsets[position:]], 0)
             repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.empty([delta,]), repetititionSpacing[position:]], 0)
-            borders = torch.cat([borders[0:3 * position], torch.empty([3 * delta,]), borders[3 * position:]], 0)
+            borders = borders[0:3 * position] + [0] * delta + borders[3 * position:]
+            startCaps = startCaps[0:position] + [False] * delta + startCaps[position:]
+            endCaps = endCaps[0:position] + [False] * delta + endCaps[position:]
+            if position == 0:
+                startCaps[0] = True
+                if len(startCaps) > position + delta:
+                    startCaps[position + delta] = False
+            if position + delta >= len(endCaps) - 1:
+                endCaps[position] = False
+                endCaps[-1] = True
         elif delta < 0:
-            phonemes = torch.cat([phonemes[0:position], phonemes[position - delta:]], 0)
+            phonemes = phonemes[0:position] + phonemes[position - delta:]
             offsets = torch.cat([offsets[0:position], offsets[position - delta:]], 0)
             repetititionSpacing = torch.cat([repetititionSpacing[0:position], repetititionSpacing[position - delta:]], 0)
-            borders = torch.cat([borders[0:3 * position], borders[3 * position - delta:]], 0)
+            borders = borders[0:3 * position] + borders[3 * position - delta:]
+            startCaps = startCaps[0:position] + startCaps[position - delta:]
+            endCaps = endCaps[0:position] + endCaps[position - delta:]
+            if position == 0:
+                startCaps[0] = True
+            if position >= len(endCaps) - 1:
+                endCaps[-1] = True
+
     def updateFromMain():
+        print("pre")
         change = connection.recv()
+        print("post")
+        print(change.type, change.data1, change.data2, change.data3, change.data4, change.data5)
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
             statusControl.append(SequenceStatusControl(change.data2))
             voicebankList.append(LiteVoicebank(change.data1))
-            aiParamStackList.append(AiParamStack(change.data2))
+            aiParamStackList.append(change.data3)
             inputList.append(change.data2)
         elif change.type == "removeTrack":
             del statusControl[change.data1]
@@ -104,7 +127,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
             trimSequence(change.data1, change.data2, change.data3)
-        if connection.poll or (change.final == False):
+        if connection.poll() or (change.final == False):
             return updateFromMain()
         return False
     logging.info("render process started, reading settings")
@@ -296,12 +319,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         logging.info("rendering process finished for all sequences, waiting for render semaphore")
         print("")
         print("rendering finished!")
-        print("command? >>>")
         rerenderFlag.wait()
         rerenderFlag.clear()
-        if connection.poll:
+        if connection.poll():
             if updateFromMain():
                 break
+        
 
 
 

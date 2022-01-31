@@ -7,12 +7,13 @@ class VocalSequence:
         self.phonemes = phonemes
         self.startCaps = startCaps
         self.endCaps = endCaps
-        startCaps[0] = True
-        endCaps[-1] = True
+        if self.phonemeLength > 0:
+            startCaps[0] = True
+            endCaps[-1] = True
         self.offsets = offsets
         self.repetititionSpacing = repetititionSpacing
         self.pitch = pitch
         self.steadiness = steadiness
         self.breathiness = breathiness
 
-        self.aiParamInputs = []
+        self.parameters = []
