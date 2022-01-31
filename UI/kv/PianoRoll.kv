@@ -126,7 +126,43 @@
         source: "UI/assets/PianoRoll/Piano02.png"
         allow_stretch: True
         keep_ratio: False
-    
+
+<PlaybackHead>:
+    width: 20
+    height: 20
+    x: self.parent.x + self.parent.parent.parent.playbackPos * self.parent.parent.parent.xScale - self.width / 2
+    y: self.parent.y
+    source: "UI/assets/PianoRoll/Piano02.png"
+    canvas:
+        Color:
+            rgba: (0., 1., 0., 1)
+        Line:
+            points: (self.parent.x + self.parent.parent.parent.playbackPos * self.parent.parent.parent.xScale, self.parent.parent.y, self.parent.x + self.parent.parent.parent.playbackPos * self.parent.parent.parent.xScale, self.parent.parent.y + self.parent.parent.height)
+
+<TimingLabel>:
+    x: self.parent.x + int(self.parent.parent.parent.xScale * self.parent.parent.parent.tempo * self.index)
+    y: self.parent.y
+    width: self.parent.parent.parent.xScale * self.parent.parent.parent.tempo
+    canvas:
+        Color:
+            rgba: (0.3, 0.3, 0.3, 1)
+        Line:
+            points: (self.x, self.parent.parent.y, self.x, self.parent.parent.y + self.parent.parent.height)
+
+<TimingBar>:
+    orientation: "horizontal"
+    x: self.parent.x + self.parent.height - 20
+    y: self.parent.y + self.parent.parent.parent.scroll_y * (self.parent.parent.height - self.parent.parent.parent.height)
+    size_hint: (None, None)
+    size: (self.parent.length * self.parent.xScale, 20)
+    canvas:
+        Color:
+            rgba: (0.1, 0.1, 0.1, 0.8)
+        Rectangle:
+            pos: (self.x, self.y)
+            size:(self.width, self.height)
+    PlaybackHead:
+        playbackPos: self.parent.parent.parent.playbackPos
 
 <PianoRoll>:
     do_scroll: (True, True)
@@ -134,11 +170,15 @@
     bar_width: 10
     xScale: 1
     yScale: 30
+    measureSize: 4
     on_scroll_x: self.triggerScroll()
+    length: 5000
+    playbackPos: 0
     FloatLayout:
         pos: self.parent.pos
         size_hint: (None, None)
-        size: (5000, 48 * self.parent.yScale)
+        size: (self.parent.length * self.parent.xScale, 48 * self.parent.yScale)
+        TimingBar:
         PianoRollOctave:
             x: self.parent.x
             y: self.parent.y

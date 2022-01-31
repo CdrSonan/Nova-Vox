@@ -13,6 +13,7 @@ from kivy.graphics import Color, Line, Rectangle, InstructionGroup
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
@@ -1124,19 +1125,35 @@ class Note(ToggleButton):
 class PianoRollOctave(FloatLayout):
     pass
 
+class PlaybackHead(Image):
+    pass
+
+class TimingBar(FloatLayout):
+    pass
+
+class TimingLabel(Label):
+    index = NumericProperty()
+
 class PianoRoll(ScrollView):
     def __init__(self, **kwargs):
         super(PianoRoll, self).__init__(**kwargs)
         self.xScale = NumericProperty()
         self.yScale = NumericProperty()
+        self.measureSize = NumericProperty()
+        self.length = NumericProperty()
+        self.tempo = NumericProperty()
+        self.playbackPos: NumericProperty()
         self.currentNote = ObjectProperty()
         self.timingMarkers = ListProperty()
         self.pitchLine = ObjectProperty()
         self.timingMarkers = []
         self.pitchLine = None
-    def generate_notes(self):
-        for d in self.data:
+    def generate_notes(self, data):
+        for d in data:
             self.children[0].add_widget(Note(**d))
+    def generate_timing_markers(self):
+        for i in self.length:
+            self.children[0].children[0].add_widget(TimingLabel(index = i))
     def redrawPitch(self):
         data = middleLayer.trackList[middleLayer.activeTrack].pitch
         points = []

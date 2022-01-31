@@ -2364,3 +2364,30 @@
 2022-01-31 01:04:19,409:53196:INFO:shifting internal data backwards
 2022-01-31 01:04:19,409:53196:INFO:performing final rendering up to sample -1, sequence 0
 2022-01-31 01:04:19,409:53196:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-01-31 18:10:36,212:55672:INFO:logging service started
+2022-01-31 18:10:36,375:55672:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-01-31_13.txt
+2022-01-31 18:10:36,373:55672:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-01-31 18:10:36,375:55672:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-01-31 18:10:36,376:55672:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-01-31 18:10:36,376:55672:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-01-31 18:10:36,376:55672:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-01-31 18:10:36,376:55672:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-01-31 18:10:36,376:55672:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-01-31 18:10:36,673:55672:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-01-31 18:10:37,449:55672:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-01-31 18:10:38,267:55672:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-01-31 18:10:39,479:55672:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-01-31 18:10:39,481:55672:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-01-31 18:10:39,481:55672:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-01-31 18:10:39,482:55672:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-01-31 18:10:39,483:55672:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-01-31 18:10:39,483:55672:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-01-31 18:10:39,483:55672:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-01-31 18:10:39,483:55672:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-01-31 18:10:39,484:55672:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-01-31 18:10:39,484:55672:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-01-31 18:10:39,590:55672:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-01-31 18:10:39,595:55672:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-01-31 18:10:39,965:55672:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-01-31 18:10:40,175:55672:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-01-31 18:10:40,328:55672:[1;32mINFO[0m:starting render manager
