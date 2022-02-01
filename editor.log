@@ -5780,3 +5780,343 @@
 2022-02-01 20:59:44,774:5900:INFO:starting new segment rendering iteration
 2022-02-01 20:59:44,774:5900:INFO:shifting internal data backwards
 2022-02-01 20:59:44,774:5900:INFO:calling resamplers for sample 0, sequence 0
+2022-02-01 23:09:03,070:20692:INFO:logging service started
+2022-02-01 23:09:03,106:20692:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-01_11.txt
+2022-02-01 23:09:03,105:20692:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-01 23:09:03,107:20692:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-01 23:09:03,107:20692:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-01 23:09:03,107:20692:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-01 23:09:03,107:20692:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-01 23:09:03,108:20692:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-01 23:09:03,108:20692:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-01 23:09:03,165:20692:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-01 23:09:03,299:20692:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-01 23:09:03,381:20692:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-01 23:09:03,937:20692:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-01 23:09:03,939:20692:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-01 23:09:03,939:20692:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-01 23:09:03,940:20692:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-01 23:09:03,941:20692:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-01 23:09:03,941:20692:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-01 23:09:03,941:20692:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-01 23:09:03,942:20692:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-01 23:09:03,942:20692:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-01 23:09:03,942:20692:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-01 23:09:03,977:20692:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-01 23:09:03,979:20692:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-01 23:09:04,047:20692:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-01 23:09:04,067:20692:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-01 23:09:04,138:20692:[1;32mINFO[0m:starting render manager
+2022-02-01 23:09:04,188:20692:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-01 23:09:04,426:20692:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-01 23:09:06,360:15932:INFO:logging service started
+2022-02-01 23:09:06,365:15932:INFO:render process started, reading settings
+2022-02-01 23:09:06,366:15932:INFO:starting new rendering iteration
+2022-02-01 23:09:06,366:15932:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:09:07,423:15932:INFO:starting new rendering iteration
+2022-02-01 23:09:07,424:15932:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:09:07,470:15932:INFO:setting up local data structures
+2022-02-01 23:09:07,472:15932:INFO:starting new segment rendering iteration
+2022-02-01 23:09:07,472:15932:INFO:shifting internal data backwards
+2022-02-01 23:09:07,472:15932:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:09:07,472:15932:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:09:08,275:20692:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-02-01 23:09:08,276:20692:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-02-01 23:09:08,276:20692:WARNING:stderr: Traceback (most recent call last):
+2022-02-01 23:09:08,277:20692:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 609, in redraw
+2022-02-01 23:09:08,277:20692:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-02-01 23:09:08,278:20692:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-02-01 23:09:09,694:15932:INFO:starting new rendering iteration
+2022-02-01 23:09:09,694:15932:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:09:09,735:15932:INFO:setting up local data structures
+2022-02-01 23:09:09,737:15932:INFO:starting new segment rendering iteration
+2022-02-01 23:09:09,737:15932:INFO:shifting internal data backwards
+2022-02-01 23:09:09,737:15932:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:09:09,738:15932:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:09:09,739:15932:INFO:starting new rendering iteration
+2022-02-01 23:09:09,739:15932:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:09:09,788:15932:INFO:setting up local data structures
+2022-02-01 23:09:09,790:15932:INFO:starting new segment rendering iteration
+2022-02-01 23:09:09,790:15932:INFO:shifting internal data backwards
+2022-02-01 23:09:09,790:15932:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:09:09,790:15932:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:10:33,691:13360:INFO:logging service started
+2022-02-01 23:10:33,726:13360:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-01_12.txt
+2022-02-01 23:10:33,724:13360:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-01 23:10:33,726:13360:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-01 23:10:33,727:13360:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-01 23:10:33,727:13360:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-01 23:10:33,727:13360:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-01 23:10:33,728:13360:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-01 23:10:33,728:13360:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-01 23:10:33,782:13360:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-01 23:10:33,912:13360:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-01 23:10:33,990:13360:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-01 23:10:34,485:13360:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-01 23:10:34,487:13360:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-01 23:10:34,487:13360:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-01 23:10:34,488:13360:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-01 23:10:34,489:13360:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-01 23:10:34,489:13360:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-01 23:10:34,489:13360:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-01 23:10:34,490:13360:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-01 23:10:34,490:13360:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-01 23:10:34,490:13360:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-01 23:10:34,524:13360:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-01 23:10:34,525:13360:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-01 23:10:34,602:13360:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-01 23:10:34,621:13360:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-01 23:10:34,691:13360:[1;32mINFO[0m:starting render manager
+2022-02-01 23:10:34,741:13360:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-01 23:10:34,973:13360:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-01 23:10:36,873:2072:INFO:logging service started
+2022-02-01 23:10:36,878:2072:INFO:render process started, reading settings
+2022-02-01 23:10:36,879:2072:INFO:starting new rendering iteration
+2022-02-01 23:10:36,879:2072:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:10:37,613:2072:INFO:starting new rendering iteration
+2022-02-01 23:10:37,613:2072:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:10:37,663:2072:INFO:setting up local data structures
+2022-02-01 23:10:37,664:2072:INFO:starting new segment rendering iteration
+2022-02-01 23:10:37,665:2072:INFO:shifting internal data backwards
+2022-02-01 23:10:37,665:2072:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:10:37,665:2072:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:10:39,056:13360:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-02-01 23:10:39,057:13360:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-02-01 23:10:39,057:13360:WARNING:stderr: Traceback (most recent call last):
+2022-02-01 23:10:39,058:13360:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 609, in redraw
+2022-02-01 23:10:39,058:13360:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-02-01 23:10:39,059:13360:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-02-01 23:10:39,792:2072:INFO:starting new rendering iteration
+2022-02-01 23:10:39,792:2072:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:10:39,831:2072:INFO:setting up local data structures
+2022-02-01 23:10:39,833:2072:INFO:starting new segment rendering iteration
+2022-02-01 23:10:39,833:2072:INFO:shifting internal data backwards
+2022-02-01 23:10:39,833:2072:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:10:39,833:2072:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:17,606:23312:INFO:logging service started
+2022-02-01 23:11:17,641:23312:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-01_13.txt
+2022-02-01 23:11:17,639:23312:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-01 23:11:17,641:23312:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-01 23:11:17,642:23312:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-01 23:11:17,642:23312:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-01 23:11:17,642:23312:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-01 23:11:17,643:23312:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-01 23:11:17,643:23312:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-01 23:11:17,699:23312:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-01 23:11:17,830:23312:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-01 23:11:17,913:23312:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-01 23:11:18,398:23312:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-01 23:11:18,400:23312:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-01 23:11:18,400:23312:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-01 23:11:18,401:23312:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-01 23:11:18,401:23312:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-01 23:11:18,402:23312:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-01 23:11:18,402:23312:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-01 23:11:18,402:23312:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-01 23:11:18,403:23312:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-01 23:11:18,403:23312:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-01 23:11:18,436:23312:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-01 23:11:18,438:23312:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-01 23:11:18,512:23312:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-01 23:11:18,532:23312:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-01 23:11:18,602:23312:[1;32mINFO[0m:starting render manager
+2022-02-01 23:11:18,653:23312:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-01 23:11:18,886:23312:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-01 23:11:20,794:5868:INFO:logging service started
+2022-02-01 23:11:20,799:5868:INFO:render process started, reading settings
+2022-02-01 23:11:20,800:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:20,800:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:21,862:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:21,862:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:21,902:5868:INFO:setting up local data structures
+2022-02-01 23:11:21,904:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:21,904:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:21,904:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:21,904:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:23,384:23312:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-02-01 23:11:23,385:23312:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-02-01 23:11:23,385:23312:WARNING:stderr: Traceback (most recent call last):
+2022-02-01 23:11:23,385:23312:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 609, in redraw
+2022-02-01 23:11:23,386:23312:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-02-01 23:11:23,387:23312:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-02-01 23:11:24,177:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,178:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,216:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,218:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,218:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,218:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,218:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,223:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,224:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,264:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,266:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,266:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,266:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,266:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,272:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,272:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,317:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,319:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,319:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,319:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,319:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,325:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,325:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,366:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,368:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,368:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,368:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,368:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,373:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,374:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,419:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,421:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,421:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,421:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,421:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,428:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,428:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,475:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,477:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,477:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,477:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,477:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,483:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,483:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,531:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,533:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,533:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,533:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,533:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,541:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,541:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,584:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,586:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,586:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,586:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,586:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,592:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,592:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,634:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,636:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,636:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,636:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,636:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,642:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,642:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,683:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,686:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,686:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,686:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,686:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,692:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,692:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,733:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,735:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,735:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,735:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,735:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,740:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,741:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,781:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,783:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,783:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,783:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,783:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,789:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,789:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,830:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,832:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,832:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,832:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,832:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,838:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,838:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,879:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,881:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,881:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,881:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,881:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,887:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,887:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,927:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,929:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,929:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,929:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,929:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,935:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,935:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:24,975:5868:INFO:setting up local data structures
+2022-02-01 23:11:24,977:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:24,977:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:24,977:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:24,977:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:24,984:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:24,984:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:25,025:5868:INFO:setting up local data structures
+2022-02-01 23:11:25,027:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:25,027:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:25,027:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:25,027:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:25,033:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:25,033:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:25,073:5868:INFO:setting up local data structures
+2022-02-01 23:11:25,075:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:25,075:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:25,075:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:25,075:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:25,081:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:25,082:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:25,122:5868:INFO:setting up local data structures
+2022-02-01 23:11:25,124:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:25,124:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:25,124:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:25,124:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:25,128:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:25,128:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:25,168:5868:INFO:setting up local data structures
+2022-02-01 23:11:25,170:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:25,170:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:25,170:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:25,170:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:25,176:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:25,176:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:25,217:5868:INFO:setting up local data structures
+2022-02-01 23:11:25,219:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:25,219:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:25,219:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:25,219:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:25,223:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:25,223:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:25,264:5868:INFO:setting up local data structures
+2022-02-01 23:11:25,266:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:25,266:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:25,266:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:25,266:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:25,271:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:25,271:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:25,312:5868:INFO:setting up local data structures
+2022-02-01 23:11:25,314:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:25,314:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:25,314:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:25,314:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:25,318:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:25,318:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:25,361:5868:INFO:setting up local data structures
+2022-02-01 23:11:25,363:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:25,363:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:25,363:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:25,363:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:25,368:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:25,368:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:25,415:5868:INFO:setting up local data structures
+2022-02-01 23:11:25,417:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:25,417:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:25,417:5868:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-01 23:11:25,417:5868:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-01 23:11:29,007:5868:INFO:starting new rendering iteration
+2022-02-01 23:11:29,008:5868:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-01 23:11:29,046:5868:INFO:setting up local data structures
+2022-02-01 23:11:29,047:5868:INFO:starting new segment rendering iteration
+2022-02-01 23:11:29,047:5868:INFO:shifting internal data backwards
+2022-02-01 23:11:29,047:5868:INFO:calling resamplers for sample 0, sequence 0
