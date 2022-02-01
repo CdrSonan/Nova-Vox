@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-<PianoRollOctave>:
+<PianoRollOctaveBackground>:
     size_hint: (None, 0.25)
     width : 100
     canvas:
@@ -30,6 +30,9 @@
             points:([self.parent.x + self.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y], [self.parent.x + self.parent.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y])
         Line:
             points:([self.parent.x + self.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y + self.height* 5/12], [self.parent.x + self.parent.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y + self.height* 5/12])
+<PianoRollOctave>:
+    size_hint: (None, 0.25)
+    width : 100
     Image:
         x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
         y: self.parent.y
@@ -130,19 +133,20 @@
 <PlaybackHead>:
     width: 20
     height: 20
-    x: self.parent.x + self.parent.parent.parent.playbackPos * self.parent.parent.parent.xScale - self.width / 2
+    x: self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale - self.width / 2
     y: self.parent.y
     source: "UI/assets/PianoRoll/Piano02.png"
     canvas:
         Color:
             rgba: (0., 1., 0., 1)
         Line:
-            points: (self.parent.x + self.parent.parent.parent.playbackPos * self.parent.parent.parent.xScale, self.parent.parent.y, self.parent.x + self.parent.parent.parent.playbackPos * self.parent.parent.parent.xScale, self.parent.parent.y + self.parent.parent.height)
+            points: (self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y, self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y + self.parent.height)
 
 <TimingLabel>:
     x: self.parent.x + int(self.parent.parent.parent.xScale * self.parent.parent.parent.tempo * self.index)
     y: self.parent.y
     width: self.parent.parent.parent.xScale * self.parent.parent.parent.tempo
+    height: self.parent.height
     canvas:
         Color:
             rgba: (0.3, 0.3, 0.3, 1)
@@ -151,18 +155,16 @@
 
 <TimingBar>:
     orientation: "horizontal"
-    x: self.parent.x + self.parent.height - 20
-    y: self.parent.y + self.parent.parent.parent.scroll_y * (self.parent.parent.height - self.parent.parent.parent.height)
+    x: self.parent.x
+    y: self.parent.y + self.parent.parent.height - 30 + self.parent.parent.scroll_y * (self.parent.height - self.parent.parent.height)
     size_hint: (None, None)
-    size: (self.parent.length * self.parent.xScale, 20)
+    size: (self.parent.parent.length * self.parent.parent.xScale, 30)
     canvas:
         Color:
-            rgba: (0.1, 0.1, 0.1, 0.8)
+            rgba: (0, 0, 0, 0.5)
         Rectangle:
             pos: (self.x, self.y)
             size:(self.width, self.height)
-    PlaybackHead:
-        playbackPos: self.parent.parent.parent.playbackPos
 
 <PianoRoll>:
     do_scroll: (True, True)
@@ -175,9 +177,22 @@
     length: 5000
     playbackPos: 0
     FloatLayout:
-        pos: self.parent.pos
+        x: self.parent.x
+        y: self.parent.y
         size_hint: (None, None)
         size: (self.parent.length * self.parent.xScale, 48 * self.parent.yScale)
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 12 * self.parent.parent.yScale
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 24 * self.parent.parent.yScale
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 36 * self.parent.parent.yScale
         TimingBar:
         PianoRollOctave:
             x: self.parent.x
@@ -191,3 +206,4 @@
         PianoRollOctave:
             x: self.parent.x
             y: self.parent.y + 36 * self.parent.parent.yScale
+        PlaybackHead:

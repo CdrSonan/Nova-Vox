@@ -414,6 +414,13 @@ class MiddleLayer(Widget):
         if self.trackList[self.activeTrack].notes[index].xPos == self.trackList[self.activeTrack].notes[index - 1].xPos:
             self.trackList[self.activeTrack].notes[index].xPos += 1
             self.repairNotes(self, index + 1)
+    def repairBorders(self, index):
+        if index == len(self.trackList[self.activeTrack].notes):
+            return None
+        self.trackList[self.activeTrack].borders[index] = int(self.trackList[self.activeTrack].borders[index])
+        if self.trackList[self.activeTrack].borders[index] == self.trackList[self.activeTrack].borders[index - 1]:
+            self.trackList[self.activeTrack].borders[index] += 1
+            self.repairNotes(self, index + 1)
     def submitTerminate(self):
         manager.sendChange("terminate", True)
     def submitAddTrack(self, track):
@@ -1125,6 +1132,9 @@ class Note(ToggleButton):
 class PianoRollOctave(FloatLayout):
     pass
 
+class PianoRollOctaveBackground(FloatLayout):
+    pass
+
 class PlaybackHead(Image):
     pass
 
@@ -1138,11 +1148,14 @@ class PianoRoll(ScrollView):
     def __init__(self, **kwargs):
         super(PianoRoll, self).__init__(**kwargs)
         self.xScale = NumericProperty()
+        self.xScale = 1
         self.yScale = NumericProperty()
         self.measureSize = NumericProperty()
         self.length = NumericProperty()
+        self.length = 5000
         self.tempo = NumericProperty()
-        self.playbackPos: NumericProperty()
+        self.playbackPos = NumericProperty()
+        self.playbackPos = 0
         self.currentNote = ObjectProperty()
         self.timingMarkers = ListProperty()
         self.pitchLine = ObjectProperty()
@@ -1512,8 +1525,10 @@ class NovaVoxUI(Widget):
         if change == None:
             return None
         if change.type == False:
+            print("updating status")
             middleLayer.updateRenderStatus(change.track, change.index, change.value)
         elif change.type == True:
+            print("updating audio")
             middleLayer.updateAudioBuffer(change.track, change.index, change.value)
         else:
             middleLayer.deletions.pop(0)

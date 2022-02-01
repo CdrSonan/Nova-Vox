@@ -27,6 +27,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 break
         return (pos1, pos2)
     def trimSequence(index, position, delta):
+        print(index, position, delta)
         phonemes = inputList[index].phonemes
         offsets = inputList[index].offsets
         repetititionSpacing = inputList[index].repetititionSpacing
@@ -47,6 +48,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             if position + delta >= len(endCaps) - 1:
                 endCaps[position] = False
                 endCaps[-1] = True
+            internalStatusControl.rs = torch.cat([internalStatusControl.rs[0:position], torch.zeros([delta,]), internalStatusControl.rs[position:]], 0)
+            internalStatusControl.ai = torch.cat([internalStatusControl.ai[0:position], torch.zeros([delta,]), internalStatusControl.ai[position:]], 0)
         elif delta < 0:
             phonemes = phonemes[0:position] + phonemes[position - delta:]
             offsets = torch.cat([offsets[0:position], offsets[position - delta:]], 0)
@@ -58,12 +61,18 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 startCaps[0] = True
             if position >= len(endCaps) - 1:
                 endCaps[-1] = True
+            internalStatusControl.rs = torch.cat([internalStatusControl.rs[0:position], internalStatusControl.rs[position - delta:]], 0)
+            internalStatusControl.ai = torch.cat([internalStatusControl.ai[0:position], internalStatusControl.ai[position - delta:]], 0)
+        inputList[index].phonemes = phonemes
+        inputList[index].offsets = offsets
+        inputList[index].repetititionSpacing = repetititionSpacing
+        inputList[index].borders = borders
+        inputList[index].startCaps = startCaps
+        inputList[index].endCaps = endCaps
 
     def updateFromMain():
-        print("pre")
         change = connection.recv()
-        print("post")
-        print(change.type, change.data1, change.data2, change.data3, change.data4, change.data5)
+        print(change.type)
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
@@ -235,6 +244,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             nextVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
 
                         connection.send(StatusChange(i, j, 1))
+                        print("stat1")
 
                         logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
                         voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = currentVoicedExcitation
