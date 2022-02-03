@@ -21,5 +21,7 @@ spectralRolloff2 = 192
 
 breCompPremul = 0.4
 
+audioBufferSize = 2048
+
 language = "en"
 version = "Prealpha 0.4.0"

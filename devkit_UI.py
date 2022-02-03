@@ -308,6 +308,8 @@ class MetadataUi(tkinter.Frame):
         """opens a file browser to select a different image file for the Voicebank"""
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"),))
+        if filepath == "":
+            return
         pilImage = Image.open(filepath)
         pilImage = pilImage.resize((200, 200), resample = 3)
         loadedVB.metadata.image = pilImage
@@ -429,7 +431,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.sideBar.voicedFilter = tkinter.Frame(self.sideBar)
-        self.sideBar.voicedFilter.variable = tkinter.DoubleVar(self.sideBar.voicedFilter)
+        self.sideBar.voicedFilter.variable = tkinter.IntVar(self.sideBar.voicedFilter)
         self.sideBar.voicedFilter.entry = tkinter.Spinbox(self.sideBar.voicedFilter, from_ = 1, to = 50)
         self.sideBar.voicedFilter.entry["textvariable"] = self.sideBar.voicedFilter.variable
         self.sideBar.voicedFilter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
@@ -603,7 +605,7 @@ class PhonemedictUi(tkinter.Frame):
             self.phonemeList.list.lb.delete(index)
             self.phonemeList.list.lb.insert(index, newKey)
 
-    def onPitBrdcPress(self, event):
+    def onPitBrdcPress(self):
         pitch = self.sideBar.expPitch.variable.get()
         pitchRange = self.sideBar.pSearchRange.variable.get()
         for i in loadedVB.phonemeDict:
@@ -614,7 +616,7 @@ class PhonemedictUi(tkinter.Frame):
                     calculatePitch(i)
                     calculateSpectra(i)
 
-    def onSpecBrdcPress(self, event):
+    def onSpecBrdcPress(self):
         voicedFilter = self.sideBar.voicedFilter.variable.get()
         unvoicedIter = self.sideBar.unvoicedIter.variable.get()
         for i in loadedVB.phonemeDict:

@@ -1,0 +1,1048 @@
+2022-02-02 16:34:40,785:24032:INFO:logging service started
+2022-02-02 16:34:40,785:24032:INFO:initializing Root UI
+2022-02-02 16:35:44,707:24032:INFO:Root UI destroyed
+2022-02-02 16:43:10,288:23532:INFO:logging service started
+2022-02-02 16:43:10,288:23532:INFO:initializing Root UI
+2022-02-02 16:43:13,076:23532:INFO:new button callback
+2022-02-02 16:43:17,231:23532:INFO:UTAU import button callback
+2022-02-02 16:43:17,277:23532:INFO:Initializing UTAU import UI
+2022-02-02 16:43:19,214:23532:INFO:oto.ini load button callback
+2022-02-02 16:44:40,778:23532:INFO:UTAU sample list selection change callback
+2022-02-02 16:44:40,778:23532:INFO:UTAU diagram update callback
+2022-02-02 16:45:03,231:23532:INFO:UTAU sample list selection change callback
+2022-02-02 16:45:03,231:23532:INFO:UTAU diagram update callback
+2022-02-02 16:45:09,503:23532:INFO:UTAU sample list selection change callback
+2022-02-02 16:45:09,504:23532:INFO:UTAU diagram update callback
+2022-02-02 16:45:14,849:23532:INFO:UTAU sample list selection change callback
+2022-02-02 16:45:14,849:23532:INFO:UTAU diagram update callback
+2022-02-02 16:45:23,090:23532:INFO:UTAU sample list selection change callback
+2022-02-02 16:45:23,090:23532:INFO:UTAU diagram update callback
+2022-02-02 16:45:31,708:23532:INFO:UTAU import all button callback
+2022-02-02 16:46:10,036:23532:INFO:UTAU OK button callback
+2022-02-02 16:46:11,282:23532:INFO:PhonemeDict button callback
+2022-02-02 16:46:11,328:23532:INFO:Initializing Phonemedict UI
+2022-02-02 16:46:13,026:23532:INFO:Phonemedict selection change callback
+2022-02-02 16:46:13,027:23532:INFO:Phonemedict slider properties update callback
+2022-02-02 16:46:13,028:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:13,859:23532:INFO:Phonemedict selection change callback
+2022-02-02 16:46:13,859:23532:INFO:Phonemedict slider properties update callback
+2022-02-02 16:46:13,860:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:19,717:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:19,830:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:19,952:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:20,064:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:20,173:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:20,281:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:20,389:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:20,511:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:20,644:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:20,757:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:20,869:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:20,987:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:21,097:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:21,231:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:21,342:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:21,451:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:21,572:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:21,706:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:21,837:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:21,989:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:22,133:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:22,282:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:22,413:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:22,534:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:22,661:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:22,800:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:22,906:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:23,061:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:23,198:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:23,328:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:23,446:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:23,566:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:23,694:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:23,806:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:23,914:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:24,023:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:24,129:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:24,245:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:24,354:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:24,481:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:24,590:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:24,698:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:24,807:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:24,935:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:25,068:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:25,195:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:25,307:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:25,435:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:25,543:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:25,651:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:25,762:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:25,886:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:25,993:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:26,100:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:26,210:23532:INFO:Phonemedict slider movement callback
+2022-02-02 16:46:38,769:23532:INFO:Phonemedict list focus loss callback
+2022-02-02 16:46:40,849:23532:INFO:Phonemedict spectral update callback
+2022-02-02 16:46:44,564:23532:INFO:Phonemedict spectral update callback
+2022-02-02 16:50:13,110:23532:INFO:Phonemedict spectral update callback
+2022-02-02 16:50:17,284:17436:INFO:logging service started
+2022-02-02 16:50:17,284:17436:INFO:initializing Root UI
+2022-02-02 16:50:18,671:17436:INFO:new button callback
+2022-02-02 16:50:20,055:17436:INFO:UTAU import button callback
+2022-02-02 16:50:20,100:17436:INFO:Initializing UTAU import UI
+2022-02-02 16:50:21,104:17436:INFO:oto.ini load button callback
+2022-02-02 16:51:29,614:17436:INFO:UTAU import all button callback
+2022-02-02 16:52:42,215:17436:INFO:UTAU OK button callback
+2022-02-02 16:52:44,148:17436:INFO:PhonemeDict button callback
+2022-02-02 16:52:44,193:17436:INFO:Initializing Phonemedict UI
+2022-02-02 16:52:45,543:17436:INFO:Phonemedict selection change callback
+2022-02-02 16:52:45,544:17436:INFO:Phonemedict slider properties update callback
+2022-02-02 16:52:45,544:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:48,094:17436:INFO:Phonemedict list focus loss callback
+2022-02-02 16:52:50,699:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:52:50,761:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:54,300:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:54,420:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:54,532:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:54,642:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:54,769:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:54,901:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:55,030:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:55,184:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:55,316:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:55,435:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:55,544:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:55,656:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:55,764:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:56,237:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:52:56,343:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:00,561:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:53:00,607:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:04,824:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:53:06,853:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:53:06,888:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:09,925:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:53:11,595:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:53:11,646:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:13,603:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:13,757:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:13,865:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:13,972:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:14,080:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:14,188:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:14,296:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:14,405:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:14,512:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:16,971:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:53:17,070:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:20,053:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:53:20,089:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:22,750:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:53:22,801:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:53:24,802:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:53:24,837:17436:INFO:Phonemedict slider movement callback
+2022-02-02 16:54:07,339:17436:INFO:Phonemedict spectral update callback
+2022-02-02 16:54:14,367:14856:INFO:logging service started
+2022-02-02 16:54:14,367:14856:INFO:initializing Root UI
+2022-02-02 16:54:23,537:5404:INFO:logging service started
+2022-02-02 16:54:23,538:5404:INFO:initializing Root UI
+2022-02-02 16:54:25,465:5404:INFO:new button callback
+2022-02-02 16:54:28,265:5404:INFO:UTAU import button callback
+2022-02-02 16:54:28,310:5404:INFO:Initializing UTAU import UI
+2022-02-02 16:54:29,485:5404:INFO:oto.ini load button callback
+2022-02-02 16:55:33,219:5404:INFO:UTAU import all button callback
+2022-02-02 16:56:13,698:5404:INFO:UTAU OK button callback
+2022-02-02 16:56:14,975:5404:INFO:PhonemeDict button callback
+2022-02-02 16:56:15,021:5404:INFO:Initializing Phonemedict UI
+2022-02-02 16:56:16,071:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:56:16,072:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:56:16,073:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:16,581:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:56:16,581:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:56:16,582:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:19,098:5404:INFO:Phonemedict list focus loss callback
+2022-02-02 16:56:21,158:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:56:21,192:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:25,120:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:25,234:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:25,352:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:25,470:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:25,590:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:25,710:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:25,845:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:25,989:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:26,140:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:26,292:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:26,419:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:26,528:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:26,839:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:26,966:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:27,078:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:27,198:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:27,305:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:27,458:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:34,363:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:35,773:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:56:35,774:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:56:35,775:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:35,883:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:56:37,097:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:56:37,098:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:56:37,099:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:38,233:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:56:38,233:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:56:38,234:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:38,951:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:56:38,951:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:56:38,952:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:56:41,404:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:56:41,405:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:56:41,406:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:01,101:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:57:01,101:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:57:01,102:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:03,499:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:57:03,500:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:57:03,501:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:05,589:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:57:05,589:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:57:05,590:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:07,429:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:07,552:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:07,669:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:07,774:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:07,901:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:08,023:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:08,151:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:08,283:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:08,398:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:08,615:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:08,920:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:09,254:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:09,366:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:09,476:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:09,586:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:09,696:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:09,803:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:09,930:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:10,538:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:10,655:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:10,761:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:10,897:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:11,067:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:11,331:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:11,974:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:12,478:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:13,216:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:13,785:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:14,186:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:14,457:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:14,873:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:18,029:5404:INFO:Phonemedict list focus loss callback
+2022-02-02 16:57:19,401:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:57:19,411:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:23,037:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:57:23,052:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:24,760:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:24,885:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:25,322:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:25,439:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:25,547:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:25,663:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:25,772:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:25,904:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:26,041:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:26,170:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:26,322:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:26,471:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:26,699:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:27,170:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:27,708:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:27,813:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:27,923:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:28,031:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:28,180:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:28,317:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:28,456:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:31,081:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:57:31,082:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:57:31,082:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:31,194:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:57:32,496:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:32,617:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:32,767:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:32,888:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:33,007:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:33,114:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:33,255:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:33,359:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:33,485:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:33,604:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:33,722:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:33,827:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:36,175:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:57:36,176:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:57:36,176:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:39,023:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:39,131:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:39,239:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:39,347:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:39,458:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:39,566:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:39,682:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:39,801:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:39,911:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:40,117:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:40,238:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:40,371:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:40,483:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:40,605:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:40,715:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:40,823:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:42,014:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:42,121:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:42,229:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:42,334:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:42,455:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:42,566:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:42,677:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:42,787:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:42,895:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:44,386:5404:INFO:Phonemedict list focus loss callback
+2022-02-02 16:57:46,792:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:57:46,827:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:48,120:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:48,247:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:48,414:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:48,529:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:48,655:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:48,771:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:48,880:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:49,006:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:49,134:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:49,271:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:49,396:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:49,533:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:49,658:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:49,775:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:49,905:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:50,020:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:50,129:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:50,249:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:50,375:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:50,507:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:50,648:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:50,786:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:50,924:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:51,063:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:51,200:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:51,339:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:51,477:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:51,612:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:51,742:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:51,871:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:51,999:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:52,130:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:52,886:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:53,000:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:53,110:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:53,228:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:53,337:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:53,454:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:53,565:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:53,689:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:53,798:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:53,908:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:54,052:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:54,160:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:54,282:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:54,390:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:54,499:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:54,610:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:54,718:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:54,827:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:54,935:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:55,045:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:55,177:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:55,314:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:55,453:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:55,578:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:55,715:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:55,847:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:55,984:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:56,119:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:56,244:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:56,369:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:56,501:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:56,611:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:56,721:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:56,830:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:56,939:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:57,048:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:57,158:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:57,267:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:57:59,299:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:01,745:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:01,797:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:08,508:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:08,540:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:09,589:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:09,718:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:09,853:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:09,980:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:10,090:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:10,214:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:10,337:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:10,452:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:10,560:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:10,688:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:10,843:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:10,965:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:11,103:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:11,241:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:11,368:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:11,504:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:11,615:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:11,730:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:11,844:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:13,553:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:58:13,554:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:58:13,555:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:13,661:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:14,940:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:15,071:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:15,213:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:15,333:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:15,446:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:15,563:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:15,672:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:15,781:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:15,888:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:15,998:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:16,106:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:16,214:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:16,323:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:16,447:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:16,580:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:16,718:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:16,850:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:16,978:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:17,112:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:17,249:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:19,216:5404:INFO:Phonemedict list focus loss callback
+2022-02-02 16:58:21,496:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:21,535:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:23,097:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:23,220:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:23,329:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:23,438:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:23,553:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:23,662:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:23,774:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:23,886:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:24,073:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:24,227:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:24,335:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:24,458:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:24,567:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:24,677:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:24,786:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:24,897:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:25,007:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:25,311:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:25,450:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:25,561:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:25,672:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:25,781:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:25,889:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:26,015:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:26,710:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:26,840:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:26,962:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:27,158:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:27,417:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:27,610:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:27,782:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:27,965:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:28,126:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:28,244:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:28,358:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:28,494:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:28,622:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:28,741:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:28,849:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:28,959:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:29,067:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:29,177:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:29,304:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:29,413:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:29,523:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:31,313:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:33,479:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:33,510:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:34,439:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:34,567:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:34,701:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:34,884:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:35,014:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:35,154:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:35,286:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:35,414:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:35,526:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:35,640:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:35,751:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:35,874:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:36,018:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:36,135:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:36,255:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:36,365:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:36,483:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:36,597:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:36,735:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:36,876:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:37,002:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:37,119:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:37,228:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:37,424:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:37,543:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:37,662:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:39,401:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:58:39,401:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:58:39,402:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:39,536:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:40,997:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:41,104:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:41,211:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:41,322:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:41,433:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:41,551:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:41,673:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:41,790:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:41,914:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:42,046:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:42,159:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:42,266:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:42,376:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:42,530:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:42,650:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:42,759:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:42,866:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:42,974:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:43,083:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:43,192:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:43,303:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:43,412:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:43,521:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:43,631:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:43,748:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:43,861:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:43,994:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:44,125:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:44,260:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:44,372:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:44,500:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:44,611:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:44,735:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:44,874:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:45,010:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:45,150:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:45,284:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:45,416:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:45,553:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:45,691:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:45,827:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:45,966:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:46,105:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:46,237:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:46,378:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:46,517:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:46,653:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:46,785:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:46,911:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:47,068:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:47,372:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:47,480:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:47,607:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:47,770:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:49,171:5404:INFO:Phonemedict list focus loss callback
+2022-02-02 16:58:51,052:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:51,091:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:53,236:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:53,345:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:53,452:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:53,568:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:53,678:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:53,797:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:53,907:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:54,017:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:54,123:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:54,232:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:54,342:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:54,456:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:54,574:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:54,684:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:54,794:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:54,928:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:57,366:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:58:57,406:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:58,556:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:58,691:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:58,820:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:58,929:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:58:59,039:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:00,651:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:59:00,652:5404:INFO:Phonemedict slider properties update callback
+2022-02-02 16:59:00,652:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:00,787:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:59:01,392:5404:INFO:Phonemedict list focus loss callback
+2022-02-02 16:59:01,477:5404:INFO:Phonemedict selection change callback
+2022-02-02 16:59:03,579:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:59:03,619:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:05,076:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:05,859:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:06,010:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:06,147:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:06,277:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:06,413:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:06,528:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:06,634:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:06,757:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:06,885:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:07,038:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:07,143:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:07,257:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:07,391:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:07,497:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:07,615:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:07,722:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:07,831:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:07,955:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:08,061:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:08,191:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:08,311:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:08,427:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:08,554:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:08,670:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:08,802:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:08,915:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:09,023:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:09,131:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:09,243:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:09,376:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:09,495:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:09,603:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:09,738:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:09,862:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:09,993:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:10,119:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:10,232:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:10,338:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:10,570:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:10,682:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:10,806:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:10,955:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:11,168:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:11,355:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:11,501:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:11,650:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:11,801:5404:INFO:Phonemedict slider movement callback
+2022-02-02 16:59:20,705:5404:INFO:Phonemedict OK button callback
+2022-02-02 16:59:20,706:5404:INFO:Phonemedict key change callback
+2022-02-02 16:59:20,706:5404:INFO:Phonemedict pitch update callback
+2022-02-02 16:59:20,706:5404:INFO:Phonemedict spectral update callback
+2022-02-02 16:59:22,409:5404:INFO:Metadata button callback
+2022-02-02 16:59:22,454:5404:INFO:Initializing Metadata UI
+2022-02-02 16:59:22,455:5404:INFO:Metadata Image change button callback
+2022-02-02 17:00:11,640:5404:INFO:Metadata OK button callback
+2022-02-02 17:00:12,952:5404:INFO:Metadata button callback
+2022-02-02 17:00:12,997:5404:INFO:Initializing Metadata UI
+2022-02-02 17:00:12,999:5404:INFO:Metadata Image change button callback
+2022-02-02 17:00:13,921:5404:INFO:Metadata OK button callback
+2022-02-02 17:00:14,877:5404:INFO:save button callback
+2022-02-02 17:02:47,542:5404:INFO:Metadata button callback
+2022-02-02 17:02:47,601:5404:INFO:Initializing Metadata UI
+2022-02-02 17:02:47,603:5404:INFO:Metadata Image change button callback
+2022-02-02 17:02:48,562:5404:INFO:Metadata Image change button callback
+2022-02-02 17:03:34,331:24620:INFO:logging service started
+2022-02-02 17:03:34,331:24620:INFO:initializing Root UI
+2022-02-02 17:04:21,976:24620:INFO:open button callback
+2022-02-02 17:04:25,269:24620:INFO:Metadata button callback
+2022-02-02 17:04:25,314:24620:INFO:Initializing Metadata UI
+2022-02-02 17:04:25,316:24620:INFO:Metadata Image change button callback
+2022-02-02 17:04:26,423:24620:INFO:Metadata Image change button callback
+2022-02-02 17:04:31,167:24620:INFO:Metadata Image change button callback
+2022-02-02 17:04:35,864:24620:INFO:Metadata OK button callback
+2022-02-02 17:04:37,567:24620:INFO:Crfai button callback
+2022-02-02 17:04:37,612:24620:INFO:Initializing Crfai UI
+2022-02-02 17:04:39,471:24620:INFO:Crfai OK button callback
+2022-02-02 17:04:41,249:24620:INFO:new button callback
+2022-02-02 17:04:44,151:24620:INFO:UTAU import button callback
+2022-02-02 17:04:44,196:24620:INFO:Initializing UTAU import UI
+2022-02-02 17:04:45,790:24620:INFO:oto.ini load button callback
+2022-02-02 17:05:56,349:24620:INFO:UTAU import all button callback
+2022-02-02 17:06:33,104:24620:INFO:UTAU OK button callback
+2022-02-02 17:06:36,162:24620:INFO:PhonemeDict button callback
+2022-02-02 17:06:36,208:24620:INFO:Initializing Phonemedict UI
+2022-02-02 17:06:38,471:24620:INFO:Phonemedict selection change callback
+2022-02-02 17:06:38,472:24620:INFO:Phonemedict slider properties update callback
+2022-02-02 17:06:38,473:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:39,115:24620:INFO:Phonemedict selection change callback
+2022-02-02 17:06:39,115:24620:INFO:Phonemedict slider properties update callback
+2022-02-02 17:06:39,116:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:40,411:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:40,519:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:40,630:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:40,741:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:40,864:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:40,974:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:41,092:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:41,203:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:41,314:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:41,428:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:41,539:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:41,659:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:41,770:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:41,881:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:42,003:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:42,148:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:42,258:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:42,367:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:42,496:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:42,607:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:42,718:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:42,828:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:42,951:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:43,075:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:43,187:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:43,298:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:43,412:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:44,703:24620:INFO:Phonemedict selection change callback
+2022-02-02 17:06:44,704:24620:INFO:Phonemedict slider properties update callback
+2022-02-02 17:06:44,705:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:45,950:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:46,069:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:46,191:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:46,297:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:46,414:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:46,524:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:46,633:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:46,747:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:46,866:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:46,975:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:47,085:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:47,198:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:47,306:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:47,417:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:47,524:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:47,631:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:47,740:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:47,848:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:47,961:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:48,069:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:48,176:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:48,290:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:48,409:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:48,518:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:48,640:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:48,783:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:48,891:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:48,997:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:49,103:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:49,209:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:49,319:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:49,429:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:49,536:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:49,644:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:49,753:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:49,866:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:49,991:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:50,109:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:50,223:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:50,341:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:50,455:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:50,561:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:50,671:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:50,780:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:50,889:24620:INFO:Phonemedict slider movement callback
+2022-02-02 17:06:52,875:24620:INFO:Phonemedict OK button callback
+2022-02-02 17:06:52,876:24620:INFO:Phonemedict key change callback
+2022-02-02 17:06:52,876:24620:INFO:Phonemedict pitch update callback
+2022-02-02 17:06:52,876:24620:INFO:Phonemedict spectral update callback
+2022-02-02 17:06:55,078:24620:INFO:Metadata button callback
+2022-02-02 17:06:55,123:24620:INFO:Initializing Metadata UI
+2022-02-02 17:06:55,125:24620:INFO:Metadata Image change button callback
+2022-02-02 17:07:21,365:24620:INFO:Metadata OK button callback
+2022-02-02 17:07:22,884:24620:INFO:Crfai button callback
+2022-02-02 17:07:22,929:24620:INFO:Initializing Crfai UI
+2022-02-02 17:07:45,742:24620:INFO:Crfai train button callback
+2022-02-02 17:33:05,673:19120:INFO:logging service started
+2022-02-02 17:33:05,673:19120:INFO:initializing Root UI
+2022-02-02 17:33:07,214:19120:INFO:new button callback
+2022-02-02 17:33:07,673:19120:INFO:UTAU import button callback
+2022-02-02 17:33:07,719:19120:INFO:Initializing UTAU import UI
+2022-02-02 17:33:09,070:19120:INFO:oto.ini load button callback
+2022-02-02 17:34:14,965:19120:INFO:UTAU import all button callback
+2022-02-02 17:34:50,913:19120:INFO:UTAU OK button callback
+2022-02-02 17:34:51,916:19120:INFO:Metadata button callback
+2022-02-02 17:34:51,968:19120:INFO:Initializing Metadata UI
+2022-02-02 17:34:51,970:19120:INFO:Metadata Image change button callback
+2022-02-02 17:34:53,716:19120:INFO:Metadata load button callback
+2022-02-02 17:35:03,039:19120:INFO:Metadata Image change button callback
+2022-02-02 17:35:07,552:19120:INFO:Metadata OK button callback
+2022-02-02 17:35:08,242:19120:INFO:Metadata button callback
+2022-02-02 17:35:08,288:19120:INFO:Initializing Metadata UI
+2022-02-02 17:35:08,289:19120:INFO:Metadata Image change button callback
+2022-02-02 17:35:09,928:19120:INFO:Metadata Image change button callback
+2022-02-02 17:35:15,670:19120:INFO:Metadata Image change button callback
+2022-02-02 17:35:48,079:19120:INFO:Metadata OK button callback
+2022-02-02 17:35:49,020:19120:INFO:Metadata button callback
+2022-02-02 17:35:49,066:19120:INFO:Initializing Metadata UI
+2022-02-02 17:35:49,067:19120:INFO:Metadata Image change button callback
+2022-02-02 17:35:51,501:19120:INFO:Metadata OK button callback
+2022-02-02 17:35:52,805:19120:INFO:Crfai button callback
+2022-02-02 17:35:52,851:19120:INFO:Initializing Crfai UI
+2022-02-02 17:36:00,793:19120:INFO:Crfai dataset export callback
+2022-02-02 17:36:13,684:19120:INFO:Crfai train button callback
+2022-02-02 20:08:26,866:19120:INFO:Crfai train button callback completed
+2022-02-02 20:33:22,576:19120:INFO:save button callback
+2022-02-02 20:33:38,933:19120:INFO:Root UI destroyed
+2022-02-02 20:33:45,022:19120:INFO:Crfai OK button callback
+2022-02-02 20:34:44,963:4908:INFO:logging service started
+2022-02-02 20:34:44,964:4908:INFO:initializing Root UI
+2022-02-02 20:34:48,648:4908:INFO:open button callback
+2022-02-02 20:34:51,746:4908:INFO:Metadata button callback
+2022-02-02 20:34:51,791:4908:INFO:Initializing Metadata UI
+2022-02-02 20:34:51,792:4908:INFO:Metadata Image change button callback
+2022-02-02 20:34:53,292:4908:INFO:Metadata OK button callback
+2022-02-02 20:34:54,007:4908:INFO:PhonemeDict button callback
+2022-02-02 20:34:54,053:4908:INFO:Initializing Phonemedict UI
+2022-02-02 20:34:55,313:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:34:55,314:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:34:55,315:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:34:57,104:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:34:58,320:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:34:58,321:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:34:58,321:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:34:59,628:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:00,444:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:00,444:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:00,445:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:01,524:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:02,288:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:02,289:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:02,290:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:03,454:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:04,272:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:04,272:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:04,273:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:05,577:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:06,736:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:06,737:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:06,737:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:08,093:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:08,725:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:08,725:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:08,726:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:10,470:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:10,590:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:10,804:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:10,953:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:11,220:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:11,482:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:11,702:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:11,990:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:12,239:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:12,495:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:15,646:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:16,568:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:16,569:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:16,569:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:17,947:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:18,922:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:19,058:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:19,192:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:19,304:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:19,419:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:19,535:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:19,655:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:19,787:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:19,940:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:20,767:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:20,768:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:20,768:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:21,891:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:22,602:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:22,720:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:22,877:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:23,024:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:23,142:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:23,259:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:23,379:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:23,508:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:23,625:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:23,763:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:24,570:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:24,571:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:24,572:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:26,051:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:26,159:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:26,266:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:26,375:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:26,485:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:26,616:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:26,728:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:26,849:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:26,976:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:27,188:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:29,013:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:31,694:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:31,695:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:31,696:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:32,809:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:33,690:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:33,691:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:33,691:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:34,777:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:35,672:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:35,672:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:35,673:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:36,663:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:37,573:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:37,706:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:37,842:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:37,963:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:38,093:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:38,205:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:38,314:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:38,456:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:38,573:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:38,725:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:38,880:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:39,010:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:39,152:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:40,524:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:40,525:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:40,526:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:41,839:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:42,929:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:43,047:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:43,176:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:43,287:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:43,398:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:43,518:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:43,626:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:43,737:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:43,852:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:43,990:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:44,119:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:44,437:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:45,916:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:45,917:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:45,918:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:47,328:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:48,253:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:48,381:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:48,497:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:48,615:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:48,731:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:48,855:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:48,994:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:49,107:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:49,266:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:49,375:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:49,485:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:49,613:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:49,737:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:49,870:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:50,017:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:50,155:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:50,487:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:50,952:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:52,841:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:35:52,841:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:35:52,842:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:54,429:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:35:55,637:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:55,783:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:56,089:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:56,288:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:56,550:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:56,768:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:56,971:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:57,106:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:57,224:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:57,350:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:57,483:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:57,595:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:57,721:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:57,830:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:57,950:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:58,105:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:58,235:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:58,419:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:58,581:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:35:58,780:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:00,273:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:00,274:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:00,274:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:02,538:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:04,042:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:04,043:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:04,044:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:05,056:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:06,004:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:06,004:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:06,005:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:07,773:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:08,493:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:08,494:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:08,495:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:09,582:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:10,268:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:10,268:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:10,269:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:11,266:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:12,011:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:12,012:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:12,013:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:13,079:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:14,532:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:14,532:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:14,533:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:15,508:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:16,483:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:16,484:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:16,485:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:18,444:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:34,588:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:34,588:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:34,589:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:36,213:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:37,686:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:37,686:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:37,687:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:39,851:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:47,620:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:47,620:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:47,621:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:49,045:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:36:50,359:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:50,360:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:50,360:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:50,961:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:50,961:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:50,962:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:57,563:4908:INFO:Phonemedict selection change callback
+2022-02-02 20:36:57,563:4908:INFO:Phonemedict slider properties update callback
+2022-02-02 20:36:57,564:4908:INFO:Phonemedict slider movement callback
+2022-02-02 20:36:59,129:4908:INFO:Phonemedict finalize button callback
+2022-02-02 20:37:03,883:4908:INFO:Phonemedict list focus loss callback
+2022-02-02 20:37:15,039:25704:INFO:logging service started
+2022-02-02 20:37:15,039:25704:INFO:initializing Root UI
+2022-02-02 20:37:17,297:25704:INFO:open button callback
+2022-02-02 20:37:19,698:25704:INFO:Crfai button callback
+2022-02-02 20:37:19,744:25704:INFO:Initializing Crfai UI
+2022-02-02 20:37:21,076:25704:INFO:Crfai finalize button callback
+2022-02-02 20:37:23,168:25704:INFO:Crfai OK button callback
+2022-02-02 20:37:24,258:25704:INFO:save button callback

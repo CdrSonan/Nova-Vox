@@ -30,6 +30,8 @@ import torch
 import subprocess
 import math
 from Backend.Param_Components.AiParams import AiParamStack
+import pyaudio
+import global_consts
 
 import MiddleLayer.DataHandlers as dh
 from Backend.NV_Multiprocessing.Manager import RenderManager
@@ -50,7 +52,12 @@ class MiddleLayer(Widget):
         self.scrollValue = 0.
         #self.seqLength = 0
         self.audioBuffer = []
+        self.mainAudioBuffer = []
+        self.mainAudioBufferPos = 0
         self.deletions = []
+        self.playing = False
+        self.audio = pyaudio.PyAudio()
+        self.audioStream = self.audio.open(global_consts.sampleRate, 1, pyaudio.paFloat32, output = True, stream_callback = self.playCallback)
     def importVoicebank(self, path, name, inImage):
         track = dh.Track(path)
         self.trackList.append(track)
@@ -490,6 +497,28 @@ class MiddleLayer(Widget):
             elif i < track:
                 track -= 1
         self.audioBuffer[track][index:index + len(data)] = data
+    def movePlayhead(self, position):
+        self.ids["pianoRoll"].children[0]
+        #continue here
+        #TODO: Fill main audio buffer, validate addition/deletion of audio buffers, edit main buffer on buffer change
+    def play(self, state = None):
+        if state == None:
+            state = not(self.playing)
+            if state == True:
+                self.ids["playButton"].state = "down"
+                self.audioStream.start_stream()
+            if state == False:
+                self.ids["playButton"].state = "normal"
+        self.playing = state
+    def playCallback(self, in_data, frame_count, time_info, status):
+        if self.playing:
+            newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
+            data = self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos]
+            self.mainAudioBufferPos = newBufferPos
+            self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
+            return (data, pyaudio.paContinue)
+        return ([0] * global_consts.audioBufferSize, pyaudio.paComplete)
+
         
         
 class ImageButton(ButtonBehavior, Image):
@@ -1562,11 +1591,15 @@ class NovaVoxUI(Widget):
     def setTool(self, tool):
         global middleLayer
         middleLayer.tool = tool
+    def play(self, state):
+        middleLayer.play(state)
     def on_keyboard_down(self, window, keycode, text, modifiers):
         if keycode[0] == 303 or keycode[0] == 304: 
             middleLayer.shift = True
+        elif keycode[0] == 32:
+            middleLayer.play()
         else:
-            pass
+            print("keycode pressed:", keycode[0])
         return True
     def on_keyboard_up(self, keyboard, keycode):
         if keycode[0] == 303 or keycode[0] == 304: 
