@@ -50,14 +50,13 @@ class MiddleLayer(Widget):
         self.shift = BooleanProperty()
         self.shift = False
         self.scrollValue = 0.
-        #self.seqLength = 0
         self.audioBuffer = []
-        self.mainAudioBuffer = []
+        self.mainAudioBuffer = torch.zeros([5000,])
         self.mainAudioBufferPos = 0
         self.deletions = []
         self.playing = False
         self.audio = pyaudio.PyAudio()
-        self.audioStream = self.audio.open(global_consts.sampleRate, 1, pyaudio.paFloat32, output = True, stream_callback = self.playCallback)
+        self.audioStream = self.audio.open(rate = global_consts.sampleRate, channels = 1, format = pyaudio.paFloat32, output = True, stream_callback = self.playCallback)
     def importVoicebank(self, path, name, inImage):
         track = dh.Track(path)
         self.trackList.append(track)
@@ -80,12 +79,16 @@ class MiddleLayer(Widget):
         self.updateParamPanel()
     def copyTrack(self, index, name, inImage):
         self.trackList.append(self.trackList[index])
+        self.audioBuffer.append(self.audioBuffer[index])
+        self.updateMainAudioBuffer()
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.submitDuplicateTrack(index)
         aiParamStackList.append(AiParamStack([]))
     def deleteTrack(self, index):
         self.trackList.pop(index)
+        self.audioBuffer.pop(index)
+        self.updateMainAudioBuffer()
         aiParamStackList.pop(index)
         if index <= self.activeTrack:
             self.changeTrack(self.activeTrack - 1)
@@ -497,10 +500,18 @@ class MiddleLayer(Widget):
             elif i < track:
                 track -= 1
         self.audioBuffer[track][index:index + len(data)] = data
+        self.updateMainAudioBuffer(index, index + len(data))
+    def updateMainAudioBuffer(self, start = 0, end = None):
+        for i in range(len(self.audioBuffer)):
+            if end == None:
+                data = self.audioBuffer[i]
+                self.mainAudioBuffer[0:len(data)] += data
+            else:
+                data = self.audioBuffer[i][start:end]
+                self.mainAudioBuffer[start:end] += data
+                #flawed
     def movePlayhead(self, position):
-        self.ids["pianoRoll"].children[0]
-        #continue here
-        #TODO: Fill main audio buffer, validate addition/deletion of audio buffers, edit main buffer on buffer change
+        self.ids["pianoRoll"].playbackPos = position
     def play(self, state = None):
         if state == None:
             state = not(self.playing)
@@ -511,13 +522,17 @@ class MiddleLayer(Widget):
                 self.ids["playButton"].state = "normal"
         self.playing = state
     def playCallback(self, in_data, frame_count, time_info, status):
+        buffer = BytesIO()
         if self.playing:
             newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
-            data = self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos]
+            torch.save((self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos] * torch.pow(2, 32)).to(torch.int32), buffer)
+            buffer.seek(0)
             self.mainAudioBufferPos = newBufferPos
             self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
-            return (data, pyaudio.paContinue)
-        return ([0] * global_consts.audioBufferSize, pyaudio.paComplete)
+            return (buffer.read(), pyaudio.paContinue)
+        torch.save(torch.zeros([global_consts.audioBufferSize,], dtype = torch.int32), buffer)
+        buffer.seek(0)
+        return (buffer.read(), pyaudio.paComplete)
 
         
         

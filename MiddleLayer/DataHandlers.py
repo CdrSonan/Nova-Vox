@@ -14,6 +14,7 @@ class Parameter:
 
 class Track:
     def __init__(self, path):
+        self.volume = 1.
         self.vbPath = path
         self.notes = []
         self.phonemes = []

@@ -6311,3 +6311,662 @@
 2022-02-02 23:04:03,508:26612:INFO:shifting internal data backwards
 2022-02-02 23:04:03,508:26612:INFO:performing final rendering up to sample -1, sequence 0
 2022-02-02 23:04:03,509:26612:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:07:22,882:24560:INFO:logging service started
+2022-02-04 02:07:22,978:24560:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_0.txt
+2022-02-04 02:07:22,977:24560:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:07:22,978:24560:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:07:22,978:24560:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:07:22,979:24560:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:07:22,979:24560:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:07:22,979:24560:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:07:22,979:24560:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:07:23,335:24560:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:07:24,293:24560:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:07:25,151:24560:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:07:25,997:24560:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:07:25,999:24560:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:07:25,999:24560:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:07:26,002:24560:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:07:26,002:24560:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:07:26,003:24560:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:07:26,003:24560:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:07:26,003:24560:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:07:26,003:24560:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:07:26,003:24560:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:07:26,188:24560:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:07:26,194:24560:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:07:26,671:24560:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:07:26,848:24560:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:07:26,998:24560:[1;32mINFO[0m:starting render manager
+2022-02-04 02:07:27,059:24560:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:07:28,242:24560:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:07:28,273:24560:WARNING:stderr: TypeError: a bytes-like object is required, not 'list'
+2022-02-04 02:07:28,274:24560:[1;32mINFO[0m:[Base        ] Leaving application in progress...
+2022-02-04 02:07:30,067:18936:INFO:logging service started
+2022-02-04 02:07:30,071:18936:INFO:render process started, reading settings
+2022-02-04 02:07:30,072:18936:INFO:starting new rendering iteration
+2022-02-04 02:07:30,072:18936:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:09:17,863:760:INFO:logging service started
+2022-02-04 02:09:17,891:760:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_1.txt
+2022-02-04 02:09:17,890:760:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:09:17,892:760:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:09:17,892:760:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:09:17,892:760:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:09:17,892:760:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:09:17,893:760:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:09:17,893:760:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:09:17,952:760:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:09:18,056:760:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:09:18,125:760:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:09:18,614:760:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:09:18,616:760:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:09:18,616:760:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:09:18,617:760:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:09:18,617:760:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:09:18,617:760:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:09:18,618:760:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:09:18,618:760:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:09:18,618:760:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:09:18,619:760:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:09:18,650:760:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:09:18,652:760:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:09:18,707:760:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:09:18,748:760:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:09:18,797:760:[1;32mINFO[0m:starting render manager
+2022-02-04 02:09:18,837:760:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:09:19,032:760:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:09:20,776:4436:INFO:logging service started
+2022-02-04 02:09:20,780:4436:INFO:render process started, reading settings
+2022-02-04 02:09:20,781:4436:INFO:starting new rendering iteration
+2022-02-04 02:09:20,781:4436:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:09:31,805:22492:INFO:logging service started
+2022-02-04 02:09:31,834:22492:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_2.txt
+2022-02-04 02:09:31,833:22492:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:09:31,835:22492:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:09:31,835:22492:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:09:31,835:22492:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:09:31,836:22492:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:09:31,836:22492:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:09:31,836:22492:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:09:31,895:22492:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:09:32,000:22492:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:09:32,070:22492:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:09:32,557:22492:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:09:32,559:22492:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:09:32,559:22492:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:09:32,560:22492:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:09:32,560:22492:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:09:32,560:22492:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:09:32,561:22492:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:09:32,561:22492:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:09:32,561:22492:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:09:32,561:22492:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:09:32,593:22492:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:09:32,594:22492:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:09:32,664:22492:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:09:32,695:22492:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:09:32,744:22492:[1;32mINFO[0m:starting render manager
+2022-02-04 02:09:32,785:22492:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:09:33,199:22492:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:09:42,419:22800:INFO:logging service started
+2022-02-04 02:09:42,448:22800:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_3.txt
+2022-02-04 02:09:42,447:22800:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:09:42,449:22800:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:09:42,449:22800:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:09:42,449:22800:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:09:42,449:22800:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:09:42,450:22800:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:09:42,450:22800:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:09:42,510:22800:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:09:42,615:22800:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:09:42,686:22800:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:09:43,188:22800:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:09:43,189:22800:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:09:43,190:22800:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:09:43,191:22800:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:09:43,191:22800:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:09:43,192:22800:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:09:43,192:22800:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:09:43,192:22800:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:09:43,192:22800:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:09:43,193:22800:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:09:43,224:22800:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:09:43,226:22800:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:09:43,282:22800:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:09:43,313:22800:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:09:43,362:22800:[1;32mINFO[0m:starting render manager
+2022-02-04 02:09:43,402:22800:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:09:43,776:22800:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:09:43,819:22800:WARNING:stderr: TypeError: a bytes-like object is required, not 'list'
+2022-02-04 02:09:43,819:22800:[1;32mINFO[0m:[Base        ] Leaving application in progress...
+2022-02-04 02:09:45,514:5012:INFO:logging service started
+2022-02-04 02:09:45,518:5012:INFO:render process started, reading settings
+2022-02-04 02:09:45,519:5012:INFO:starting new rendering iteration
+2022-02-04 02:09:45,519:5012:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:10:22,704:19512:INFO:logging service started
+2022-02-04 02:10:22,733:19512:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_4.txt
+2022-02-04 02:10:22,732:19512:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:10:22,734:19512:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:10:22,734:19512:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:10:22,735:19512:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:10:22,735:19512:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:10:22,735:19512:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:10:22,735:19512:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:10:22,793:19512:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:10:22,907:19512:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:10:22,980:19512:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:10:23,459:19512:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:10:23,460:19512:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:10:23,461:19512:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:10:23,462:19512:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:10:23,462:19512:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:10:23,462:19512:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:10:23,462:19512:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:10:23,463:19512:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:10:23,463:19512:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:10:23,464:19512:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:10:23,495:19512:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:10:23,497:19512:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:10:23,552:19512:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:10:23,583:19512:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:10:23,632:19512:[1;32mINFO[0m:starting render manager
+2022-02-04 02:10:23,672:19512:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:10:24,050:19512:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:10:24,093:19512:WARNING:stderr: TypeError: a bytes-like object is required, not 'list'
+2022-02-04 02:10:24,106:19512:WARNING:stderr: Traceback (most recent call last):
+2022-02-04 02:10:24,106:19512:WARNING:stderr:   File "_pydevd_bundle/pydevd_cython.pyx", line 1664, in _pydevd_bundle.pydevd_cython.ThreadTracer.__call__
+2022-02-04 02:10:24,106:19512:WARNING:stderr:   File "c:\Users\Jokla\.vscode\extensions\ms-python.python-2021.12.1559732655\pythonFiles\lib\python\debugpy\_vendored\pydevd\_pydev_bundle\pydev_is_thread_alive.py", line 9, in is_thread_alive
+2022-02-04 02:10:24,106:19512:WARNING:stderr:     def is_thread_alive(t):
+2022-02-04 02:10:24,107:19512:WARNING:stderr: TypeError
+2022-02-04 02:10:25,767:3804:INFO:logging service started
+2022-02-04 02:10:25,771:3804:INFO:render process started, reading settings
+2022-02-04 02:10:25,772:3804:INFO:starting new rendering iteration
+2022-02-04 02:10:25,772:3804:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:11:16,085:540:INFO:logging service started
+2022-02-04 02:11:16,115:540:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_5.txt
+2022-02-04 02:11:16,115:540:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:11:16,116:540:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:11:16,117:540:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:11:16,117:540:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:11:16,117:540:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:11:16,118:540:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:11:16,118:540:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:11:16,176:540:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:11:16,293:540:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:11:16,364:540:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:11:16,864:540:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:11:16,865:540:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:11:16,865:540:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:11:16,866:540:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:11:16,866:540:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:11:16,867:540:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:11:16,868:540:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:11:16,868:540:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:11:16,868:540:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:11:16,868:540:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:11:16,900:540:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:11:16,902:540:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:11:16,959:540:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:11:16,989:540:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:11:17,038:540:[1;32mINFO[0m:starting render manager
+2022-02-04 02:11:17,078:540:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:11:17,458:540:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:11:17,497:540:WARNING:stderr: TypeError: a bytes-like object is required, not 'list'
+2022-02-04 02:11:17,497:540:[1;32mINFO[0m:[Base        ] Leaving application in progress...
+2022-02-04 02:11:19,196:22348:INFO:logging service started
+2022-02-04 02:11:19,200:22348:INFO:render process started, reading settings
+2022-02-04 02:11:19,201:22348:INFO:starting new rendering iteration
+2022-02-04 02:11:19,201:22348:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:11:35,724:6156:INFO:logging service started
+2022-02-04 02:11:35,752:6156:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_6.txt
+2022-02-04 02:11:35,752:6156:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:11:35,753:6156:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:11:35,753:6156:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:11:35,754:6156:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:11:35,754:6156:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:11:35,754:6156:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:11:35,754:6156:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:11:35,814:6156:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:11:35,920:6156:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:11:35,990:6156:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:11:36,460:6156:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:11:36,461:6156:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:11:36,462:6156:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:11:36,463:6156:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:11:36,463:6156:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:11:36,463:6156:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:11:36,464:6156:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:11:36,464:6156:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:11:36,464:6156:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:11:36,464:6156:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:11:36,496:6156:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:11:36,497:6156:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:11:36,554:6156:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:11:36,583:6156:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:11:36,632:6156:[1;32mINFO[0m:starting render manager
+2022-02-04 02:11:36,671:6156:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:11:37,045:6156:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:11:38,756:15872:INFO:logging service started
+2022-02-04 02:11:38,760:15872:INFO:render process started, reading settings
+2022-02-04 02:11:38,761:15872:INFO:starting new rendering iteration
+2022-02-04 02:11:38,761:15872:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:11:47,157:17604:INFO:logging service started
+2022-02-04 02:11:47,186:17604:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_7.txt
+2022-02-04 02:11:47,185:17604:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:11:47,187:17604:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:11:47,187:17604:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:11:47,187:17604:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:11:47,188:17604:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:11:47,188:17604:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:11:47,188:17604:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:11:47,247:17604:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:11:47,351:17604:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:11:47,423:17604:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:11:47,895:17604:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:11:47,897:17604:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:11:47,897:17604:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:11:47,898:17604:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:11:47,898:17604:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:11:47,898:17604:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:11:47,899:17604:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:11:47,899:17604:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:11:47,899:17604:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:11:47,899:17604:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:11:47,931:17604:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:11:47,932:17604:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:11:47,987:17604:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:11:48,017:17604:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:11:48,065:17604:[1;32mINFO[0m:starting render manager
+2022-02-04 02:11:48,105:17604:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:11:48,486:17604:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:11:48,530:17604:WARNING:stderr: TypeError: a bytes-like object is required, not 'list'
+2022-02-04 02:11:48,530:17604:[1;32mINFO[0m:[Base        ] Leaving application in progress...
+2022-02-04 02:11:50,222:452:INFO:logging service started
+2022-02-04 02:11:50,226:452:INFO:render process started, reading settings
+2022-02-04 02:11:50,227:452:INFO:starting new rendering iteration
+2022-02-04 02:11:50,228:452:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:12:17,240:23800:INFO:logging service started
+2022-02-04 02:12:17,269:23800:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_8.txt
+2022-02-04 02:12:17,268:23800:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:12:17,270:23800:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:12:17,270:23800:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:12:17,270:23800:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:12:17,270:23800:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:12:17,271:23800:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:12:17,271:23800:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:12:17,331:23800:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:12:17,435:23800:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:12:17,506:23800:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:12:17,991:23800:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:12:17,992:23800:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:12:17,992:23800:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:12:17,993:23800:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:12:17,994:23800:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:12:17,994:23800:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:12:17,994:23800:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:12:17,994:23800:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:12:17,995:23800:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:12:17,995:23800:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:12:18,027:23800:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:12:18,028:23800:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:12:18,094:23800:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:12:18,123:23800:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:12:18,172:23800:[1;32mINFO[0m:starting render manager
+2022-02-04 02:12:18,211:23800:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:12:18,591:23800:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:12:18,634:23800:WARNING:stderr: TypeError: a bytes-like object is required, not 'list'
+2022-02-04 02:12:18,634:23800:WARNING:stderr: Traceback (most recent call last):
+2022-02-04 02:12:18,635:23800:WARNING:stderr:   File "_pydevd_bundle/pydevd_cython.pyx", line 1664, in _pydevd_bundle.pydevd_cython.ThreadTracer.__call__
+2022-02-04 02:12:18,635:23800:WARNING:stderr:   File "c:\Users\Jokla\.vscode\extensions\ms-python.python-2021.12.1559732655\pythonFiles\lib\python\debugpy\_vendored\pydevd\_pydev_bundle\pydev_is_thread_alive.py", line 9, in is_thread_alive
+2022-02-04 02:12:18,635:23800:WARNING:stderr:     def is_thread_alive(t):
+2022-02-04 02:12:18,635:23800:WARNING:stderr: TypeError
+2022-02-04 02:12:20,292:1780:INFO:logging service started
+2022-02-04 02:12:20,296:1780:INFO:render process started, reading settings
+2022-02-04 02:12:20,298:1780:INFO:starting new rendering iteration
+2022-02-04 02:12:20,298:1780:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:13:07,493:4076:INFO:logging service started
+2022-02-04 02:13:07,525:4076:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_9.txt
+2022-02-04 02:13:07,524:4076:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:13:07,526:4076:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:13:07,527:4076:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:13:07,527:4076:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:13:07,527:4076:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:13:07,528:4076:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:13:07,528:4076:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:13:07,590:4076:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:13:07,700:4076:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:13:07,776:4076:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:13:08,256:4076:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:13:08,257:4076:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:13:08,258:4076:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:13:08,259:4076:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:13:08,259:4076:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:13:08,259:4076:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:13:08,259:4076:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:13:08,260:4076:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:13:08,260:4076:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:13:08,260:4076:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:13:08,292:4076:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:13:08,294:4076:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:13:08,351:4076:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:13:08,381:4076:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:13:08,431:4076:[1;32mINFO[0m:starting render manager
+2022-02-04 02:13:08,470:4076:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:13:08,845:4076:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:13:08,889:4076:WARNING:stderr: TypeError: a bytes-like object is required, not 'list'
+2022-02-04 02:13:08,889:4076:[1;32mINFO[0m:[Base        ] Leaving application in progress...
+2022-02-04 02:13:10,623:14156:INFO:logging service started
+2022-02-04 02:13:10,627:14156:INFO:render process started, reading settings
+2022-02-04 02:13:10,628:14156:INFO:starting new rendering iteration
+2022-02-04 02:13:10,629:14156:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:13:37,884:2076:INFO:logging service started
+2022-02-04 02:13:37,913:2076:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_10.txt
+2022-02-04 02:13:37,912:2076:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:13:37,914:2076:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:13:37,914:2076:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:13:37,914:2076:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:13:37,915:2076:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:13:37,915:2076:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:13:37,915:2076:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:13:37,973:2076:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:13:38,077:2076:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:13:38,147:2076:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:13:38,623:2076:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:13:38,624:2076:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:13:38,625:2076:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:13:38,626:2076:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:13:38,626:2076:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:13:38,626:2076:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:13:38,627:2076:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:13:38,627:2076:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:13:38,627:2076:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:13:38,627:2076:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:13:38,659:2076:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:13:38,660:2076:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:13:38,716:2076:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:13:38,747:2076:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:13:38,795:2076:[1;32mINFO[0m:starting render manager
+2022-02-04 02:13:38,835:2076:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:13:39,029:2076:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:13:40,742:17060:INFO:logging service started
+2022-02-04 02:13:40,746:17060:INFO:render process started, reading settings
+2022-02-04 02:13:40,747:17060:INFO:starting new rendering iteration
+2022-02-04 02:13:40,747:17060:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 02:14:00,419:13408:INFO:logging service started
+2022-02-04 02:14:00,449:13408:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_11.txt
+2022-02-04 02:14:00,447:13408:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 02:14:00,449:13408:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 02:14:00,450:13408:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 02:14:00,450:13408:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 02:14:00,450:13408:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 02:14:00,450:13408:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 02:14:00,451:13408:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 02:14:00,508:13408:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 02:14:00,612:13408:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 02:14:00,683:13408:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 02:14:01,167:13408:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 02:14:01,168:13408:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 02:14:01,169:13408:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 02:14:01,170:13408:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 02:14:01,170:13408:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 02:14:01,170:13408:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 02:14:01,171:13408:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 02:14:01,171:13408:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 02:14:01,171:13408:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 02:14:01,171:13408:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 02:14:01,203:13408:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 02:14:01,204:13408:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 02:14:01,260:13408:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 02:14:01,291:13408:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 02:14:01,340:13408:[1;32mINFO[0m:starting render manager
+2022-02-04 02:14:01,379:13408:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 02:14:01,753:13408:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 02:14:03,451:24208:INFO:logging service started
+2022-02-04 02:14:03,455:24208:INFO:render process started, reading settings
+2022-02-04 02:14:03,456:24208:INFO:starting new rendering iteration
+2022-02-04 02:14:03,456:24208:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:08:26,518:4192:INFO:logging service started
+2022-02-04 03:08:26,571:4192:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_12.txt
+2022-02-04 03:08:26,570:4192:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 03:08:26,572:4192:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 03:08:26,572:4192:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 03:08:26,572:4192:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 03:08:26,572:4192:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 03:08:26,573:4192:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 03:08:26,573:4192:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 03:08:26,666:4192:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 03:08:26,806:4192:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 03:08:26,929:4192:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 03:08:27,514:4192:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 03:08:27,516:4192:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 03:08:27,516:4192:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 03:08:27,517:4192:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 03:08:27,517:4192:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 03:08:27,517:4192:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 03:08:27,517:4192:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 03:08:27,518:4192:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 03:08:27,518:4192:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 03:08:27,518:4192:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 03:08:27,550:4192:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 03:08:27,555:4192:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 03:08:27,637:4192:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 03:08:27,668:4192:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 03:08:27,730:4192:[1;32mINFO[0m:starting render manager
+2022-02-04 03:08:27,771:4192:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 03:08:28,221:4192:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 03:08:28,236:4192:WARNING:stderr: TypeError: a bytes-like object is required, not 'list'
+2022-02-04 03:08:29,980:24088:INFO:logging service started
+2022-02-04 03:08:29,984:24088:INFO:render process started, reading settings
+2022-02-04 03:08:29,985:24088:INFO:starting new rendering iteration
+2022-02-04 03:08:29,985:24088:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:11:08,487:22132:INFO:logging service started
+2022-02-04 03:11:08,516:22132:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_13.txt
+2022-02-04 03:11:08,515:22132:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 03:11:08,517:22132:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 03:11:08,517:22132:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 03:11:08,518:22132:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 03:11:08,518:22132:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 03:11:08,518:22132:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 03:11:08,519:22132:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 03:11:08,577:22132:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 03:11:08,716:22132:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 03:11:08,787:22132:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 03:11:09,257:22132:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 03:11:09,259:22132:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 03:11:09,259:22132:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 03:11:09,261:22132:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 03:11:09,261:22132:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 03:11:09,261:22132:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 03:11:09,262:22132:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 03:11:09,262:22132:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 03:11:09,262:22132:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 03:11:09,262:22132:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 03:11:09,295:22132:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 03:11:09,297:22132:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 03:11:09,365:22132:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 03:11:09,395:22132:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 03:11:09,445:22132:[1;32mINFO[0m:starting render manager
+2022-02-04 03:11:09,484:22132:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 03:11:09,871:22132:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 03:11:09,887:22132:WARNING:stderr: TypeError: a bytes-like object is required, not '_io.BytesIO'
+2022-02-04 03:11:11,634:23852:INFO:logging service started
+2022-02-04 03:11:11,638:23852:INFO:render process started, reading settings
+2022-02-04 03:11:11,639:23852:INFO:starting new rendering iteration
+2022-02-04 03:11:11,639:23852:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:14:00,802:23796:INFO:logging service started
+2022-02-04 03:14:00,831:23796:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_14.txt
+2022-02-04 03:14:00,830:23796:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 03:14:00,832:23796:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 03:14:00,832:23796:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 03:14:00,832:23796:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 03:14:00,833:23796:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 03:14:00,833:23796:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 03:14:00,833:23796:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 03:14:00,892:23796:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 03:14:00,995:23796:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 03:14:01,067:23796:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 03:14:01,534:23796:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 03:14:01,536:23796:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 03:14:01,536:23796:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 03:14:01,537:23796:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 03:14:01,538:23796:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 03:14:01,538:23796:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 03:14:01,538:23796:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 03:14:01,538:23796:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 03:14:01,539:23796:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 03:14:01,539:23796:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 03:14:01,571:23796:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 03:14:01,572:23796:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 03:14:01,641:23796:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 03:14:01,671:23796:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 03:14:01,720:23796:[1;32mINFO[0m:starting render manager
+2022-02-04 03:14:01,760:23796:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 03:14:02,150:23796:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 03:14:02,166:23796:WARNING:stderr: TypeError: argument 1 must be read-only bytes-like object, not memoryview
+2022-02-04 03:14:03,918:25096:INFO:logging service started
+2022-02-04 03:14:03,922:25096:INFO:render process started, reading settings
+2022-02-04 03:14:03,923:25096:INFO:starting new rendering iteration
+2022-02-04 03:14:03,923:25096:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:01,890:25668:INFO:logging service started
+2022-02-04 03:15:01,919:25668:[1;32mINFO[0m:[Logger      ] Record log in C:\Users\Jokla\.kivy\logs\kivy_22-02-04_15.txt
+2022-02-04 03:15:01,918:25668:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.glew" 0.3.0
+2022-02-04 03:15:01,920:25668:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.sdl2" 0.3.1
+2022-02-04 03:15:01,920:25668:[1;32mINFO[0m:[deps        ] Successfully imported "kivy_deps.angle" 0.3.0
+2022-02-04 03:15:01,920:25668:[1;32mINFO[0m:[Kivy        ] v2.0.0
+2022-02-04 03:15:01,921:25668:[1;32mINFO[0m:[Kivy        ] Installed at "C:\Program Files\Python39\lib\site-packages\kivy\__init__.py"
+2022-02-04 03:15:01,921:25668:[1;32mINFO[0m:[Python      ] v3.9.7 (tags/v3.9.7:1016ef3, Aug 30 2021, 20:19:38) [MSC v.1929 64 bit (AMD64)]
+2022-02-04 03:15:01,921:25668:[1;32mINFO[0m:[Python      ] Interpreter at "C:\Program Files\Python39\python.exe"
+2022-02-04 03:15:01,980:25668:[1;32mINFO[0m:[Factory     ] 186 symbols loaded
+2022-02-04 03:15:02,083:25668:[1;32mINFO[0m:[Image       ] Providers: img_tex, img_dds, img_sdl2, img_pil (img_ffpyplayer ignored)
+2022-02-04 03:15:02,155:25668:[1;32mINFO[0m:[Window      ] Provider: sdl2
+2022-02-04 03:15:02,636:25668:[1;32mINFO[0m:[GL          ] Using the "OpenGL" graphics system
+2022-02-04 03:15:02,637:25668:[1;32mINFO[0m:[GL          ] GLEW initialization succeeded
+2022-02-04 03:15:02,638:25668:[1;32mINFO[0m:[GL          ] Backend used <glew>
+2022-02-04 03:15:02,639:25668:[1;32mINFO[0m:[GL          ] OpenGL version <b'4.6.14802 Compatibility Profile Context 21.Q4 30.0.14011.2006'>
+2022-02-04 03:15:02,639:25668:[1;32mINFO[0m:[GL          ] OpenGL vendor <b'ATI Technologies Inc.'>
+2022-02-04 03:15:02,639:25668:[1;32mINFO[0m:[GL          ] OpenGL renderer <b'Radeon RX Vega'>
+2022-02-04 03:15:02,640:25668:[1;32mINFO[0m:[GL          ] OpenGL parsed version: 4, 6
+2022-02-04 03:15:02,640:25668:[1;32mINFO[0m:[GL          ] Shading version <b'4.60'>
+2022-02-04 03:15:02,640:25668:[1;32mINFO[0m:[GL          ] Texture max size <16384>
+2022-02-04 03:15:02,640:25668:[1;32mINFO[0m:[GL          ] Texture max units <32>
+2022-02-04 03:15:02,672:25668:[1;32mINFO[0m:[Window      ] auto add sdl2 input provider
+2022-02-04 03:15:02,673:25668:[1;32mINFO[0m:[Window      ] virtual keyboard not allowed, single mode, not docked
+2022-02-04 03:15:02,744:25668:[1;32mINFO[0m:[Text        ] Provider: sdl2
+2022-02-04 03:15:02,774:25668:[1;33mWARNING[0m:Both Window.minimum_width and Window.minimum_height must be bigger than 0 for the size restriction to take effect.
+2022-02-04 03:15:02,824:25668:[1;32mINFO[0m:starting render manager
+2022-02-04 03:15:02,864:25668:[1;32mINFO[0m:[GL          ] NPOT texture support is available
+2022-02-04 03:15:03,255:25668:[1;32mINFO[0m:[Base        ] Start application main loop
+2022-02-04 03:15:04,986:23656:INFO:logging service started
+2022-02-04 03:15:04,990:23656:INFO:render process started, reading settings
+2022-02-04 03:15:04,991:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:04,991:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:10,200:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:10,200:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:10,242:23656:INFO:setting up local data structures
+2022-02-04 03:15:10,243:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:10,243:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:10,244:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:10,244:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:11,739:25668:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-02-04 03:15:11,740:25668:WARNING:stderr: Exception ignored in: 'kivy.graphics.instructions.VertexInstruction.rremove'
+2022-02-04 03:15:11,740:25668:WARNING:stderr: Traceback (most recent call last):
+2022-02-04 03:15:11,740:25668:WARNING:stderr:   File "d:\Nova-Vox\GitHub\Nova-Vox\editor_UI.py", line 653, in redraw
+2022-02-04 03:15:11,754:25668:WARNING:stderr:     self.children[0].canvas.remove(self.line)
+2022-02-04 03:15:11,754:25668:WARNING:stderr: ValueError: list.remove(x): x not in list
+2022-02-04 03:15:12,529:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,529:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,567:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,569:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,569:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,569:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,569:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:12,571:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,572:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,616:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,618:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,618:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,618:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,619:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:12,623:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,623:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,663:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,665:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,665:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,665:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,665:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:12,670:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,670:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,709:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,711:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,711:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,711:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,711:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:12,716:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,717:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,763:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,765:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,765:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,765:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,765:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:12,770:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,771:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,811:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,812:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,812:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,812:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,812:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:12,817:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,818:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,857:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,859:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,859:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,859:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,859:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:12,864:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,864:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,904:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,906:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,906:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,906:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,906:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:12,911:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,912:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,951:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,953:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,953:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,953:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,953:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:12,957:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:12,957:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:12,996:23656:INFO:setting up local data structures
+2022-02-04 03:15:12,998:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:12,998:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:12,998:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:12,998:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:13,003:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:13,004:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:13,043:23656:INFO:setting up local data structures
+2022-02-04 03:15:13,045:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:13,045:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:13,045:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:13,045:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:13,048:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:13,049:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:13,088:23656:INFO:setting up local data structures
+2022-02-04 03:15:13,089:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:13,089:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:13,090:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:13,090:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:13,092:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:13,092:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:13,131:23656:INFO:setting up local data structures
+2022-02-04 03:15:13,133:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:13,133:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:13,133:23656:INFO:performing final rendering up to sample -1, sequence 0
+2022-02-04 03:15:13,133:23656:INFO:rendering process finished for all sequences, waiting for render semaphore
+2022-02-04 03:15:16,598:23656:INFO:starting new rendering iteration
+2022-02-04 03:15:16,598:23656:INFO:starting new sequence rendering iteration, copying data from main process
+2022-02-04 03:15:16,636:23656:INFO:setting up local data structures
+2022-02-04 03:15:16,638:23656:INFO:starting new segment rendering iteration
+2022-02-04 03:15:16,638:23656:INFO:shifting internal data backwards
+2022-02-04 03:15:16,638:23656:INFO:calling resamplers for sample 0, sequence 0
