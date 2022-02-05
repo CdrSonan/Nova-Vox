@@ -1076,10 +1076,8 @@ class UtauImportUi(tkinter.Frame):
         index = self.phonemeList.list.lastFocusedIndex
         self.sampleList[index]._type = self.sideBar._type.variable.get()
         if self.sideBar._type.variable.get():
-            print("if")
             self.disableButtons
         else:
-            print("else")
             self.enableButtons
     
     def onAddPress(self):

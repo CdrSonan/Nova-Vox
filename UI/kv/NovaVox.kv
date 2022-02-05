@@ -31,7 +31,7 @@
             imageNormal: "UI/assets/TopBar/Top02.png"
             imagePressed: "UI/assets/TopBar/Top02_clicked.png"
             id: playButton
-            on_press: root.play(self.state)
+            on_state: root.play(self.state)
         ImageButton:
             pos: (190, root.height - 45)
             size_hint: (42 / root.width, 30 / root.height)

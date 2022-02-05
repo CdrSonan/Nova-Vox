@@ -51,12 +51,12 @@ class MiddleLayer(Widget):
         self.shift = False
         self.scrollValue = 0.
         self.audioBuffer = []
-        self.mainAudioBuffer = torch.zeros([5000,])
+        self.mainAudioBuffer = torch.zeros([5000 * global_consts.batchSize,])
         self.mainAudioBufferPos = 0
         self.deletions = []
         self.playing = False
         self.audio = pyaudio.PyAudio()
-        self.audioStream = self.audio.open(rate = global_consts.sampleRate, channels = 1, format = pyaudio.paFloat32, output = True, stream_callback = self.playCallback)
+        self.audioStream = self.audio.open(rate = global_consts.sampleRate, channels = 1, format = pyaudio.paFloat32, output = True, frames_per_buffer = 2048, start = False, stream_callback = self.playCallback)
     def importVoicebank(self, path, name, inImage):
         track = dh.Track(path)
         self.trackList.append(track)
@@ -67,7 +67,7 @@ class MiddleLayer(Widget):
         im = CoreImage(BytesIO(data.read()), ext='png')
         image = im.texture
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
-        self.audioBuffer.append(torch.zeros([track.length,]))
+        self.audioBuffer.append(torch.zeros([5000 * global_consts.batchSize,]))
         aiParamStackList.append(AiParamStack([]))
         self.submitAddTrack(track)
     def importParam(self, path, name):
@@ -271,7 +271,6 @@ class MiddleLayer(Widget):
         brd2 = self.trackList[self.activeTrack].borders[3 * note.phonemeStart:3 * note.phonemeEnd]
         if index == len(self.trackList[self.activeTrack].notes) - 1:#notes are 1 element shorter because of pop
             scalingFactor = (self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart + 1) / (note.phonemeEnd - note.phonemeStart + 1)
-            print("last", scalingFactor)
             for i in range(len(self.trackList[self.activeTrack].borders) - 3, len(self.trackList[self.activeTrack].borders)):
                 self.trackList[self.activeTrack].borders[i] = (self.trackList[self.activeTrack].borders[i] - note.xPos) * scalingFactor / note.length * (self.trackList[self.activeTrack].notes[index].xPos - note.xPos) + self.trackList[self.activeTrack].notes[index].xPos
             for i in range(3 * note.phonemeEnd - 3 * note.phonemeStart):
@@ -427,7 +426,7 @@ class MiddleLayer(Widget):
             self.repairBorders(3 * i + 2)
             self.repairBorders(3 * i + 1)
             self.repairBorders(3 * i)
-            self.submitNamedPhonParamChange(False, "borders", 3 * i, self.trackList[self.activeTrack].borders[3 * i:3 * i + 2])
+            self.submitNamedPhonParamChange(False, "borders", 3 * i, self.trackList[self.activeTrack].borders[3 * i:3 * i + 3])
         #if self.trackList[self.activeTrack].notes[index].phonemeEnd != "_autopause":
             #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = end - 2
             #self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd + 1] = end - 1
@@ -444,13 +443,13 @@ class MiddleLayer(Widget):
             self.trackList[self.activeTrack].notes[index].xPos += 1
             self.repairNotes(index + 1)
     def repairBorders(self, index):
-        if index == len(self.trackList[self.activeTrack].notes):
+        if index == len(self.trackList[self.activeTrack].borders):
             return None
         self.trackList[self.activeTrack].borders[index] = int(self.trackList[self.activeTrack].borders[index])
         if self.trackList[self.activeTrack].borders[index] == self.trackList[self.activeTrack].borders[index - 1]:
             self.trackList[self.activeTrack].borders[index] += 1
             self.submitNamedPhonParamChange(False, "borders", index, [self.trackList[self.activeTrack].borders[index],])
-            self.repairBorders(self, index + 1)
+            self.repairBorders(index + 1)
     def submitTerminate(self):
         manager.sendChange("terminate", True)
     def submitAddTrack(self, track):
@@ -502,37 +501,43 @@ class MiddleLayer(Widget):
         self.audioBuffer[track][index:index + len(data)] = data
         self.updateMainAudioBuffer(index, index + len(data))
     def updateMainAudioBuffer(self, start = 0, end = None):
+        self.mainAudioBuffer[start:end] *= 0
         for i in range(len(self.audioBuffer)):
             if end == None:
                 data = self.audioBuffer[i]
-                self.mainAudioBuffer[0:len(data)] += data
             else:
                 data = self.audioBuffer[i][start:end]
-                self.mainAudioBuffer[start:end] += data
-                #flawed
+            length = data.size()[0]
+            if (end - start) > length:
+                data = torch.cat([data, torch.zeros([length - end + start])], dim = 0)
+            self.mainAudioBuffer[start:end] += data
     def movePlayhead(self, position):
-        self.ids["pianoRoll"].playbackPos = position
+        self.ids["pianoRoll"].changePlaybackPos(position)
     def play(self, state = None):
         if state == None:
             state = not(self.playing)
-            if state == True:
-                self.ids["playButton"].state = "down"
-                self.audioStream.start_stream()
-            if state == False:
-                self.ids["playButton"].state = "normal"
+        if state == True:
+            self.ids["playButton"].state = "down"
+            self.audioStream.start_stream()
+        if state == False:
+            self.ids["playButton"].state = "normal"
+            self.audioStream.stop_stream()
         self.playing = state
     def playCallback(self, in_data, frame_count, time_info, status):
+        print("stream callback", in_data, frame_count, time_info, status)
         buffer = BytesIO()
         if self.playing:
             newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
-            torch.save((self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos] * torch.pow(2, 32)).to(torch.int32), buffer)
+            torch.save((self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos] * math.pow(2, 32)).to(torch.int32), buffer)
             buffer.seek(0)
             self.mainAudioBufferPos = newBufferPos
             self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
+            print("stream buffered")
             return (buffer.read(), pyaudio.paContinue)
         torch.save(torch.zeros([global_consts.audioBufferSize,], dtype = torch.int32), buffer)
         buffer.seek(0)
-        return (buffer.read(), pyaudio.paComplete)
+        print("stream ended")
+        return (buffer.read(), pyaudio.paContinue)
 
         
         
@@ -1231,6 +1236,13 @@ class PianoRoll(ScrollView):
     def generate_timing_markers(self):
         for i in self.length:
             self.children[0].children[0].add_widget(TimingLabel(index = i))
+    def changePlaybackPos(self, playbackPos):
+        with self.children[0].children[0].canvas:
+            points = self.children[0].children[0].canvas.children[-1].points
+            points[0] = playbackPos * self.xScale
+            points[2] = playbackPos * self.xScale
+            del self.children[0].children[0].canvas.children[-1]
+            Line(points = points)
     def redrawPitch(self):
         data = middleLayer.trackList[middleLayer.activeTrack].pitch
         points = []
@@ -1596,8 +1608,8 @@ class NovaVoxUI(Widget):
             middleLayer.updateAudioBuffer(change.track, change.index, change.value)
         else:
             middleLayer.deletions.pop(0)
+        print("update data: ", change.track, change.index, change.value)
         self.update(deltatime)
-        print(change.track, change.index, change.value)
     def setMode(self, mode):
         global middleLayer
         middleLayer.mode = mode
@@ -1607,7 +1619,10 @@ class NovaVoxUI(Widget):
         global middleLayer
         middleLayer.tool = tool
     def play(self, state):
-        middleLayer.play(state)
+        if state == "down":
+            middleLayer.play(True)
+        else:
+            middleLayer.play(False)
     def on_keyboard_down(self, window, keycode, text, modifiers):
         if keycode[0] == 303 or keycode[0] == 304: 
             middleLayer.shift = True

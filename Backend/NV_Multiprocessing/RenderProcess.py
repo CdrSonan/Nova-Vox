@@ -27,7 +27,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 break
         return (pos1, pos2)
     def trimSequence(index, position, delta):
-        print(index, position, delta)
         phonemes = inputList[index].phonemes
         offsets = inputList[index].offsets
         repetititionSpacing = inputList[index].repetititionSpacing
@@ -36,9 +35,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         endCaps = inputList[index].endCaps
         if delta > 0:
             phonemes = phonemes[0:position] + [0] * delta + phonemes[position:]
-            offsets = torch.cat([offsets[0:position], torch.empty([delta,]), offsets[position:]], 0)
-            repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.empty([delta,]), repetititionSpacing[position:]], 0)
-            borders = borders[0:3 * position] + [0] * delta + borders[3 * position:]
+            offsets = torch.cat([offsets[0:position], torch.zeros([delta,]), offsets[position:]], 0)
+            repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.full([delta,], 0.5), repetititionSpacing[position:]], 0)
+            borders = borders[0:3 * position] + [0] * (3 * delta) + borders[3 * position:]
             startCaps = startCaps[0:position] + [False] * delta + startCaps[position:]
             endCaps = endCaps[0:position] + [False] * delta + endCaps[position:]
             if position == 0:
@@ -72,7 +71,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
 
     def updateFromMain():
         change = connection.recv()
-        print(change.type)
+        print(change.type, change.data1, change.data2, change.data3, change.data4, change.data5)
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
@@ -244,7 +243,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             nextVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
 
                         connection.send(StatusChange(i, j, 1))
-                        print("stat1")
 
                         logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
                         voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = currentVoicedExcitation
@@ -297,7 +295,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         voicedSignal = torch.stft(voicedExcitation[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
         
                         breathiness = internalInputs.breathiness[0:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
-                        breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.sum(torch.abs(excitation[0:internalInputs.borders[3 * (j - 1) + 5]]), 1) * global_consts.breCompPremul
+                        breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.maximum(torch.sum(torch.abs(excitation[0:internalInputs.borders[3 * (j - 1) + 5]]), 1), torch.tensor([0.0001], device = device_rs)) * global_consts.breCompPremul
                         breathinessUnvoiced = 1. + breathiness * breathinessCompensation * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                         breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
                         #voicedSignal = torch.ones_like(voicedSignal)
@@ -312,7 +310,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         waveform += excitationSignal.to(device = torch.device("cpu"))
 
                         #connection.send(StatusChange(i, internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize, waveform, True))
-                        connection.send(StatusChange(i, 0, waveform, True))
+                        connection.send(StatusChange(i, 0, waveform.detach(), True))
                         connection.send(StatusChange(i, j - 1, 5))
                         if internalInputs.endCaps[j - 1] == True:
                             aiActive = False
@@ -327,7 +325,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 continue
             break
         logging.info("rendering process finished for all sequences, waiting for render semaphore")
-        print("")
         print("rendering finished!")
         rerenderFlag.wait()
         rerenderFlag.clear()
