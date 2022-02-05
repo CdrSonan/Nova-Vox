@@ -143,15 +143,18 @@
             points: (self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y, self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y + self.parent.height)
 
 <TimingLabel>:
-    x: self.parent.x + int(self.parent.parent.parent.xScale * self.parent.parent.parent.tempo * self.index)
-    y: self.parent.y
-    width: self.parent.parent.parent.xScale * self.parent.parent.parent.tempo
-    height: self.parent.height
+    x: self.reference.x + int(self.reference.parent.parent.xScale * self.reference.parent.parent.tempo * self.index)
+    y: self.reference.y
+    width: self.reference.parent.parent.xScale * self.reference.parent.parent.tempo
+    height: self.reference.height
+    point1: self.reference.parent.y
+    point2: self.reference.parent.y + self.reference.parent.height
+    text: "ABC"#str(self.index)
     canvas:
         Color:
             rgba: (0.3, 0.3, 0.3, 1)
         Line:
-            points: (self.x, self.parent.parent.y, self.x, self.parent.parent.y + self.parent.parent.height)
+            points: (self.x, self.point1, self.x, self.point2)
 
 <TimingBar>:
     orientation: "horizontal"

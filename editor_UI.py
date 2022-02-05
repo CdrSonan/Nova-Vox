@@ -56,7 +56,7 @@ class MiddleLayer(Widget):
         self.deletions = []
         self.playing = False
         self.audio = pyaudio.PyAudio()
-        self.audioStream = self.audio.open(rate = global_consts.sampleRate, channels = 1, format = pyaudio.paFloat32, output = True, frames_per_buffer = 2048, start = False, stream_callback = self.playCallback)
+        self.audioStream = self.audio.open(rate = global_consts.sampleRate, channels = 1, format = pyaudio.paFloat32, output = True, frames_per_buffer = global_consts.audioBufferSize, start = False, stream_callback = self.playCallback)
     def importVoicebank(self, path, name, inImage):
         track = dh.Track(path)
         self.trackList.append(track)
@@ -524,20 +524,14 @@ class MiddleLayer(Widget):
             self.audioStream.stop_stream()
         self.playing = state
     def playCallback(self, in_data, frame_count, time_info, status):
-        print("stream callback", in_data, frame_count, time_info, status)
-        buffer = BytesIO()
         if self.playing:
             newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
-            torch.save((self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos] * math.pow(2, 32)).to(torch.int32), buffer)
-            buffer.seek(0)
+            buffer = (self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos] * math.pow(2, 32)).to(torch.int32).numpy().tobytes()
             self.mainAudioBufferPos = newBufferPos
             self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
-            print("stream buffered")
-            return (buffer.read(), pyaudio.paContinue)
-        torch.save(torch.zeros([global_consts.audioBufferSize,], dtype = torch.int32), buffer)
-        buffer.seek(0)
-        print("stream ended")
-        return (buffer.read(), pyaudio.paContinue)
+            return (buffer, pyaudio.paContinue)
+        buffer = torch.zeros([global_consts.audioBufferSize,], dtype = torch.int32).numpy().tobytes()
+        return (buffer, pyaudio.paContinue)
 
         
         
@@ -687,6 +681,8 @@ class ParamCurve(ScrollView):
         else:
             return False
     def on_touch_move(self, touch):
+        if "param" not in touch.ud:
+            return super(ParamCurve, self).on_touch_move(touch)
         if 'startPoint' in touch.ud:
             global middleLayer
             coord = self.to_local(touch.x, touch.y)
@@ -747,6 +743,8 @@ class ParamCurve(ScrollView):
             return super(ParamCurve, self).on_touch_move(touch)
     def on_touch_up(self, touch):
         global middleLayer
+        if "param" not in touch.ud:
+            return super(ParamCurve, self).on_touch_up(touch)
         if 'startPoint' in touch.ud:
             data = []
             if touch.ud['startPointOffset'] == 0:
@@ -858,6 +856,8 @@ class TimingOptns(ScrollView):
                 return self.points1[bar][0]
             else:
                 return self.points2[bar][0]
+        if "param" not in touch.ud:
+            return super(TimingOptns, self).on_touch_move(touch)
         if 'startPoint' in touch.ud:
             global middleLayer
             coord = self.to_local(touch.x, touch.y)
@@ -945,8 +945,10 @@ class TimingOptns(ScrollView):
                         break
             return None
         global middleLayer
+        if "param" not in touch.ud:
+            return super(TimingOptns, self).on_touch_up(touch)
         if middleLayer.tool == "draw":
-            pass #submit data to backend
+            pass
         elif 'startPoint' in touch.ud:
             data = []
             if touch.ud['section']:
@@ -1035,6 +1037,8 @@ class PitchOptns(ScrollView):
         else:
             return False#super(PitchOptns, self).on_touch_down(touch)
     def on_touch_move(self, touch):
+        if "param" not in touch.ud:
+            return super(PitchOptns, self).on_touch_move(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:
             global middleLayer
             coord = self.to_local(touch.x, touch.y)
@@ -1105,6 +1109,8 @@ class PitchOptns(ScrollView):
             return super(PitchOptns, self).on_touch_move(touch)
     def on_touch_up(self, touch):
         global middleLayer
+        if "param" not in touch.ud:
+            return super(PitchOptns, self).on_touch_up(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:
             data = []
             if touch.ud['section']:
@@ -1212,17 +1218,21 @@ class TimingBar(FloatLayout):
 
 class TimingLabel(Label):
     index = NumericProperty()
+    reference = ObjectProperty()
 
 class PianoRoll(ScrollView):
     def __init__(self, **kwargs):
         super(PianoRoll, self).__init__(**kwargs)
+        self.length = NumericProperty()
+        self.length = 5000
         self.xScale = NumericProperty()
         self.xScale = 1
         self.yScale = NumericProperty()
+        self.yScale = 10
         self.measureSize = NumericProperty()
-        self.length = NumericProperty()
-        self.length = 5000
+        self.measureSize = 4
         self.tempo = NumericProperty()
+        self.tempo = 125
         self.playbackPos = NumericProperty()
         self.playbackPos = 0
         self.currentNote = ObjectProperty()
@@ -1230,12 +1240,14 @@ class PianoRoll(ScrollView):
         self.pitchLine = ObjectProperty()
         self.timingMarkers = []
         self.pitchLine = None
+        self.generateTimingMarkers()
     def generate_notes(self, data):
         for d in data:
             self.children[0].add_widget(Note(**d))
-    def generate_timing_markers(self):
-        for i in self.length:
-            self.children[0].children[0].add_widget(TimingLabel(index = i))
+    @mainthread
+    def generateTimingMarkers(self):
+        for i in range(self.length):
+            self.children[0].children[-5].add_widget(TimingLabel(index = i, reference = self.children[0].children[-5]))
     def changePlaybackPos(self, playbackPos):
         with self.children[0].children[0].canvas:
             points = self.children[0].children[0].canvas.children[-1].points
@@ -1314,6 +1326,9 @@ class PianoRoll(ScrollView):
                 coord = self.to_local(touch.x, touch.y)
                 x = int(coord[0] / self.xScale)
                 y = int(coord[1] / self.yScale)
+                if touch.y < self.y + self.height and touch.y > self.y + self.height - 20:
+                    middleLayer.movePlayhead(x)
+                    return True
                 if middleLayer.mode == "notes":
                     index = 0
                     for i in self.children[0].children:
@@ -1327,7 +1342,7 @@ class PianoRoll(ScrollView):
                                 x += 1
                     newNote = Note(index = index, xPos = x, yPos = y, length = 100, height = self.yScale)
                     middleLayer.addNote(index, x, y, newNote)
-                    self.children[0].add_widget(newNote)
+                    self.children[0].add_widget(newNote, index = 5)
                     touch.ud["noteIndex"] = index
                     touch.ud["grabMode"] = "end"
                     touch.ud["initialPos"] = coord
@@ -1354,12 +1369,18 @@ class PianoRoll(ScrollView):
                 return True
         return False
     def on_touch_move(self, touch):
+        if "param" not in touch.ud:
+            return super().on_touch_move(touch)
         if self.collide_point(*touch.pos) == False or touch.ud['param']:
             return False
         coord = self.to_local(touch.x, touch.y)
         x = int(coord[0] / self.xScale)
         y = int(coord[1] / self.yScale)
         yMod = coord[1]
+        if touch.y < self.y + self.height and touch.y > self.y + self.height - 20:
+            middleLayer.mainAudioBufferPos = x * global_consts.batchSize
+            middleLayer.movePlayhead(x)
+            return True
         if middleLayer.mode == "notes":
             if "noteIndex" in touch.ud:
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
@@ -1465,6 +1486,8 @@ class PianoRoll(ScrollView):
             return super().on_touch_move(touch)
     def on_touch_up(self, touch):
         global middleLayer
+        if "param" not in touch.ud:
+            return super(PianoRoll, self).on_touch_up(touch)
         if 'startPoint' in touch.ud and touch.ud['param'] == False:
             data = []
             if touch.ud['startPointOffset'] == 0:
