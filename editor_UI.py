@@ -1,5 +1,5 @@
 from logging import root
-from turtle import pos
+from turtle import pos, textinput
 from typing import Text
 from kivy.core.image import Image as CoreImage
 from PIL import Image as PilImage, ImageDraw, ImageFont
@@ -9,7 +9,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty, ListProperty, OptionProperty
-from kivy.graphics import Color, Line, Rectangle, InstructionGroup
+from kivy.graphics import Color, Line, Rectangle
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
@@ -29,8 +29,11 @@ import os
 import torch
 import subprocess
 import math
-from Backend.Param_Components.AiParams import AiParamStack
+
 import pyaudio
+import sounddevice
+
+from Backend.Param_Components.AiParams import AiParamStack
 import global_consts
 
 import MiddleLayer.DataHandlers as dh
@@ -55,8 +58,10 @@ class MiddleLayer(Widget):
         self.mainAudioBufferPos = 0
         self.deletions = []
         self.playing = False
-        self.audio = pyaudio.PyAudio()
-        self.audioStream = self.audio.open(rate = global_consts.sampleRate, channels = 1, format = pyaudio.paFloat32, output = True, frames_per_buffer = global_consts.audioBufferSize, start = False, stream_callback = self.playCallback)
+        #self.audio = pyaudio.PyAudio()
+        #self.audioStream = self.audio.open(rate = global_consts.sampleRate, channels = 1, format = pyaudio.paFloat32, output = True, frames_per_buffer = global_consts.audioBufferSize, start = False, stream_callback = self.playCallback)
+        self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, callback = self.playCallback)
+        self.scriptCache = ""
     def importVoicebank(self, path, name, inImage):
         track = dh.Track(path)
         self.trackList.append(track)
@@ -364,7 +369,7 @@ class MiddleLayer(Widget):
             self.repairBorders(3 * i + 2)
             self.repairBorders(3 * i + 1)
             self.repairBorders(3 * i)
-            self.submitNamedPhonParamChange(False, "borders", 3 * i, self.trackList[self.activeTrack].borders[3 * i:3 * i + 2])
+            self.submitNamedPhonParamChange(False, "borders", 3 * i, self.trackList[self.activeTrack].borders[3 * i:3 * i + 3])
         oldLength = self.trackList[self.activeTrack].notes[index].length
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
@@ -384,7 +389,7 @@ class MiddleLayer(Widget):
             self.repairBorders(3 * i + 2)
             self.repairBorders(3 * i + 1)
             self.repairBorders(3 * i)
-            self.submitNamedPhonParamChange(False, "borders", 3 * i, self.trackList[self.activeTrack].borders[3 * i:3 * i + 2])
+            self.submitNamedPhonParamChange(False, "borders", 3 * i, self.trackList[self.activeTrack].borders[3 * i:3 * i + 3])
         oldLength = self.trackList[self.activeTrack].notes[index].length
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
@@ -406,6 +411,8 @@ class MiddleLayer(Widget):
                 phonemes.append(i)
         """
         phonemes = text#TO DO: Input validation, phoneme type awareness
+        if phonemes == [""]:
+            phonemes = []
         offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
         self.offsetPhonemes(index, offset)
         self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
@@ -518,11 +525,12 @@ class MiddleLayer(Widget):
             state = not(self.playing)
         if state == True:
             self.ids["playButton"].state = "down"
-            self.audioStream.start_stream()
+            self.audioStream.start()
         if state == False:
             self.ids["playButton"].state = "normal"
-            self.audioStream.stop_stream()
+            self.audioStream.stop()
         self.playing = state
+        """
     def playCallback(self, in_data, frame_count, time_info, status):
         if self.playing:
             newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
@@ -532,6 +540,17 @@ class MiddleLayer(Widget):
             return (buffer, pyaudio.paContinue)
         buffer = torch.zeros([global_consts.audioBufferSize,], dtype = torch.int32).numpy().tobytes()
         return (buffer, pyaudio.paContinue)
+        """
+    def playCallback(self, outdata, frames, time, status):
+        if self.playing:
+            newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
+            buffer = (self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos] * math.pow(2, 32)).to(torch.int32).numpy()
+            self.mainAudioBufferPos = newBufferPos
+            self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
+            return (buffer, pyaudio.paContinue)
+        else:
+            buffer = torch.zeros([global_consts.audioBufferSize,], dtype = torch.int32).numpy()
+        outdata[:] = buffer
 
         
         
@@ -1201,8 +1220,9 @@ class Note(ToggleButton):
                 if i.index > self.index:
                     i.index -= 1
         self.parent.remove_widget(self)
-    def changeLyrics(self, text):
-        middleLayer.changeLyrics(self.index, text, self.inputMode)
+    def changeLyrics(self, text, focus = False):
+        if focus == False:
+            middleLayer.changeLyrics(self.index, text, self.inputMode)
 
 class PianoRollOctave(FloatLayout):
     pass
@@ -1246,7 +1266,7 @@ class PianoRoll(ScrollView):
             self.children[0].add_widget(Note(**d))
     @mainthread
     def generateTimingMarkers(self):
-        for i in range(self.length):
+        for i in range(5):#self.length):
             self.children[0].children[-5].add_widget(TimingLabel(index = i, reference = self.children[0].children[-5]))
     def changePlaybackPos(self, playbackPos):
         with self.children[0].children[0].canvas:
@@ -1327,6 +1347,7 @@ class PianoRoll(ScrollView):
                 x = int(coord[0] / self.xScale)
                 y = int(coord[1] / self.yScale)
                 if touch.y < self.y + self.height and touch.y > self.y + self.height - 20:
+                    middleLayer.mainAudioBufferPos = x * global_consts.batchSize
                     middleLayer.movePlayhead(x)
                     return True
                 if middleLayer.mode == "notes":
@@ -1377,10 +1398,6 @@ class PianoRoll(ScrollView):
         x = int(coord[0] / self.xScale)
         y = int(coord[1] / self.yScale)
         yMod = coord[1]
-        if touch.y < self.y + self.height and touch.y > self.y + self.height - 20:
-            middleLayer.mainAudioBufferPos = x * global_consts.batchSize
-            middleLayer.movePlayhead(x)
-            return True
         if middleLayer.mode == "notes":
             if "noteIndex" in touch.ud:
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
@@ -1576,8 +1593,17 @@ class ScriptingSidePanel(ModalView):
         subprocess.Popen("Devkit.exe")
     def runScript(self):
         exec(self.ids["scripting_editor"].text)
+    def saveCache(self):
+        middleLayer.scriptCache = self.ids["scripting_editor"].text
+    def loadCache(self):
+        self.ids["scripting_editor"].text = middleLayer.scriptCache
+    
 
 class SettingsSidePanel(ModalView):
+    def __init__(self, **kwargs):
+        self.audioDeviceNames = repr(sounddevice.query_devices()).splitlines()
+        super().__init__(**kwargs)
+        print("init")
     def readSettings(self):
         settings = {}
         with open("settings.ini", 'r') as f:
@@ -1589,6 +1615,7 @@ class SettingsSidePanel(ModalView):
         self.ids["settings_accel"].text = settings["accelerator"]
         self.ids["settings_tcores"].text = settings["tensorCores"]
         self.ids["settings_prerender"].text = settings["intermediateOutputs"]
+        self.ids["settings_audiodevice"].text = settings["audiodevice"]
         self.ids["settings_loglevel"].text = settings["loglevel"]
     def writeSettings(self):
         with open("settings.ini", 'w') as f:
@@ -1596,6 +1623,7 @@ class SettingsSidePanel(ModalView):
             f.write("accelerator " + self.ids["settings_accel"].text + "\n")
             f.write("tensorCores " + self.ids["settings_tcores"].text + "\n")
             f.write("intermediateOutputs " + self.ids["settings_prerender"].text + "\n")
+            f.write("audiodevice " + self.ids["settings_audiodevice"].text + "\n")
             f.write("loglevel " + self.ids["settings_loglevel"].text + "\n")
 
 class LicensePanel(Popup):
@@ -1617,21 +1645,21 @@ class NovaVoxUI(Widget):
         self._keyboard = Window.request_keyboard(None, self, 'text')
         if self._keyboard.widget:
             pass
-        self._keyboard.bind(on_key_down = self.on_keyboard_down)
-        self._keyboard.bind(on_key_up = self.on_keyboard_up)
+        self._keyboard.bind(on_key_down = self._on_keyboard_down)
+        self._keyboard.bind(on_key_up = self._on_keyboard_up)
+        self._keyboard.target = None
     def update(self, deltatime):
         change = manager.receiveChange()
         if change == None:
             return None
         if change.type == False:
-            print("updating status")
+            print("updating status: ", change.track, change.index, change.value)
             middleLayer.updateRenderStatus(change.track, change.index, change.value)
         elif change.type == True:
-            print("updating audio")
+            print("updating audio: ", change.value)
             middleLayer.updateAudioBuffer(change.track, change.index, change.value)
         else:
             middleLayer.deletions.pop(0)
-        print("update data: ", change.track, change.index, change.value)
         self.update(deltatime)
     def setMode(self, mode):
         global middleLayer
@@ -1646,7 +1674,9 @@ class NovaVoxUI(Widget):
             middleLayer.play(True)
         else:
             middleLayer.play(False)
-    def on_keyboard_down(self, window, keycode, text, modifiers):
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        if keyboard.target != None:
+            return False
         if keycode[0] == 303 or keycode[0] == 304: 
             middleLayer.shift = True
         elif keycode[0] == 32:
@@ -1654,7 +1684,9 @@ class NovaVoxUI(Widget):
         else:
             print("keycode pressed:", keycode[0])
         return True
-    def on_keyboard_up(self, keyboard, keycode):
+    def _on_keyboard_up(self, keyboard, keycode):
+        if keyboard.target != None:
+            return False
         if keycode[0] == 303 or keycode[0] == 304: 
             middleLayer.shift = False
         else:

@@ -26,4 +26,4 @@
         text_validate_unfocus: True
         foreground_color: (0.9, 0.9, 0, 1) if self.parent.inputMode else (1, 1, 1, 1)
         background_color: (0, 0, 0, 0)
-        on_text_validate: self.parent.changeLyrics(self.text)
+        on_focus: self.parent.changeLyrics(self.text, self.focus)

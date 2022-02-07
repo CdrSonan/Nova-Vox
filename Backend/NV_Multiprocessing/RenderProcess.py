@@ -53,15 +53,17 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             phonemes = phonemes[0:position] + phonemes[position - delta:]
             offsets = torch.cat([offsets[0:position], offsets[position - delta:]], 0)
             repetititionSpacing = torch.cat([repetititionSpacing[0:position], repetititionSpacing[position - delta:]], 0)
-            borders = borders[0:3 * position] + borders[3 * position - delta:]
+            borders = borders[0:3 * position] + borders[3 * position - 3 * delta:]
             startCaps = startCaps[0:position] + startCaps[position - delta:]
             endCaps = endCaps[0:position] + endCaps[position - delta:]
-            if position == 0:
-                startCaps[0] = True
-            if position >= len(endCaps) - 1:
-                endCaps[-1] = True
+            if len(startCaps) > 0:
+                if position == 0:
+                    startCaps[0] = True
+                if position >= len(endCaps) - 1:
+                    endCaps[-1] = True
             internalStatusControl.rs = torch.cat([internalStatusControl.rs[0:position], internalStatusControl.rs[position - delta:]], 0)
             internalStatusControl.ai = torch.cat([internalStatusControl.ai[0:position], internalStatusControl.ai[position - delta:]], 0)
+        print(phonemes, offsets, repetititionSpacing, borders, startCaps, endCaps)
         inputList[index].phonemes = phonemes
         inputList[index].offsets = offsets
         inputList[index].repetititionSpacing = repetititionSpacing
@@ -113,13 +115,11 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         elif change.type == "changeInput":
             if change.data2 in ["phonemes", "offsets", "repetititionSpacing"]:
                 param = eval("inputList[change.data1]." + change.data2)
-                #trimSequence(change.data1, change.data3, change.data5)
                 param[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[change.data3:change.data3 + len(change.data4)] *= 0
                 statusControl[change.data1].ai[change.data3:change.data3 + len(change.data4)] *= 0
             elif change.data2 == "borders":
                 param = inputList[change.data1].borders
-                #trimSequence(change.data1, math.ceil(change.data3 / 3), change.data5)
                 param[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
                 statusControl[change.data1].ai[math.floor(change.data3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0

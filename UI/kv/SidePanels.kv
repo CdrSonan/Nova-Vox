@@ -253,6 +253,8 @@
     pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
     background_color: [0.137, 0.125, 0.173, 0.5]
     overlay_color: [0, 0, 0, 0]
+    on_open: self.loadCache()
+    on_pre_dismiss: self.saveCache()
     BoxLayout:
         orientation: "vertical"
         padding: 10
@@ -281,7 +283,7 @@
     overlay_color: [0, 0, 0, 0]
     on_open: self.readSettings()
     GridLayout:
-        rows: 5
+        rows: 6
         orientation: "tb-lr"
         padding: 10
         spacing: 10
@@ -307,6 +309,12 @@
             size_hint_y: None
             height: 30
             text: "pre-rendering:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "audio device:"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Label:
@@ -358,6 +366,17 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: ["disabled", "enabled"]
+            on_text: self.parent.parent.writeSettings()
+        Spinner:
+            id: settings_audiodevice
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: self.parent.parent.audioDeviceNames
             on_text: self.parent.parent.writeSettings()
         Spinner:
             id: settings_loglevel
