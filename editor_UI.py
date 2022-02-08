@@ -60,7 +60,18 @@ class MiddleLayer(Widget):
         self.playing = False
         #self.audio = pyaudio.PyAudio()
         #self.audioStream = self.audio.open(rate = global_consts.sampleRate, channels = 1, format = pyaudio.paFloat32, output = True, frames_per_buffer = global_consts.audioBufferSize, start = False, stream_callback = self.playCallback)
-        self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, callback = self.playCallback)
+        settings = {}
+        with open("settings.ini", 'r') as f:
+            for line in f:
+                line = line.strip()
+                line = line.split(" ")
+                settings[line[0]] = line[1]
+        device = None
+        devices = sounddevice.query_devices()
+        for i in devices:
+            if i["name"] == settings["audioDevice"]:
+                device = i
+        self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback)
         self.scriptCache = ""
     def importVoicebank(self, path, name, inImage):
         track = dh.Track(path)
@@ -218,6 +229,7 @@ class MiddleLayer(Widget):
             self.submitParamChange(True, self.activeParam, start, torch.tensor(data, dtype = torch.half))
     def applyPitchChanges(self, data, start):
         self.trackList[self.activeTrack].pitch[start:start + len(data)] = torch.tensor(data, dtype = torch.float32)
+        data = self.noteToPitch(torch.tensor(data, dtype = torch.float32))
         self.submitNamedPhonParamChange(True, "pitch", start, torch.tensor(data, dtype = torch.half))
     def changePianoRollMode(self):
         self.ids["pianoRoll"].changeMode()
@@ -544,13 +556,15 @@ class MiddleLayer(Widget):
     def playCallback(self, outdata, frames, time, status):
         if self.playing:
             newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
-            buffer = (self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos] * math.pow(2, 32)).to(torch.int32).numpy()
+            buffer = self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos].expand(2, -1).transpose(0, 1).numpy()
             self.mainAudioBufferPos = newBufferPos
             self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
-            return (buffer, pyaudio.paContinue)
         else:
-            buffer = torch.zeros([global_consts.audioBufferSize,], dtype = torch.int32).numpy()
-        outdata[:] = buffer
+            buffer = torch.zeros([global_consts.audioBufferSize, 2], dtype = torch.float32).expand(-1, 2).numpy()
+        outdata[:] = buffer.copy()
+    def noteToPitch(self, data):
+        return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
+        #return torch.pow(2, (data - 69) / 12) * 440
 
         
         
@@ -1601,21 +1615,33 @@ class ScriptingSidePanel(ModalView):
 
 class SettingsSidePanel(ModalView):
     def __init__(self, **kwargs):
-        self.audioDeviceNames = repr(sounddevice.query_devices()).splitlines()
+        audioApis = sounddevice.query_hostapis()
+        self.audioApiNames =  []
+        for i in audioApis:
+            self.audioApiNames.append(i["name"])
+        #self.refreshAudioDevices()
+        self.audioDeviceNames = []
         super().__init__(**kwargs)
-        print("init")
+    def refreshAudioDevices(self, api):
+        self.audioDeviceNames = []
+        devices = sounddevice.query_hostapis(self.audioApiNames.index(api))["devices"]
+        for i in devices:
+            self.audioDeviceNames.append(sounddevice.query_devices(i)["name"])
+        self.ids["settings_audioDevice"].values = self.audioDeviceNames
     def readSettings(self):
         settings = {}
         with open("settings.ini", 'r') as f:
             for line in f:
                 line = line.strip()
-                line = line.split(" ")
+                line = line.split(" ", 1)
                 settings[line[0]] = line[1]
         self.ids["settings_lang"].text = settings["language"]
         self.ids["settings_accel"].text = settings["accelerator"]
         self.ids["settings_tcores"].text = settings["tensorCores"]
         self.ids["settings_prerender"].text = settings["intermediateOutputs"]
-        self.ids["settings_audiodevice"].text = settings["audiodevice"]
+        self.ids["settings_audioApi"].text = settings["audioApi"]
+        self.refreshAudioDevices(settings["audioApi"])
+        self.ids["settings_audioDevice"].text = settings["audioDevice"]
         self.ids["settings_loglevel"].text = settings["loglevel"]
     def writeSettings(self):
         with open("settings.ini", 'w') as f:
@@ -1623,8 +1649,17 @@ class SettingsSidePanel(ModalView):
             f.write("accelerator " + self.ids["settings_accel"].text + "\n")
             f.write("tensorCores " + self.ids["settings_tcores"].text + "\n")
             f.write("intermediateOutputs " + self.ids["settings_prerender"].text + "\n")
-            f.write("audiodevice " + self.ids["settings_audiodevice"].text + "\n")
+            f.write("audioApi " + self.ids["settings_audioApi"].text + "\n")
+            self.refreshAudioDevices(self.ids["settings_audioApi"].text)
+            if self.ids["settings_audioDevice"].text in self.audioDeviceNames:
+                f.write("audioDevice " + self.ids["settings_audioDevice"].text + "\n")
+            else:
+                f.write("audioDevice " + self.audioDeviceNames[0] + "\n")
             f.write("loglevel " + self.ids["settings_loglevel"].text + "\n")
+    def restartAudioStream(self):
+        middleLayer.audioStream.close()
+        identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
+        middleLayer.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, identifier, callback = middleLayer.playCallback)
 
 class LicensePanel(Popup):
     pass

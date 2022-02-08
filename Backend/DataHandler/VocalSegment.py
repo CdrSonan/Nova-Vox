@@ -1,3 +1,5 @@
+from torch import float32
+
 class VocalSegment:
     """Class representing the segment covered by a single phoneme within a VocalSequence.
     
@@ -47,7 +49,7 @@ class VocalSegment:
         self.vb = vb
         self.offset = inputs.offsets[index]
         self.repetititionSpacing = inputs.repetititionSpacing[index].to(device = device)
-        self.pitch = inputs.pitch[self.start1:self.end3].to(device = device)
+        self.pitch = inputs.pitch[self.start1:self.end3].to(dtype = float32, device = device)
         self.steadiness = inputs.steadiness[self.start1:self.end3].to(device = device)
 
     """

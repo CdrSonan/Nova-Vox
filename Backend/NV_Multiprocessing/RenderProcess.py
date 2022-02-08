@@ -25,7 +25,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             if inputList[index].borders[3 * i + 2] > pos2 and firstBorder == True:
                 pos2 = i
                 break
-        return (pos1, pos2)
+        return (pos1, pos2)#TODO: Fix
     def trimSequence(index, position, delta):
         phonemes = inputList[index].phonemes
         offsets = inputList[index].offsets
@@ -114,19 +114,16 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             statusControl[change.data1].ai *= 0
         elif change.type == "changeInput":
             if change.data2 in ["phonemes", "offsets", "repetititionSpacing"]:
-                param = eval("inputList[change.data1]." + change.data2)
-                param[change.data3:change.data3 + len(change.data4)] = change.data4
+                eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[change.data3:change.data3 + len(change.data4)] *= 0
                 statusControl[change.data1].ai[change.data3:change.data3 + len(change.data4)] *= 0
             elif change.data2 == "borders":
-                param = inputList[change.data1].borders
-                param[change.data3:change.data3 + len(change.data4)] = change.data4
+                inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
                 statusControl[change.data1].ai[math.floor(change.data3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
-                param = eval("inputList[change.data1]." + change.data2)
+                eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))
-                param[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[positions[0]:positions[1]] *= 0
                 statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
             else:

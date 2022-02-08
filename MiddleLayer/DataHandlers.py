@@ -2,6 +2,7 @@ from kivy.properties import ObjectProperty
 import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.Param_Components.AiParams import AiParam
+import global_consts
 
 class Parameter:
     def __init__(self, path):
@@ -18,7 +19,7 @@ class Track:
         self.vbPath = path
         self.notes = []
         self.phonemes = []
-        self.pitch = torch.full((1000,), 400., dtype = torch.half)
+        self.pitch = torch.full((1000,), 69., dtype = torch.half)
         self.breathiness = torch.full((1000,), 0, dtype = torch.half)
         self.steadiness = torch.full((1000,), 0, dtype = torch.half)
         self.loopOverlap = torch.tensor([], dtype = torch.half)
@@ -40,7 +41,9 @@ class Track:
         return [noneList, noneList]
     def to_sequence(self):
         caps = self.generateCaps()
-        return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, self.pitch, self.steadiness, self.breathiness)
+        pitch = torch.full_like(self.pitch, global_consts.sampleRate) / (torch.pow(2, (self.pitch - torch.full_like(self.pitch, 69)) / torch.full_like(self.pitch, 12)) * 440)
+        #pitch = torch.pow(2, (self.pitch - 69) / 12) * 440
+        return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness)
 
 class Note:
     def __init__(self, xPos, yPos, start = 0, end = 1, reference = None):

@@ -282,8 +282,9 @@
     background_color: [0.137, 0.125, 0.173, 0.5]
     overlay_color: [0, 0, 0, 0]
     on_open: self.readSettings()
+    on_pre_dismiss: self.restartAudioStream()
     GridLayout:
-        rows: 6
+        rows: 7
         orientation: "tb-lr"
         padding: 10
         spacing: 10
@@ -309,6 +310,12 @@
             size_hint_y: None
             height: 30
             text: "pre-rendering:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "audio API:"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Label:
@@ -368,7 +375,18 @@
             values: ["disabled", "enabled"]
             on_text: self.parent.parent.writeSettings()
         Spinner:
-            id: settings_audiodevice
+            id: settings_audioApi
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: self.parent.parent.audioApiNames
+            on_text: self.parent.parent.writeSettings()
+        Spinner:
+            id: settings_audioDevice
             sync_height: True
             text_autoupdate: True
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
