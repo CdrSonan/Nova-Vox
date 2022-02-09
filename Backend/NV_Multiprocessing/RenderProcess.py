@@ -20,12 +20,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         firstBorder = False
         for i in range(int(len(inputList[index].borders) / 3)):
             if inputList[index].borders[3 * i] > pos1 and firstBorder == False:
-                print("firstBorder", inputList[index].borders[3 * i])
                 pos1Out = max(i - 1, 0)
                 firstBorder = True
-            print(inputList[index].borders[3 * i + 2], pos2)
             if inputList[index].borders[3 * i + 2] > pos2 and firstBorder == True:
-                print("lastBorder", inputList[index].borders[3 * i + 2])
                 pos2Out = min(i, int(len(inputList[index].borders) / 3) - 1)
                 break
         if pos1Out == None:

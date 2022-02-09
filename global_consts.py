@@ -23,5 +23,9 @@ breCompPremul = 0.4
 
 audioBufferSize = 2048
 
+pitchTransitionLength = 25
+pitchDipWidth = 40
+pitchDipHeight = 0.2
+
 language = "en"
 version = "Prealpha 0.4.0"

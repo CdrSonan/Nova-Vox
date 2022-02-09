@@ -19,7 +19,8 @@ class Track:
         self.vbPath = path
         self.notes = []
         self.phonemes = []
-        self.pitch = torch.full((1000,), 69., dtype = torch.half)
+        self.pitch = torch.full((1000,), -1., dtype = torch.half)
+        self.basePitch = torch.full((1000,), -1., dtype = torch.half)
         self.breathiness = torch.full((1000,), 0, dtype = torch.half)
         self.steadiness = torch.full((1000,), 0, dtype = torch.half)
         self.loopOverlap = torch.tensor([], dtype = torch.half)

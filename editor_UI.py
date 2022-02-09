@@ -344,6 +344,11 @@ class MiddleLayer(Widget):
             else:
                 self.scaleNote(index - 1, max(min(oldPos - self.trackList[self.activeTrack].notes[index - 1].xPos, self.trackList[self.activeTrack].notes[index - 1].length), 1))
         self.repairNotes(index)
+        if index > 0:
+            self.recalculateBasePitch(index - 1)
+        self.recalculateBasePitch(index)
+        if index + 1 < len(self.trackList[self.activeTrack].notes):
+            self.recalculateBasePitch(index + 1)
         return result
     def addNote(self, index, x, y, reference):
         if index == 0:
@@ -565,9 +570,50 @@ class MiddleLayer(Widget):
     def noteToPitch(self, data):
         return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
         #return torch.pow(2, (data - 69) / 12) * 440
-
-        
-        
+    def recalculateBasePitch(self, index):
+        dipWidth = global_consts.pitchDipWidth
+        dipHeight = global_consts.pitchDipHeight
+        transitionLength1 = min(global_consts.pitchTransitionLength, int(self.trackList[self.activeTrack].notes[index].length))
+        transitionLength2 = min(global_consts.pitchTransitionLength, int(self.trackList[self.activeTrack].notes[index].length))
+        currentHeight = self.trackList[self.activeTrack].notes[index].yPos
+        transitionPoint1 = self.trackList[self.activeTrack].notes[index].xPos
+        transitionPoint2 = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
+        if index == 0:
+            previousHeight = None
+        else:
+            previousHeight = self.trackList[self.activeTrack].notes[index - 1].yPos
+            transitionLength1 = min(transitionLength1, self.trackList[self.activeTrack].notes[index - 1].length)
+            if self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length < transitionPoint1:
+                transitionLength1 += transitionPoint1 - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length
+                transitionPoint1 = (transitionPoint1 + self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length) / 2  
+        if index + 1 == len(self.trackList[self.activeTrack].notes):
+            nextHeight = None
+        else:
+            transitionPoint2 = self.trackList[self.activeTrack].notes[index + 1].xPos
+            nextHeight = self.trackList[self.activeTrack].notes[index + 1].yPos
+            transitionLength2 = min(transitionLength2, self.trackList[self.activeTrack].notes[index + 1].length)
+            if self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length < transitionPoint1:
+                transitionLength2 += transitionPoint2 - self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index].length
+                transitionPoint2 = (transitionPoint2 + self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length) / 2
+        scalingFactor = min(self.trackList[self.activeTrack].notes[index].length / 2, 1.)
+        dipWidth *= scalingFactor
+        dipHeight *= scalingFactor
+        start = int(transitionPoint1 - transitionLength1 / 2)
+        end = int(transitionPoint2 + transitionLength2 / 2)
+        transitionPoint1 = int(transitionPoint1)
+        transitionPoint2 = int(transitionPoint2)
+        if previousHeight == None:
+            start =  self.trackList[self.activeTrack].notes[index].xPos
+        if nextHeight == None:
+            end = self.trackList[self.activeTrack].notes[index].xPos + transitionPoint1 + self.trackList[self.activeTrack].notes[index].length
+        pitchDelta = self.trackList[self.activeTrack].pitch[start:end] - self.trackList[self.activeTrack].basePitch[start:end]
+        self.trackList[self.activeTrack].basePitch[start:end] = torch.full_like(self.trackList[self.activeTrack].basePitch[start:end], currentHeight)
+        if previousHeight != None:
+            self.trackList[self.activeTrack].basePitch[transitionPoint1 - int(transitionLength1 / 2):transitionPoint1 + int(transitionLength1 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * int(transitionLength1 / 2))), 2) * (previousHeight - currentHeight) + torch.full([2 * int(transitionLength1 / 2),], currentHeight)
+        if nextHeight != None:
+            self.trackList[self.activeTrack].basePitch[transitionPoint2 - int(transitionLength2 / 2):transitionPoint2 + int(transitionLength2 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * int(transitionLength2 / 2))), 2) * (currentHeight - nextHeight) + torch.full([2 * int(transitionLength2 / 2),], nextHeight)
+        self.trackList[self.activeTrack].basePitch[self.trackList[self.activeTrack].notes[index].xPos:self.trackList[self.activeTrack].notes[index].xPos + int(dipWidth)] -= torch.pow(torch.sin(torch.linspace(0, math.pi, int(dipWidth))), 2) * dipHeight
+        self.trackList[self.activeTrack].pitch[start:end] = self.trackList[self.activeTrack].basePitch[start:end] + torch.heaviside(self.trackList[self.activeTrack].pitch[start:end], torch.ones_like(self.trackList[self.activeTrack].pitch[start:end])) * pitchDelta
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
     imagePressed = StringProperty()
@@ -1272,8 +1318,10 @@ class PianoRoll(ScrollView):
         self.currentNote = ObjectProperty()
         self.timingMarkers = ListProperty()
         self.pitchLine = ObjectProperty()
+        self.basePitchLine = ObjectProperty()
         self.timingMarkers = []
         self.pitchLine = None
+        self.basePitchLine = None
         self.generateTimingMarkers()
     def generate_notes(self, data):
         for d in data:
@@ -1290,18 +1338,26 @@ class PianoRoll(ScrollView):
             del self.children[0].children[0].canvas.children[-1]
             Line(points = points)
     def redrawPitch(self):
-        data = middleLayer.trackList[middleLayer.activeTrack].pitch
-        points = []
+        data1 = middleLayer.trackList[middleLayer.activeTrack].pitch
+        data2 = middleLayer.trackList[middleLayer.activeTrack].basePitch
+        points1 = []
+        points2 = []
         c = 0
-        for i in data:
-            points.append(c * self.xScale)
-            points.append(i.item() * self.yScale)
+        for i in range(len(data1)):
+            points1.append(c * self.xScale)
+            points1.append((data1[i].item() + 0.5) * self.yScale)
+            points2.append(c * self.xScale)
+            points2.append((data2[i].item() + 0.5) * self.yScale)
             c += 1
         if self.pitchLine != None:
             self.children[0].canvas.remove(self.pitchLine)
+        if self.basePitchLine != None:
+            self.children[0].canvas.remove(self.basePitchLine)
         with self.children[0].canvas:
+            Color(0.8, 0.8, 0.8, 1)
+            self.basePitchLine = Line(points = points2)
             Color(1, 0, 0, 1)
-            self.pitchLine = Line(points = points)
+            self.pitchLine = Line(points = points1)
     def changeMode(self):
         if middleLayer.mode == "notes":
             for i in self.timingMarkers:
@@ -1310,12 +1366,18 @@ class PianoRoll(ScrollView):
             if self.pitchLine != None:
                 self.children[0].canvas.remove(self.pitchLine)
                 self.pitchLine = None
+            if self.basePitchLine != None:
+                self.children[0].canvas.remove(self.basePitchLine)
+                self.basePitchLine = None
         if middleLayer.mode == "timing":
             for i in self.children[0].children:
                 i.state = "normal"
             if self.pitchLine != None:
                 self.children[0].canvas.remove(self.pitchLine)
                 self.pitchLine = None
+            if self.basePitchLine != None:
+                self.children[0].canvas.remove(self.basePitchLine)
+                self.basePitchLine = None
             with self.children[0].canvas:
                 Color(1, 0, 0)
                 for i in middleLayer.trackList[middleLayer.activeTrack].borders:
@@ -1523,10 +1585,10 @@ class PianoRoll(ScrollView):
             data = []
             if touch.ud['startPointOffset'] == 0:
                 for i in range(int(len(touch.ud['line'].points) / 2)):
-                    data.append(touch.ud['line'].points[2 * i + 1] / self.yScale)
+                    data.append(touch.ud['line'].points[2 * i + 1] / self.yScale - 0.5)
             else:
                 for i in range(int(len(touch.ud['line'].points) / 2)):
-                    data.append(touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] / self.yScale)
+                    data.append(touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] / self.yScale - 0.5)
             middleLayer.applyPitchChanges(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'])
             self.children[0].canvas.remove(touch.ud['line'])
             self.redrawPitch()
