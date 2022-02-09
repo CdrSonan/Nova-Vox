@@ -15,17 +15,22 @@ import matplotlib.pyplot as plt
 
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection):
     def posToSegment(index, pos1, pos2):
-        pos1 = 0
-        pos2 = 0
+        pos1Out = None
+        pos2Out = int(len(inputList[index].borders) / 3) - 1
         firstBorder = False
-        for i in range(1, int(len(inputList[index].borders) / 3)):
+        for i in range(int(len(inputList[index].borders) / 3)):
             if inputList[index].borders[3 * i] > pos1 and firstBorder == False:
-                pos1 = i
+                print("firstBorder", inputList[index].borders[3 * i])
+                pos1Out = max(i - 1, 0)
                 firstBorder = True
+            print(inputList[index].borders[3 * i + 2], pos2)
             if inputList[index].borders[3 * i + 2] > pos2 and firstBorder == True:
-                pos2 = i
+                print("lastBorder", inputList[index].borders[3 * i + 2])
+                pos2Out = min(i, int(len(inputList[index].borders) / 3) - 1)
                 break
-        return (pos1, pos2)#TODO: Fix
+        if pos1Out == None:
+            return (0, 0)
+        return (pos1Out, pos2Out)
     def trimSequence(index, position, delta):
         phonemes = inputList[index].phonemes
         offsets = inputList[index].offsets
