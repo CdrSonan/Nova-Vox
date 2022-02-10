@@ -20,13 +20,23 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         firstBorder = False
         for i in range(int(len(inputList[index].borders) / 3)):
             if inputList[index].borders[3 * i] > pos1 and firstBorder == False:
-                pos1Out = max(i - 1, 0)
+                if i > 0:
+                    if inputList[index].borders[3 * i - 1] > pos1:
+                        pos1Out = max(i - 2, 0)
+                    else:
+                        pos1Out = i - 1
+                else:
+                    pos1Out = 0
                 firstBorder = True
             if inputList[index].borders[3 * i + 2] > pos2 and firstBorder == True:
-                pos2Out = min(i, int(len(inputList[index].borders) / 3) - 1)
+                if inputList[index].borders[3 * i] > pos2:
+                    pos2Out = min(i, int(len(inputList[index].borders) / 3) - 1)
+                else:
+                    pos2Out = min(i + 1, int(len(inputList[index].borders) / 3) - 1)
                 break
         if pos1Out == None:
             return (0, 0)
+        print("positions:", pos1Out, pos2Out)
         return (pos1Out, pos2Out)
     def trimSequence(index, position, delta):
         phonemes = inputList[index].phonemes

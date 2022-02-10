@@ -256,7 +256,7 @@ class MiddleLayer(Widget):
             i.phonemeStart += offset
             i.phonemeEnd += offset
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
-        self.submitOffset(False, index, offset)
+        self.submitOffset(False, phonIndex, offset)
     def makeAutoPauses(self, index):
         if index > 0:
             if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
@@ -345,10 +345,10 @@ class MiddleLayer(Widget):
                 self.scaleNote(index - 1, max(min(oldPos - self.trackList[self.activeTrack].notes[index - 1].xPos, self.trackList[self.activeTrack].notes[index - 1].length), 1))
         self.repairNotes(index)
         if index > 0:
-            self.recalculateBasePitch(index - 1)
-        self.recalculateBasePitch(index)
+            self.recalculateBasePitch(index - 1, self.trackList[self.activeTrack].notes[index - 1].xPos, max(min(oldPos, self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length), 1))
+        self.recalculateBasePitch(index, oldPos, oldPos + oldLength)
         if index + 1 < len(self.trackList[self.activeTrack].notes):
-            self.recalculateBasePitch(index + 1)
+            self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + nextLength)
         return result
     def addNote(self, index, x, y, reference):
         if index == 0:
@@ -570,7 +570,7 @@ class MiddleLayer(Widget):
     def noteToPitch(self, data):
         return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
         #return torch.pow(2, (data - 69) / 12) * 440
-    def recalculateBasePitch(self, index):
+    def recalculateBasePitch(self, index, oldStart, oldEnd):
         dipWidth = global_consts.pitchDipWidth
         dipHeight = global_consts.pitchDipHeight
         transitionLength1 = min(global_consts.pitchTransitionLength, int(self.trackList[self.activeTrack].notes[index].length))
@@ -598,20 +598,21 @@ class MiddleLayer(Widget):
         scalingFactor = min(self.trackList[self.activeTrack].notes[index].length / 2, 1.)
         dipWidth *= scalingFactor
         dipHeight *= scalingFactor
-        start = int(transitionPoint1 - transitionLength1 / 2)
-        end = int(transitionPoint2 + transitionLength2 / 2)
+        start = int(transitionPoint1 - math.ceil(transitionLength1 / 2))
+        end = int(transitionPoint2 + math.ceil(transitionLength2 / 2))
         transitionPoint1 = int(transitionPoint1)
         transitionPoint2 = int(transitionPoint2)
         if previousHeight == None:
             start =  self.trackList[self.activeTrack].notes[index].xPos
         if nextHeight == None:
             end = self.trackList[self.activeTrack].notes[index].xPos + transitionPoint1 + self.trackList[self.activeTrack].notes[index].length
-        pitchDelta = self.trackList[self.activeTrack].pitch[start:end] - self.trackList[self.activeTrack].basePitch[start:end]
+        pitchDelta = (self.trackList[self.activeTrack].pitch[start:end] - self.trackList[self.activeTrack].basePitch[start:end]) * torch.heaviside(self.trackList[self.activeTrack].basePitch[start:end], torch.ones_like(self.trackList[self.activeTrack].basePitch[start:end]))
+        self.trackList[self.activeTrack].basePitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
         self.trackList[self.activeTrack].basePitch[start:end] = torch.full_like(self.trackList[self.activeTrack].basePitch[start:end], currentHeight)
         if previousHeight != None:
-            self.trackList[self.activeTrack].basePitch[transitionPoint1 - int(transitionLength1 / 2):transitionPoint1 + int(transitionLength1 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * int(transitionLength1 / 2))), 2) * (previousHeight - currentHeight) + torch.full([2 * int(transitionLength1 / 2),], currentHeight)
+            self.trackList[self.activeTrack].basePitch[transitionPoint1 - math.ceil(transitionLength1 / 2):transitionPoint1 + math.ceil(transitionLength1 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * math.ceil(transitionLength1 / 2))), 2) * (previousHeight - currentHeight) + torch.full([2 * math.ceil(transitionLength1 / 2),], currentHeight)
         if nextHeight != None:
-            self.trackList[self.activeTrack].basePitch[transitionPoint2 - int(transitionLength2 / 2):transitionPoint2 + int(transitionLength2 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * int(transitionLength2 / 2))), 2) * (currentHeight - nextHeight) + torch.full([2 * int(transitionLength2 / 2),], nextHeight)
+            self.trackList[self.activeTrack].basePitch[transitionPoint2 - math.ceil(transitionLength2 / 2):transitionPoint2 + math.ceil(transitionLength2 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * math.ceil(transitionLength2 / 2))), 2) * (currentHeight - nextHeight) + torch.full([2 * math.ceil(transitionLength2 / 2),], nextHeight)
         self.trackList[self.activeTrack].basePitch[self.trackList[self.activeTrack].notes[index].xPos:self.trackList[self.activeTrack].notes[index].xPos + int(dipWidth)] -= torch.pow(torch.sin(torch.linspace(0, math.pi, int(dipWidth))), 2) * dipHeight
         self.trackList[self.activeTrack].pitch[start:end] = self.trackList[self.activeTrack].basePitch[start:end] + torch.heaviside(self.trackList[self.activeTrack].pitch[start:end], torch.ones_like(self.trackList[self.activeTrack].pitch[start:end])) * pitchDelta
 class ImageButton(ButtonBehavior, Image):
@@ -755,6 +756,7 @@ class ParamCurve(ScrollView):
                     touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                     touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
                     touch.ud['startPointOffset'] = 0
+                    touch.ud['lastPoint'] = touch.ud['startPoint'][0]
                     touch.ud['param'] = True
             return True
         else:
@@ -773,15 +775,23 @@ class ParamCurve(ScrollView):
                     for i in range(-p):
                         touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
                         touch.ud['startPoint'][0] -= 1
+                    touch.ud['lastPoint'] = touch.ud['line'].points[0] / self.xScale
                 elif p < int(len(touch.ud['line'].points) / 2):
                     points = touch.ud['line'].points
-                    points[2 * p] = x * self.xScale
-                    points[2 * p + 1] = y
+                    if x >= touch.ud['lastPoint']:
+                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
+                    else:
+                        domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
+                    for i in domain:
+                        points[2 * i + 1] = y
                     touch.ud['line'].points = points
+                    touch.ud['lastPoint'] = points[2 * p] / self.xScale
+
                 else:
                     diff = p - int(len(touch.ud['line'].points) / 2)
                     for i in range(diff):
                         touch.ud['line'].points += [(touch.ud['startPoint'][0] + int(len(touch.ud['line'].points) / 2)) * self.xScale, y]
+                    touch.ud['lastPoint'] = touch.ud['line'].points[len(touch.ud['line'].points) - 2] / self.xScale
             elif middleLayer.tool == "line":
                 self.children[0].canvas.remove(touch.ud['line'])
                 with self.children[0].canvas:
@@ -1132,7 +1142,7 @@ class PitchOptns(ScrollView):
                     for i in range(-p):
                         touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
                         touch.ud['startPoint'][0] -= 1
-                        touch.ud['lastPoint'] = touch.ud['line'].points[0] / self.xScale
+                    touch.ud['lastPoint'] = touch.ud['line'].points[0] / self.xScale
                 elif p < int(len(touch.ud['line'].points) / 2):
                     points = touch.ud['line'].points
                     if x >= touch.ud['lastPoint']:
@@ -1458,9 +1468,10 @@ class PianoRoll(ScrollView):
                 elif middleLayer.mode == "pitch":
                     with self.children[0].canvas:
                         Color(0, 0, 1)
-                        touch.ud['line'] = Line(points=[touch.x, touch.y])
+                        touch.ud['line'] = Line(points=self.to_local(touch.x, touch.y))
                         touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                         touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
+                        touch.ud['lastPoint'] = touch.ud['startPoint'][0]
                         touch.ud['startPointOffset'] = 0
                 touch.ud['param'] = False
                 return True
@@ -1497,7 +1508,7 @@ class PianoRoll(ScrollView):
                 elif touch.ud["grabMode"] == "mid":
                     note.xPos = int(x + touch.ud["xOffset"] + 1)
                     note.yPos = int(y + touch.ud["yOffset"] + 1)
-                    switch = middleLayer.moveNote(touch.ud["noteIndex"], int(x + touch.ud["xOffset"] + 1), int(x + touch.ud["yOffset"] + 1))
+                    switch = middleLayer.moveNote(touch.ud["noteIndex"], int(x + touch.ud["xOffset"] + 1), int(y + touch.ud["yOffset"] + 1))
                     if switch == True:
                         middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] + 1].reference.index += 1
                         middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index -= 1
@@ -1530,15 +1541,22 @@ class PianoRoll(ScrollView):
                     for i in range(-p):
                         touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, yMod] + touch.ud['line'].points
                         touch.ud['startPoint'][0] -= 1
+                    touch.ud['lastPoint'] = touch.ud['line'].points[0] / self.xScale
                 elif p < int(len(touch.ud['line'].points) / 2):
                     points = touch.ud['line'].points
-                    points[2 * p] = x * self.xScale
-                    points[2 * p + 1] = yMod
+                    if x >= touch.ud['lastPoint']:
+                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
+                    else:
+                        domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
+                    for i in domain:
+                        points[2 * i + 1] = yMod
                     touch.ud['line'].points = points
+                    touch.ud['lastPoint'] = points[2 * p] / self.xScale
                 else:
                     diff = p - int(len(touch.ud['line'].points) / 2)
                     for i in range(diff):
                         touch.ud['line'].points += [(touch.ud['startPoint'][0] + int(len(touch.ud['line'].points) / 2)) * self.xScale, yMod]
+                    touch.ud['lastPoint'] = touch.ud['line'].points[len(touch.ud['line'].points) - 2] / self.xScale
             elif middleLayer.tool == "line":
                 self.children[0].canvas.remove(touch.ud['line'])
                 with self.children[0].canvas:
