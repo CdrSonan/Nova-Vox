@@ -525,16 +525,19 @@ class MiddleLayer(Widget):
         self.audioBuffer[track][index:index + len(data)] = data
         self.updateMainAudioBuffer(index, index + len(data))
     def updateMainAudioBuffer(self, start = 0, end = None):
-        self.mainAudioBuffer[start:end] *= 0
         for i in range(len(self.audioBuffer)):
             if end == None:
                 data = self.audioBuffer[i]
+                self.mainAudioBuffer *= 0
+                length = data.size()[0]
+                self.mainAudioBuffer[start:length] += data
             else:
                 data = self.audioBuffer[i][start:end]
-            length = data.size()[0]
-            if (end - start) > length:
-                data = torch.cat([data, torch.zeros([length - end + start])], dim = 0)
-            self.mainAudioBuffer[start:end] += data
+                self.mainAudioBuffer[start:end] *= 0
+                length = data.size()[0]
+                if (end - start) > length:
+                    data = torch.cat([data, torch.zeros([length - end + start])], dim = 0)
+                self.mainAudioBuffer[start:end] += data
     def movePlayhead(self, position):
         self.ids["pianoRoll"].changePlaybackPos(position)
     def play(self, state = None):
@@ -568,8 +571,8 @@ class MiddleLayer(Widget):
             buffer = torch.zeros([global_consts.audioBufferSize, 2], dtype = torch.float32).expand(-1, 2).numpy()
         outdata[:] = buffer.copy()
     def noteToPitch(self, data):
-        return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
-        #return torch.pow(2, (data - 69) / 12) * 440
+        #return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
+        return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 36)) / torch.full_like(data, 12)) * 440)
     def recalculateBasePitch(self, index, oldStart, oldEnd):
         dipWidth = global_consts.pitchDipWidth
         dipHeight = global_consts.pitchDipHeight
@@ -615,6 +618,7 @@ class MiddleLayer(Widget):
             self.trackList[self.activeTrack].basePitch[transitionPoint2 - math.ceil(transitionLength2 / 2):transitionPoint2 + math.ceil(transitionLength2 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * math.ceil(transitionLength2 / 2))), 2) * (currentHeight - nextHeight) + torch.full([2 * math.ceil(transitionLength2 / 2),], nextHeight)
         self.trackList[self.activeTrack].basePitch[self.trackList[self.activeTrack].notes[index].xPos:self.trackList[self.activeTrack].notes[index].xPos + int(dipWidth)] -= torch.pow(torch.sin(torch.linspace(0, math.pi, int(dipWidth))), 2) * dipHeight
         self.trackList[self.activeTrack].pitch[start:end] = self.trackList[self.activeTrack].basePitch[start:end] + torch.heaviside(self.trackList[self.activeTrack].pitch[start:end], torch.ones_like(self.trackList[self.activeTrack].pitch[start:end])) * pitchDelta
+        self.applyPitchChanges(self.trackList[self.activeTrack].pitch[start:end], start)
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
     imagePressed = StringProperty()

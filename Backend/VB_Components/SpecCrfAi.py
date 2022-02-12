@@ -63,9 +63,9 @@ class SpecCrfAi(nn.Module):
             hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 4 * global_consts.halfTripleBatchSize, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, math.ceil(global_consts.halfTripleBatchSize / 2), device = device)
+        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 2 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(math.ceil(global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device)
+        self.layerEnd2 = torch.nn.Linear(2 * global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
         self.threshold = torch.nn.Threshold(0.001, 0.001)
 
@@ -284,9 +284,9 @@ class LiteSpecCrfAi(nn.Module):
             hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 4 * global_consts.halfTripleBatchSize, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, math.ceil(global_consts.halfTripleBatchSize / 2), device = device)
+        self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 2 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(math.ceil(global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device)
+        self.layerEnd2 = torch.nn.Linear(2 * global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
         self.threshold = torch.nn.Threshold(0.001, 0.001)
         

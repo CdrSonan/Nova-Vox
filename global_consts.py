@@ -28,4 +28,4 @@ pitchDipWidth = 40
 pitchDipHeight = 0.2
 
 language = "en"
-version = "Prealpha 0.4.0"
+version = "Alpha 1.0"
