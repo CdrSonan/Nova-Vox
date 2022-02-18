@@ -22,6 +22,7 @@ from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble, BubbleButton
 
 from io import BytesIO
+from copy import copy
 
 from kivy.clock import mainthread
 
@@ -30,7 +31,6 @@ import torch
 import subprocess
 import math
 
-import pyaudio
 import sounddevice
 
 from Backend.Param_Components.AiParams import AiParamStack
@@ -787,7 +787,7 @@ class ParamCurve(ScrollView):
                     else:
                         domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
                     for i in domain:
-                        points[2 * i + 1] = y
+                        points[2 * i + 1] = y #TODO Fix lower scrollbar crash
                     touch.ud['line'].points = points
                     touch.ud['lastPoint'] = points[2 * p] / self.xScale
 
@@ -1313,6 +1313,7 @@ class TimingBar(FloatLayout):
 class TimingLabel(Label):
     index = NumericProperty()
     reference = ObjectProperty()
+    modulo = NumericProperty()
 
 class PianoRoll(ScrollView):
     def __init__(self, **kwargs):
@@ -1342,8 +1343,16 @@ class PianoRoll(ScrollView):
             self.children[0].add_widget(Note(**d))
     @mainthread
     def generateTimingMarkers(self):
-        for i in range(5):#self.length):
-            self.children[0].children[-5].add_widget(TimingLabel(index = i, reference = self.children[0].children[-5]))
+        t = 0
+        i = 0
+        while t < self.length * self.scroll_x * (self.children[0].width - self.width):
+            t += self.tempo
+            i += 1
+        while t <= self.length * self.scroll_x * (self.children[0].width - self.width) + self.children[0].width:
+            modulo = i % self.measureSize
+            self.children[0].children[-global_consts.octaves - 1].add_widget(TimingLabel(index = i, reference = self.children[0].children[-global_consts.octaves - 1], modulo = modulo))
+            t += self.tempo
+            i += 1
     def changePlaybackPos(self, playbackPos):
         with self.children[0].children[0].canvas:
             points = self.children[0].children[0].canvas.children[-1].points

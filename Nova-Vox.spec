@@ -1,10 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from kivy_deps import sdl2, glew
+
 specpath = os.path.dirname(os.path.abspath(SPEC))
 
-common_excludes = ["pillow", "torchvision", "altgraph", "future", "pefile", "pyinstaller"]
+common_excludes = ["torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
-common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("Backend/UtauDefaultPhonemes.ini", "Backend")]
+common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("Voices/*", "Voices"), ("Params/*", "Params"), ("UI/kv/*", "UI/kv"), ("Backend/UtauDefaultPhonemes.ini", "Backend"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList")]
 
 block_cipher = None
 
@@ -12,7 +14,7 @@ a_editor = Analysis(['editor_runtime.py'],
                     pathex=[specpath],
                     binaries=[],
                     datas=common_datas,
-                    hiddenimports=["matplotlib", "matplotlib.pyplot", "matplotlib.backends.backend_tkagg", "matplotlib.figure", "Backend"],
+                    hiddenimports=[],
                     hookspath=[],
                     hooksconfig={},
                     runtime_hooks=[],
@@ -71,6 +73,7 @@ coll_editor = COLLECT(exe_editor,
                       a_editor.binaries,
                       a_editor.zipfiles,
                       a_editor.datas, 
+                      *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
                       strip=False,
                       upx=True,
                       upx_exclude=[],

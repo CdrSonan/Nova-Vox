@@ -145,14 +145,16 @@
 <TimingLabel>:
     x: self.reference.x + int(self.reference.parent.parent.xScale * self.reference.parent.parent.tempo * self.index)
     y: self.reference.y
-    width: self.reference.parent.parent.xScale * self.reference.parent.parent.tempo
+    size_hint: (None, None)
+    width: min(self.reference.parent.parent.xScale * self.reference.parent.parent.tempo, 20)
     height: self.reference.height
     point1: self.reference.parent.y
     point2: self.reference.parent.y + self.reference.parent.height
-    text: "ABC"#str(self.index)
+    text: str(int(self.index / 4) + 1) if self.modulo == 0 else str(self.modulo + 1)
+    color: (1, 1, 1, 1) if self.modulo == 0 else (0.5, 0.5, 0.5, 1)
     canvas:
         Color:
-            rgba: (0.3, 0.3, 0.3, 1)
+            rgba: (0.5, 0.5, 0.5, 1) if self.modulo == 0 else (0.3, 0.3, 0.3, 1)
         Line:
             points: (self.x, self.point1, self.x, self.point2)
 

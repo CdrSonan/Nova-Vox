@@ -27,5 +27,7 @@ pitchTransitionLength = 25
 pitchDipWidth = 40
 pitchDipHeight = 0.2
 
+octaves = 4
+
 language = "en"
 version = "Alpha 1.0"

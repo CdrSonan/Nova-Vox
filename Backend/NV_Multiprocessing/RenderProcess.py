@@ -204,6 +204,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             nextSpectrum = None
             nextExcitation = None
             nextVoicedExcitation = None
+
+            startPoint = None
             
             aiActive = False
             #reverse iterator to set internalStatusControl.ai based on internalStatusControl.rs
@@ -252,6 +254,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             nextVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
 
                         connection.send(StatusChange(i, j, 1))
+
+                        if startPoint == None:
+                            startPoint = internalInputs.borders[3 * j]*global_consts.batchSize
 
                         logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
                         voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = currentVoicedExcitation
@@ -317,9 +322,10 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         waveform = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize).to(device = torch.device("cpu"))
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                         waveform += excitationSignal.to(device = torch.device("cpu"))
-
-                        #connection.send(StatusChange(i, internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize, waveform, True))
-                        connection.send(StatusChange(i, 0, waveform.detach(), True))
+                        
+                        if startPoint != None:
+                            waveform = waveform[startPoint:]
+                            connection.send(StatusChange(i, startPoint, waveform.detach(), True))
                         connection.send(StatusChange(i, j - 1, 5))
                         if internalInputs.endCaps[j - 1] == True:
                             aiActive = False

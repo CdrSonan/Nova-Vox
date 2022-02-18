@@ -16,6 +16,7 @@ with open("settings.ini", 'r') as f:
         line = line.split(" ")
         settings[line[0]] = line[1]
 import logging
+from os import getenv, path, makedirs
 if settings["loglevel"] == "debug":
     loglevel = logging.DEBUG
 elif settings["loglevel"] == "info":
@@ -30,7 +31,15 @@ else:
     print("could not read loglevel setting. Loglevel has been set to \"info\" by default.")
     loglevel = logging.INFO
 
-logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename='devkit.log', level=loglevel)
+logPath = path.join(getenv("APPDATA"), "Nova-Vox", "Logs")
+try:
+    makedirs(logPath)
+except FileExistsError:
+    pass
+
+logPath = path.join(logPath, "devkit.log")
+
+logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename=logPath, filemode = "w", force = True, level=loglevel)
 logging.info("logging service started")
 
 rootUi = devkit_UI.RootUi()

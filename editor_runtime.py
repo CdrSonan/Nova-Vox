@@ -38,6 +38,7 @@ from Backend.VB_Components.Voicebank import LiteVoicebank as Voicebank
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.NV_Multiprocessing.Manager import RenderManager
 import sys
+from os import getenv, path, makedirs
 
 if pyi_splash.is_alive():
     pyi_splash.update_text("starting logging process...")
@@ -56,7 +57,15 @@ else:
     print("could not read loglevel setting. Loglevel has been set to \"info\" by default.")
     loglevel = logging.INFO
 
-logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename='editor.log', level=loglevel)
+logPath = path.join(getenv("APPDATA"), "Nova-Vox", "Logs")
+try:
+    makedirs(logPath)
+except FileExistsError:
+    pass
+
+logPath = path.join(logPath, "editor.log")
+
+logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename=logPath, filemode = "w", force = True, level=loglevel)
 logging.info("logging service started")
 
 if __name__ == '__main__':
