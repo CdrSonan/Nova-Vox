@@ -10,6 +10,7 @@ from Backend.Param_Components.AiParams import AiParamStack
 from Backend.VB_Components.SpecCrfAi import LiteSpecCrfAi
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
+from MiddleLayer.IniParser import readSettings
 
 import matplotlib.pyplot as plt
 
@@ -148,12 +149,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             return updateFromMain()
         return False
     logging.info("render process started, reading settings")
-    settings = {}
-    with open("settings.ini", 'r') as f:
-        for line in f:
-            line = line.strip()
-            line = line.split(" ")
-            settings[line[0]] = line[1]
+    settings = readSettings()
     if settings["intermediateOutputs"] == "enabled":
         interOutput = True
     elif settings["intermediateOutputs"] == "disabled":

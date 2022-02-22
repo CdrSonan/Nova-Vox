@@ -1,13 +1,9 @@
 import torch
+from MiddleLayer.IniParser import readSettings
 
 global mainDevice
 global aiDevice
-settings = {}
-with open("settings.ini", 'r') as f:
-    for line in f:
-        line = line.strip()
-        line = line.split(" ")
-        settings[line[0]] = line[1]
+settings = readSettings()
 accel = settings["accelerator"]
 if accel == "CPU":
     mainDevice = torch.device('cpu')

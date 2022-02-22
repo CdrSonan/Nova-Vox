@@ -36,6 +36,7 @@ import sounddevice
 from Backend.Param_Components.AiParams import AiParamStack
 import global_consts
 
+from MiddleLayer.IniParser import readSettings, writeSettings
 import MiddleLayer.DataHandlers as dh
 from Backend.NV_Multiprocessing.Manager import RenderManager
 
@@ -58,14 +59,7 @@ class MiddleLayer(Widget):
         self.mainAudioBufferPos = 0
         self.deletions = []
         self.playing = False
-        #self.audio = pyaudio.PyAudio()
-        #self.audioStream = self.audio.open(rate = global_consts.sampleRate, channels = 1, format = pyaudio.paFloat32, output = True, frames_per_buffer = global_consts.audioBufferSize, start = False, stream_callback = self.playCallback)
-        settings = {}
-        with open("settings.ini", 'r') as f:
-            for line in f:
-                line = line.strip()
-                line = line.split(" ")
-                settings[line[0]] = line[1]
+        settings = readSettings()
         device = None
         devices = sounddevice.query_devices()
         for i in devices:
@@ -550,17 +544,6 @@ class MiddleLayer(Widget):
             self.ids["playButton"].state = "normal"
             self.audioStream.stop()
         self.playing = state
-        """
-    def playCallback(self, in_data, frame_count, time_info, status):
-        if self.playing:
-            newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
-            buffer = (self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos] * math.pow(2, 32)).to(torch.int32).numpy().tobytes()
-            self.mainAudioBufferPos = newBufferPos
-            self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
-            return (buffer, pyaudio.paContinue)
-        buffer = torch.zeros([global_consts.audioBufferSize,], dtype = torch.int32).numpy().tobytes()
-        return (buffer, pyaudio.paContinue)
-        """
     def playCallback(self, outdata, frames, time, status):
         if self.playing:
             newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
@@ -627,8 +610,6 @@ class ImageButton(ButtonBehavior, Image):
         self.source = self.imagePressed
         if self.function != None:
             self.function()
-        else:
-            print("NONE function callback")
     def on_release(self):
         self.source = self.imageNormal
 
@@ -739,6 +720,9 @@ class ParamCurve(ScrollView):
             self.line = Line(points = points)
 
     def on_touch_down(self, touch):
+        if touch.is_mouse_scrolling == False:
+            if super(ParamCurve, self).on_touch_down(touch):
+                return True
         if self.collide_point(*touch.pos):
             if touch.is_mouse_scrolling:
                 if touch.button == 'scrollup':
@@ -768,7 +752,7 @@ class ParamCurve(ScrollView):
     def on_touch_move(self, touch):
         if "param" not in touch.ud:
             return super(ParamCurve, self).on_touch_move(touch)
-        if 'startPoint' in touch.ud:
+        if 'startPoint' in touch.ud and touch.ud['param']:
             global middleLayer
             coord = self.to_local(touch.x, touch.y)
             x = int(coord[0] / self.xScale)
@@ -787,10 +771,9 @@ class ParamCurve(ScrollView):
                     else:
                         domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
                     for i in domain:
-                        points[2 * i + 1] = y #TODO Fix lower scrollbar crash
+                        points[2 * i + 1] = y
                     touch.ud['line'].points = points
                     touch.ud['lastPoint'] = points[2 * p] / self.xScale
-
                 else:
                     diff = p - int(len(touch.ud['line'].points) / 2)
                     for i in range(diff):
@@ -852,25 +835,6 @@ class ParamCurve(ScrollView):
         else:
             return super(ParamCurve, self).on_touch_up(touch)
 
-"""class ParamBars(ScrollView):
-    xScale = NumericProperty(1)
-    seqLength = NumericProperty(1000)
-    points = ListProperty()
-    rectangles = ListProperty([])
-    def redraw(self):
-        data = []
-        self.points = []
-        for i in self.rectangles:
-            self.children[0].canvas.remove(i)
-        c = 0
-        for i in data:
-            self.points.append((self.parent.xScale * i[0], i[1] * self.height))
-            c += 1
-        with self.children[0].canvas:
-            Color(1, 0, 0, 1)
-            for i in self.points:
-                self.rectangles.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))"""
-
 class TimingOptns(ScrollView):
     xScale = NumericProperty(1)
     seqLength = NumericProperty(1000)
@@ -901,6 +865,9 @@ class TimingOptns(ScrollView):
                 self.rectangles2.append(ObjectProperty())
                 self.rectangles2[-1] = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
     def on_touch_down(self, touch):
+        if touch.is_mouse_scrolling == False:
+            if super(TimingOptns, self).on_touch_down(touch):
+                return True
         if self.collide_point(*touch.pos):
             if touch.is_mouse_scrolling:
                 if touch.button == 'scrollup':
@@ -1102,6 +1069,9 @@ class PitchOptns(ScrollView):
             self.line1 = Line(points = points1)
             self.line2 = Line(points = points2)
     def on_touch_down(self, touch):
+        if touch.is_mouse_scrolling == False:
+            if super(PitchOptns, self).on_touch_down(touch):
+                return True
         if self.collide_point(*touch.pos):
             if touch.is_mouse_scrolling:
                 if touch.button == 'scrollup':
@@ -1128,7 +1098,7 @@ class PitchOptns(ScrollView):
                     touch.ud['param'] = True
             return True
         else:
-            return False#super(PitchOptns, self).on_touch_down(touch)
+            return False
     def on_touch_move(self, touch):
         if "param" not in touch.ud:
             return super(PitchOptns, self).on_touch_move(touch)
@@ -1304,7 +1274,7 @@ class PianoRollOctave(FloatLayout):
 class PianoRollOctaveBackground(FloatLayout):
     pass
 
-class PlaybackHead(Image):
+class PlaybackHead(Widget):
     pass
 
 class TimingBar(FloatLayout):
@@ -1360,6 +1330,7 @@ class PianoRoll(ScrollView):
             points[2] = playbackPos * self.xScale
             del self.children[0].children[0].canvas.children[-1]
             Line(points = points)
+            del self.children[0].children[0].canvas.children[-2]
     def redrawPitch(self):
         data1 = middleLayer.trackList[middleLayer.activeTrack].pitch
         data2 = middleLayer.trackList[middleLayer.activeTrack].basePitch
@@ -1639,12 +1610,13 @@ class SingerSidePanel(ModalView):
         self.filepaths = []
         self.selectedIndex = None
     def listVoicebanks(self):
-        files = os.listdir("Voices/")
+        voicePath = os.path.join(readSettings()["dataDir"], "Voices/")
+        files = os.listdir(voicePath)
         for file in files:
             if file.endswith(".nvvb"):
-                data = torch.load(os.path.join("Voices/", file))
+                data = torch.load(os.path.join(voicePath, file))
                 self.voicebanks.append(data["metadata"])
-                self.filepaths.append(os.path.join("Voices/", file))
+                self.filepaths.append(os.path.join(voicePath, file))
         j = 0
         for i in self.voicebanks:
             self.ids["singers_list"].add_widget(ListElement(text = i.name, index = j))
@@ -1673,12 +1645,13 @@ class ParamSidePanel(ModalView):
         self.filepaths = []
         self.selectedIndex = None
     def listParams(self):
-        files = os.listdir("Params/")
+        paramPath = os.path.join(readSettings()["dataDir"], "Params/")
+        files = os.listdir(paramPath)
         for file in files:
             if file.endswith(".nvpr"):
-                data = torch.load(os.path.join("Params/", file))
+                data = torch.load(os.path.join(paramPath, file))
                 self.parameters.append(data["metadata"])
-                self.filepaths.append(os.path.join("Params/", file))
+                self.filepaths.append(os.path.join(paramPath, file))
         j = 0
         for i in self.parameters:
             self.ids["params_list"].add_widget(ListElement(text = i.name, index = j))
@@ -1722,12 +1695,7 @@ class SettingsSidePanel(ModalView):
             self.audioDeviceNames.append(sounddevice.query_devices(i)["name"])
         self.ids["settings_audioDevice"].values = self.audioDeviceNames
     def readSettings(self):
-        settings = {}
-        with open("settings.ini", 'r') as f:
-            for line in f:
-                line = line.strip()
-                line = line.split(" ", 1)
-                settings[line[0]] = line[1]
+        settings = readSettings()
         self.ids["settings_lang"].text = settings["language"]
         self.ids["settings_accel"].text = settings["accelerator"]
         self.ids["settings_tcores"].text = settings["tensorCores"]
@@ -1737,18 +1705,11 @@ class SettingsSidePanel(ModalView):
         self.ids["settings_audioDevice"].text = settings["audioDevice"]
         self.ids["settings_loglevel"].text = settings["loglevel"]
     def writeSettings(self):
-        with open("settings.ini", 'w') as f:
-            f.write("language " + self.ids["settings_lang"].text + "\n")
-            f.write("accelerator " + self.ids["settings_accel"].text + "\n")
-            f.write("tensorCores " + self.ids["settings_tcores"].text + "\n")
-            f.write("intermediateOutputs " + self.ids["settings_prerender"].text + "\n")
-            f.write("audioApi " + self.ids["settings_audioApi"].text + "\n")
-            self.refreshAudioDevices(self.ids["settings_audioApi"].text)
-            if self.ids["settings_audioDevice"].text in self.audioDeviceNames:
-                f.write("audioDevice " + self.ids["settings_audioDevice"].text + "\n")
-            else:
-                f.write("audioDevice " + self.audioDeviceNames[0] + "\n")
-            f.write("loglevel " + self.ids["settings_loglevel"].text + "\n")
+        if self.ids["settings_audioDevice"].text in self.audioDeviceNames:
+            audioDevice = self.ids["settings_audioDevice"].text
+        else:
+            audioDevice = self.audioDeviceNames[0]
+        writeSettings(None, self.ids["settings_lang"].text, self.ids["settings_accel"].text, self.ids["settings_tcores"].text, self.ids["settings_prerender"].text, self.ids["settings_audioApi"].text, audioDevice, self.ids["settings_loglevel"].text)
     def restartAudioStream(self):
         middleLayer.audioStream.close()
         identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
@@ -1802,6 +1763,21 @@ class NovaVoxUI(Widget):
             middleLayer.play(True)
         else:
             middleLayer.play(False)
+    def spoolBack(self):
+        if len(middleLayer.trackList[middleLayer.activeTrack].borders) > 0:
+            middleLayer.mainAudioBufferPos = middleLayer.trackList[middleLayer.activeTrack].borders[0]
+            middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[0])
+        else:
+            middleLayer.mainAudioBufferPos = 0
+            middleLayer.movePlayhead(0)
+    def spoolForward(self):
+        if len(middleLayer.trackList[middleLayer.activeTrack].borders) > 0:
+            middleLayer.mainAudioBufferPos = middleLayer.trackList[middleLayer.activeTrack].borders[-1]
+            middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
+    def undo(self):
+        print("undo callback")
+    def redo(self):
+        print("redo callback")
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         if keyboard.target != None:
             return False

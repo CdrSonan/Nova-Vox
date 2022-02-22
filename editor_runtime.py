@@ -15,12 +15,10 @@ if pyi_splash.is_alive():
 import torch
 import torch.multiprocessing as mp
 import torchaudio
-settings = {}
-with open("settings.ini", 'r') as f:
-    for line in f:
-        line = line.strip()
-        line = line.split(" ")
-        settings[line[0]] = line[1]
+if pyi_splash.is_alive():
+    pyi_splash.update_text("reading settings...")
+from MiddleLayer.IniParser import readSettings
+settings = readSettings()
 if settings["tensorCores"] == "enabled":
     tcores = True
 elif settings["tensorCores"] == "disabled":

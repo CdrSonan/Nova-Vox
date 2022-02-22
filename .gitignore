@@ -2,4 +2,4 @@ build/
 dist/
 .vs/
 __pycache__/
-setup.exe
+*setup.exe

@@ -6,7 +6,7 @@ specpath = os.path.dirname(os.path.abspath(SPEC))
 
 common_excludes = ["torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
-common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("Voices/*", "Voices"), ("Params/*", "Params"), ("UI/kv/*", "UI/kv"), ("Backend/UtauDefaultPhonemes.ini", "Backend"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList")]
+common_datas = [("icon/*", "icon"), ("UI/kv/*", "UI/kv"), ("Backend/UtauDefaultPhonemes.ini", "Backend"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList")]
 
 block_cipher = None
 
@@ -85,7 +85,7 @@ exe_devkit = EXE(pyz_devkit,
                  a_devkit.scripts, 
                  [],
                  exclude_binaries=True,
-                 name='Nova-Vox VB Devkit',
+                 name='Nova-Vox Devkit',
                  debug=False,
                  bootloader_ignore_signals=False,
                  strip=False,
@@ -106,6 +106,6 @@ coll_devkit = COLLECT(exe_devkit,
                       upx_exclude=[],
                       name='devkit_build')
 
-os.replace(os.path.join(specpath, 'dist\\devkit_build\\Nova-Vox VB Devkit.exe'), os.path.join(specpath, 'dist\\Nova-Vox\\Nova-Vox VB Devkit.exe'))
-os.replace(os.path.join(specpath, 'dist\\devkit_build\\Nova-Vox VB Devkit.exe.manifest'), os.path.join(specpath, 'dist\\Nova-Vox\\Nova-Vox VB Devkit.exe.manifest'))
+os.replace(os.path.join(specpath, 'dist\\devkit_build\\Nova-Vox Devkit.exe'), os.path.join(specpath, 'dist\\Nova-Vox\\Nova-Vox Devkit.exe'))
+os.replace(os.path.join(specpath, 'dist\\devkit_build\\Nova-Vox Devkit.exe.manifest'), os.path.join(specpath, 'dist\\Nova-Vox\\Nova-Vox Devkit.exe.manifest'))
 os.rmdir(os.path.join(specpath, 'dist\\devkit_build'))

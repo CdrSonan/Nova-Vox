@@ -5,15 +5,11 @@ Created on Tue Aug 17 08:59:27 2021
 @author: CdrSonan
 """
 
+from MiddleLayer.IniParser import readSettings
+
 def getLocale():
     locale = dict()
-    settings = {}
-    with open("settings.ini", 'r') as f:
-        for line in f:
-            line = line.strip()
-            line = line.split(" ")
-            settings[line[0]] = line[1]
-    lang = settings["language"]
+    lang = readSettings["language"]
     if lang == "en":
         locale["version_label"] = "NovaVox Devkit "
         locale["no_vb"] = "no Voicebank loaded"

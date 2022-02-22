@@ -131,11 +131,12 @@
         keep_ratio: False
 
 <PlaybackHead>:
+    x: self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale - self.width / 2
+    y: self.parent.y + self.parent.height - 30
+    size_hint: (None, None)
     width: 20
     height: 20
-    x: self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale - self.width / 2
-    y: self.parent.y
-    source: "UI/assets/PianoRoll/Piano02.png"
+    source: "UI/assets/Toolbar/Adaptive11.png"
     canvas:
         Color:
             rgba: (0., 1., 0., 1)
