@@ -21,6 +21,8 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble, BubbleButton
 
+from tkinter import Tk, filedialog
+
 from io import BytesIO
 from copy import copy
 
@@ -64,7 +66,7 @@ class MiddleLayer(Widget):
         devices = sounddevice.query_devices()
         for i in devices:
             if i["name"] == settings["audioDevice"]:
-                device = i
+                device = i["name"] + ", " + settings["audioApi"]
         self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback)
         self.scriptCache = ""
     def importVoicebank(self, path, name, inImage):
@@ -740,11 +742,11 @@ class ParamCurve(ScrollView):
             else:
                 with self.children[0].canvas:
                     Color(0, 0, 1)
-                    touch.ud['line'] = Line(points=[touch.x, touch.y])
+                    touch.ud['line'] = Line(points=self.to_local(touch.x, touch.y))
                     touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                     touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
-                    touch.ud['startPointOffset'] = 0
                     touch.ud['lastPoint'] = touch.ud['startPoint'][0]
+                    touch.ud['startPointOffset'] = 0
                     touch.ud['param'] = True
             return True
         else:
@@ -761,13 +763,13 @@ class ParamCurve(ScrollView):
             if middleLayer.tool == "draw":
                 if p < 0:
                     for i in range(-p):
-                        touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
                         touch.ud['startPoint'][0] -= 1
+                        touch.ud['line'].points = [touch.ud['startPoint'][0] * self.xScale, y] + touch.ud['line'].points
                     touch.ud['lastPoint'] = touch.ud['line'].points[0] / self.xScale
                 elif p < int(len(touch.ud['line'].points) / 2):
                     points = touch.ud['line'].points
                     if x >= touch.ud['lastPoint']:
-                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
+                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p + 1)
                     else:
                         domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
                     for i in domain:
@@ -1089,12 +1091,12 @@ class PitchOptns(ScrollView):
             else:
                 with self.children[0].canvas:
                     Color(0, 0, 1)
-                    touch.ud['line'] = Line(points=[touch.x, touch.y])
+                    touch.ud['line'] = Line(points=self.to_local(touch.x, touch.y))
                     touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                     touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
+                    touch.ud['lastPoint'] = touch.ud['startPoint'][0]
                     touch.ud['startPointOffset'] = 0
                     touch.ud['section'] = touch.ud['startPoint'][1] > self.height / 2
-                    touch.ud['lastPoint'] = touch.ud['startPoint'][0]
                     touch.ud['param'] = True
             return True
         else:
@@ -1114,13 +1116,13 @@ class PitchOptns(ScrollView):
             if middleLayer.tool == "draw":
                 if p < 0:
                     for i in range(-p):
-                        touch.ud['line'].points = [touch.ud['startPoint'][0] - i * self.xScale, y] + touch.ud['line'].points
                         touch.ud['startPoint'][0] -= 1
+                        touch.ud['line'].points = [touch.ud['startPoint'][0] * self.xScale, y] + touch.ud['line'].points
                     touch.ud['lastPoint'] = touch.ud['line'].points[0] / self.xScale
                 elif p < int(len(touch.ud['line'].points) / 2):
                     points = touch.ud['line'].points
                     if x >= touch.ud['lastPoint']:
-                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
+                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p + 1)
                     else:
                         domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
                     for i in domain:
@@ -1529,8 +1531,11 @@ class PianoRoll(ScrollView):
                 elif p < int(len(touch.ud['line'].points) / 2):
                     points = touch.ud['line'].points
                     if x >= touch.ud['lastPoint']:
-                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
+                        print("if")
+                        print(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
+                        domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p + 1)
                     else:
+                        print("else")
                         domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
                     for i in domain:
                         points[2 * i + 1] = yMod
@@ -1573,10 +1578,10 @@ class PianoRoll(ScrollView):
                 if p < 0:
                     touch.ud['startPointOffset'] = -p
                     for i in range(-p):
-                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+                        touch.ud['line'].points += [(-i + touch.ud['startPoint'][0]) * self.xScale, self.basePitchLine.points[2 * (-i + touch.ud['startPoint'][0]) + 1]]
                 if p >= 0:
                     for i in range(p):
-                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
+                        touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.basePitchLine.points[2 * (i + touch.ud['startPoint'][0]) + 1]]
         else:
             return super().on_touch_move(touch)
     def on_touch_up(self, touch):
@@ -1692,8 +1697,21 @@ class SettingsSidePanel(ModalView):
         self.audioDeviceNames = []
         devices = sounddevice.query_hostapis(self.audioApiNames.index(api))["devices"]
         for i in devices:
-            self.audioDeviceNames.append(sounddevice.query_devices(i)["name"])
+            device = sounddevice.query_devices(i)
+            if device["max_output_channels"]:
+                self.audioDeviceNames.append(device["name"])
         self.ids["settings_audioDevice"].values = self.audioDeviceNames
+    def restartAudioStream(self):
+        middleLayer.audioStream.close()
+        identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
+        middleLayer.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, identifier, callback = middleLayer.playCallback)
+    def changeDataDir(self):
+        tkui = Tk()
+        tkui.withdraw()
+        newDir = filedialog.askdirectory()
+        if newDir != "":
+            self.ids["settings_datadir"].text = newDir
+        tkui.destroy()
     def readSettings(self):
         settings = readSettings()
         self.ids["settings_lang"].text = settings["language"]
@@ -1704,16 +1722,14 @@ class SettingsSidePanel(ModalView):
         self.refreshAudioDevices(settings["audioApi"])
         self.ids["settings_audioDevice"].text = settings["audioDevice"]
         self.ids["settings_loglevel"].text = settings["loglevel"]
+        self.ids["settings_datadir"].text = settings["dataDir"]
     def writeSettings(self):
         if self.ids["settings_audioDevice"].text in self.audioDeviceNames:
             audioDevice = self.ids["settings_audioDevice"].text
         else:
             audioDevice = self.audioDeviceNames[0]
-        writeSettings(None, self.ids["settings_lang"].text, self.ids["settings_accel"].text, self.ids["settings_tcores"].text, self.ids["settings_prerender"].text, self.ids["settings_audioApi"].text, audioDevice, self.ids["settings_loglevel"].text)
-    def restartAudioStream(self):
-        middleLayer.audioStream.close()
-        identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
-        middleLayer.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, identifier, callback = middleLayer.playCallback)
+        writeSettings(None, self.ids["settings_lang"].text, self.ids["settings_accel"].text, self.ids["settings_tcores"].text, self.ids["settings_prerender"].text, self.ids["settings_audioApi"].text, audioDevice, self.ids["settings_loglevel"].text, self.ids["settings_datadir"].text)
+        self.restartAudioStream()
 
 class LicensePanel(Popup):
     pass

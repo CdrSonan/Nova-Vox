@@ -11,11 +11,10 @@ def readSettings(path = None):
             line = line.split("=")
             settings[line[0].strip()] = line[1].strip()
     return settings
-def writeSettings(path, lang, accel, tcores, prerender, audioApi, audioDevice, loglevel):
+def writeSettings(path, lang, accel, tcores, prerender, audioApi, audioDevice, loglevel, dataDir):
     if path == None:
         path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
-    dataDir = readSettings(path)["dataDir"]
-    with open("settings.ini", 'w') as f:
+    with open(path, 'w') as f:
         f.write("[lang]" + "\n")
         f.write("language = " + lang + "\n")
         f.write("\n")
@@ -33,10 +32,3 @@ def writeSettings(path, lang, accel, tcores, prerender, audioApi, audioDevice, l
         f.write("\n")
         f.write("[dirs]" + "\n")
         f.write("dataDir = " + dataDir + "\n")
-
-    settings = {}
-    with open(path, 'w') as f:
-        for line in f:
-            line = line.strip()
-            line = line.split(" ")
-            settings[line[0]] = line[1]

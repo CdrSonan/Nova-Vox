@@ -3,10 +3,10 @@
 #define nvxAssocKey StringChange(nvxAssocName, " ", "") + nvxAssocExt
 #define nvvbAssocName "Nova-Vox Voicebank"
 #define nvvbAssocExt ".nvvb"
-#define nvvbAssocKey StringChange(nvxAssocName, " ", "") + nvxAssocExt
+#define nvvbAssocKey StringChange(nvvbAssocName, " ", "") + nvvbAssocExt
 #define nvprAssocName "Nova-Vox universal parameter"
 #define nvprAssocExt ".nvpr"
-#define nvprAssocKey StringChange(nvxAssocName, " ", "") + nvxAssocExt
+#define nvprAssocKey StringChange(nvprAssocName, " ", "") + nvprAssocExt
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -110,8 +110,8 @@ Filename: "{userappdata}\Nova-Vox\settings.ini"; Section: "Dirs"; Key: "dataDir"
 [Icons]
 Name: "{group}\Nova-Vox\Editor"; Filename: "{app}\Nova-Vox Editor.exe"
 Name: "{autodesktop}\Nova-Vox Editor"; Filename: "{app}\Nova-Vox Editor.exe"; Tasks: desktopiconeditor
-Name: "{group}\Nova-Vox\Devkit"; Filename: "{app}\Nova-Vox Editor.exe"
-Name: "{autodesktop}\Nova-Vox Devkit"; Filename: "{app}\Nova-Vox Editor.exe"; Tasks: desktopicondevkit
+Name: "{group}\Nova-Vox\Devkit"; Filename: "{app}\Nova-Vox Devkit.exe"
+Name: "{autodesktop}\Nova-Vox Devkit"; Filename: "{app}\Nova-Vox Devkit.exe"; Tasks: desktopicondevkit
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
