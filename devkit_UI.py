@@ -26,6 +26,7 @@ import Locale.devkit_locale
 loc = Locale.devkit_locale.getLocale()
 from Backend.DataHandler.UtauSample import UtauSample
 from Backend.UtauImport import fetchSamples
+from MiddleLayer.IniParser import readSettings
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -49,17 +50,12 @@ class RootUi(tkinter.Frame):
             logo = tkinter.PhotoImage(file="icon/nova-vox-logo-black.gif")
             self.master.call('wm', 'iconphoto', self.master._w, logo)
 
-        settings = {}
-        with open("settings.ini", 'r') as f:
-            for line in f:
-                line = line.strip()
-                line = line.split(" ")
-                settings[line[0]] = line[1]
-        if settings["accelerator"] == "CPU":
+        accelerator = readSettings()["accelerator"]
+        if accelerator == "CPU":
             self.device = torch.device("cpu")
-        elif settings["accelerator"] == "Hybrid":
+        elif accelerator == "Hybrid":
             self.device = torch.device("cuda")
-        elif settings["accelerator"] == "GPU":
+        elif accelerator == "GPU":
             self.device = torch.device("cuda")
         else:
             print("could not read accelerator setting. Accelerator has been set to CPU by default.")

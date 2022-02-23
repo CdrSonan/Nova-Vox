@@ -9,7 +9,7 @@ from MiddleLayer.IniParser import readSettings
 
 def getLocale():
     locale = dict()
-    lang = readSettings["language"]
+    lang = readSettings()["language"]
     if lang == "en":
         locale["version_label"] = "NovaVox Devkit "
         locale["no_vb"] = "no Voicebank loaded"
