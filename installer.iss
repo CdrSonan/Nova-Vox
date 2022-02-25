@@ -31,9 +31,6 @@ ChangesAssociations=yes
 LicenseFile=D:\Nova-Vox\GitHub\Nova-Vox\license.txt
 InfoBeforeFile=D:\Nova-Vox\GitHub\Nova-Vox\info_pre_install.txt
 InfoAfterFile=D:\Nova-Vox\GitHub\Nova-Vox\info_post_install.txt
-; Uncomment the following line to run in non administrative install mode (install for current user only.)
-;PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=commandline
 OutputDir="D:\Nova-Vox\GitHub\Nova-Vox\"
 OutputBaseFilename=Nova-Vox setup
 Compression=lzma2/ultra
@@ -61,7 +58,7 @@ Name: {code:GetDataDir}; Flags: uninsneveruninstall
 Name: "{code:GetDataDir}\Voices"; Flags: uninsneveruninstall
 Name: "{code:GetDataDir}\Parameters"; Flags: uninsneveruninstall
 Name: "{code:GetDataDir}\Addons"; Flags: uninsneveruninstall
-Name: "{userappdata}\Nova-Vox\Logs"; Flags: uninsalwaysuninstall
+Name: "{userappdata}\Nova-Vox\Logs"
 
 
 [Code]
@@ -74,7 +71,7 @@ begin
     'Select the folder in which Setup should install Voicebanks, Parameters and Addon files, then click Next. You can change this folder later in the settings panel.',
     False, '');
   DataDirPage.Add('');
-  DataDirPage.Values[0] := ExpandConstant('{autoappdata}\Nova-Vox');
+  DataDirPage.Values[0] := ExpandConstant('{userappdata}\Nova-Vox');
 end;
 
 function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo, MemoTypeInfo,
@@ -132,25 +129,25 @@ Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKey}"; ValueType: string; ValueN
 Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKey}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Nova-Vox Editor.exe,0"
 Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKey}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Nova-Vox Editor.exe"" ""%1"""
 Root: HKA; Subkey: "Software\Classes\Applications\Nova-Vox Editor.exe\SupportedTypes"; ValueType: string; ValueName: {#nvvbAssocExt}; ValueData: ""
-Root: HKA; Subkey: "Software\Classes\Applications\Nova-Vox Devkit.exe\SupportedTypes"; ValueType: string; ValueName: {#nvvbAssocExt}; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\Nova-Vox Devkit.exe\SupportedTypes"; ValueType: string; ValueName: {#nvvbAssocExt}; ValueData: ""; Components: devkit
 
 Root: HKA; Subkey: "Software\Classes\{#nvprAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#nvprAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
 Root: HKA; Subkey: "Software\Classes\{#nvprAssocKey}"; ValueType: string; ValueName: ""; ValueData: "{#nvprAssocName}"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\{#nvprAssocKey}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Nova-Vox Editor.exe,0"
 Root: HKA; Subkey: "Software\Classes\{#nvprAssocKey}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Nova-Vox Editor.exe"" ""%1"""
 Root: HKA; Subkey: "Software\Classes\Applications\Nova-Vox Editor.exe\SupportedTypes"; ValueType: string; ValueName: {#nvprAssocExt}; ValueData: ""
-Root: HKA; Subkey: "Software\Classes\Applications\Nova-Vox Devkit.exe\SupportedTypes"; ValueType: string; ValueName: {#nvprAssocExt}; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\Nova-Vox Devkit.exe\SupportedTypes"; ValueType: string; ValueName: {#nvprAssocExt}; ValueData: ""; Components: devkit
 
 
-Root: HKA; Subkey: "Software\Classes\{#nvvbAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#nvvbAssocKeyDK}"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKeyDK}"; ValueType: string; ValueName: ""; ValueData: "{#nvvbAssocName}"; Flags: uninsdeletekey
-Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKeyDK}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Nova-Vox Devkit.exe,0"
-Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKeyDK}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Nova-Vox Editor.exe"" ""%1"""
+Root: HKA; Subkey: "Software\Classes\{#nvvbAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#nvvbAssocKeyDK}"; ValueData: ""; Flags: uninsdeletevalue; Components: devkit
+Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKeyDK}"; ValueType: string; ValueName: ""; ValueData: "{#nvvbAssocName}"; Flags: uninsdeletekey; Components: devkit
+Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKeyDK}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Nova-Vox Editor.exe,0"; Components: devkit
+Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKeyDK}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Nova-Vox Devkit.exe"" ""%1"""; Components: devkit
 
-Root: HKA; Subkey: "Software\Classes\{#nvprAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#nvprAssocKeyDK}"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKA; Subkey: "Software\Classes\{#nvprAssocKeyDK}"; ValueType: string; ValueName: ""; ValueData: "{#nvprAssocName}"; Flags: uninsdeletekey
-Root: HKA; Subkey: "Software\Classes\{#nvprAssocKeyDK}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Nova-Vox Devkit.exe,0"
-Root: HKA; Subkey: "Software\Classes\{#nvprAssocKeyDK}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Nova-Vox Editor.exe"" ""%1"""
+Root: HKA; Subkey: "Software\Classes\{#nvprAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#nvprAssocKeyDK}"; ValueData: ""; Flags: uninsdeletevalue; Components: devkit
+Root: HKA; Subkey: "Software\Classes\{#nvprAssocKeyDK}"; ValueType: string; ValueName: ""; ValueData: "{#nvprAssocName}"; Flags: uninsdeletekey; Components: devkit
+Root: HKA; Subkey: "Software\Classes\{#nvprAssocKeyDK}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Nova-Vox Editor.exe,0"; Components: devkit
+Root: HKA; Subkey: "Software\Classes\{#nvprAssocKeyDK}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Nova-Vox Devkit.exe"" ""%1"""; Components: devkit
 
 [Run]
 Filename: "{app}\Nova-Vox Editor.exe"; Description: "{cm:LaunchProgram,{#StringChange("Nova-Vox", '&', '&&')}}"; Flags: nowait postinstall skipifsilent

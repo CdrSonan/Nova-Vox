@@ -20,6 +20,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble, BubbleButton
+from kivy.uix.popup import Popup
 
 from tkinter import Tk, filedialog
 
@@ -89,6 +90,7 @@ class MiddleLayer(Widget):
     def changeTrack(self, index):
         self.activeTrack = index
         self.updateParamPanel()
+        self.updatePianoRoll()
     def copyTrack(self, index, name, inImage):
         self.trackList.append(self.trackList[index])
         self.audioBuffer.append(self.audioBuffer[index])
@@ -102,7 +104,7 @@ class MiddleLayer(Widget):
         self.audioBuffer.pop(index)
         self.updateMainAudioBuffer()
         aiParamStackList.pop(index)
-        if index <= self.activeTrack:
+        if index <= self.activeTrack and index > 0:
             self.changeTrack(self.activeTrack - 1)
         for i in self.ids["singerList"].children:
             if i.index == index:
@@ -110,8 +112,12 @@ class MiddleLayer(Widget):
             if i.index > index:
                 i.index = i.index - 1
         self.deletions.append(index)
-        self.audioBuffer.pop(index)
         self.submitRemoveTrack(index)
+        if len(self.trackList) == 0:
+            self.ids["paramList"].clear_widgets()
+            self.ids["adaptiveSpace"].clear_widgets()
+            self.activeTrack = None
+            self.updatePianoRoll()
     def deleteParam(self, index):
         self.trackList[self.activeTrack].paramStack.pop(index)
         if index <= self.activeParam:
@@ -186,6 +192,8 @@ class MiddleLayer(Widget):
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1))
             self.ids["adaptiveSpace"].add_widget(PitchOptns())
             self.changeParam(-1, "vibrato speed")
+    def updatePianoRoll(self):
+        self.ids["pianoRoll"].updateTrack()
     def changeParam(self, index, name):
         if index == -1:
             if name == "steadiness":
@@ -347,6 +355,8 @@ class MiddleLayer(Widget):
             self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + nextLength)
         return result
     def addNote(self, index, x, y, reference):
+        if middleLayer.activeTrack == None:
+            return
         if index == 0:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, 0, 0, reference))
             if len(self.trackList[self.activeTrack].notes) == 1:
@@ -692,6 +702,8 @@ class AdaptiveSpace(AnchorLayout):
     def redraw(self):
         self.children[0].redraw()
     def applyScroll(self, scrollValue):
+        if middleLayer.activeTrack == None:
+            return
         self.children[0].scroll_x = scrollValue
     def triggerScroll(self):
         global middleLayer
@@ -1214,11 +1226,13 @@ class Note(ToggleButton):
     yPos = NumericProperty()
     length = NumericProperty()
     inputMode = BooleanProperty()
-    def on_parent(self, screen, parent):
+    def on_parent(self, note, parent):
+        print("on parent", parent)
         if parent == None:
             return
         self.redraw()
     def redraw(self):
+        print("redraw", self.parent)
         self.pos = (self.xPos * self.parent.parent.xScale, self.yPos * self.parent.parent.yScale)
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
@@ -1310,9 +1324,13 @@ class PianoRoll(ScrollView):
         self.pitchLine = None
         self.basePitchLine = None
         self.generateTimingMarkers()
-    def generate_notes(self, data):
-        for d in data:
-            self.children[0].add_widget(Note(**d))
+    def generate_notes(self):
+        index = 0
+        for i in middleLayer.trackList[middleLayer.activeTrack].notes:
+            note = Note(index = index, xPos = i.xPos, yPos = i.yPos, length = i.length * self.xScale, height = self.yScale, text = i.content, inputMode = i.phonemeMode)
+            self.children[0].add_widget(note)
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].reference = note
+            index += 1
     @mainthread
     def generateTimingMarkers(self):
         t = 0
@@ -1386,6 +1404,34 @@ class PianoRoll(ScrollView):
                 self.children[0].canvas.remove(i)
             del self.timingMarkers[:]
             self.redrawPitch()
+    def updateTrack(self):
+        removes = []
+        for i in self.children[0].children:
+            if i.__class__.__name__ == "Note":
+                removes.append(i)
+        for i in removes:
+            self.children[0].remove_widget(i)
+        if middleLayer.activeTrack == None:
+            for i in self.timingMarkers:
+                self.children[0].canvas.remove(i)
+            del self.timingMarkers[:]
+            if self.pitchLine != None:
+                self.children[0].canvas.remove(self.pitchLine)
+                self.pitchLine = None
+            if self.basePitchLine != None:
+                self.children[0].canvas.remove(self.basePitchLine)
+                self.basePitchLine = None
+            return
+        self.generate_notes()
+        if middleLayer.mode == "timing":
+            with self.children[0].canvas:
+                Color(1, 0, 0)
+                for i in middleLayer.trackList[middleLayer.activeTrack].borders:
+                    self.timingMarkers.append(ObjectProperty())
+                    self.timingMarkers[-1] = Line(points = [self.xScale * i, 0, self.xScale * i, self.children[0].height])
+        if middleLayer.mode == "pitch":
+            self.redrawPitch()
+
     def applyScroll(self, scrollValue):
         self.scroll_x = scrollValue
     def triggerScroll(self):
@@ -1614,8 +1660,12 @@ class SingerSidePanel(ModalView):
         self.voicebanks = []
         self.filepaths = []
         self.selectedIndex = None
-    def listVoicebanks(self):
-        voicePath = os.path.join(readSettings()["dataDir"], "Voices/")
+    def listVoicebanks(self): 
+        voicePath = os.path.join(readSettings()["dataDir"], "Voices")
+        if os.path.isdir(voicePath) == False:
+            popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
+            popup.open()
+            return
         files = os.listdir(voicePath)
         for file in files:
             if file.endswith(".nvvb"):
@@ -1628,7 +1678,6 @@ class SingerSidePanel(ModalView):
             j += 1
     def detailElement(self, index):
         self.ids["singer_name"].text = self.voicebanks[index].name
-        #self.ids["singer_image"].source = self.voicebanks[index].image
         canvas_img = self.voicebanks[index].image
         data = BytesIO()
         canvas_img.save(data, format='png')
@@ -1650,7 +1699,11 @@ class ParamSidePanel(ModalView):
         self.filepaths = []
         self.selectedIndex = None
     def listParams(self):
-        paramPath = os.path.join(readSettings()["dataDir"], "Params/")
+        paramPath = os.path.join(readSettings()["dataDir"], "Parameters")
+        if os.path.isdir(paramPath) == False:
+            popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
+            popup.open()
+            return
         files = os.listdir(paramPath)
         for file in files:
             if file.endswith(".nvpr"):
@@ -1675,9 +1728,17 @@ class ParamSidePanel(ModalView):
 
 class ScriptingSidePanel(ModalView):
     def openDevkit(self):
-        subprocess.Popen("Devkit.exe")
+        try:
+            subprocess.Popen("Devkit.exe")
+        except:
+            popup = Popup(title = "error", content = Label(text = "Devkit not installed"), size_hint = (None, None), size = (400, 400))
+            popup.open()
     def runScript(self):
-        exec(self.ids["scripting_editor"].text)
+        try:
+            exec(self.ids["scripting_editor"].text)
+        except Exception as e:
+            popup = Popup(title = "script error", content = Label(text = repr(e)), size_hint = (None, None), size = (400, 400))
+            popup.open()
     def saveCache(self):
         middleLayer.scriptCache = self.ids["scripting_editor"].text
     def loadCache(self):
@@ -1769,6 +1830,8 @@ class NovaVoxUI(Widget):
     def setMode(self, mode):
         global middleLayer
         middleLayer.mode = mode
+        if middleLayer.activeTrack == None:
+            return
         middleLayer.updateParamPanel()
         middleLayer.changePianoRollMode()
     def setTool(self, tool):
@@ -1780,14 +1843,17 @@ class NovaVoxUI(Widget):
         else:
             middleLayer.play(False)
     def spoolBack(self):
-        if len(middleLayer.trackList[middleLayer.activeTrack].borders) > 0:
-            middleLayer.mainAudioBufferPos = middleLayer.trackList[middleLayer.activeTrack].borders[0]
-            middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[0])
-        else:
+        if middleLayer.activeTrack == None or len(middleLayer.trackList[middleLayer.activeTrack].borders) == 0:
             middleLayer.mainAudioBufferPos = 0
             middleLayer.movePlayhead(0)
+        else:
+            middleLayer.mainAudioBufferPos = middleLayer.trackList[middleLayer.activeTrack].borders[0]
+            middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[0])
+            
     def spoolForward(self):
-        if len(middleLayer.trackList[middleLayer.activeTrack].borders) > 0:
+        if middleLayer.activeTrack == None or len(middleLayer.trackList[middleLayer.activeTrack].borders) == 0:
+            return
+        else:
             middleLayer.mainAudioBufferPos = middleLayer.trackList[middleLayer.activeTrack].borders[-1]
             middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
     def undo(self):

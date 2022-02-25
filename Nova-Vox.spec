@@ -6,7 +6,7 @@ specpath = os.path.dirname(os.path.abspath(SPEC))
 
 common_excludes = ["torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
-common_datas = [("icon/*", "icon"), ("UI/kv/*", "UI/kv"), ("Backend/UtauDefaultPhonemes.ini", "Backend"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList")]
+common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("UI/kv/*", "UI/kv"), ("Backend/UtauDefaultPhonemes.ini", "Backend"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList")]
 
 block_cipher = None
 
@@ -40,10 +40,10 @@ a_devkit = Analysis(['devkit_runtime.py'],
 
 MERGE( (a_editor, 'editor_runtime', 'Nova-Vox Editor'), (a_devkit, 'devkit_runtime', 'Nova-Vox Devkit') )
 
-splash = Splash('icon/splash.png',
+splash = Splash('icon/splash_new.png',
                 binaries=a_editor.binaries,
                 datas=a_editor.datas,
-                text_pos=(248, 167),
+                text_pos=(200, 167),
                 text_size=18,
                 text_color='purple',
                 text_default='loading Bootstrapper...',

@@ -16,13 +16,6 @@
         padding: 10
         spacing: 10
         orientation: "vertical"
-        FileChooserIconView:
-            on_selection: self.parent.parent.ids["file_input"].text = self.selection and self.selection[0]
-        TextInput:
-            id: file_input
-            size_hint_y: None
-            height: 30
-            multiline: False
         Button:
             size_hint_y: None
             height: 30
@@ -45,6 +38,12 @@
             size_hint_y: None
             height: 30
             text: "export"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Button:
+            size_hint_y: None
+            height: 30
+            text: "render"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
 
@@ -139,7 +138,7 @@
             text: "import"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-            on_press: root.importVoicebank(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.voicebanks[self.parent.parent.selectedIndex].name, self.parent.parent.voicebanks[self.parent.parent.selectedIndex].image)
+            on_press: root.importVoicebank(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.voicebanks[self.parent.parent.selectedIndex].name, self.parent.parent.voicebanks[self.parent.parent.selectedIndex].image) if (self.parent.parent.selectedIndex != None) else None
         
 
 <ParamSidePanel>:

@@ -30,7 +30,7 @@ torch.backends.cuda.matmul.allow_tf32 = tcores
 torch.backends.cudnn.allow_tf32 = tcores
 
 if pyi_splash.is_alive():
-    pyi_splash.update_text("loading Nova-Vox Backend libraries...")
+    pyi_splash.update_text("loading Nova-Vox Backend...")
 import global_consts
 from Backend.VB_Components.Voicebank import LiteVoicebank as Voicebank
 from Backend.DataHandler.VocalSequence import VocalSequence
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     from kivy.clock import Clock
     class NovaVoxApp(App):
         def build(self):
-            self.icon = "UI/TopBar/Logo.gif"
+            self.icon = path.join("icon", "nova-vox-logo-2-color.png")
             ui = NovaVoxUI()
             Clock.schedule_interval(ui.update, 0.25)
             return ui
@@ -101,11 +101,17 @@ if __name__ == '__main__':
     if (sys.platform.startswith('win')) == False: 
         mp.set_start_method("spawn")
 
+    from asyncio import get_event_loop
+    loop = get_event_loop()
+
     pyi_splash.close()
     try:
-        NovaVoxApp().run()
-    except:
-        print("An error has occured. Press <Enter> to close this window.")
-        print("")
+        loop.run_until_complete(NovaVoxApp().async_run(async_lib='asyncio'))
+    except Exception as e:
+        print("An error has occured:")
+        print(e)
+        print("Press <Enter> to close this window.")
         input("")
+    finally:
+        loop.close()
     logging.info("exiting program, ending logging service")

@@ -1,12 +1,15 @@
-from os import getenv, path as osPath
+from os import getenv, mkdir, path as osPath
+from shutil import copyfile
 def readSettings(path = None):
     if path == None:
         path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
     settings = {}
+    if osPath.isfile(path) == False:
+        copyfile("settings.ini", path)
     with open(path, 'r') as f:
         for line in f:
             line = line.strip()
-            if line == "" or line.startswith("["):
+            if line == "" or line.startswith("[")or line.startswith(";"):
                 continue
             line = line.split("=")
             settings[line[0].strip()] = line[1].strip()
@@ -32,3 +35,14 @@ def writeSettings(path, lang, accel, tcores, prerender, audioApi, audioDevice, l
         f.write("\n")
         f.write("[dirs]" + "\n")
         f.write("dataDir = " + dataDir + "\n")
+    if dataDir == "None":
+        return
+    voicePath = osPath.join(dataDir, "Voices")
+    if osPath.isdir(voicePath) == False:
+        mkdir(voicePath)
+    paramPath = osPath.join(dataDir, "Parameters")
+    if osPath.isdir(paramPath) == False:
+        mkdir(paramPath)
+    addonPath = osPath.join(dataDir, "Addons")
+    if osPath.isdir(addonPath) == False:
+        mkdir(addonPath)
