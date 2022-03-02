@@ -19,14 +19,14 @@ class Track:
         self.vbPath = path
         self.notes = []
         self.phonemes = []
-        self.pitch = torch.full((1000,), -1., dtype = torch.half)
-        self.basePitch = torch.full((1000,), -1., dtype = torch.half)
-        self.breathiness = torch.full((1000,), 0, dtype = torch.half)
-        self.steadiness = torch.full((1000,), 0, dtype = torch.half)
+        self.pitch = torch.full((5000,), -1., dtype = torch.half)
+        self.basePitch = torch.full((5000,), -1., dtype = torch.half)
+        self.breathiness = torch.full((5000,), 0, dtype = torch.half)
+        self.steadiness = torch.full((5000,), 0, dtype = torch.half)
         self.loopOverlap = torch.tensor([], dtype = torch.half)
         self.loopOffset = torch.tensor([], dtype = torch.half)
-        self.vibratoSpeed = torch.full((1000,), 0, dtype = torch.half)
-        self.vibratoStrength = torch.full((1000,), 0, dtype = torch.half)
+        self.vibratoSpeed = torch.full((5000,), 0, dtype = torch.half)
+        self.vibratoStrength = torch.full((5000,), 0, dtype = torch.half)
         self.usePitch = False
         self.useBreathiness = False
         self.useSteadiness = False
@@ -34,7 +34,7 @@ class Track:
         self.useVibratoStrength = False
         self.paramStack = []
         self.borders = [0, 1, 2]
-        self.length = 1000
+        self.length = 5000
     def generateCaps(self):
         noneList = []
         for i in self.phonemes:
@@ -43,7 +43,6 @@ class Track:
     def to_sequence(self):
         caps = self.generateCaps()
         pitch = torch.full_like(self.pitch, global_consts.sampleRate) / (torch.pow(2, (self.pitch - torch.full_like(self.pitch, 69)) / torch.full_like(self.pitch, 12)) * 440)
-        #pitch = torch.pow(2, (self.pitch - 69) / 12) * 440
         return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness)
 
 class Note:
@@ -53,7 +52,7 @@ class Note:
         self.length = 100
         self.xPos = xPos
         self.yPos = yPos
-        self.phonemeMode = False
+        self.phonemeMode = True
         self.content = ""
         self.phonemeStart = start
         self.phonemeEnd = end

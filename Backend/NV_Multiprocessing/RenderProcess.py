@@ -17,26 +17,18 @@ import matplotlib.pyplot as plt
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection):
     def posToSegment(index, pos1, pos2):
         pos1Out = None
-        pos2Out = int(len(inputList[index].borders) / 3) - 1
-        firstBorder = False
         for i in range(int(len(inputList[index].borders) / 3)):
-            if inputList[index].borders[3 * i] > pos1 and firstBorder == False:
-                if i > 0:
-                    if inputList[index].borders[3 * i - 1] > pos1:
-                        pos1Out = max(i - 2, 0)
-                    else:
-                        pos1Out = i - 1
-                else:
-                    pos1Out = 0
-                firstBorder = True
-            if inputList[index].borders[3 * i + 2] > pos2 and firstBorder == True:
-                if inputList[index].borders[3 * i] > pos2:
-                    pos2Out = min(i, int(len(inputList[index].borders) / 3) - 1)
-                else:
-                    pos2Out = min(i + 1, int(len(inputList[index].borders) / 3) - 1)
+            if inputList[index].borders[3 * i + 2] > pos1:
+                pos1Out = max(i - 1, 0)
                 break
-        if pos1Out == None:
+        if pos1Out == None or pos1Out == int(len(inputList[index].borders) / 3) - 1:
+            print("positions: out of scope")
             return (0, 0)
+        pos2Out = int(len(inputList[index].borders) / 3) - 1
+        for i in range(pos1Out, int(len(inputList[index].borders) / 3)):
+            if inputList[index].borders[3 * i] > pos2:
+                pos2Out = max(i, 0)
+                break
         print("positions:", pos1Out, pos2Out)
         return (pos1Out, pos2Out)
     def trimSequence(index, position, delta):
@@ -76,7 +68,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                     endCaps[-1] = True
             internalStatusControl.rs = torch.cat([internalStatusControl.rs[0:position], internalStatusControl.rs[position - delta:]], 0)
             internalStatusControl.ai = torch.cat([internalStatusControl.ai[0:position], internalStatusControl.ai[position - delta:]], 0)
-        print(phonemes, offsets, repetititionSpacing, borders, startCaps, endCaps)
         inputList[index].phonemes = phonemes
         inputList[index].offsets = offsets
         inputList[index].repetititionSpacing = repetititionSpacing
@@ -86,7 +77,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
 
     def updateFromMain():
         change = connection.recv()
-        print(change.type, change.data1, change.data2, change.data3, change.data4, change.data5)
+        print("change", change.type, change.data2, change.final)
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
@@ -200,8 +191,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             nextSpectrum = None
             nextExcitation = None
             nextVoicedExcitation = None
-
-            startPoint = None
             
             aiActive = False
             #reverse iterator to set internalStatusControl.ai based on internalStatusControl.rs
@@ -250,9 +239,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             nextVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
 
                         connection.send(StatusChange(i, j, 1))
-
-                        if startPoint == None:
-                            startPoint = internalInputs.borders[3 * j]*global_consts.batchSize
 
                         logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
                         voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = currentVoicedExcitation
@@ -318,10 +304,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         waveform = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize).to(device = torch.device("cpu"))
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                         waveform += excitationSignal.to(device = torch.device("cpu"))
-                        
-                        if startPoint != None:
-                            waveform = waveform[startPoint:]
-                            connection.send(StatusChange(i, startPoint, waveform.detach(), True))
+                        connection.send(StatusChange(i, 0, waveform.detach(), True))
                         connection.send(StatusChange(i, j - 1, 5))
                         if internalInputs.endCaps[j - 1] == True:
                             aiActive = False

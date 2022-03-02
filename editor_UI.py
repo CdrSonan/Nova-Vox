@@ -25,7 +25,7 @@ from kivy.uix.popup import Popup
 from tkinter import Tk, filedialog
 
 from io import BytesIO
-from copy import copy
+from copy import copy, deepcopy
 
 from kivy.clock import mainthread
 
@@ -35,6 +35,7 @@ import subprocess
 import math
 
 import sounddevice
+import soundfile
 
 from Backend.Param_Components.AiParams import AiParamStack
 import global_consts
@@ -58,7 +59,7 @@ class MiddleLayer(Widget):
         self.shift = False
         self.scrollValue = 0.
         self.audioBuffer = []
-        self.mainAudioBuffer = torch.zeros([5000 * global_consts.batchSize,])
+        #self.mainAudioBuffer = torch.zeros([5000 * global_consts.batchSize,])
         self.mainAudioBufferPos = 0
         self.deletions = []
         self.playing = False
@@ -92,17 +93,41 @@ class MiddleLayer(Widget):
         self.updateParamPanel()
         self.updatePianoRoll()
     def copyTrack(self, index, name, inImage):
-        self.trackList.append(self.trackList[index])
-        self.audioBuffer.append(self.audioBuffer[index])
-        self.updateMainAudioBuffer()
+        reference = self.trackList[index]
+        self.trackList.append(dh.Track(reference.vbPath))
+        self.trackList[-1].volume = copy(reference.volume)
+        for i in reference.notes:
+            self.trackList[-1].notes.append(dh.Note(i.xPos, i.yPos, i.phonemeStart, i.phonemeEnd))
+            self.trackList[-1].notes[-1].length = copy(i.length)
+            self.trackList[-1].notes[-1].phonemeMode = copy(i.phonemeMode)
+            self.trackList[-1].notes[-1].content = copy(i.content)
+        self.trackList[-1].phonemes = deepcopy(reference.phonemes)
+        self.trackList[-1].pitch = reference.pitch.clone()
+        self.trackList[-1].basePitch = reference.basePitch.clone()
+        self.trackList[-1].breathiness = reference.breathiness.clone()
+        self.trackList[-1].steadiness = reference.steadiness.clone()
+        self.trackList[-1].loopOverlap = reference.loopOverlap.clone()
+        self.trackList[-1].loopOffset = reference.loopOffset.clone()
+        self.trackList[-1].vibratoSpeed = reference.vibratoSpeed.clone()
+        self.trackList[-1].vibratoStrength = reference.vibratoStrength.clone()
+        self.trackList[-1].usePitch = copy(reference.usePitch)
+        self.trackList[-1].useBreathiness = copy(reference.useBreathiness)
+        self.trackList[-1].useSteadiness = copy(reference.useSteadiness)
+        self.trackList[-1].useVibratoSpeed = copy(reference.useVibratoSpeed)
+        self.trackList[-1].useVibratoStrength = copy(reference.useVibratoStrength)
+        self.trackList[-1].paramStack = []#replace once paramStack is fully implemented
+        self.trackList[-1].borders = deepcopy(reference.borders)
+        self.trackList[-1].length = copy(reference.length)
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
-        self.submitDuplicateTrack(index)
+        self.audioBuffer.append(deepcopy(self.audioBuffer[index]))
         aiParamStackList.append(AiParamStack([]))
+        #self.updateMainAudioBuffer()
+        self.submitDuplicateTrack(index)
     def deleteTrack(self, index):
         self.trackList.pop(index)
         self.audioBuffer.pop(index)
-        self.updateMainAudioBuffer()
+        #self.updateMainAudioBuffer()
         aiParamStackList.pop(index)
         if index <= self.activeTrack and index > 0:
             self.changeTrack(self.activeTrack - 1)
@@ -326,7 +351,7 @@ class MiddleLayer(Widget):
             self.repairBorders(3 * i + 2)
             self.repairBorders(3 * i + 1)
             self.repairBorders(3 * i)
-        self.submitNamedPhonParamChange(True, "borders", 3 * self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * iterationEnd + 2])
+        self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * iterationEnd + 2])
     def adjustNote(self, index, oldLength, oldPos):
         result = None
         nextLength = oldLength
@@ -372,7 +397,6 @@ class MiddleLayer(Widget):
             self.repairBorders(3 * len(self.trackList[self.activeTrack].phonemes) + 2)
             self.repairBorders(3 * len(self.trackList[self.activeTrack].phonemes) + 1)
             self.repairBorders(3 * len(self.trackList[self.activeTrack].phonemes))
-            self.submitNamedPhonParamChange(False, "borders", 3 * len(self.trackList[self.activeTrack].phonemes), [x + 33, x + 66, x + 100])
         else:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart, reference))
         self.adjustNote(index, 100, x)
@@ -386,13 +410,12 @@ class MiddleLayer(Widget):
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
         for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
-            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
-            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
-            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
+            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
+            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
             self.repairBorders(3 * i + 2)
             self.repairBorders(3 * i + 1)
             self.repairBorders(3 * i)
-            self.submitNamedPhonParamChange(False, "borders", 3 * i, self.trackList[self.activeTrack].borders[3 * i:3 * i + 3])
         oldLength = self.trackList[self.activeTrack].notes[index].length
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
@@ -406,13 +429,12 @@ class MiddleLayer(Widget):
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
         for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
-            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
-            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
-            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
+            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
+            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
             self.repairBorders(3 * i + 2)
             self.repairBorders(3 * i + 1)
             self.repairBorders(3 * i)
-            self.submitNamedPhonParamChange(False, "borders", 3 * i, self.trackList[self.activeTrack].borders[3 * i:3 * i + 3])
         oldLength = self.trackList[self.activeTrack].notes[index].length
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
@@ -421,9 +443,9 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].xPos = x
         self.trackList[self.activeTrack].notes[index].yPos = y
         return self.adjustNote(index, oldLength, oldPos)
-    def changeLyrics(self, index, text, mode):
+    def changeLyrics(self, index, text):
         self.trackList[self.activeTrack].notes[index].content = text
-        if mode:
+        if self.trackList[self.activeTrack].notes[index].phonemeMode:
             text = text.split(" ")
         else:
             text = ""#TO DO: Dictionary lookup here
@@ -522,28 +544,34 @@ class MiddleLayer(Widget):
                 return None
             elif i < track:
                 track -= 1
+    def updateVolume(self, index, volume):
+        self.trackList[index].volume = volume
     def updateAudioBuffer(self, track, index, data):
+        print("sum", torch.sum(torch.abs(data)))
         for i in self.deletions:
             if i == track:
                 return None
             elif i < track:
                 track -= 1
+        self.audioBuffer[track] *= 0
         self.audioBuffer[track][index:index + len(data)] = data
-        self.updateMainAudioBuffer(index, index + len(data))
-    def updateMainAudioBuffer(self, start = 0, end = None):
-        for i in range(len(self.audioBuffer)):
-            if end == None:
+        #self.updateMainAudioBuffer(index, index + len(data))
+    """def updateMainAudioBuffer(self, start = 0, end = None):
+        if end == None:
+            self.mainAudioBuffer *= 0
+            for i in range(len(self.audioBuffer)):
                 data = self.audioBuffer[i]
-                self.mainAudioBuffer *= 0
                 length = data.size()[0]
                 self.mainAudioBuffer[start:length] += data
-            else:
+        else:
+            #self.mainAudioBuffer[start:end] *= 0
+            self.mainAudioBuffer *= 0
+            for i in range(len(self.audioBuffer)):
                 data = self.audioBuffer[i][start:end]
-                self.mainAudioBuffer[start:end] *= 0
                 length = data.size()[0]
                 if (end - start) > length:
                     data = torch.cat([data, torch.zeros([length - end + start])], dim = 0)
-                self.mainAudioBuffer[start:end] += data
+                self.mainAudioBuffer[start:end] += data"""
     def movePlayhead(self, position):
         self.ids["pianoRoll"].changePlaybackPos(position)
     def play(self, state = None):
@@ -559,7 +587,15 @@ class MiddleLayer(Widget):
     def playCallback(self, outdata, frames, time, status):
         if self.playing:
             newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
-            buffer = self.mainAudioBuffer[self.mainAudioBufferPos:newBufferPos].expand(2, -1).transpose(0, 1).numpy()
+            mainAudioBuffer = torch.zeros([newBufferPos - self.mainAudioBufferPos],)
+            volumes = []
+            for i in range(len(self.audioBuffer)):
+                buffer = self.audioBuffer[i][self.mainAudioBufferPos:newBufferPos] * self.trackList[i].volume
+                mainAudioBuffer += buffer
+                volumes.append(buffer.abs().max())
+            for i in self.ids["singerList"].children:
+                i.children[0].children[0].children[0].children[0].value = volumes[i.index]
+            buffer = mainAudioBuffer.expand(2, -1).transpose(0, 1).numpy()
             self.mainAudioBufferPos = newBufferPos
             self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
         else:
@@ -593,7 +629,7 @@ class MiddleLayer(Widget):
             if self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length < transitionPoint1:
                 transitionLength2 += transitionPoint2 - self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index].length
                 transitionPoint2 = (transitionPoint2 + self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length) / 2
-        scalingFactor = min(self.trackList[self.activeTrack].notes[index].length / 2, 1.)
+        scalingFactor = min(self.trackList[self.activeTrack].notes[index].length / 2 / dipWidth, 1.)
         dipWidth *= scalingFactor
         dipHeight *= scalingFactor
         start = int(transitionPoint1 - math.ceil(transitionLength1 / 2))
@@ -603,16 +639,17 @@ class MiddleLayer(Widget):
         if previousHeight == None:
             start =  self.trackList[self.activeTrack].notes[index].xPos
         if nextHeight == None:
-            end = self.trackList[self.activeTrack].notes[index].xPos + transitionPoint1 + self.trackList[self.activeTrack].notes[index].length
+            end = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
         pitchDelta = (self.trackList[self.activeTrack].pitch[start:end] - self.trackList[self.activeTrack].basePitch[start:end]) * torch.heaviside(self.trackList[self.activeTrack].basePitch[start:end], torch.ones_like(self.trackList[self.activeTrack].basePitch[start:end]))
         self.trackList[self.activeTrack].basePitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
+        self.trackList[self.activeTrack].pitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
         self.trackList[self.activeTrack].basePitch[start:end] = torch.full_like(self.trackList[self.activeTrack].basePitch[start:end], currentHeight)
         if previousHeight != None:
             self.trackList[self.activeTrack].basePitch[transitionPoint1 - math.ceil(transitionLength1 / 2):transitionPoint1 + math.ceil(transitionLength1 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * math.ceil(transitionLength1 / 2))), 2) * (previousHeight - currentHeight) + torch.full([2 * math.ceil(transitionLength1 / 2),], currentHeight)
         if nextHeight != None:
             self.trackList[self.activeTrack].basePitch[transitionPoint2 - math.ceil(transitionLength2 / 2):transitionPoint2 + math.ceil(transitionLength2 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * math.ceil(transitionLength2 / 2))), 2) * (currentHeight - nextHeight) + torch.full([2 * math.ceil(transitionLength2 / 2),], nextHeight)
         self.trackList[self.activeTrack].basePitch[self.trackList[self.activeTrack].notes[index].xPos:self.trackList[self.activeTrack].notes[index].xPos + int(dipWidth)] -= torch.pow(torch.sin(torch.linspace(0, math.pi, int(dipWidth))), 2) * dipHeight
-        self.trackList[self.activeTrack].pitch[start:end] = self.trackList[self.activeTrack].basePitch[start:end] + torch.heaviside(self.trackList[self.activeTrack].pitch[start:end], torch.ones_like(self.trackList[self.activeTrack].pitch[start:end])) * pitchDelta
+        self.trackList[self.activeTrack].pitch[start:end] = self.trackList[self.activeTrack].basePitch[start:end] + torch.heaviside(self.trackList[self.activeTrack].basePitch[start:end], torch.ones_like(self.trackList[self.activeTrack].basePitch[start:end])) * pitchDelta
         self.applyPitchChanges(self.trackList[self.activeTrack].pitch[start:end], start)
 class ImageButton(ButtonBehavior, Image):
     imageNormal = StringProperty()
@@ -656,6 +693,9 @@ class SingerPanel(AnchorLayout):
     def deleteTrack(self):
         global middleLayer
         middleLayer.deleteTrack(self.index)
+    def updateVolume(self, volume):
+        global middleLayer
+        middleLayer.updateVolume(self.index, volume)
 
 class ParamPanel(ToggleButton):
     def __init__(self, name, switchable, sortable, deletable, index, **kwargs):
@@ -681,6 +721,11 @@ class ParamPanel(ToggleButton):
             self.add_widget(ImageButton(size_hint = (None, None), size = (40, 30), pos = (self.x + 33, self.y + 3), imageNormal = "UI/assets/ParamList/Adaptive03.png", imagePressed = "UI/assets/ParamList/Adaptive03_clicked.png", on_release = self.moveParam))
         if self.deletable:
             self.add_widget(ImageButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 73, self.y + 3), imageNormal = "UI/assets/TrackList/SingerGrey03.png", imagePressed = "UI/assets/TrackList/SingerGrey03_clicked.png", on_press = self.deleteParam))
+    def on_width(self, widget, width):
+        for i in self.children:
+            if i.__class__.__name__ == "Label":
+                i.width = self.width - 106
+                i.x = self.x + 103
     def enableParam(self):
         global middleLayer
         if self.state == "down":
@@ -711,8 +756,8 @@ class AdaptiveSpace(AnchorLayout):
         middleLayer.applyScroll()
 
 class ParamCurve(ScrollView):
-    xScale = NumericProperty(10)
-    seqLength = NumericProperty(1000)
+    xScale = NumericProperty(1)
+    seqLength = NumericProperty(5000)
     line = ObjectProperty()
     line = Line()
     def redraw(self):
@@ -851,7 +896,7 @@ class ParamCurve(ScrollView):
 
 class TimingOptns(ScrollView):
     xScale = NumericProperty(1)
-    seqLength = NumericProperty(1000)
+    seqLength = NumericProperty(5000)
     points1 = ListProperty()
     points2 = ListProperty()
     rectangles1 = ListProperty()
@@ -1055,7 +1100,7 @@ class TimingOptns(ScrollView):
             return super(TimingOptns, self).on_touch_up(touch)
 class PitchOptns(ScrollView):
     xScale = NumericProperty(1)
-    seqLength = NumericProperty(1000)
+    seqLength = NumericProperty(5000)
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.line1 = ObjectProperty()
@@ -1227,12 +1272,10 @@ class Note(ToggleButton):
     length = NumericProperty()
     inputMode = BooleanProperty()
     def on_parent(self, note, parent):
-        print("on parent", parent)
         if parent == None:
             return
         self.redraw()
     def redraw(self):
-        print("redraw", self.parent)
         self.pos = (self.xPos * self.parent.parent.xScale, self.yPos * self.parent.parent.yScale)
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
@@ -1273,6 +1316,8 @@ class Note(ToggleButton):
             self.add_widget(NoteProperties(reference = self))
     def changeInputMode(self):
         self.inputMode = not self.inputMode
+        middleLayer.trackList[middleLayer.activeTrack].notes[self.index].phonemeMode = self.inputMode
+        middleLayer.changeLyrics(self.index, self.children[1].text)
     def delete(self):
         middleLayer.removeNote(self.index)
         for i in self.parent.children:
@@ -1282,7 +1327,7 @@ class Note(ToggleButton):
         self.parent.remove_widget(self)
     def changeLyrics(self, text, focus = False):
         if focus == False:
-            middleLayer.changeLyrics(self.index, text, self.inputMode)
+            middleLayer.changeLyrics(self.index, text)
 
 class PianoRollOctave(FloatLayout):
     pass
@@ -1327,7 +1372,8 @@ class PianoRoll(ScrollView):
     def generate_notes(self):
         index = 0
         for i in middleLayer.trackList[middleLayer.activeTrack].notes:
-            note = Note(index = index, xPos = i.xPos, yPos = i.yPos, length = i.length * self.xScale, height = self.yScale, text = i.content, inputMode = i.phonemeMode)
+            note = Note(index = index, xPos = i.xPos, yPos = i.yPos, length = i.length * self.xScale, height = self.yScale, inputMode = i.phonemeMode)
+            note.children[0].text = i.content
             self.children[0].add_widget(note)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].reference = note
             index += 1
@@ -1468,6 +1514,8 @@ class PianoRoll(ScrollView):
                     middleLayer.mainAudioBufferPos = x * global_consts.batchSize
                     middleLayer.movePlayhead(x)
                     return True
+                if middleLayer.activeTrack == None:
+                    return True
                 if middleLayer.mode == "notes":
                     index = 0
                     for i in self.children[0].children:
@@ -1513,6 +1561,8 @@ class PianoRoll(ScrollView):
             return super().on_touch_move(touch)
         if self.collide_point(*touch.pos) == False or touch.ud['param']:
             return False
+        if middleLayer.activeTrack == None:
+            return
         coord = self.to_local(touch.x, touch.y)
         x = int(coord[0] / self.xScale)
         y = int(coord[1] / self.yScale)
@@ -1577,11 +1627,8 @@ class PianoRoll(ScrollView):
                 elif p < int(len(touch.ud['line'].points) / 2):
                     points = touch.ud['line'].points
                     if x >= touch.ud['lastPoint']:
-                        print("if")
-                        print(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p)
                         domain = range(int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]), p + 1)
                     else:
-                        print("else")
                         domain = range(p, int(touch.ud['lastPoint']) - int(touch.ud['startPoint'][0]))
                     for i in domain:
                         points[2 * i + 1] = yMod
@@ -1652,7 +1699,30 @@ class ListElement(Button):
     index = NumericProperty()
 
 class FileSidePanel(ModalView):
-    pass
+    def openRenderPopup(self):
+        FileRenderPopup().open()
+
+class FileRenderPopup(Popup):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.final = False
+        self.format = ".wav"
+        self.bitdepth = 24
+        self.sampleRate = 48000
+    def reloadBitdepths(self, format):
+        return soundfile.available_subtypes(format).keys
+    def finalisingClose(self):
+        self.final = True
+        self.dismiss()
+    def on_dismiss(self):
+        if self.final == False:
+            return False
+        tkui = Tk()
+        tkui.withdraw()
+        newDir = filedialog.askdirectory()
+        tkui.destroy()
+        if newDir == "":
+            return True
 
 class SingerSidePanel(ModalView):
     def __init__(self, **kwargs):

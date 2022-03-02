@@ -75,6 +75,7 @@ if __name__ == '__main__':
     from kivy.core.window import Window
     from kivy.lang import Builder
     from kivy.clock import Clock
+    from kivy.config import Config
     class NovaVoxApp(App):
         def build(self):
             self.icon = path.join("icon", "nova-vox-logo-2-color.png")
@@ -84,6 +85,10 @@ if __name__ == '__main__':
     from editor_UI import NovaVoxUI
     Window.minimum_height = 500
     Window.minimum_width = 800
+    Config.set('graphics', 'width', '1900')
+    Config.set('graphics', 'height', '1060')
+    Config.set('graphics', 'window_state', 'maximized')
+    Config.write()
 
     Builder.load_file("UI/kv/ImageButton.kv")
     Builder.load_file("UI/kv/SingerPanel.kv")

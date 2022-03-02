@@ -1,5 +1,7 @@
 #:kivy 2.0.0
 
+#:import soundfile soundfile
+
 <ListElement>:
     size_hint_y: None
     height: 30
@@ -40,6 +42,72 @@
             text: "export"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Button:
+            size_hint_y: None
+            height: 30
+            text: "render"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            on_press: self.parent.parent.openRenderPopup()
+
+<FileRenderPopup>:
+    size_hint: (None, None)
+    size: (400, 400)
+    title: "render settings"
+    BoxLayout:
+        padding: 10
+        spacing: 10
+        orientation: "vertical"
+        GridLayout:
+            rows: 3
+            orientation: "tb-lr"
+            padding: 10
+            spacing: 10
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "format:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "bitdepth:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "sample rate:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Spinner:
+                sync_height: True
+                text_autoupdate: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                size_hint_y: None
+                height: 30
+                option_cls: Factory.get("BackdropOptn")
+                values: soundfile.available_formats().keys()
+            Spinner:
+                sync_height: True
+                text_autoupdate: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                size_hint_y: None
+                height: 30
+                option_cls: Factory.get("BackdropOptn")
+                values: soundfile.available_subtypes().keys()
+            Spinner:
+                sync_height: True
+                text_autoupdate: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                size_hint_y: None
+                height: 30
+                option_cls: Factory.get("BackdropOptn")
+                values: ["44100", "48000", "96000", "192000"]
         Button:
             size_hint_y: None
             height: 30

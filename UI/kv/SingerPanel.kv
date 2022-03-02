@@ -42,9 +42,14 @@
                     imagePressed: "UI/assets/TrackList/SingerGrey03_clicked.png"
                     on_press: self.parent.parent.parent.parent.deleteTrack()
             Slider:
+                min: 0
+                max: 1.2
+                value: 1.
+                on_value: self.parent.parent.parent.updateVolume(self.value)
             AnchorLayout:
                 anchor_x: "center"
                 anchor_y: "center"
                 ProgressBar:
                     size_hint_x: None
                     width: self.parent.width - 30
+                    max: 1.
