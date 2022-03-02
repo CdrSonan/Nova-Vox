@@ -103,7 +103,7 @@ if __name__ == '__main__':
     logging.info("starting render manager")
     if pyi_splash.is_alive():
         pyi_splash.update_text("starting renderer subprocess")
-    if (sys.platform.startswith('win')) == False: 
+    if (sys.platform.startswith('win')) == False:
         mp.set_start_method("spawn")
 
     from asyncio import get_event_loop

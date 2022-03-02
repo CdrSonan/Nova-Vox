@@ -122,12 +122,10 @@ class MiddleLayer(Widget):
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.audioBuffer.append(deepcopy(self.audioBuffer[index]))
         aiParamStackList.append(AiParamStack([]))
-        #self.updateMainAudioBuffer()
         self.submitDuplicateTrack(index)
     def deleteTrack(self, index):
         self.trackList.pop(index)
         self.audioBuffer.pop(index)
-        #self.updateMainAudioBuffer()
         aiParamStackList.pop(index)
         if index <= self.activeTrack and index > 0:
             self.changeTrack(self.activeTrack - 1)
@@ -547,7 +545,6 @@ class MiddleLayer(Widget):
     def updateVolume(self, index, volume):
         self.trackList[index].volume = volume
     def updateAudioBuffer(self, track, index, data):
-        print("sum", torch.sum(torch.abs(data)))
         for i in self.deletions:
             if i == track:
                 return None
@@ -556,22 +553,6 @@ class MiddleLayer(Widget):
         self.audioBuffer[track] *= 0
         self.audioBuffer[track][index:index + len(data)] = data
         #self.updateMainAudioBuffer(index, index + len(data))
-    """def updateMainAudioBuffer(self, start = 0, end = None):
-        if end == None:
-            self.mainAudioBuffer *= 0
-            for i in range(len(self.audioBuffer)):
-                data = self.audioBuffer[i]
-                length = data.size()[0]
-                self.mainAudioBuffer[start:length] += data
-        else:
-            #self.mainAudioBuffer[start:end] *= 0
-            self.mainAudioBuffer *= 0
-            for i in range(len(self.audioBuffer)):
-                data = self.audioBuffer[i][start:end]
-                length = data.size()[0]
-                if (end - start) > length:
-                    data = torch.cat([data, torch.zeros([length - end + start])], dim = 0)
-                self.mainAudioBuffer[start:end] += data"""
     def movePlayhead(self, position):
         self.ids["pianoRoll"].changePlaybackPos(position)
     def play(self, state = None):
@@ -1706,11 +1687,21 @@ class FileRenderPopup(Popup):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.final = False
-        self.format = ".wav"
-        self.bitdepth = 24
-        self.sampleRate = 48000
+        self.format = "WAV"
+        self.bitdepth = "PCM_24"
+        self.sampleRate = "48000"
     def reloadBitdepths(self, format):
-        return soundfile.available_subtypes(format).keys
+        self.children[0].children[0].children[0].children[1].children[1].values = soundfile.available_subtypes(format).keys()
+        self.children[0].children[0].children[0].children[1].children[1].text = self.children[0].children[0].children[0].children[1].children[1].values[0]
+        self.format = format
+    def render(self, path):
+        global middleLayer
+        data = torch.zeros_like(middleLayer.audioBuffer[0])
+        for i in range(len(middleLayer.audioBuffer)):
+            data += middleLayer.audioBuffer[i] * middleLayer.trackList[i].volume
+            data = data.numpy()
+        with soundfile.SoundFile(path, "w", int(self.sampleRate), 1, self.bitdepth, None, self.format) as file:
+            file.write(data)
     def finalisingClose(self):
         self.final = True
         self.dismiss()
@@ -1719,10 +1710,13 @@ class FileRenderPopup(Popup):
             return False
         tkui = Tk()
         tkui.withdraw()
-        newDir = filedialog.askdirectory()
+        dir = filedialog.asksaveasfilename(filetypes = ((self.format, self.format.lower()), ("all files", "*")))
         tkui.destroy()
-        if newDir == "":
+        if dir == "":
+            self.final = False
             return True
+        self.render(dir + "." + self.format.lower())
+        return False
 
 class SingerSidePanel(ModalView):
     def __init__(self, **kwargs):

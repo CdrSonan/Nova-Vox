@@ -90,6 +90,8 @@
                 height: 30
                 option_cls: Factory.get("BackdropOptn")
                 values: soundfile.available_formats().keys()
+                text: "WAV"
+                on_text: self.parent.parent.parent.parent.parent.reloadBitdepths(self.text)
             Spinner:
                 sync_height: True
                 text_autoupdate: True
@@ -98,7 +100,9 @@
                 size_hint_y: None
                 height: 30
                 option_cls: Factory.get("BackdropOptn")
-                values: soundfile.available_subtypes().keys()
+                values: soundfile.available_subtypes("WAV").keys()
+                text: "PCM_24"
+                on_text: self.parent.parent.parent.parent.parent.bitdepth = self.text
             Spinner:
                 sync_height: True
                 text_autoupdate: True
@@ -108,12 +112,15 @@
                 height: 30
                 option_cls: Factory.get("BackdropOptn")
                 values: ["44100", "48000", "96000", "192000"]
+                text: "48000"
+                on_text: self.parent.parent.parent.parent.parent.sampleRate = self.text
         Button:
             size_hint_y: None
             height: 30
             text: "render"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            on_press: self.parent.parent.parent.parent.finalisingClose()
 
 <SingerSidePanel>:
     size_hint: (0.4, 1 - (50 / root.height))
