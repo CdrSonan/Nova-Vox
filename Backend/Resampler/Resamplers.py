@@ -9,6 +9,8 @@ import Backend.Resampler.CubicSplineInter as CubicSplineInter
 interpolate = CubicSplineInter.interp
 
 def getSpectrum(vocalSegment, device):
+    if vocalSegment.phonemeKey == "_autopause":
+        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
     offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)
     if vocalSegment.startCap:
         windowStart = offset
@@ -20,10 +22,11 @@ def getSpectrum(vocalSegment, device):
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + offset
     spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectrum.to(device = device)
     spectra = Loop.loopSamplerSpectrum(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
-        
     return spectrum + (torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2) * spectra)
     
 def getExcitation(vocalSegment, device):
+    if vocalSegment.phonemeKey == "_autopause":
+        return torch.zeros([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1])
     premul = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].excitation.size()[0] / (vocalSegment.end3 - vocalSegment.start1 + 1)
     if vocalSegment.startCap:
         windowStart = 0
@@ -50,6 +53,8 @@ def getExcitation(vocalSegment, device):
     return excitation.transpose(0, 1)
     
 def getVoicedExcitation(vocalSegment, device):
+    if vocalSegment.phonemeKey == "_autopause":
+        return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,])
     offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)
     nativePitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch.to(device = device)
     requiredSize = math.ceil(torch.max(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas) / torch.min(vocalSegment.pitch) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize)
@@ -93,4 +98,5 @@ def getVoicedExcitation(vocalSegment, device):
         slope = torch.linspace(1, 0, (vocalSegment.end3 - vocalSegment.end1) * global_consts.batchSize, device = device)
         slope = torch.pow(slope, factor)
         voicedExcitation[(vocalSegment.end1 - vocalSegment.start1) * global_consts.batchSize:(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize] *= slope
+    print(voicedExcitation.size(), "size")
     return voicedExcitation[0:(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize]
