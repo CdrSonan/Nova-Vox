@@ -22,14 +22,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 pos1Out = max(i - 1, 0)
                 break
         if pos1Out == None or pos1Out == int(len(inputList[index].borders) / 3) - 1:
-            print("positions: out of scope")
             return (0, 0)
         pos2Out = int(len(inputList[index].borders) / 3) - 1
         for i in range(pos1Out, int(len(inputList[index].borders) / 3)):
             if inputList[index].borders[3 * i] > pos2:
                 pos2Out = max(i, 0)
                 break
-        print("positions:", pos1Out, pos2Out)
         return (pos1Out, pos2Out)
     def trimSequence(index, position, delta):
         phonemes = inputList[index].phonemes
@@ -39,7 +37,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         startCaps = inputList[index].startCaps
         endCaps = inputList[index].endCaps
         if delta > 0:
-            phonemes = phonemes[0:position] + [0] * delta + phonemes[position:]
+            phonemes = phonemes[0:position] + ["X"] * delta + phonemes[position:]
             offsets = torch.cat([offsets[0:position], torch.zeros([delta,]), offsets[position:]], 0)
             repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.full([delta,], 0.5), repetititionSpacing[position:]], 0)
             borders = borders[0:3 * position] + [0] * (3 * delta) + borders[3 * position:]
@@ -272,14 +270,15 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         connection.send(StatusChange(i, j, 2))
                         
                         logging.info("applying partial pitch shift to spectrum of sample " + str(j) + ", sequence " + str(i))
-                        for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
-                            pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
-                            fourierPitchShift = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch) - pitchBorder
-                            shiftedSpectrum = torch.roll(spectrum[k], fourierPitchShift)
-                            slope = torch.zeros(global_consts.halfTripleBatchSize + 1, device = device_rs)
-                            slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
-                            slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
-                            spectrum[k] = (slope * spectrum[k]) + ((1 - slope) * shiftedSpectrum)
+                        if internalInputs.phonemes[j] != "_autopause":
+                            for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
+                                pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
+                                fourierPitchShift = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch) - pitchBorder
+                                shiftedSpectrum = torch.roll(spectrum[k], fourierPitchShift)
+                                slope = torch.zeros(global_consts.halfTripleBatchSize + 1, device = device_rs)
+                                slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
+                                slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
+                                spectrum[k] = (slope * spectrum[k]) + ((1 - slope) * shiftedSpectrum)
                         
                         internalStatusControl.ai[j] = 0
                         internalStatusControl.rs[j] = 1

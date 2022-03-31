@@ -302,26 +302,32 @@ class MiddleLayer(Widget):
             iterationEnd += 1
         iterationStart = self.trackList[self.activeTrack].notes[index].phonemeStart
         if (pause == False) and (autopause == False):
+            print("opt 1")
             pass
         elif (pause == False) and (autopause == True):
+            print("opt 2")
             iterationStart += 1
         elif (pause == True) and (autopause == False):
+            print("opt 3")
             if offset < 0:
                 pass
             elif offset >= 0:
                 iterationStart += 1
                 #insert autopause phoneme
                 phonemeStart = self.trackList[self.activeTrack].notes[index].phonemeStart
+                print("phonemeStart", phonemeStart)
                 preStart = self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length
-                self.trackList[self.activeTrack].borders[phonemeStart] = preStart
-                self.trackList[self.activeTrack].borders[phonemeStart + 1] = preStart + self.trackList[self.activeTrack].pauseThreshold * 0.1
-                self.trackList[self.activeTrack].borders[phonemeStart + 2] = preStart + self.trackList[self.activeTrack].pauseThreshold * 0.2
+                self.trackList[self.activeTrack].borders[3 * phonemeStart] = preStart
+                self.trackList[self.activeTrack].borders[3 * phonemeStart + 1] = preStart + self.trackList[self.activeTrack].pauseThreshold * 0.1
+                self.trackList[self.activeTrack].borders[3 * phonemeStart + 2] = preStart + self.trackList[self.activeTrack].pauseThreshold * 0.2
         elif (pause == True) and (autopause == True):
+            print("opt 4")
             if offset < 0:
                 pass
             elif offset >= 0:
                 iterationStart += 1
                 #insert autopause phoneme
+        print("iterationStart", iterationStart)
         for i in range(iterationStart, iterationEnd):
             j = i - self.trackList[self.activeTrack].notes[index].phonemeStart
             self.trackList[self.activeTrack].borders[3 * i] = start + int((end - start) * (3 * j) / divisor)
@@ -334,6 +340,8 @@ class MiddleLayer(Widget):
             self.submitNamedPhonParamChange(False, "borders", 3 * i, self.trackList[self.activeTrack].borders[3 * i:3 * i + 3])
 
     def makeAutoPauses(self, index):
+        if self.trackList[self.activeTrack].notes[index].phonemeStart == self.trackList[self.activeTrack].notes[index].phonemeEnd:
+            return
         if index > 0:
             offset = 0
             if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
@@ -341,7 +349,7 @@ class MiddleLayer(Widget):
             if self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length > self.trackList[self.activeTrack].pauseThreshold:
                 offset += 1
             if offset != 0:
-                self.offsetPhonemes(self.trackList[self.activeTrack].notes[index].phonemeStart, offset, True)
+                self.offsetPhonemes(index, offset, True)
             if offset == 1:
                 self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
                 self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd])
@@ -352,7 +360,7 @@ class MiddleLayer(Widget):
             if self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index].length > self.trackList[self.activeTrack].pauseThreshold:
                 offset += 1
             if offset != 0:
-                self.offsetPhonemes(self.trackList[self.activeTrack].notes[index].phonemeEnd, offset, True)
+                self.offsetPhonemes(index, offset, True)
             if offset == 1:
                 self.trackList[self.activeTrack].phonemes.insert(self.trackList[self.activeTrack].notes[index + 1].phonemeStart, "_autopause")
                 self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd])
@@ -473,6 +481,7 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].xPos = x
         return self.adjustNote(index, oldLength, oldPos)
     def moveNote(self, index, x, y):
+        print("borders: ", self.trackList[self.activeTrack].borders)
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
@@ -506,7 +515,7 @@ class MiddleLayer(Widget):
         phonemes = text#TO DO: Input validation, phoneme type awareness
         if phonemes == [""]:
             phonemes = []
-        if len(self.trackList[self.activeTrack].phonemes) > 0:
+        if (len(self.trackList[self.activeTrack].phonemes) > 0) and (self.trackList[self.activeTrack].notes[index].phonemeStart < self.trackList[self.activeTrack].notes[index].phonemeEnd):
             if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
                 phonemes = phonemes.insert(0, "_autopause")
         offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
@@ -1915,10 +1924,8 @@ class NovaVoxUI(Widget):
         if change == None:
             return None
         if change.type == False:
-            print("updating status: ", change.track, change.index, change.value)
             middleLayer.updateRenderStatus(change.track, change.index, change.value)
         elif change.type == True:
-            print("updating audio: ", change.value)
             middleLayer.updateAudioBuffer(change.track, change.index, change.value)
         else:
             middleLayer.deletions.pop(0)

@@ -10,8 +10,9 @@ interpolate = CubicSplineInter.interp
 
 def getSpectrum(vocalSegment, device):
     if vocalSegment.phonemeKey == "_autopause":
-        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
-    offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)
+        offset = 0
+    else:
+        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)
     if vocalSegment.startCap:
         windowStart = offset
     else:
@@ -20,14 +21,17 @@ def getSpectrum(vocalSegment, device):
         windowEnd = vocalSegment.end3 - vocalSegment.start1 + offset
     else:
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + offset
+    if vocalSegment.phonemeKey == "_autopause":
+        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
     spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectrum.to(device = device)
     spectra = Loop.loopSamplerSpectrum(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
     return spectrum + (torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2) * spectra)
     
 def getExcitation(vocalSegment, device):
     if vocalSegment.phonemeKey == "_autopause":
-        return torch.zeros([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1])
-    premul = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].excitation.size()[0] / (vocalSegment.end3 - vocalSegment.start1 + 1)
+        premul = 1
+    else:
+        premul = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].excitation.size()[0] / (vocalSegment.end3 - vocalSegment.start1 + 1)
     if vocalSegment.startCap:
         windowStart = 0
         brStart = 0
@@ -44,6 +48,8 @@ def getExcitation(vocalSegment, device):
         windowEnd = math.ceil((vocalSegment.end2 - vocalSegment.start1) * premul)
         brEnd = vocalSegment.end2 - vocalSegment.start1
         length += vocalSegment.end2
+    if vocalSegment.phonemeKey == "_autopause":
+        return torch.zeros([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1])
     excitation = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].excitation.to(device = device)[windowStart:windowEnd]
     excitation = torch.transpose(excitation, 0, 1)
     transform = torchaudio.transforms.TimeStretch(hop_length = global_consts.batchSize,
@@ -98,5 +104,4 @@ def getVoicedExcitation(vocalSegment, device):
         slope = torch.linspace(1, 0, (vocalSegment.end3 - vocalSegment.end1) * global_consts.batchSize, device = device)
         slope = torch.pow(slope, factor)
         voicedExcitation[(vocalSegment.end1 - vocalSegment.start1) * global_consts.batchSize:(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize] *= slope
-    print(voicedExcitation.size(), "size")
     return voicedExcitation[0:(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize]
