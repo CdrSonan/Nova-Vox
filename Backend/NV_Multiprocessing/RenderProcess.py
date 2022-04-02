@@ -75,7 +75,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
 
     def updateFromMain():
         change = connection.recv()
-        print("change", change.type, change.data2, change.final)
+        #print("change", change.type, change.data2, change.final)
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":

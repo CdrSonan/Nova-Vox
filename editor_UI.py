@@ -288,7 +288,6 @@ class MiddleLayer(Widget):
 
         autopause = False
         if len(self.trackList[self.activeTrack].phonemes) == 0:
-            print("zeroLen")
             return
         if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
             autopause = True
@@ -359,7 +358,7 @@ class MiddleLayer(Widget):
             if self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index].length > self.trackList[self.activeTrack].pauseThreshold:
                 offset += 1
             if offset != 0:
-                self.offsetPhonemes(index, offset, True)
+                self.offsetPhonemes(index + 1, offset, True)
             if offset == 1:
                 self.trackList[self.activeTrack].phonemes.insert(self.trackList[self.activeTrack].notes[index + 1].phonemeStart, "_autopause")
                 self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd])
@@ -465,9 +464,9 @@ class MiddleLayer(Widget):
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
         for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
-            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
-            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
-            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
+            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.repairBorders(3 * i + 2)
             self.repairBorders(3 * i + 1)
             self.repairBorders(3 * i)
@@ -480,17 +479,22 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].xPos = x
         return self.adjustNote(index, oldLength, oldPos)
     def moveNote(self, index, x, y):
-        print("borders: ", self.trackList[self.activeTrack].borders)
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
-        for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
-            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
-            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
-            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos + 1
+        elif self.trackList[self.activeTrack].phonemes[iterationEnd] == "_autopause":
+            iterationEnd += 1
+        iterationStart = self.trackList[self.activeTrack].notes[index].phonemeStart
+        if self.trackList[self.activeTrack].phonemes[iterationStart] == "_autopause":
+            iterationStart += 1
+        for i in range(iterationStart, iterationEnd):
+            self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
+            self.trackList[self.activeTrack].borders[3 * i + 2] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.repairBorders(3 * i + 2)
             self.repairBorders(3 * i + 1)
             self.repairBorders(3 * i)
+        self.submitNamedPhonParamChange(False, "borders", 3 * iterationStart, self.trackList[self.activeTrack].borders[3 * iterationStart:3 * iterationEnd])
         oldLength = self.trackList[self.activeTrack].notes[index].length
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             oldLength = min(oldLength, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos)
