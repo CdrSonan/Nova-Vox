@@ -37,7 +37,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         startCaps = inputList[index].startCaps
         endCaps = inputList[index].endCaps
         if delta > 0:
-            phonemes = phonemes[0:position] + ["X"] * delta + phonemes[position:]
+            phonemes = phonemes[0:position] + ["_0"] * delta + phonemes[position:]
             offsets = torch.cat([offsets[0:position], torch.zeros([delta,]), offsets[position:]], 0)
             repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.full([delta,], 0.5), repetititionSpacing[position:]], 0)
             borders = borders[0:3 * position] + [0] * (3 * delta) + borders[3 * position:]
@@ -120,6 +120,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 statusControl[change.data1].rs[change.data3:change.data3 + len(change.data4)] *= 0
                 statusControl[change.data1].ai[change.data3:change.data3 + len(change.data4)] *= 0
             elif change.data2 == "borders":
+                for i in range(len(change.data4)):
+                    change.data4[i] = int(change.data4[i])
                 inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
                 statusControl[change.data1].ai[math.floor(change.data3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
