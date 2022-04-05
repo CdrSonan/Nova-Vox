@@ -22,6 +22,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble, BubbleButton
 from kivy.uix.popup import Popup
+from kivy.uix.textinput import TextInput
 
 from tkinter import Tk, filedialog
 
@@ -347,6 +348,7 @@ class MiddleLayer(Widget):
             if self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length > self.trackList[self.activeTrack].pauseThreshold:
                 offset += 1
             if offset != 0:
+                print("index, offsset:", index, offset)
                 self.offsetPhonemes(index, offset, True)
             if offset == 1:
                 self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
@@ -384,6 +386,7 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = seq1
         self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = brd2
         self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart:3 * self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = brd1
+        self.makeAutoPauses(index + 1)
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, seq2)
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, seq1)
         self.repairBorders(index + 1)#does not check entire changed border interval
@@ -705,6 +708,16 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
         else:
             self.source = self.imageNormal
 
+class NumberInput(TextInput):
+    def insert_text(self, substring, from_undo=False):
+        print(substring)
+        s = ""
+        s += "".join(char for char in substring if char.isdigit())
+        return super().insert_text(s, from_undo=from_undo)
+
+class SingerSettingsPanel(Popup):
+    pass
+
 class SingerPanel(AnchorLayout):
     name = StringProperty()
     image = ObjectProperty()
@@ -712,6 +725,8 @@ class SingerPanel(AnchorLayout):
     def changeTrack(self):
         global middleLayer
         middleLayer.changeTrack(self.index)
+    def openSettings(self):
+        SingerSettingsPanel().open()
     def copyTrack(self):
         global middleLayer
         middleLayer.copyTrack(self.index, self.name, self.image)

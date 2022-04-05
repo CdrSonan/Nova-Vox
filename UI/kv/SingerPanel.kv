@@ -1,5 +1,35 @@
 #:kivy 2.0.0
 
+<SingerSettingsPanel>:
+    size_hint: (None, None)
+    size: (400, 400)
+    title: "track settings"
+    GridLayout:
+        rows: 2
+        orientation: "lr-tb"
+        padding: 10
+        spacing: 10
+        Label:
+            text: "pause threshold:"
+            size_hint_y: None
+            height: 30
+        NumberInput:
+            size_hint_y: None
+            height: 30
+        Label:
+            text: "mix-in voice:"
+            size_hint_y: None
+            height: 30
+        Spinner:
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: ["a", "b"]
+
 <SingerPanel>:
     anchor_x: "center"
     anchor_y: "center"
@@ -33,6 +63,7 @@
                 ImageButton:
                     imageNormal: "UI/assets/TrackList/SingerGrey01.png"
                     imagePressed: "UI/assets/TrackList/SingerGrey01_clicked.png"
+                    on_press: self.parent.parent.parent.parent.openSettings()
                 ImageButton:
                     imageNormal: "UI/assets/TrackList/SingerGrey02.png"
                     imagePressed: "UI/assets/TrackList/SingerGrey02_clicked.png"
