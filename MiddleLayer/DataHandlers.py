@@ -33,6 +33,7 @@ class Track:
         self.useVibratoSpeed = False
         self.useVibratoStrength = False
         self.pauseThreshold = 100
+        self.mixinVB = None
         self.paramStack = []
         self.borders = [0, 1, 2]
         self.length = 5000

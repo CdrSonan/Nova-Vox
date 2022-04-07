@@ -353,7 +353,7 @@ class MiddleLayer(Widget):
             if offset == 1:
                 self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
                 self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd])
-        if index < len(self.trackList[self.activeTrack].notes) - 1:
+        if index < len(self.trackList[self.activeTrack].notes) - 1 and self.trackList[self.activeTrack].notes[index].phonemeEnd < len(self.trackList[self.activeTrack].phonemes):
             offset = 0
             if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeEnd] == "_autopause":
                 offset -= 1
@@ -364,6 +364,11 @@ class MiddleLayer(Widget):
             if offset == 1:
                 self.trackList[self.activeTrack].phonemes.insert(self.trackList[self.activeTrack].notes[index + 1].phonemeStart, "_autopause")
                 self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd])
+    
+    def recalculatePauses(self, index):
+        for i in range(len(self.trackList[index].notes)):
+            self.makeAutoPauses(i)
+    
     def switchNote(self, index):
         note = self.trackList[self.activeTrack].notes.pop(index + 1)
         seq1 = self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd]
@@ -716,7 +721,44 @@ class NumberInput(TextInput):
         return super().insert_text(s, from_undo=from_undo)
 
 class SingerSettingsPanel(Popup):
-    pass
+    def __init__(self, index, **kwargs):
+        global middleLayer
+        super().__init__(**kwargs)
+        self.index = index
+        self.voicebanks = []
+        self.filepaths = []
+        self.listVoicebanks()
+        self.pauseThreshold = middleLayer.trackList[self.index].pauseThreshold
+        if middleLayer.trackList[index].mixinVB == None:
+            self.mixinVB = "None"
+        else:
+            self.mixinVB = self.voicebanks[self.filepaths.index(middleLayer.trackList[self.index].mixinVB)]
+        self.children[0].children[0].children[0].children[0].text = self.mixinVB
+        self.children[0].children[0].children[0].children[0].values = self.voicebanks
+        self.children[0].children[0].children[0].children[2].text = str(self.pauseThreshold)
+    def listVoicebanks(self):
+        global middleLayer
+        voicePath = os.path.join(readSettings()["dataDir"], "Voices")
+        if os.path.isdir(voicePath) == False:
+            popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
+            popup.open()
+            return
+        files = os.listdir(voicePath)
+        for file in files:
+            if file.endswith(".nvvb"):
+                data = torch.load(os.path.join(voicePath, file))
+                self.voicebanks.append(data["metadata"].name)
+                self.filepaths.append(os.path.join(voicePath, file))
+        self.voicebanks.append("None")
+    def on_pre_dismiss(self):
+        if self.children[0].children[0].children[0].children[0].text == "None":
+            middleLayer.trackList[self.index].mixinVB = None
+        else:
+            middleLayer.trackList[self.index].mixinVB = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].text)]
+        if middleLayer.trackList[self.index].pauseThreshold != int(self.children[0].children[0].children[0].children[2].text):
+            middleLayer.trackList[self.index].pauseThreshold = int(self.children[0].children[0].children[0].children[2].text)
+            middleLayer.recalculatePauses(self.index)
+        
 
 class SingerPanel(AnchorLayout):
     name = StringProperty()
@@ -726,7 +768,7 @@ class SingerPanel(AnchorLayout):
         global middleLayer
         middleLayer.changeTrack(self.index)
     def openSettings(self):
-        SingerSettingsPanel().open()
+        SingerSettingsPanel(self.index).open()
     def copyTrack(self):
         global middleLayer
         middleLayer.copyTrack(self.index, self.name, self.image)
