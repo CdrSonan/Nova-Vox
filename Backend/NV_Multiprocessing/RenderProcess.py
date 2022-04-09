@@ -116,15 +116,34 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             statusControl[change.data1].ai *= 0
         elif change.type == "changeInput":
             if change.data2 in ["phonemes", "offsets", "repetititionSpacing"]:
+                if change.data2 == "phonemes":
+                    for j in range(len(change.data4)):
+                        if inputList[change.data1].phonemes[change.data3 + j] == "_autopause":
+                            inputList[change.data1].startCaps[change.data3 + j] = False
+                            inputList[change.data1].endCaps[change.data3 + j] = False
+                            if j + 1 < len(inputList[change.data1].startCaps):
+                                inputList[change.data1].startCaps[change.data3 + j + 1] = False
+                            if j > 0:
+                                inputList[change.data1].endCaps[change.data3 + j - 1] = False
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[change.data3:change.data3 + len(change.data4)] *= 0
                 statusControl[change.data1].ai[change.data3:change.data3 + len(change.data4)] *= 0
+                if change.data2 == "phonemes":
+                    for j in range(len(change.data4)):
+                        if change.data4[j] == "_autopause":
+                            inputList[change.data1].startCaps[change.data3 + j] = True
+                            inputList[change.data1].endCaps[change.data3 + j] = True
+                            if j + 1 < len(inputList[change.data1].startCaps):
+                                inputList[change.data1].startCaps[change.data3 + j + 1] = True
+                            if j > 0:
+                                inputList[change.data1].endCaps[change.data3 + j - 1] = True
             elif change.data2 == "borders":
                 for i in range(len(change.data4)):
                     change.data4[i] = int(change.data4[i])
+                #zeroing relevant cache sections
                 inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
-                statusControl[change.data1].ai[math.floor(change.data3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
+                statusControl[change.data1].ai[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))
@@ -193,7 +212,21 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             nextVoicedExcitation = None
             
             aiActive = False
-            #reverse iterator to set internalStatusControl.ai based on internalStatusControl.rs
+            if settings["cachingMode"] == "save RAM":
+                firstPoint = 0
+                for k in range(1, len(internalStatusControl.rs)):
+                    if internalStatusControl.rs[k] == 0 and internalStatusControl.rs[k - 1] > 0:
+                        for j in range(i):
+                            if internalInputs.phonemes[k - j] == "_autopause":
+                                break
+                            internalStatusControl[k - j].rs *= 0
+                            internalStatusControl[k - j].ai *= 0
+                            if firstPoint == 0:
+                                firstPoint = k - j
+                        for j in range(len(internalStatusControl.ai) - k):
+                            if internalInputs.phonemes[k + j] == "_autopause":
+                                break
+                            internalStatusControl[k + j].ai *= 0
             #reset recurrent AI Tensors
             for j in range(len(internalStatusControl.ai) + 1):
                 logging.info("starting new segment rendering iteration")
@@ -289,23 +322,24 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 if ((j > 0) & interOutput) or (j == len(internalStatusControl.ai)):
                     logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
                     if aiActive:
-                        voicedSignal = torch.stft(voicedExcitation[0:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
+                        startPoint = internalInputs.borders[3 * firstPoint]
+                        voicedSignal = torch.stft(voicedExcitation[startPoint*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
         
-                        breathiness = internalInputs.breathiness[0:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
-                        breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.maximum(torch.sum(torch.abs(excitation[0:internalInputs.borders[3 * (j - 1) + 5]]), 1), torch.tensor([0.0001], device = device_rs)) * global_consts.breCompPremul
+                        breathiness = internalInputs.breathiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
+                        breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.maximum(torch.sum(torch.abs(excitation[startPoint:internalInputs.borders[3 * (j - 1) + 5]]), 1), torch.tensor([0.0001], device = device_rs)) * global_consts.breCompPremul
                         breathinessUnvoiced = 1. + breathiness * breathinessCompensation * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                         breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
                         #voicedSignal = torch.ones_like(voicedSignal)
                         #excitation = torch.ones_like(excitation)
-                        voicedSignal = voicedSignal[:, 0:-1] * torch.transpose(processedSpectrum[0:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessVoiced
-                        excitationSignal = torch.transpose(excitation[0:internalInputs.borders[3 * (j - 1) + 5]] * processedSpectrum[0:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessUnvoiced
+                        voicedSignal = voicedSignal[:, 0:-1] * torch.transpose(processedSpectrum[startPoint:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessVoiced
+                        excitationSignal = torch.transpose(excitation[startPoint:internalInputs.borders[3 * (j - 1) + 5]] * processedSpectrum[startPoint:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessUnvoiced
                         #voicedSignal = voicedSignal[:, 0:-1]
                         #excitationSignal = torch.transpose(excitation[0:internalInputs.borders[3 * (j - 1) + 5]], 0, 1)
 
                         waveform = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize).to(device = torch.device("cpu"))
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                         waveform += excitationSignal.to(device = torch.device("cpu"))
-                        connection.send(StatusChange(i, 0, waveform.detach(), True))
+                        connection.send(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), True))
                         connection.send(StatusChange(i, j - 1, 5))
                         if internalInputs.endCaps[j - 1] == True:
                             aiActive = False
