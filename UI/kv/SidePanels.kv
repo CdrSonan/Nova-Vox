@@ -358,7 +358,7 @@
     on_open: self.readSettings()
     on_pre_dismiss: self.writeSettings()
     GridLayout:
-        rows: 8
+        rows: 9
         orientation: "tb-lr"
         padding: 10
         spacing: 10
@@ -383,7 +383,13 @@
         Label:
             size_hint_y: None
             height: 30
-            text: "pre-rendering:"
+            text: "low-spec mode:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "caching mode:"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Label:
@@ -441,7 +447,7 @@
             option_cls: Factory.get("BackdropOptn")
             values: ["disabled", "enabled"]
         Spinner:
-            id: settings_prerender
+            id: settings_lowSpecMode
             sync_height: True
             text_autoupdate: True
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
@@ -450,6 +456,16 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: ["disabled", "enabled"]
+        Spinner:
+            id: settings_cachingMode
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: ["save RAM", "default", "best rendering speed"]
         Spinner:
             id: settings_audioApi
             sync_height: True

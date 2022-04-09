@@ -141,10 +141,10 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         return False
     logging.info("render process started, reading settings")
     settings = readSettings()
-    if settings["intermediateOutputs"] == "enabled":
-        interOutput = True
-    elif settings["intermediateOutputs"] == "disabled":
+    if settings["lowSpecMode"] == "enabled":
         interOutput = False
+    elif settings["lowSpecMode"] == "disabled":
+        interOutput = True
     else:
         print("could not read intermediate output setting. Intermediate outputs have been disabled by default.")
         interOutput = False

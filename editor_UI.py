@@ -61,7 +61,6 @@ class MiddleLayer(Widget):
         self.shift = False
         self.scrollValue = 0.
         self.audioBuffer = []
-        #self.mainAudioBuffer = torch.zeros([5000 * global_consts.batchSize,])
         self.mainAudioBufferPos = 0
         self.deletions = []
         self.playing = False
@@ -1943,7 +1942,8 @@ class SettingsSidePanel(ModalView):
         self.ids["settings_lang"].text = settings["language"]
         self.ids["settings_accel"].text = settings["accelerator"]
         self.ids["settings_tcores"].text = settings["tensorCores"]
-        self.ids["settings_prerender"].text = settings["intermediateOutputs"]
+        self.ids["settings_lowSpecMode"].text = settings["lowSpecMode"]
+        self.ids["settings_cachingMode"].text = settings["cachingMode"]
         self.ids["settings_audioApi"].text = settings["audioApi"]
         self.refreshAudioDevices(settings["audioApi"])
         self.ids["settings_audioDevice"].text = settings["audioDevice"]
@@ -1954,7 +1954,7 @@ class SettingsSidePanel(ModalView):
             audioDevice = self.ids["settings_audioDevice"].text
         else:
             audioDevice = self.audioDeviceNames[0]
-        writeSettings(None, self.ids["settings_lang"].text, self.ids["settings_accel"].text, self.ids["settings_tcores"].text, self.ids["settings_prerender"].text, self.ids["settings_audioApi"].text, audioDevice, self.ids["settings_loglevel"].text, self.ids["settings_datadir"].text)
+        writeSettings(None, self.ids["settings_lang"].text, self.ids["settings_accel"].text, self.ids["settings_tcores"].text, self.ids["settings_lowSpecMode"].text, self.ids["settings_cachingMode"].text, self.ids["settings_audioApi"].text, audioDevice, self.ids["settings_loglevel"].text, self.ids["settings_datadir"].text)
         self.restartAudioStream()
 
 class LicensePanel(Popup):

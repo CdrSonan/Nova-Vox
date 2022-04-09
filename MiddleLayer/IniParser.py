@@ -14,7 +14,7 @@ def readSettings(path = None):
             line = line.split("=")
             settings[line[0].strip()] = line[1].strip()
     return settings
-def writeSettings(path, lang, accel, tcores, prerender, audioApi, audioDevice, loglevel, dataDir):
+def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDevice, loglevel, dataDir):
     if path == None:
         path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
     with open(path, 'w') as f:
@@ -24,7 +24,8 @@ def writeSettings(path, lang, accel, tcores, prerender, audioApi, audioDevice, l
         f.write("[perf]" + "\n")
         f.write("accelerator = " + accel + "\n")
         f.write("tensorCores = " + tcores + "\n")
-        f.write("intermediateOutputs = " + prerender + "\n")
+        f.write("lowSpecMode = " + lowSpec + "\n")
+        f.write("cachingMode = " + caching + "\n")
         f.write("\n")
         f.write("[audio]" + "\n")
         f.write("audioApi = " + audioApi + "\n")

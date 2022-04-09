@@ -76,11 +76,18 @@ if __name__ == '__main__':
     from kivy.lang import Builder
     from kivy.clock import Clock
     from kivy.config import Config
+    if settings["lowSpecMode"] == "disabled":
+        updateInterval = 0.25
+    elif settings["lowSpecMode"] == "enabled":
+        updateInterval = 2.
+    else:
+        print("could not read low-spec mode setting. low-spec mode has been disabled by default.")
+        updateInterval = 0.25
     class NovaVoxApp(App):
         def build(self):
             self.icon = path.join("icon", "nova-vox-logo-2-color.png")
             ui = NovaVoxUI()
-            Clock.schedule_interval(ui.update, 0.25)
+            Clock.schedule_interval(ui.update, updateInterval)
             return ui
     from editor_UI import NovaVoxUI
     Window.minimum_height = 500
