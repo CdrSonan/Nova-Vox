@@ -213,20 +213,28 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             
             aiActive = False
             if settings["cachingMode"] == "save RAM":
-                firstPoint = 0
+                firstPoint = None
                 for k in range(1, len(internalStatusControl.rs)):
                     if internalStatusControl.rs[k] == 0 and internalStatusControl.rs[k - 1] > 0:
-                        for j in range(i):
+                        for j in range(k):
                             if internalInputs.phonemes[k - j] == "_autopause":
                                 break
-                            internalStatusControl[k - j].rs *= 0
-                            internalStatusControl[k - j].ai *= 0
-                            if firstPoint == 0:
-                                firstPoint = k - j
+                            internalStatusControl.rs[k - j] *= 0
+                            internalStatusControl.ai[k - j] *= 0
                         for j in range(len(internalStatusControl.ai) - k):
                             if internalInputs.phonemes[k + j] == "_autopause":
                                 break
-                            internalStatusControl[k + j].ai *= 0
+                            internalStatusControl.ai[k + j] *= 0
+                firstPoint = len(internalStatusControl.ai) - 1
+                lastPoint = len(internalStatusControl.ai) - 1
+                for k in range(len(internalStatusControl.ai)):
+                    if internalStatusControl.ai[k] == 0:
+                        firstPoint = k
+                        break
+                for k in range(len(internalStatusControl.ai)):
+                    if internalStatusControl.ai[len(internalStatusControl.ai) - k - 1] == 0:
+                        lastPoint = len(internalStatusControl.ai) - k - 1
+                        break
             #reset recurrent AI Tensors
             for j in range(len(internalStatusControl.ai) + 1):
                 logging.info("starting new segment rendering iteration")
@@ -319,7 +327,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         internalStatusControl.rs[j] = 1
                         connection.send(StatusChange(i, j, 3))
                         
-                if ((j > 0) & interOutput) or (j == len(internalStatusControl.ai)):
+                #if ((j > 0) & interOutput) or (j == len(internalStatusControl.ai)):
+                if ((j > 0) & interOutput) or (j == lastPoint):
                     logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
                     if aiActive:
                         startPoint = internalInputs.borders[3 * firstPoint]
@@ -354,7 +363,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 continue
             break
         logging.info("rendering process finished for all sequences, waiting for render semaphore")
-        print("rendering finished!")
         rerenderFlag.wait()
         rerenderFlag.clear()
         if connection.poll():

@@ -347,7 +347,6 @@ class MiddleLayer(Widget):
             if self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length > self.trackList[self.activeTrack].pauseThreshold:
                 offset += 1
             if offset != 0:
-                print("index, offsset:", index, offset)
                 self.offsetPhonemes(index, offset, True)
             if offset == 1:
                 self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
@@ -527,7 +526,7 @@ class MiddleLayer(Widget):
             phonemes = []
         if (len(self.trackList[self.activeTrack].phonemes) > 0) and (self.trackList[self.activeTrack].notes[index].phonemeStart < self.trackList[self.activeTrack].notes[index].phonemeEnd):
             if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
-                phonemes = phonemes.insert(0, "_autopause")
+                phonemes.insert(0, "_autopause")
         offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
         self.offsetPhonemes(index, offset)
         self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
@@ -601,9 +600,7 @@ class MiddleLayer(Widget):
                 return None
             elif i < track:
                 track -= 1
-        self.audioBuffer[track] *= 0
         self.audioBuffer[track][index:index + len(data)] = data
-        #self.updateMainAudioBuffer(index, index + len(data))
     def movePlayhead(self, position):
         self.ids["pianoRoll"].changePlaybackPos(position)
     def play(self, state = None):
@@ -714,7 +711,6 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
 
 class NumberInput(TextInput):
     def insert_text(self, substring, from_undo=False):
-        print(substring)
         s = ""
         s += "".join(char for char in substring if char.isdigit())
         return super().insert_text(s, from_undo=from_undo)
