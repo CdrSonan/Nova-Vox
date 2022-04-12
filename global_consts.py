@@ -30,4 +30,4 @@ pitchDipHeight = 0.2
 octaves = 4
 
 language = "en"
-version = "Alpha 2.0"
+version = "Alpha 3.0"

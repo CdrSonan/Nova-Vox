@@ -312,7 +312,6 @@ class MiddleLayer(Widget):
             elif offset >= 0:
                 iterationStart += 1
                 iterationOffset -= 1
-                #insert autopause phoneme
                 phonemeStart = self.trackList[self.activeTrack].notes[index].phonemeStart
                 preStart = self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length
                 self.trackList[self.activeTrack].borders[3 * phonemeStart] = preStart
@@ -324,7 +323,6 @@ class MiddleLayer(Widget):
             elif offset >= 0:
                 iterationStart += 1
                 iterationOffset -= 1
-                #insert autopause phoneme
         divisor += 3 * iterationOffset
         for i in range(iterationStart, iterationEnd):
             j = i - self.trackList[self.activeTrack].notes[index].phonemeStart + iterationOffset
@@ -1981,11 +1979,13 @@ class NovaVoxUI(Widget):
             return None
         if change.type == False:
             middleLayer.updateRenderStatus(change.track, change.index, change.value)
-        elif change.type == True:
+        elif change.type == "updateAudio":
             middleLayer.updateAudioBuffer(change.track, change.index, change.value)
+        elif change.type == "zeroAudio":
+            middleLayer.updateAudioBuffer(change.track, change.index, torch.zeros([change.value,]))
         else:
             middleLayer.deletions.pop(0)
-        self.update(deltatime)
+        return self.update(deltatime)
     def setMode(self, mode):
         global middleLayer
         middleLayer.mode = mode

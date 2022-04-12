@@ -138,12 +138,16 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             if j > 0:
                                 inputList[change.data1].endCaps[change.data3 + j - 1] = True
             elif change.data2 == "borders":
+                start = inputList[change.data1].borders[change.data3] * global_consts.batchSize
+                end = inputList[change.data1].borders[change.data3 + len(change.data4) - 1] * global_consts.batchSize
+                print("zeroing", change.data3, change.data3 + len(change.data4) - 1)
+                connection.send(StatusChange(change.data1, start, end - start, "zeroAudio"))
                 for i in range(len(change.data4)):
                     change.data4[i] = int(change.data4[i])
-                #zeroing relevant cache sections
                 inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
                 statusControl[change.data1].ai[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
+                print(statusControl[change.data1].rs)
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))
@@ -348,7 +352,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         waveform = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize).to(device = torch.device("cpu"))
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                         waveform += excitationSignal.to(device = torch.device("cpu"))
-                        connection.send(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), True))
+                        connection.send(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
                         connection.send(StatusChange(i, j - 1, 5))
                         if internalInputs.endCaps[j - 1] == True:
                             aiActive = False
