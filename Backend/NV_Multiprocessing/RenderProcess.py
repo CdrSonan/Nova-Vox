@@ -140,14 +140,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             elif change.data2 == "borders":
                 start = inputList[change.data1].borders[change.data3] * global_consts.batchSize
                 end = inputList[change.data1].borders[change.data3 + len(change.data4) - 1] * global_consts.batchSize
-                print("zeroing", change.data3, change.data3 + len(change.data4) - 1)
                 connection.send(StatusChange(change.data1, start, end - start, "zeroAudio"))
                 for i in range(len(change.data4)):
                     change.data4[i] = int(change.data4[i])
                 inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
                 statusControl[change.data1].ai[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
-                print(statusControl[change.data1].rs)
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))

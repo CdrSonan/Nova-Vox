@@ -719,6 +719,7 @@ class SingerSettingsPanel(Popup):
         super().__init__(**kwargs)
         self.index = index
         self.voicebanks = []
+        self.modVoicebanks = None
         self.filepaths = []
         self.listVoicebanks()
         self.pauseThreshold = middleLayer.trackList[self.index].pauseThreshold
@@ -726,9 +727,12 @@ class SingerSettingsPanel(Popup):
             self.mixinVB = "None"
         else:
             self.mixinVB = self.voicebanks[self.filepaths.index(middleLayer.trackList[self.index].mixinVB)]
-        self.children[0].children[0].children[0].children[0].text = self.mixinVB
-        self.children[0].children[0].children[0].children[0].values = self.voicebanks
-        self.children[0].children[0].children[0].children[2].text = str(self.pauseThreshold)
+        self.mainVB = self.voicebanks[self.filepaths.index(middleLayer.trackList[self.index].vbPath)]
+        self.children[0].children[0].children[0].children[4].text = self.mainVB
+        self.children[0].children[0].children[0].children[4].values = self.voicebanks
+        self.children[0].children[0].children[0].children[2].text = self.mixinVB
+        self.children[0].children[0].children[0].children[2].values = self.modVoicebanks
+        self.children[0].children[0].children[0].children[0].text = str(self.pauseThreshold)
     def listVoicebanks(self):
         global middleLayer
         voicePath = os.path.join(readSettings()["dataDir"], "Voices")
@@ -742,15 +746,41 @@ class SingerSettingsPanel(Popup):
                 data = torch.load(os.path.join(voicePath, file))
                 self.voicebanks.append(data["metadata"].name)
                 self.filepaths.append(os.path.join(voicePath, file))
-        self.voicebanks.append("None")
+        self.modVoicebanks = copy(self.voicebanks)
+        self.modVoicebanks.append("None")
     def on_pre_dismiss(self):
-        if self.children[0].children[0].children[0].children[0].text == "None":
+        if self.children[0].children[0].children[0].children[2].text == "None":
             middleLayer.trackList[self.index].mixinVB = None
         else:
-            middleLayer.trackList[self.index].mixinVB = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].text)]
-        if middleLayer.trackList[self.index].pauseThreshold != int(self.children[0].children[0].children[0].children[2].text):
-            middleLayer.trackList[self.index].pauseThreshold = int(self.children[0].children[0].children[0].children[2].text)
+            middleLayer.trackList[self.index].mixinVB = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[2].text)]
+        if middleLayer.trackList[self.index].pauseThreshold != int(self.children[0].children[0].children[0].children[0].text):
+            middleLayer.trackList[self.index].pauseThreshold = int(self.children[0].children[0].children[0].children[0].text)
             middleLayer.recalculatePauses(self.index)
+        if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[2].text)]:
+            middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[2].text)]
+            middleLayer.submitChangeVB(self.index, middleLayer.trackList[self.index].vbPath)
+            for i in range(len(middleLayer.ids["singerList"])):
+                if middleLayer.ids["singerList"][i].index == self.index:
+                    #TODO middleLayer.ids["singerList"][i].name = 
+                    #TODO middleLayer.ids["singerList"][i].image = 
+                    break
+
+                """voicePath = os.path.join(readSettings()["dataDir"], "Voices")
+                if os.path.isdir(voicePath) == False:
+                    popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
+                    popup.open()
+                    return
+                files = os.listdir(voicePath)
+                for file in files:
+                    if file.endswith(".nvvb"):
+                        data = torch.load(os.path.join(voicePath, file))
+                        self.voicebanks.append(data["metadata"])
+                        self.filepaths.append(os.path.join(voicePath, file))
+                j = 0
+                for i in self.voicebanks:
+                    self.ids["singers_list"].add_widget(ListElement(text = i.name, index = j))
+                    j += 1"""
+                    #TODO refactor to util file; copied from singer side panel
         
 
 class SingerPanel(AnchorLayout):

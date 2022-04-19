@@ -5,17 +5,22 @@
     size: (400, 400)
     title: "track settings"
     GridLayout:
-        rows: 2
+        rows: 3
         orientation: "lr-tb"
         padding: 10
         spacing: 10
         Label:
-            text: "pause threshold:"
+            text: "main voice:"
             size_hint_y: None
             height: 30
-        NumberInput:
+        Spinner:
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
             size_hint_y: None
             height: 30
+            option_cls: Factory.get("BackdropOptn")
         Label:
             text: "mix-in voice:"
             size_hint_y: None
@@ -28,6 +33,13 @@
             size_hint_y: None
             height: 30
             option_cls: Factory.get("BackdropOptn")
+        Label:
+            text: "pause threshold:"
+            size_hint_y: None
+            height: 30
+        NumberInput:
+            size_hint_y: None
+            height: 30
 
 <SingerPanel>:
     anchor_x: "center"
