@@ -6,6 +6,8 @@ specpath = os.path.dirname(os.path.abspath(SPEC))
 
 common_excludes = ["torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
+common_imports = ["torch", "torchaudio", "soundfile"]
+
 common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("UI/kv/*", "UI/kv"), ("Backend/UtauDefaultPhonemes.ini", "Backend"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList")]
 
 block_cipher = None
@@ -14,7 +16,7 @@ a_editor = Analysis(['editor_runtime.py'],
                     pathex=[specpath],
                     binaries=[],
                     datas=common_datas,
-                    hiddenimports=[],
+                    hiddenimports=common_imports,
                     hookspath=[],
                     hooksconfig={},
                     runtime_hooks=[],
@@ -28,7 +30,7 @@ a_devkit = Analysis(['devkit_runtime.py'],
                     pathex=[specpath],
                     binaries=[],
                     datas=common_datas,
-                    hiddenimports=[],
+                    hiddenimports=common_imports,
                     hookspath=[],
                     hooksconfig={},
                     runtime_hooks=[],
@@ -107,5 +109,4 @@ coll_devkit = COLLECT(exe_devkit,
                       name='devkit_build')
 
 os.replace(os.path.join(specpath, 'dist\\devkit_build\\Nova-Vox Devkit.exe'), os.path.join(specpath, 'dist\\Nova-Vox\\Nova-Vox Devkit.exe'))
-os.replace(os.path.join(specpath, 'dist\\devkit_build\\Nova-Vox Devkit.exe.manifest'), os.path.join(specpath, 'dist\\Nova-Vox\\Nova-Vox Devkit.exe.manifest'))
 os.rmdir(os.path.join(specpath, 'dist\\devkit_build'))

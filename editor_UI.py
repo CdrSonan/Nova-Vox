@@ -1,7 +1,3 @@
-from logging import root
-from turtle import pos, textinput
-from typing import Text
-from jinja2 import pass_eval_context
 from kivy.core.image import Image as CoreImage
 from PIL import Image as PilImage, ImageDraw, ImageFont
 
