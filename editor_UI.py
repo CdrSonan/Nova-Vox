@@ -175,7 +175,7 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].useVibratoStrength = False
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = False
-        self.submitEnableParam(index, name)
+        self.submitDisableParam(index, name)
     def moveParam(self, name, switchable, sortable, deletable, index, delta, switchState = True):
         param = self.trackList[self.activeTrack].paramStack[index]
         if delta > 0:
