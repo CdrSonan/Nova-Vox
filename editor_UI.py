@@ -115,6 +115,8 @@ class MiddleLayer(Widget):
         self.trackList[-1].paramStack = []#replace once paramStack is fully implemented
         self.trackList[-1].borders = deepcopy(reference.borders)
         self.trackList[-1].length = copy(reference.length)
+        self.trackList[-1].mixinVB = copy(reference.mixinVB)
+        self.trackList[-1].pauseThreshold = copy(reference.pauseThreshold)
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.audioBuffer.append(deepcopy(self.audioBuffer[index]))
@@ -174,7 +176,7 @@ class MiddleLayer(Widget):
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = False
         self.submitEnableParam(index, name)
-    def moveParam(self, name, switchable, sortable, deletable, index, delta):
+    def moveParam(self, name, switchable, sortable, deletable, index, delta, switchState = True):
         param = self.trackList[self.activeTrack].paramStack[index]
         if delta > 0:
             for i in range(delta):
@@ -188,14 +190,14 @@ class MiddleLayer(Widget):
             if i.index == index:
                 i.parent.remove_widget(i)
                 break
-        self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = switchable, sortable = sortable, deletable = deletable, index = index), index = index + delta)
+        self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = switchable, sortable = sortable, deletable = deletable, index = index), index = index + delta, switchState = switchState)
         self.changeParam(index + delta)
     def updateParamPanel(self):
         self.ids["paramList"].clear_widgets()
         self.ids["adaptiveSpace"].clear_widgets()
         if self.mode == "notes":
-            self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, state = "down"))
-            self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1))
+            self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useSteadiness, state = "down"))
+            self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useBreathiness))
             self.ids["adaptiveSpace"].add_widget(ParamCurve())
             counter = 0
             for i in self.trackList[self.activeTrack].paramStack:
@@ -208,8 +210,8 @@ class MiddleLayer(Widget):
             self.ids["adaptiveSpace"].add_widget(TimingOptns())
             self.changeParam(-1, "loop overlap")
         if self.mode == "pitch":
-            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1, state = "down"))
-            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1))
+            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoSpeed, state = "down"))
+            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoStrength))
             self.ids["adaptiveSpace"].add_widget(PitchOptns())
             self.changeParam(-1, "vibrato speed")
     def updatePianoRoll(self):
@@ -714,6 +716,7 @@ class SingerSettingsPanel(Popup):
         global middleLayer
         super().__init__(**kwargs)
         self.index = index
+        self.vbData = []
         self.voicebanks = []
         self.modVoicebanks = None
         self.filepaths = []
@@ -740,6 +743,7 @@ class SingerSettingsPanel(Popup):
         for file in files:
             if file.endswith(".nvvb"):
                 data = torch.load(os.path.join(voicePath, file))
+                self.vbData.append(data["metadata"])
                 self.voicebanks.append(data["metadata"].name)
                 self.filepaths.append(os.path.join(voicePath, file))
         self.modVoicebanks = copy(self.voicebanks)
@@ -752,31 +756,14 @@ class SingerSettingsPanel(Popup):
         if middleLayer.trackList[self.index].pauseThreshold != int(self.children[0].children[0].children[0].children[0].text):
             middleLayer.trackList[self.index].pauseThreshold = int(self.children[0].children[0].children[0].children[0].text)
             middleLayer.recalculatePauses(self.index)
-        if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[2].text)]:
-            middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[2].text)]
+        if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[4].text)]:
+            middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[4].text)]
             middleLayer.submitChangeVB(self.index, middleLayer.trackList[self.index].vbPath)
             for i in range(len(middleLayer.ids["singerList"])):
                 if middleLayer.ids["singerList"][i].index == self.index:
-                    #TODO middleLayer.ids["singerList"][i].name = 
-                    #TODO middleLayer.ids["singerList"][i].image = 
+                    middleLayer.ids["singerList"][i].name = self.children[0].children[0].children[0].children[4].text
+                    middleLayer.ids["singerList"][i].image = self.vbData[self.voicebanks.index(self.children[0].children[0].children[0].children[4].text)].image
                     break
-
-                """voicePath = os.path.join(readSettings()["dataDir"], "Voices")
-                if os.path.isdir(voicePath) == False:
-                    popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
-                    popup.open()
-                    return
-                files = os.listdir(voicePath)
-                for file in files:
-                    if file.endswith(".nvvb"):
-                        data = torch.load(os.path.join(voicePath, file))
-                        self.voicebanks.append(data["metadata"])
-                        self.filepaths.append(os.path.join(voicePath, file))
-                j = 0
-                for i in self.voicebanks:
-                    self.ids["singers_list"].add_widget(ListElement(text = i.name, index = j))
-                    j += 1"""
-                    #TODO refactor to util file; copied from singer side panel
         
 
 class SingerPanel(AnchorLayout):
@@ -799,7 +786,7 @@ class SingerPanel(AnchorLayout):
         middleLayer.updateVolume(self.index, volume)
 
 class ParamPanel(ToggleButton):
-    def __init__(self, name, switchable, sortable, deletable, index, **kwargs):
+    def __init__(self, name, switchable, sortable, deletable, index, switchState = True, **kwargs):
         super().__init__(**kwargs)
         self.name = StringProperty()
         self.switchable = BooleanProperty()
@@ -812,16 +799,18 @@ class ParamPanel(ToggleButton):
         self.deletable = deletable
         self.index = index
         self.background_color = (1, 1, 1, 0.3)
-        self.makeWidgets()
+        self.makeWidgets(switchState)
     @mainthread
-    def makeWidgets(self):
+    def makeWidgets(self, switchState = True):
         self.add_widget(Label(size_hint = (None, None), size = (self.width - 106, 30), pos = (self.x + 103, self.y + 3), text = self.name))
-        if self.switchable:
-            self.add_widget(ImageToggleButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 3, self.y + 3), imageNormal = "UI/assets/ParamList/Adaptive02.png", imagePressed = "UI/assets/ParamList/Adaptive01.png", on_state = self.enableParam))
         if self.sortable:
             self.add_widget(ImageButton(size_hint = (None, None), size = (40, 30), pos = (self.x + 33, self.y + 3), imageNormal = "UI/assets/ParamList/Adaptive03.png", imagePressed = "UI/assets/ParamList/Adaptive03_clicked.png", on_release = self.moveParam))
         if self.deletable:
             self.add_widget(ImageButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 73, self.y + 3), imageNormal = "UI/assets/TrackList/SingerGrey03.png", imagePressed = "UI/assets/TrackList/SingerGrey03_clicked.png", on_press = self.deleteParam))
+        if self.switchable:
+            self.add_widget(ImageToggleButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 3, self.y + 3), imageNormal = "UI/assets/ParamList/Adaptive02.png", imagePressed = "UI/assets/ParamList/Adaptive01.png", function = self.enableParam))
+            if switchState:
+                self.children[0].state = "down"
     def on_width(self, widget, width):
         for i in self.children:
             if i.__class__.__name__ == "Label":
@@ -829,14 +818,15 @@ class ParamPanel(ToggleButton):
                 i.x = self.x + 103
     def enableParam(self):
         global middleLayer
-        if self.state == "down":
+        print(self.children[0].state)
+        if self.children[0].state == "down":
             middleLayer.enableParam(self.index, self.name)
         else:
             middleLayer.disableParam(self.index, self.name)
     def moveParam(self):
         global middleLayer
         delta = 0
-        middleLayer.moveParam(self.name, self.switchable, self.sortable, self.index, delta)
+        middleLayer.moveParam(self.name, self.switchable, self.sortable, self.index, delta, self.children[0].state == "down")
     def deleteParam(self):
         global middleLayer
         middleLayer.deleteParam(self.index)

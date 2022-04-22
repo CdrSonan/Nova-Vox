@@ -27,11 +27,11 @@ class Track:
         self.loopOffset = torch.tensor([], dtype = torch.half)
         self.vibratoSpeed = torch.full((5000,), 0, dtype = torch.half)
         self.vibratoStrength = torch.full((5000,), 0, dtype = torch.half)
-        self.usePitch = False
-        self.useBreathiness = False
-        self.useSteadiness = False
-        self.useVibratoSpeed = False
-        self.useVibratoStrength = False
+        self.usePitch = True
+        self.useBreathiness = True
+        self.useSteadiness = True
+        self.useVibratoSpeed = True
+        self.useVibratoStrength = True
         self.pauseThreshold = 100
         self.mixinVB = None
         self.paramStack = []
