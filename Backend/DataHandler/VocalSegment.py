@@ -1,4 +1,4 @@
-from torch import float32
+from torch import float32, zeros
 
 class VocalSegment:
     """Class representing the segment covered by a single phoneme within a VocalSequence.
@@ -50,7 +50,10 @@ class VocalSegment:
         self.offset = inputs.offsets[index]
         self.repetititionSpacing = inputs.repetititionSpacing[index].to(device = device)
         self.pitch = inputs.pitch[self.start1:self.end3].to(dtype = float32, device = device)
-        self.steadiness = inputs.steadiness[self.start1:self.end3].to(device = device)
+        if inputs.useSteadiness:
+            self.steadiness = inputs.steadiness[self.start1:self.end3].to(device = device)
+        else:
+            self.steadiness = zeros([self.end3 - self.start1,], device = device)
 
     """
     def __init__(self, start1, start2, start3, end1, end2, end3, startCap, endCap, phonemeKey, vb, offset, repetititionSpacing, pitch, steadiness):

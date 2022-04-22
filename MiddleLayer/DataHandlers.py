@@ -45,7 +45,7 @@ class Track:
     def to_sequence(self):
         caps = self.generateCaps()
         pitch = torch.full_like(self.pitch, global_consts.sampleRate) / (torch.pow(2, (self.pitch - torch.full_like(self.pitch, 69)) / torch.full_like(self.pitch, 12)) * 440)
-        return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness)
+        return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useVibratoSpeed, self.useVibratoStrength)
 
 class Note:
     def __init__(self, xPos, yPos, start = 0, end = 1, reference = None):

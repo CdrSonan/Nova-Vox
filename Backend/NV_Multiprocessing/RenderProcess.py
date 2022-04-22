@@ -106,10 +106,28 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             aiParamStackList[change.data1].removeParam(change.data2)
             statusControl[change.data1].ai *= 0
         elif change.type == "enableParam":
-            aiParamStackList[change.data1].enableParam(change.data2)#add named params
+            if change.data2 == "breathiness":
+                inputList[change.data1].useBreathiness = True
+            elif change.data2 == "steadiness":
+                inputList[change.data1].useSteadiness = True
+            elif change.data2 == "vibrato speed":
+                inputList[change.data1].useVibratoSpeed = True
+            elif change.data2 == "vibrato strength":
+                inputList[change.data1].useVibratoStrength = True
+            else:
+                aiParamStackList[change.data1].enableParam(change.data2)
             statusControl[change.data1].ai *= 0
         elif change.type == "disableParam":
-            aiParamStackList[change.data1].disableParam(change.data2)#add named params
+            if change.data2 == "breathiness":
+                inputList[change.data1].useBreathiness = False
+            elif change.data2 == "steadiness":
+                inputList[change.data1].useSteadiness = False
+            elif change.data2 == "vibrato speed":
+                inputList[change.data1].useVibratoSpeed = False
+            elif change.data2 == "vibrato strength":
+                inputList[change.data1].useVibratoStrength = False
+            else:
+                aiParamStackList[change.data1].disableParam(change.data2)
             statusControl[change.data1].ai *= 0
         elif change.type == "moveParam":
             aiParamStackList[change.data1].insert(change.data3, aiParamStackList[change.data1].pop(change.data2))
@@ -336,7 +354,10 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         startPoint = internalInputs.borders[3 * firstPoint]
                         voicedSignal = torch.stft(voicedExcitation[startPoint*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
         
-                        breathiness = internalInputs.breathiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
+                        if internalInputs.useBreathiness:
+                            breathiness = internalInputs.breathiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
+                        else:
+                            breathiness = torch.zeros([internalInputs.borders[3 * (j - 1) + 5] - startPoint,], device = device_rs)
                         breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.maximum(torch.sum(torch.abs(excitation[startPoint:internalInputs.borders[3 * (j - 1) + 5]]), 1), torch.tensor([0.0001], device = device_rs)) * global_consts.breCompPremul
                         breathinessUnvoiced = 1. + breathiness * breathinessCompensation * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                         breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
