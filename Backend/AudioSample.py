@@ -14,8 +14,6 @@ class AudioSample:
         
         pitchDeltas: duration of each vocal chord vibration in data points
         
-        pitchBorders: borders between each vocal chord vibration in data points measured from sample start
-        
         pitch: average pitch of the sample given as wavelength in data points
         
         spectra: deviations of the audio spectrum from the average for each stft batch
@@ -69,8 +67,6 @@ class AudioSample:
         del transform
         del self.sampleRate
         self.pitchDeltas = torch.tensor([], dtype = int)
-        self.pitchDeltasFull = torch.tensor([], dtype = int)
-        self.pitchBorders = torch.tensor([], dtype = int)
         self.pitch = torch.tensor([0], dtype = int)
         self.spectra = torch.tensor([[]], dtype = float)
         self.spectrum = torch.tensor([], dtype = float)
@@ -114,7 +110,6 @@ class LiteAudioSample:
             
             
         self.pitchDeltas = audioSample.pitchDeltas
-        self.pitchDeltasFull = audioSample.pitchDeltasFull
         self.pitch = audioSample.pitch
         self.spectra = audioSample.spectra
         self.spectrum = audioSample.spectrum

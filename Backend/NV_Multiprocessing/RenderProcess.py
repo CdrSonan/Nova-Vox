@@ -108,24 +108,32 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         elif change.type == "enableParam":
             if change.data2 == "breathiness":
                 inputList[change.data1].useBreathiness = True
+                statusControl[change.data1].rs *= 0
             elif change.data2 == "steadiness":
                 inputList[change.data1].useSteadiness = True
+                statusControl[change.data1].rs *= 0
             elif change.data2 == "vibrato speed":
                 inputList[change.data1].useVibratoSpeed = True
+                statusControl[change.data1].rs *= 0
             elif change.data2 == "vibrato strength":
                 inputList[change.data1].useVibratoStrength = True
+                statusControl[change.data1].rs *= 0
             else:
                 aiParamStackList[change.data1].enableParam(change.data2)
             statusControl[change.data1].ai *= 0
         elif change.type == "disableParam":
             if change.data2 == "breathiness":
                 inputList[change.data1].useBreathiness = False
+                statusControl[change.data1].rs *= 0
             elif change.data2 == "steadiness":
                 inputList[change.data1].useSteadiness = False
+                statusControl[change.data1].rs *= 0
             elif change.data2 == "vibrato speed":
                 inputList[change.data1].useVibratoSpeed = False
+                statusControl[change.data1].rs *= 0
             elif change.data2 == "vibrato strength":
                 inputList[change.data1].useVibratoStrength = False
+                statusControl[change.data1].rs *= 0
             else:
                 aiParamStackList[change.data1].disableParam(change.data2)
             statusControl[change.data1].ai *= 0

@@ -1,5 +1,6 @@
 import math
 import torch
+from torchaudio.functional import detect_pitch_frequency
 import global_consts
 
 def calculatePitch(audioSample):
@@ -13,10 +14,10 @@ def calculatePitch(audioSample):
             
         The pitch calculation uses 0-transitions to determine the borders between vocal chord vibrations. The algorithm searches for such transitions around expectedPitch (should be a value in Hz),
         with the range around it being defined by searchRange (should be a value between 0 and 1), which is interpreted as a percentage of the wavelength of expectedPitch.
-        The function fills the pitchDeltas, pitchBorders and pitch properties."""
+        The function fills the pitchDeltas and pitch properties."""
         
         
-        batchSize = math.floor((1. + audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
+        """batchSize = math.floor((1. + audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
         lowerSearchLimit = math.floor((1. - audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
         batchStart = 0
         while batchStart + batchSize <= audioSample.waveform.size()[0] - batchSize:
@@ -39,15 +40,18 @@ def calculatePitch(audioSample):
         audioSample.pitchBorders = torch.zeros(nBatches + 1, dtype = int)
         for i in range(nBatches):
             audioSample.pitchBorders[i+1] = audioSample.pitchBorders[i] + audioSample.pitchDeltas[i]
-        audioSample.pitch = torch.mean(audioSample.pitchDeltas.float()).int()
+        audioSample.pitch = torch.mean(audioSample.pitchDeltas.float()).int()"""
 
-        cursor = 0
-        cursor2 = 0
-        pitchDeltas = torch.empty(math.ceil(audioSample.pitchDeltas.sum() / global_consts.batchSize))
-        for i in range(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize)):
-            while cursor2 >= audioSample.pitchDeltas[cursor]:
-                cursor += 1
-                cursor2 -= audioSample.pitchDeltas[cursor]
-            cursor2 += global_consts.batchSize
-            pitchDeltas[i] = audioSample.pitchDeltas[cursor]
-        audioSample.pitchDeltasFull = pitchDeltas
+        #cursor = 0
+        #cursor2 = 0
+        #pitchDeltas = torch.empty(math.ceil(audioSample.pitchDeltas.sum() / global_consts.batchSize))
+        #for i in range(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize)):
+        #    while cursor2 >= audioSample.pitchDeltas[cursor]:
+        #        cursor += 1
+        #        cursor2 -= audioSample.pitchDeltas[cursor]
+        #    cursor2 += global_consts.batchSize
+        #    pitchDeltas[i] = audioSample.pitchDeltas[cursor]
+        #audioSample.pitchDeltasFull = pitchDeltas
+
+        audioSample.pitchDeltas = detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 10, audioSample.expectedPitch * audioSample.searchRange, audioSample.expectedPitch * (1 + audioSample.searchRange))
+        audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
