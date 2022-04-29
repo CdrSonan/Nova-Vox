@@ -73,7 +73,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         inputList[index].startCaps = startCaps
         inputList[index].endCaps = endCaps
 
-    def updateFromMain():
+    def updateFromMain(lastZero):
         change = connection.recv()
         #print("change", change.type, change.data2, change.final)
         if change.type == "terminate":
@@ -166,7 +166,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             elif change.data2 == "borders":
                 start = inputList[change.data1].borders[change.data3] * global_consts.batchSize
                 end = inputList[change.data1].borders[change.data3 + len(change.data4) - 1] * global_consts.batchSize
-                connection.send(StatusChange(change.data1, start, end - start, "zeroAudio"))
+                if lastZero == None or lastZero != [change.data1, start, end - start]:
+                    lastZero = [change.data1, start, end - start]
+                    connection.send(StatusChange(change.data1, start, end - start, "zeroAudio"))
                 for i in range(len(change.data4)):
                     change.data4[i] = int(change.data4[i])
                 inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
@@ -184,7 +186,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         elif change.type == "offset":
             trimSequence(change.data1, change.data2, change.data3)
         if connection.poll() or (change.final == False):
-            return updateFromMain()
+            return updateFromMain(lastZero)
         return False
     logging.info("render process started, reading settings")
     settings = readSettings()
@@ -210,6 +212,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         device_ai = torch.device("cpu")
 
     window = torch.hann_window(global_consts.tripleBatchSize, device = device_rs)
+    lastZero = None
     while True:
         logging.info("starting new rendering iteration")
         for i in range(len(statusControl)):
@@ -379,6 +382,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         waveform = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize).to(device = torch.device("cpu"))
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                         waveform += excitationSignal.to(device = torch.device("cpu"))
+                        lastZero = None
                         connection.send(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
                         connection.send(StatusChange(i, j - 1, 5))
                         if internalInputs.endCaps[j - 1] == True:
@@ -397,7 +401,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         rerenderFlag.wait()
         rerenderFlag.clear()
         if connection.poll():
-            if updateFromMain():
+            if updateFromMain(lastZero):
                 break
         
 
