@@ -53,5 +53,5 @@ def calculatePitch(audioSample):
         #    pitchDeltas[i] = audioSample.pitchDeltas[cursor]
         #audioSample.pitchDeltasFull = pitchDeltas
 
-        audioSample.pitchDeltas = detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 10, audioSample.expectedPitch * audioSample.searchRange, audioSample.expectedPitch * (1 + audioSample.searchRange))
+        audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 10, audioSample.expectedPitch * audioSample.searchRange, audioSample.expectedPitch * (1 + audioSample.searchRange))
         audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()

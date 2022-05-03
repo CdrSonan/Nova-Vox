@@ -9,7 +9,7 @@ window = torch.hann_window(global_consts.tripleBatchSize)
 data = torch.empty(10 * global_consts.tripleBatchSize)
 for i in range(10 * global_consts.tripleBatchSize):
     data[i] = sin(1 + i * pi / 100)
-    #data[i] += 0.3 * sin(i * pi /25)
+    data[i] += 0.3 * sin(i * pi /25)
 
 plt.plot(data)
 

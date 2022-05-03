@@ -66,7 +66,7 @@ def getVoicedExcitation(vocalSegment, device):
     requiredSize = math.ceil(torch.max(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas) / torch.min(vocalSegment.pitch) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize)
     pitchDeltas = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas
     pitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch
-    voicedExcitation = Loop.loopSamplerVoicedExcitation(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].voicedExcitation, requiredSize, vocalSegment.repetititionSpacing, pitchDeltas, pitch, device)
+    voicedExcitation = Loop.loopSamplerVoicedExcitation(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].voicedExcitation, requiredSize, vocalSegment.repetititionSpacing, pitchDeltas, pitch, vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].phases, device)
     pitchDeltas = torch.squeeze(Loop.loopSamplerSpectrum(torch.unsqueeze(pitchDeltas, 1), requiredSize, vocalSegment.repetititionSpacing, device = device))
     cursor = 0
     voicedExcitationFourier = torch.empty(vocalSegment.end3 - vocalSegment.start1, global_consts.halfTripleBatchSize + 1, dtype = torch.cdouble, device = device)

@@ -1,4 +1,4 @@
-from math import inf
+from math import inf, floor, ceil
 import torch
 import global_consts
 
@@ -93,3 +93,12 @@ def calculateSpectra(audioSample):
         audioSample.excitation = torch.transpose(audioSample.excitation, 0, 1) / torch.square(audioSample.spectrum + audioSample.spectra)[0:audioSample.excitation.size()[1]]
 
         audioSample.voicedExcitation = torch.istft(audioSample.voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True)
+
+        audioSample.phases = torch.empty_like(audioSample.pitchDeltas)
+        for i in range(audioSample.pitchDeltas.size()[0]):
+            position = global_consts.tripleBatchSize / audioSample.pitchDeltas[i].item()
+            lowerBin = floor(position)
+            upperBin = ceil(position)
+            lowerFactor = 1 - position + lowerBin
+            upperFactor = 1 - upperBin + position
+            audioSample.phases[i] = lowerFactor * signals[i][lowerBin].angle() + upperFactor * signals[i][upperBin].angle()

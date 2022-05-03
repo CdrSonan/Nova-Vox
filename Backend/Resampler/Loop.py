@@ -4,13 +4,13 @@ import global_consts
 import Backend.Resampler.PhaseShift
 phaseShift = Backend.Resampler.PhaseShift.phaseShift
 
-def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pitch, pitchavg, device):
+def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pitch, pitchavg, phases, device):
     inputTensor = inputTensor.to(device = device)
     repetititionSpacing = repetititionSpacing.to(device = device)
     batchRS = math.ceil(repetititionSpacing * inputTensor.size()[0] / 2 / global_consts.batchSize)
     repetititionSpacing = int(repetititionSpacing * math.ceil(inputTensor.size()[0] / 2) - math.ceil(global_consts.tripleBatchSize / pitchavg / 2))
     #window = torch.hann_window(global_consts.tripleBatchSize, device = device)
-    counter = 0
+    """counter = 0
     for i in pitch:
         counter += i
         if counter > 0.5 * repetititionSpacing:
@@ -20,8 +20,10 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
         counter += i
         if counter > inputTensor.size()[0] - (0.5 * repetititionSpacing):
             finalPhase = counter - inputTensor.size()[0] + (0.5 * repetititionSpacing)
-            break
-    phaseDiff = int(torch.remainder(finalPhase - alignPhase, pitchavg))
+            break"""
+    alignPhase = int(phases[batchRS / 2])
+    finalPhase = int(phases[-batchRS / 2])
+    phaseDiff = int(torch.remainder(finalPhase - alignPhase, 2 * math.pi) * pitchavg)
     requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[0] / global_consts.batchSize - (3 / pitchavg) - batchRS)), 1)
 
     #inputTensor = torch.istft(inputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
