@@ -7,8 +7,8 @@ phaseShift = Backend.Resampler.PhaseShift.phaseShift
 def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pitch, pitchavg, phases, device):
     inputTensor = inputTensor.to(device = device)
     repetititionSpacing = repetititionSpacing.to(device = device)
-    batchRS = math.ceil(repetititionSpacing * inputTensor.size()[0] / 2 / global_consts.batchSize)
-    repetititionSpacing = int(repetititionSpacing * math.ceil(inputTensor.size()[0] / 2) - math.ceil(global_consts.tripleBatchSize / pitchavg / 2))
+    batchRS = repetititionSpacing * inputTensor.size()[0] / 2 / global_consts.batchSize
+    repetititionSpacing = int(repetititionSpacing * math.ceil(inputTensor.size()[0] / 2) )# - math.ceil(global_consts.tripleBatchSize / pitchavg / 2))
     #window = torch.hann_window(global_consts.tripleBatchSize, device = device)
     """counter = 0
     for i in pitch:
@@ -21,11 +21,12 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
         if counter > inputTensor.size()[0] - (0.5 * repetititionSpacing):
             finalPhase = counter - inputTensor.size()[0] + (0.5 * repetititionSpacing)
             break"""
-    alignPhase = int(phases[batchRS / 2])
-    finalPhase = int(phases[-batchRS / 2])
-    phaseDiff = int(torch.remainder(finalPhase - alignPhase, 2 * math.pi) * pitchavg)
+    alignPhase = phases[int(batchRS / 2)]
+    finalPhase = phases[int(-batchRS / 2) - 1]
+    #phaseDiff = int(torch.remainder(finalPhase - alignPhase, 2 * math.pi) * pitchavg)
+    phaseDiff = int(((alignPhase - finalPhase) % (2 * math.pi)) / (2 * math.pi) * pitchavg)
     requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[0] / global_consts.batchSize - (3 / pitchavg) - batchRS)), 1)
-
+    print(phases, alignPhase, finalPhase, batchRS, phaseDiff)
     #inputTensor = torch.istft(inputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
 
     if requiredTensors <= 1:
