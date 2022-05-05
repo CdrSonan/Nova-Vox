@@ -21,12 +21,32 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
         if counter > inputTensor.size()[0] - (0.5 * repetititionSpacing):
             finalPhase = counter - inputTensor.size()[0] + (0.5 * repetititionSpacing)
             break"""
-    alignPhase = phases[int(batchRS / 2)]
-    finalPhase = phases[int(-batchRS / 2) - 1]
-    #phaseDiff = int(torch.remainder(finalPhase - alignPhase, 2 * math.pi) * pitchavg)
-    phaseDiff = int(((alignPhase - finalPhase) % (2 * math.pi)) / (2 * math.pi) * pitchavg)
+    #refactor to util file; shared with ESPER/SpectralCalculator
+    position = (batchRS / 2) - 0.5
+    lowerBin = math.floor(position)
+    upperBin = math.ceil(position)
+    if lowerBin == upperBin:
+        alignPhase = phases[lowerBin]
+    else:
+        lowerFactor = 1 - position + lowerBin
+        upperFactor = 1 - upperBin + position
+        alignPhase = lowerFactor * phases[lowerBin] + upperFactor * phases[upperBin]
+
+    position = (-batchRS / 2) - 0.5
+    lowerBin = math.floor(position)
+    upperBin = math.ceil(position)
+    if lowerBin == upperBin:
+        finalPhase = phases[lowerBin]
+    else:
+        lowerFactor = 1 - position + lowerBin
+        upperFactor = 1 - upperBin + position
+        finalPhase = lowerFactor * phases[lowerBin] + upperFactor * phases[upperBin]
+        
+    #alignPhase = phases[int(batchRS / 2)]
+    #finalPhase = phases[int(-batchRS / 2) - 1]
+
+    phaseDiff = int(((finalPhase - alignPhase) % (2 * math.pi)) / (2 * math.pi) * pitchavg)
     requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[0] / global_consts.batchSize - (3 / pitchavg) - batchRS)), 1)
-    print(phases, alignPhase, finalPhase, batchRS, phaseDiff)
     #inputTensor = torch.istft(inputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
 
     if requiredTensors <= 1:
