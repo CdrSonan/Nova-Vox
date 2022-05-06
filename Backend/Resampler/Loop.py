@@ -22,6 +22,7 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
             finalPhase = counter - inputTensor.size()[0] + (0.5 * repetititionSpacing)
             break"""
     #refactor to util file; shared with ESPER/SpectralCalculator
+    batchRS = max(batchRS, 1.)
     position = (batchRS / 2) - 0.5
     lowerBin = math.floor(position)
     upperBin = math.ceil(position)
@@ -41,12 +42,11 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
         lowerFactor = 1 - position + lowerBin
         upperFactor = 1 - upperBin + position
         finalPhase = lowerFactor * phases[lowerBin] + upperFactor * phases[upperBin]
-        
     #alignPhase = phases[int(batchRS / 2)]
     #finalPhase = phases[int(-batchRS / 2) - 1]
 
     phaseDiff = int(((finalPhase - alignPhase) % (2 * math.pi)) / (2 * math.pi) * pitchavg)
-    requiredTensors = max(math.ceil((targetSize/global_consts.batchSize - batchRS) / (inputTensor.size()[0] / global_consts.batchSize - (3 / pitchavg) - batchRS)), 1)
+    requiredTensors = max(math.ceil((targetSize/global_consts.batchSize) / (inputTensor.size()[0] / global_consts.batchSize)), 1)
     #inputTensor = torch.istft(inputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
 
     if requiredTensors <= 1:
