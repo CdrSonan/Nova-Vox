@@ -99,6 +99,10 @@ def calculateSpectra(audioSample):
             position = global_consts.tripleBatchSize / audioSample.pitchDeltas[i].item()
             lowerBin = floor(position)
             upperBin = ceil(position)
-            lowerFactor = 1 - position + lowerBin
-            upperFactor = 1 - upperBin + position
+            lowerFactor = signals[i][lowerBin].abs() / (signals[i][lowerBin].abs() + signals[i][upperBin].abs())
+            upperFactor = signals[i][upperBin].abs() / (signals[i][lowerBin].abs() + signals[i][upperBin].abs())
+            lowerFactor *= 1 - position + lowerBin
+            upperFactor *= 1 - upperBin + position
             audioSample.phases[i] = lowerFactor * signals[i][lowerBin].angle() + upperFactor * signals[i][upperBin].angle()
+            if i > 0:
+                audioSample.phases[i] += floor(global_consts.batchSize / audioSample.pitchDeltas[i - 1])

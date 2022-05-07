@@ -63,7 +63,7 @@ def getVoicedExcitation(vocalSegment, device):
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,])
     offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)
     nativePitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch.to(device = device)
-    requiredSize = math.ceil(torch.max(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas) / torch.min(vocalSegment.pitch) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize)
+    requiredSize = math.ceil(torch.max(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize
     pitchDeltas = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas
     pitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch
     voicedExcitation = Loop.loopSamplerVoicedExcitation(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].voicedExcitation, requiredSize, vocalSegment.repetititionSpacing, pitchDeltas, pitch, vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].phases, device)
@@ -76,7 +76,7 @@ def getVoicedExcitation(vocalSegment, device):
         nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - vocalSegment.steadiness[i])))
         rescale_factor = float(vocalSegment.pitch[i] / nativePitchMod)
         buffer = 10 #this is a terrible idea, but it seems to work
-        if cursor < math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]):
+        if cursor < math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]):#case for first sample, where no padding can be provided to acommodate stft overlap space
             voicedExcitationPart = torch.cat((voicedExcitation, torch.zeros(math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]) - cursor).to(device = device)), 0)
             length = (3*math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i])) + buffer
             voicedExcitationPart = voicedExcitationPart[offset:length + offset]

@@ -99,4 +99,5 @@ def loopSamplerSpectrum(inputTensor, targetSize, repetititionSpacing, device):
         workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.unsqueeze(torch.linspace(0, 1, repetititionSpacing, device = device), 1)
         outputTensor[(requiredTensors - 1) * (inputTensor.size()[0] - repetititionSpacing):] += workingTensor
         del workingTensor
+    print(outputTensor[0:targetSize].size(), targetSize)
     return outputTensor[0:targetSize]
