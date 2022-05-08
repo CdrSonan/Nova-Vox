@@ -18,17 +18,26 @@ phaseAdvance = (2 * pi * global_consts.batchSize / freq)
 phases = torch.linspace(0, (size - 1) * phaseAdvance, size)
 
 newPhases = torch.empty([size,], dtype = torch.float64)
+previousLimit = 0
+previousPhase = 0
 for i in range(pitchDeltas.size()[0]):
-    func = data[i * global_consts.batchSize:(i + 1) * global_consts.batchSize]
-    #arange = torch.arange(0, global_consts.batchSize, 2 * pi / pitchDeltas[i])
-    arange = torch.linspace(0, (global_consts.batchSize - 1) * 2 * pi / pitchDeltas[i], global_consts.batchSize)
+    limit = floor(global_consts.batchSize / pitchDeltas[i])
+    func = data[i * global_consts.batchSize:i * global_consts.batchSize + limit * pitchDeltas[i]]
+    arange = torch.linspace(0, (limit * pitchDeltas[i] - 1) * 2 * pi / pitchDeltas[i], limit * pitchDeltas[i])
     sine = torch.sin(arange)
     cosine = torch.cos(arange)
     sine *= func
     cosine *= func
     sine = torch.sum(sine)# / pi
     cosine = torch.sum(cosine)# / pi
-    newPhases[i] = torch.complex(sine, cosine).angle()
-    if i > 0:
-        newPhases[i] += floor(global_consts.batchSize / pitchDeltas[i - 1])
-print(phases, newPhases)
+    phase = torch.complex(sine, cosine).angle()
+    if phase < 0:
+        phase += 2 * pi
+    phase += 2 * pi * previousLimit
+    phase += previousPhase
+    newPhases[i] = phase
+    previousLimit = limit
+    previousPhase = phase
+plt.plot(phases)
+plt.plot(newPhases)
+plt.show()
