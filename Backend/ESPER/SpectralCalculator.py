@@ -1,4 +1,4 @@
-from math import inf, floor, ceil
+from math import pi, floor, ceil
 import torch
 import global_consts
 
@@ -96,13 +96,24 @@ def calculateSpectra(audioSample):
 
         audioSample.phases = torch.empty_like(audioSample.pitchDeltas)
         for i in range(audioSample.pitchDeltas.size()[0]):
-            position = global_consts.tripleBatchSize / audioSample.pitchDeltas[i].item()
+            """position = global_consts.tripleBatchSize / audioSample.pitchDeltas[i].item()
             lowerBin = floor(position)
             upperBin = ceil(position)
             lowerFactor = signals[i][lowerBin].abs() / (signals[i][lowerBin].abs() + signals[i][upperBin].abs())
             upperFactor = signals[i][upperBin].abs() / (signals[i][lowerBin].abs() + signals[i][upperBin].abs())
-            lowerFactor *= 1 - position + lowerBin
-            upperFactor *= 1 - upperBin + position
-            audioSample.phases[i] = lowerFactor * signals[i][lowerBin].angle() + upperFactor * signals[i][upperBin].angle()
+            lowerFactor += 1 - position + lowerBin
+            upperFactor += 1 - upperBin + position
+            lowerFactor = int(lowerFactor / 2)
+            upperFactor = int(upperFactor / 2)
+            audioSample.phases[i] = lowerFactor * signals[i][lowerBin].angle() + upperFactor * signals[i][upperBin].angle()"""
+            func = audioSample.waveform[i * global_consts.batchSize:(i + 1) * global_consts.batchSize]
+            arange = torch.arange(0, global_consts.batchSize, 2 * pi / audioSample.pitchDeltas[i])
+            sine = torch.sin(arange)
+            cosine = torch.cos(arange)
+            sine *= func
+            cosine *= func
+            sine = torch.sum(sine)# / pi
+            cosine = torch.sum(cosine)# / pi
+            audioSample.phases[i] = torch.complex(sine, cosine).angle()
             if i > 0:
                 audioSample.phases[i] += floor(global_consts.batchSize / audioSample.pitchDeltas[i - 1])
