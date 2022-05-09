@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import torch
 import global_consts
 from Backend.Resampler.Loop import loopSamplerVoicedExcitation as shift
-from math import sin, pi, floor
+from math import sin, pi, floor, ceil
 
 window = torch.hann_window(global_consts.tripleBatchSize)
 freq = 100
@@ -28,15 +28,19 @@ for i in range(pitchDeltas.size()[0]):
     cosine = torch.cos(arange)
     sine *= func
     cosine *= func
-    sine = torch.sum(sine)# / pi
+    sine = torch.sum(sine)# / pi (would be required for normalization, but amplitude is irrelevant here, so normalization is not required)
     cosine = torch.sum(cosine)# / pi
     phase = torch.complex(sine, cosine).angle()
+    if i == 0 and torch.isclose(phase, torch.zeros([1,]), atol = 1e-7):#edge case occured with synthetic data and phase at i=0 being exactly 0. Might be able to be removed.
+        phase = 0.
     if phase < 0:
         phase += 2 * pi
-    phase += 2 * pi * previousLimit
-    phase += previousPhase
+    offset = previousLimit
+    if phase < previousPhase % (2 * pi):
+        offset += 1
+    phase += 2 * pi * offset
     newPhases[i] = phase
-    previousLimit = limit
+    previousLimit = limit + offset
     previousPhase = phase
 plt.plot(phases)
 plt.plot(newPhases)
