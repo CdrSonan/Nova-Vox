@@ -28,10 +28,12 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
     upperBin = math.ceil(position)
     if lowerBin == upperBin:
         alignPhase = phases[lowerBin]
+        interpolatedPitch = pitch[lowerBin]
     else:
         lowerFactor = 1 - position + lowerBin
         upperFactor = 1 - upperBin + position
         alignPhase = lowerFactor * phases[lowerBin] + upperFactor * phases[upperBin]
+        interpolatedPitch = lowerFactor * pitch[lowerBin] + upperFactor * pitch[upperBin]
 
     position = (-batchRS / 2) - 0.5
     lowerBin = math.floor(position)
@@ -45,12 +47,13 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
     #alignPhase = phases[int(batchRS / 2)]
     #finalPhase = phases[int(-batchRS / 2) - 1]
 
-    phaseDiff = int(((finalPhase - alignPhase) % (2 * math.pi)) / (2 * math.pi) * pitchavg)
+    phaseDiff = int(((finalPhase - alignPhase) % (2 * math.pi)) / (2 * math.pi) * interpolatedPitch)
     requiredTensors = max(math.ceil((targetSize/global_consts.batchSize) / (inputTensor.size()[0] / global_consts.batchSize)), 1)
     #inputTensor = torch.istft(inputTensor, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = inputTensor.size()[1]*global_consts.batchSize)
 
     if requiredTensors <= 1:
         outputTensor = inputTensor.clone()
+        print("CASE!!!")
     else:
         outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[0] - repetititionSpacing) + repetititionSpacing, device = device)
         workingTensor = inputTensor.clone()
@@ -65,9 +68,11 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
             workingTensor = workingTensor[phaseDiff:]
             workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.linspace(0, 1, repetititionSpacing, device = device)
             workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.linspace(1, 0, repetititionSpacing, device = device)
+            #import matplotlib.pyplot as plt
+            #plt.plot(torch.arange(cursor, cursor + workingTensor.size()[0]), workingTensor)
             outputTensor[cursor:cursor + workingTensor.size()[0]] += workingTensor
             cursor += workingTensor.size()[0] - repetititionSpacing
-
+        #plt.show()
         workingTensor = inputTensor.clone()
         #phaseOffset = int(global_consts.tripleBatchSize / (2 * math.pi) * torch.remainder(i * phaseDiff, 2 * math.pi) / pitch) #BUGGED, related to z test input data size
         #print(phaseOffset, math.ceil(global_consts.tripleBatchSize / pitch / 2), torch.remainder(i * phaseDiff, 2 * math.pi) / pitch, phaseDiff)

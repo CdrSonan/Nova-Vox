@@ -59,6 +59,9 @@ def getExcitation(vocalSegment, device):
     return excitation.transpose(0, 1)
     
 def getVoicedExcitation(vocalSegment, device):
+    import matplotlib.pyplot as plt
+    plt.plot(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas)
+    plt.show()
     if vocalSegment.phonemeKey == "_autopause":
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,])
     offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)

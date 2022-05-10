@@ -122,7 +122,7 @@ def calculateSpectra(audioSample):
     previousPhase = 0
     for i in range(audioSample.pitchDeltas.size()[0]):
         limit = floor(global_consts.batchSize / audioSample.pitchDeltas[i])
-        func = audioSample.waveform[i * global_consts.batchSize:i * global_consts.batchSize + limit * audioSample.pitchDeltas[i]]
+        func = audioSample.waveform[i * global_consts.batchSize:i * global_consts.batchSize + limit * audioSample.pitchDeltas[i].to(torch.int64)]
         funcspace = torch.linspace(0, (limit * audioSample.pitchDeltas[i] - 1) * 2 * pi / audioSample.pitchDeltas[i], limit * audioSample.pitchDeltas[i])
         sine = torch.sin(funcspace)
         cosine = torch.cos(funcspace)
@@ -131,8 +131,8 @@ def calculateSpectra(audioSample):
         sine = torch.sum(sine)# / pi (would be required for normalization, but amplitude is irrelevant here, so normalization is not required)
         cosine = torch.sum(cosine)# / pi
         phase = torch.complex(sine, cosine).angle()
-        if i == 0 and torch.isclose(phase, torch.zeros([1,]), atol = 1e-7):#edge case occured with synthetic data and phase at i=0 being exactly 0. Might be able to be removed.
-            phase = 0.
+        #if i == 0 and torch.isclose(phase, torch.zeros([1,]), atol = 1e-7):#edge case occured with synthetic data and phase at i=0 being exactly 0. Might be able to be removed.
+        #    phase = 0.
         if phase < 0:
             phase += 2 * pi
         offset = previousLimit
