@@ -605,22 +605,24 @@ class PhonemedictUi(tkinter.Frame):
         pitch = self.sideBar.expPitch.variable.get()
         pitchRange = self.sideBar.pSearchRange.variable.get()
         for i in loadedVB.phonemeDict:
-            if type(i).__name__ == "AudioSample":
-                if (i.expectedPitch != self.sideBar.expPitch.variable.get()) or (i.searchRange != self.sideBar.pSearchRange.variable.get()):
-                    i.expectedPitch = pitch
-                    i.searchRange = pitchRange
-                    calculatePitch(i)
-                    calculateSpectra(i)
+            j = loadedVB.phonemeDict[i]
+            if type(j).__name__ == "AudioSample":
+                if (j.expectedPitch != pitch) or (j.searchRange != pitchRange):
+                    j.expectedPitch = pitch
+                    j.searchRange = pitchRange
+                    calculatePitch(j)
+                    calculateSpectra(j)
 
     def onSpecBrdcPress(self):
         voicedFilter = self.sideBar.voicedFilter.variable.get()
         unvoicedIter = self.sideBar.unvoicedIter.variable.get()
         for i in loadedVB.phonemeDict:
-            if type(i).__name__ == "AudioSample":
-                if (i.voicedFilter != self.sideBar.voicedFilter.variable.get()) or (i.unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
-                    i.voicedFilter = voicedFilter
-                    i.unvoicedIterations = unvoicedIter
-                    calculateSpectra(i)
+            j = loadedVB.phonemeDict[i]
+            if type(j).__name__ == "AudioSample":
+                if (j.voicedFilter != voicedFilter) or (j.unvoicedIterations != unvoicedIter):
+                    j.voicedFilter = voicedFilter
+                    j.unvoicedIterations = unvoicedIter
+                    calculateSpectra(j)
         self.onSliderMove(self.diagram.timeSlider.get())
         
     def onPitchUpdateTrigger(self, event):
