@@ -873,7 +873,7 @@ class CrfaiUi(tkinter.Frame):
         for i in range(numIter):
             loadedVB.delTrainSample(0)
             self.phonemeList.list.lb.delete(0)
-        self.statusVar.set("AI trained with " + str(loadedVB.crfAi.epoch) + " epochs and " + str(loadedVB.crfAi.sampleCount) + " samples")
+        self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.crfAi.sampleCount) + loc["AI_stat_3"])
         logging.info("Crfai train button callback completed")
         
     def onFinalizePress(self):
@@ -910,7 +910,7 @@ class CrfaiUi(tkinter.Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.loadCrfWeights(filepath)
-            self.sidebar.statusVar.set("AI trained with " + loadedVB.crfAi.epoch + " epochs and " + loadedVB.crfAi.samples + " samples")
+            self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.crfAi.sampleCount) + loc["AI_stat_3"])
 
 class UtauImportUi(tkinter.Frame):
     """Class of the UTAU import UI window"""

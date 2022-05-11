@@ -1,4 +1,4 @@
-import math
+from math import ceil
 import torch
 from torchaudio.functional import detect_pitch_frequency
 import global_consts
@@ -52,9 +52,10 @@ def calculatePitch(audioSample):
     #    cursor2 += global_consts.batchSize
     #    pitchDeltas[i] = audioSample.pitchDeltas[cursor]
     #audioSample.pitchDeltasFull = pitchDeltas
-
-    audioSample.pitchDeltas = (global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), 10 * audioSample.expectedPitch * (1 + audioSample.searchRange)))#factor 10 is a botch;fix later
+    try:
+        audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))#factor 10 is a botch;fix later
+    except:
+        print("error during pitch detection; falling back to default values")
+        audioSample.pitchDeltas = torch.full([ceil(audioSample.waveform.size()[0] / global_consts.batchSize),], audioSample.expectedPitch)
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
-    print(audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
-    print(global_consts.sampleRate / (audioSample.expectedPitch * (1 - audioSample.searchRange)), global_consts.sampleRate / (audioSample.expectedPitch * (1 + audioSample.searchRange)))

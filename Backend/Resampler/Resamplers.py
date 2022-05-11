@@ -60,8 +60,6 @@ def getExcitation(vocalSegment, device):
     
 def getVoicedExcitation(vocalSegment, device):
     import matplotlib.pyplot as plt
-    plt.plot(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas)
-    plt.show()
     if vocalSegment.phonemeKey == "_autopause":
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,])
     offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)
@@ -78,7 +76,7 @@ def getVoicedExcitation(vocalSegment, device):
         precisePitch = pitchDeltas[i]
         nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - vocalSegment.steadiness[i])))
         rescale_factor = float(vocalSegment.pitch[i] / nativePitchMod)
-        buffer = 10 #this is a terrible idea, but it seems to work
+        buffer = 0 #this is a terrible idea, but it seems to work
         if cursor < math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]):#case for first sample, where no padding can be provided to acommodate stft overlap space
             voicedExcitationPart = torch.cat((voicedExcitation, torch.zeros(math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]) - cursor).to(device = device)), 0)
             length = (3*math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i])) + buffer

@@ -58,6 +58,7 @@ def calculateSpectra(audioSample):
     signalsAbs = signals.abs()
     signalsAbs = torch.sqrt(signalsAbs)
     audioSample.spectra = signalsAbs.clone()
+    spectralFilterWidth = min(spectralFilterWidth, floor(audioSample.spectra.size()[1] / 2))
     for j in range(audioSample.unvoicedIterations):
         audioSample.spectra = torch.maximum(audioSample.spectra, signalsAbs)
         audioSample.spectra = torch.fft.rfft(audioSample.spectra, dim = 1)

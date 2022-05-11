@@ -53,7 +53,6 @@ def loopSamplerVoicedExcitation(inputTensor, targetSize, repetititionSpacing, pi
 
     if requiredTensors <= 1:
         outputTensor = inputTensor.clone()
-        print("CASE!!!")
     else:
         outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[0] - repetititionSpacing) + repetititionSpacing, device = device)
         workingTensor = inputTensor.clone()
