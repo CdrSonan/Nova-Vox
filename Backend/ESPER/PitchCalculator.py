@@ -53,9 +53,9 @@ def calculatePitch(audioSample):
     #    pitchDeltas[i] = audioSample.pitchDeltas[cursor]
     #audioSample.pitchDeltasFull = pitchDeltas
     try:
-        audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))#factor 10 is a botch;fix later
-    except:
-        print("error during pitch detection; falling back to default values")
+        audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange) * 10)#factor 10 is a botch;fix later
+    except Exception as e:
+        print("error during pitch detection; falling back to default values", e)
         audioSample.pitchDeltas = torch.full([ceil(audioSample.waveform.size()[0] / global_consts.batchSize),], audioSample.expectedPitch)
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)

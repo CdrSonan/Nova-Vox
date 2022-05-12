@@ -34,9 +34,25 @@ def calculateSpectra(audioSample):
         workingSpectra = torch.min(workingSpectra, audioSample.spectra)
         audioSample.spectra = workingSpectra
     
+    pitchDeltas = audioSample.pitchDeltas
+    for i in range(global_consts.filterBSMult):
+        pitchDeltas = torch.cat([pitchDeltas, audioSample.pitchDeltas], 0)
+    
+    resonanceFunction = torch.zeros_like(audioSample.spectra)
+    for i in range(resonanceFunction.size()[0]):
+        #sin(2*pi*a)/(a^2-1) mit a = f/f0 = l0/l
+        for j in range(global_consts.nFormants):
+            freqspace = torch.linspace(0, pitchDeltas[i] * (j + 1), global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1)
+            freqspace = torch.sin(2 * pi * freqspace) / (torch.pow(freqspace, torch.full([1,], 2.)) - torch.ones([1,]))
+            freqspace = torch.pow(freqspace / pi, torch.full([1,], 16.)) / (j + 1)
+            resonanceFunction[i] = torch.max(resonanceFunction[i], freqspace)
+        #import matplotlib.pyplot as plt
+        #print(resonanceFunction[i])
+        #plt.plot(resonanceFunction[i])
+        #plt.show()
 
     audioSample._voicedExcitations = signals.clone()
-    audioSample._voicedExcitations *= torch.gt(signalsAbs, audioSample.spectra * audioSample.voicedFilter)
+    audioSample._voicedExcitations *= torch.gt(signalsAbs, audioSample.spectra * audioSample.voicedFilter * (1. - resonanceFunction))
 
     excitationAbs = signalsAbs
     voicedExcitationAbs = audioSample._voicedExcitations.abs()
