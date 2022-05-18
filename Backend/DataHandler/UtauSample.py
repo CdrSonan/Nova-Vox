@@ -12,7 +12,7 @@ class UtauSample:
         
         convert: returns a Nova-Vox compatible AudioSample object of the sample"""
 
-    def __init__(self, filepath, _type, key, start, end, offset, fixed, blank, preuttr, overlap):
+    def __init__(self, filepath, _type, key, start, end, offset, fixed, blank, preuttr, overlap, isVoiced = True):
         """initialises the object based on both UTAU and Nova-Vox sample properties.
         
         Arguments:
@@ -60,6 +60,7 @@ class UtauSample:
         self.blank = blank
         self.preuttr = preuttr
         self.overlap = overlap
+        self.isVoiced = isVoiced
 
     def updateHandle(self):
         """updates the handle of the sample, which is used to represent it in the devkit UI, to reflect changed sample properties"""
@@ -75,4 +76,5 @@ class UtauSample:
         end = int(self.end * sampleRate / 1000)
         audioSample = AudioSample(self.audioSample.filepath)
         audioSample.waveform = audioSample.waveform[start:end]
+        audioSample.isVoiced = self.isVoiced
         return audioSample

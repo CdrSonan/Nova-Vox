@@ -49,6 +49,8 @@ def calculateSpectra(audioSample):
 
     audioSample._voicedExcitations = signals.clone()
     audioSample._voicedExcitations *= torch.gt(signalsAbs * resonanceFunction, audioSample.spectra * audioSample.voicedFilter)
+    if audioSample.isVoiced == False:
+        audioSample._voicedExcitations *= 0
 
     excitationAbs = signalsAbs
     voicedExcitationAbs = audioSample._voicedExcitations.abs()

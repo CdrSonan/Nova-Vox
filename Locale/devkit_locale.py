@@ -58,6 +58,7 @@ def getLocale():
         locale["fwidth"] = "spectral filter width:"
         locale["vfilter"] = "voiced excitation filter strength:"
         locale["uviter"] = "unvoiced excitation filter iterations:"
+        locale["voiced"] = "is voiced phoneme"
         locale["spec_brdc"] = "apply spectral settings to all"
         locale["cng_file"] = "change file"
         locale["finalize"] = "finalize"

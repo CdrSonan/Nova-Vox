@@ -454,6 +454,17 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
         self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
         self.sideBar.sBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+
+        self.sideBar.isVoiced = tkinter.Frame(self.sideBar)
+        self.sideBar.isVoiced.variable = tkinter.BooleanVar(self.sideBar.isVoiced, True)
+        self.sideBar.isVoiced.entry = tkinter.Checkbutton(self.sideBar.isVoiced)
+        self.sideBar.isVoiced.entry["variable"] = self.sideBar.isVoiced.variable
+        self.sideBar.isVoiced.entry["command"] = self.onVoicedUpdateTrigger
+        self.sideBar.isVoiced.entry.pack(side = "right", fill = "x")
+        self.sideBar.isVoiced.display = tkinter.Label(self.sideBar.isVoiced)
+        self.sideBar.isVoiced.display["text"] = loc["voiced"]
+        self.sideBar.isVoiced.display.pack(side = "right", fill = "x")
+        self.sideBar.isVoiced.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.fileButton = tkinter.Button(self.sideBar)
         self.sideBar.fileButton["text"] = loc["cng_file"]
@@ -492,12 +503,14 @@ class PhonemedictUi(tkinter.Frame):
                 self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key].searchRange)
                 self.sideBar.voicedFilter.variable.set(loadedVB.phonemeDict[key].voicedFilter)
                 self.sideBar.unvoicedIter.variable.set(loadedVB.phonemeDict[key].unvoicedIterations)
+                self.sideBar.isVoiced.variable.set(loadedVB.phonemeDict[key].isVoiced)
                 self.enableButtons()
             else:
                 self.sideBar.expPitch.variable.set(None)
                 self.sideBar.pSearchRange.variable.set(None)
                 self.sideBar.voicedFilter.variable.set(None)
                 self.sideBar.unvoicedIter.variable.set(None)
+                self.sideBar.isVoiced.variable.set(False)
                 self.disableButtons()
             self.updateSlider()
             self.onSliderMove(0)
@@ -516,6 +529,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.unvoicedIter.entry["state"] = "disabled"
         self.sideBar.fileButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
+        self.sideBar.isVoiced.entry["state"] = "disabled"
     
     def enableButtons(self):
         """Enables the per-phoneme settings buttons"""
@@ -525,6 +539,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.unvoicedIter.entry["state"] = "normal"
         self.sideBar.fileButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"
+        self.sideBar.isVoiced.entry["state"] = "normal"
     
     def onAddPress(self):
         """UI Frontend function for adding a phoneme to the Voicebank"""
@@ -637,6 +652,17 @@ class PhonemedictUi(tkinter.Frame):
                 loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
                 calculatePitch(loadedVB.phonemeDict[key])
                 calculateSpectra(loadedVB.phonemeDict[key])
+    
+    def onVoicedUpdateTrigger(self):
+        logging.info("Phonemedict voicing update callback")
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
+            if loadedVB.phonemeDict[key].isVoiced != self.sideBar.isVoiced.variable.get():
+                loadedVB.phonemeDict[key].isVoiced = self.sideBar.isVoiced.variable.get()
+                calculateSpectra(loadedVB.phonemeDict[key])
+                self.onSliderMove(self.diagram.timeSlider.get())
         
     def onSpectralUpdateTrigger(self, event):
         """UI Frontend function for updating the spectral and excitation data of a phoneme"""
