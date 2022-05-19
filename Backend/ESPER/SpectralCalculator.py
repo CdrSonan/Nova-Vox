@@ -47,8 +47,29 @@ def calculateSpectra(audioSample):
         resonanceFunction[i][transitionPoint - global_consts.nFormants:transitionPoint] += torch.linspace(0, 1, global_consts.nFormants)
         resonanceFunction[i][transitionPoint:] = torch.ones_like(resonanceFunction[i][transitionPoint:])
 
+    phaseContinuity = torch.empty_like(signals, dtype = torch.float32)
+    for i in range(phaseContinuity.size()[0] - 1):
+        phaseContinuity[i] = signals[i].angle() - signals[i + 1].angle()
+    phaseContinuity[-1] = phaseContinuity[-2]
+    phaseContinuity = torch.remainder(phaseContinuity, torch.full([1,], 2 * pi))
+    phaseContinuity -= pi
+    phaseContinuity -= 2 * phaseContinuity * torch.heaviside(phaseContinuity, torch.zeros([1,]))
+    phaseContinuity += pi
+    phaseContinuity /= pi
+    import matplotlib.pyplot as plt
+    plt.plot(phaseContinuity[0])
+    try:
+        plt.plot(phaseContinuity[10])
+    except:
+        pass
+    try:
+        plt.plot(phaseContinuity[20])
+    except:
+        pass
+    plt.show()
+
     audioSample._voicedExcitations = signals.clone()
-    audioSample._voicedExcitations *= torch.gt(signalsAbs * resonanceFunction, audioSample.spectra * audioSample.voicedFilter)
+    audioSample._voicedExcitations *= torch.gt(signalsAbs * resonanceFunction * (1. - phaseContinuity), audioSample.spectra * audioSample.voicedFilter)
     if audioSample.isVoiced == False:
         audioSample._voicedExcitations *= 0
 
