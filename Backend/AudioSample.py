@@ -77,7 +77,7 @@ class AudioSample:
         self.isVoiced = True
         
         self.expectedPitch = 249.
-        self.searchRange = 0.2
+        self.searchRange = 0.35
         self.voicedFilter = 10
         self.unvoicedIterations = 20
         

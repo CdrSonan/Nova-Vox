@@ -411,7 +411,7 @@ class PhonemedictUi(tkinter.Frame):
         
         self.sideBar.pSearchRange = tkinter.Frame(self.sideBar)
         self.sideBar.pSearchRange.variable = tkinter.DoubleVar(self.sideBar.pSearchRange)
-        self.sideBar.pSearchRange.entry = tkinter.Spinbox(self.sideBar.pSearchRange, from_ = 0.05, to = 0.5, increment = 0.05)
+        self.sideBar.pSearchRange.entry = tkinter.Spinbox(self.sideBar.pSearchRange, from_ = 0.35, to = 0.95, increment = 0.05)
         self.sideBar.pSearchRange.entry["textvariable"] = self.sideBar.pSearchRange.variable
         self.sideBar.pSearchRange.entry.bind("<FocusOut>", self.onPitchUpdateTrigger)
         self.sideBar.pSearchRange.entry.bind("<KeyRelease-Return>", self.onPitchUpdateTrigger)
@@ -1043,6 +1043,26 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.importButton["text"] = loc["smp_import"]
         self.sideBar.importButton["command"] = self.onImportPress
         self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+
+        self.stripPrefix = tkinter.Frame(self)
+        self.stripPrefix.variable = tkinter.StringVar(self.stripPrefix)
+        self.stripPrefix.entry = tkinter.Entry(self.stripPrefix)
+        self.stripPrefix.entry["textvariable"] = self.stripPrefix.variable
+        self.stripPrefix.entry.pack(side = "right", fill = "x")
+        self.stripPrefix.display = tkinter.Label(self.stripPrefix)
+        self.stripPrefix.display["text"] = loc["stripPrefix"]
+        self.stripPrefix.display.pack(side = "right", fill = "x")
+        self.stripPrefix.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.stripPostfix = tkinter.Frame(self)
+        self.stripPostfix.variable = tkinter.StringVar(self.stripPostfix)
+        self.stripPostfix.entry = tkinter.Entry(self.stripPostfix)
+        self.stripPostfix.entry["textvariable"] = self.stripPostfix.variable
+        self.stripPostfix.entry.pack(side = "right", fill = "x")
+        self.stripPostfix.display = tkinter.Label(self.stripPostfix)
+        self.stripPostfix.display["text"] = loc["stripPostfix"]
+        self.stripPostfix.display.pack(side = "right", fill = "x")
+        self.stripPostfix.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
@@ -1267,7 +1287,7 @@ class UtauImportUi(tkinter.Frame):
                     properties = row[1].split(",")
                     occuredError = None
                     try:
-                        fetchedSamples = fetchSamples(filename, properties, phonemes, types, otoPath)
+                        fetchedSamples = fetchSamples(filename, properties, phonemes, types, otoPath, self.stripPrefix.variable.get(), self.stripPostfix.variable.get())
                         for sample in fetchedSamples:
                             if sample._type == 1:
                                 self.sampleList.append(sample)
@@ -1286,10 +1306,12 @@ class UtauImportUi(tkinter.Frame):
                                     self.phonemeList.list.lb.insert("end", sample.handle)
 
                     except LookupError as error:
+                        print(error)
                         if occuredError == None:
                             occuredError = 0
                         logging.warning(error)
                     except Exception as error:
+                        print(error)
                         occuredError = 1
                         logging.error(error)
                 self.update()

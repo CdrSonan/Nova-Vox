@@ -56,17 +56,6 @@ def calculateSpectra(audioSample):
     phaseContinuity -= 2 * phaseContinuity * torch.heaviside(phaseContinuity, torch.zeros([1,]))
     phaseContinuity += pi
     phaseContinuity /= pi
-    import matplotlib.pyplot as plt
-    plt.plot(phaseContinuity[0])
-    try:
-        plt.plot(phaseContinuity[10])
-    except:
-        pass
-    try:
-        plt.plot(phaseContinuity[20])
-    except:
-        pass
-    plt.show()
 
     audioSample._voicedExcitations = signals.clone()
     audioSample._voicedExcitations *= torch.gt(signalsAbs * resonanceFunction * (1. - phaseContinuity), audioSample.spectra * audioSample.voicedFilter)

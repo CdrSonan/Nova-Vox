@@ -169,7 +169,7 @@ def replaceKana(input):
     input = input.replace("吸", ">")
     return input
 
-def fetchSamples(filename, properties, phonemes, types, otoPath):
+def fetchSamples(filename, properties, phonemes, types, otoPath, prefix, postfix):
     """Function for fetching Nova-Vox samples based on a line from an oto.ini file and phoneme list.
 
     Parameters:
@@ -186,7 +186,12 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
     Returns: List of UtauSample objects, each representing a transition or phoneme sample from the .wav file
     """
 
+    delimiters = [" ", "_", "+"]
     alias = properties[0]
+    if alias.startswith(prefix):
+        alias = alias[len(prefix):]
+    if alias.endswith(postfix):
+        alias = alias[0:-len(postfix)]
     offset = max(float(properties[1]), 0)
     fixed = max(float(properties[2]), 0)
     blank = float(properties[3])
@@ -198,7 +203,6 @@ def fetchSamples(filename, properties, phonemes, types, otoPath):
     aliasCopy = replaceKana(alias)
     sequence = []
     typeSequence = []
-    delimiters = [" ", "_", "+"]
     while len(aliasCopy) > 0:
         if aliasCopy[0] == "-":
             aliasCopy = aliasCopy[1:]

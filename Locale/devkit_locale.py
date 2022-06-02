@@ -84,6 +84,8 @@ def getLocale():
         locale["start"] = "sample start:"
         locale["end"] = "sample end:"
         locale["smp_import"] = "import sample"
+        locale["stripPrefix"] = "srip Prefix:"
+        locale["stripPostfix"] = "srip Postfix:"
         locale["load_oto"] = "load oto.ini file..."
         locale["all_import"] = "import all samples"
         locale["utau_diag_lbl"] = "sample analysis"
