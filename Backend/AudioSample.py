@@ -72,7 +72,6 @@ class AudioSample:
         self.spectrum = torch.tensor([], dtype = float)
         self.excitation = torch.tensor([], dtype = float)
         self.voicedExcitation = torch.tensor([], dtype = float)
-        self._voicedExcitations = torch.tensor([], dtype = float)
         self.phases = torch.tensor([], dtype = float)
         self.isVoiced = True
         

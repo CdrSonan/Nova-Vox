@@ -62,6 +62,6 @@ def calculatePitch(audioSample):
     except Exception as e:
         print("error during pitch detection; falling back to default values", e)
         audioSample.pitchDeltas = torch.full([ceil(audioSample.waveform.size()[0] / global_consts.batchSize),], audioSample.expectedPitch)
-    print("pitch: ", audioSample.pitchDeltas)
+    #print("pitch: ", audioSample.pitchDeltas)
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
