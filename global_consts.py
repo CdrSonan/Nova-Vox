@@ -16,10 +16,10 @@ filterTEEMult = 32
 filterHRSSMult = 4
 nFormants = 50
 
-pitchShiftSpectralRolloff = 10
-
 spectralRolloff1 = 144
 spectralRolloff2 = 192
+
+pitchShiftSpectralRolloff = 10
 
 breCompPremul = 0.4
 

@@ -1,5 +1,6 @@
 from math import pi, floor, ceil
 import torch
+import torchaudio
 import global_consts
 
 def calculateSpectra(audioSample):
@@ -123,8 +124,6 @@ def calculateSpectra(audioSample):
 
     audioSample.voicedExcitation = audioSample.voicedExcitation / torch.transpose(torch.square(audioSample.spectrum + audioSample.spectra)[0:audioSample.voicedExcitation.size()[1]], 0, 1)
     audioSample.excitation = torch.transpose(audioSample.excitation, 0, 1) / torch.square(audioSample.spectrum + audioSample.spectra)[0:audioSample.excitation.size()[1]]
-
-    print("means: ", torch.mean(audioSample.voicedExcitation.abs()), torch.mean(audioSample.excitation.abs()))
 
     audioSample.voicedExcitation = torch.istft(audioSample.voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True)
 

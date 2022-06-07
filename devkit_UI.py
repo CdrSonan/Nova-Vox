@@ -776,6 +776,26 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar = tkinter.LabelFrame(self, text = loc["ai_settings"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
+        self.sideBar.expPitch = tkinter.Frame(self.sideBar)
+        self.sideBar.expPitch.variable = tkinter.DoubleVar(self.sideBar.expPitch)
+        self.sideBar.expPitch.entry = tkinter.Entry(self.sideBar.expPitch)
+        self.sideBar.expPitch.entry["textvariable"] = self.sideBar.expPitch.variable
+        self.sideBar.expPitch.entry.pack(side = "right", fill = "x")
+        self.sideBar.expPitch.display = tkinter.Label(self.sideBar.expPitch)
+        self.sideBar.expPitch.display["text"] = loc["est_pit"]
+        self.sideBar.expPitch.display.pack(side = "right", fill = "x")
+        self.sideBar.expPitch.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.pSearchRange = tkinter.Frame(self.sideBar)
+        self.sideBar.pSearchRange.variable = tkinter.DoubleVar(self.sideBar.pSearchRange)
+        self.sideBar.pSearchRange.entry = tkinter.Spinbox(self.sideBar.pSearchRange, from_ = 0.35, to = 0.95, increment = 0.05)
+        self.sideBar.pSearchRange.entry["textvariable"] = self.sideBar.pSearchRange.variable
+        self.sideBar.pSearchRange.entry.pack(side = "right", fill = "x")
+        self.sideBar.pSearchRange.display = tkinter.Label(self.sideBar.pSearchRange)
+        self.sideBar.pSearchRange.display["text"] = loc["psearchr"]
+        self.sideBar.pSearchRange.display.pack(side = "right", fill = "x")
+        self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
         self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
         self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter)
         self.sideBar.unvoicedIter.variable.set(20)
@@ -894,7 +914,7 @@ class CrfaiUi(tkinter.Frame):
         global loadedVB
         self.statusVar.set("training Ai...")
         self.update()
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get())
+        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get(), self.sideBar.expPitch.variable.get(), self.sideBar.pSearchRange.variable.get())
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             loadedVB.delTrainSample(0)

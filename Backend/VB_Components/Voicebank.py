@@ -216,7 +216,7 @@ class Voicebank:
         """currently unused method that changes the file of a staged phoneme crossfade Ai training sample"""
         self.stagedTrainSamples[index] = AudioSample(filepath)
     
-    def trainCrfAi(self, epochs, additive, unvoicedIterations):
+    def trainCrfAi(self, epochs, additive, unvoicedIterations, expPitch, pSearchRange):
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
         
         Arguments:
@@ -235,6 +235,8 @@ class Voicebank:
         print("sample preprocessing started")
         sampleCount = len(self.stagedTrainSamples)
         for i in range(sampleCount):
+            self.stagedTrainSamples[i].expectedPitch = expPitch
+            self.stagedTrainSamples[i].searchRange = pSearchRange
             self.stagedTrainSamples[i].voicedFilter = 1
             self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
             calculatePitch(self.stagedTrainSamples[i])

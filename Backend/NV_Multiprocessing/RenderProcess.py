@@ -83,17 +83,30 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             voicebankList.append(LiteVoicebank(change.data1))
             aiParamStackList.append(change.data3)
             inputList.append(change.data2)
+            length = inputList[-1].pitch.size()[0]
+            spectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
+            processedSpectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
+            excitationCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs))
+            voicedExcitationCache.append(torch.zeros(length * global_consts.batchSize, device = device_rs))
         elif change.type == "removeTrack":
             del statusControl[change.data1]
             del voicebankList[change.data1]
             del aiParamStackList[change.data1]
             del inputList[change.data1]
+            del spectrumCache[change.data1]
+            del processedSpectrumCache[change.data1]
+            del excitationCache[change.data1]
+            del voicedExcitationCache[change.data1]
             connection.send(StatusChange(None, None, None, None))
         elif change.type == "duplicateTrack":
             statusControl.append(copy(statusControl[change.data1]))
             voicebankList.append(copy(voicebankList[change.data1]))
             aiParamStackList.append(copy(aiParamStackList[change.data1]))
             inputList.append(copy(inputList[change.data1]))
+            spectrumCache.append(copy(spectrumCache[change.data1]))
+            processedSpectrumCache.append(copy(processedSpectrumCache[change.data1]))
+            excitationCache.append(copy(excitationCache[change.data1]))
+            voicedExcitationCache.append(copy(voicedExcitationCache[change.data1]))
         elif change.type == "changeVB":
             del voicebankList[change.data1]
             voicebankList.insert(change.data1, LiteVoicebank(change.data2))
@@ -213,6 +226,16 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
 
     window = torch.hann_window(global_consts.tripleBatchSize, device = device_rs)
     lastZero = None
+    spectrumCache = []
+    processedSpectrumCache = []
+    excitationCache = []
+    voicedExcitationCache = []
+    for i in range(len(statusControl)):
+        length = inputList[i].pitch.size()[0]
+        spectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
+        processedSpectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
+        excitationCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs))
+        voicedExcitationCache.append(torch.zeros(length * global_consts.batchSize, device = device_rs))
     while True:
         logging.info("starting new rendering iteration")
         for i in range(len(statusControl)):
@@ -227,10 +250,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             length = internalInputs.pitch.size()[0]
 
             logging.info("setting up local data structures")
-            spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
-            processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
-            excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
-            voicedExcitation = torch.zeros(length * global_consts.batchSize, device = device_rs)
 
             previousSpectrum = None
             previousExcitation = None
@@ -266,6 +285,16 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                     if internalStatusControl.ai[len(internalStatusControl.ai) - k - 1] == 0:
                         lastPoint = len(internalStatusControl.ai) - k - 1
                         break
+                spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
+                processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
+                excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
+                voicedExcitation = torch.zeros(length * global_consts.batchSize, device = device_rs)
+            else:
+                spectrum = spectrumCache[i]
+                processedSpectrum = processedSpectrumCache[i]
+                excitation = excitationCache[i]
+                voicedExcitation = voicedExcitationCache[i]
+
             #reset recurrent AI Tensors
             for j in range(len(internalStatusControl.ai) + 1):
                 logging.info("starting new segment rendering iteration")
@@ -391,6 +420,11 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
 
                 if (j > 0) & (interOutput == False):
                     connection.send(StatusChange(i, j - 1, 5))
+
+                spectrumCache[i] = spectrum
+                processedSpectrumCache[i] = processedSpectrum
+                excitationCache[i] = excitation
+                voicedExcitationCache[i] = voicedExcitation
 
                 if rerenderFlag.is_set():
                     break
