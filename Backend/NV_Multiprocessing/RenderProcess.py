@@ -263,38 +263,40 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             
             aiActive = False
             if settings["cachingMode"] == "save RAM":
-                firstPoint = None
-                for k in range(1, len(internalStatusControl.rs)):
-                    if internalStatusControl.rs[k] == 0 and internalStatusControl.rs[k - 1] > 0:
-                        for j in range(k):
-                            if internalInputs.phonemes[k - j] == "_autopause":
-                                break
-                            internalStatusControl.rs[k - j] *= 0
-                            internalStatusControl.ai[k - j] *= 0
-                        for j in range(len(internalStatusControl.ai) - k):
-                            if internalInputs.phonemes[k + j] == "_autopause":
-                                break
-                            internalStatusControl.ai[k + j] *= 0
-                firstPoint = len(internalStatusControl.ai) - 1
-                lastPoint = len(internalStatusControl.ai) - 1
-                for k in range(len(internalStatusControl.ai)):
-                    if internalStatusControl.ai[k] == 0:
-                        firstPoint = k
-                        break
-                for k in range(len(internalStatusControl.ai)):
-                    if internalStatusControl.ai[len(internalStatusControl.ai) - k - 1] == 0:
-                        lastPoint = len(internalStatusControl.ai) - k - 1
-                        break
                 spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
                 processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
                 excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
                 voicedExcitation = torch.zeros(length * global_consts.batchSize, device = device_rs)
+                indicator = 0
             else:
                 spectrum = spectrumCache[i]
                 processedSpectrum = processedSpectrumCache[i]
                 excitation = excitationCache[i]
                 voicedExcitation = voicedExcitationCache[i]
-
+                indicator = -1
+            firstPoint = None
+            for k in range(1, len(internalStatusControl.rs)):
+                if internalStatusControl.rs[k] == 0 and internalStatusControl.rs[k - 1] > 0:
+                    for j in range(k):
+                        if internalInputs.phonemes[k - j] == "_autopause":
+                            break
+                        internalStatusControl.rs[k - j] = indicator
+                        internalStatusControl.ai[k - j] = indicator
+                    for j in range(len(internalStatusControl.ai) - k):
+                        if internalInputs.phonemes[k + j] == "_autopause":
+                            break
+                        internalStatusControl.ai[k + j] = indicator
+            firstPoint = len(internalStatusControl.ai) - 1
+            lastPoint = len(internalStatusControl.ai) - 1
+            for k in range(len(internalStatusControl.ai)):
+                if internalStatusControl.ai[k] <= 0:
+                    firstPoint = k
+                    break
+            for k in range(len(internalStatusControl.ai)):
+                if internalStatusControl.ai[len(internalStatusControl.ai) - k - 1] <= 0:
+                    lastPoint = len(internalStatusControl.ai) - k - 1
+                    break
+            print("ISC:", internalStatusControl.rs, internalStatusControl.ai)
             #reset recurrent AI Tensors
             for j in range(len(internalStatusControl.ai) + 1):
                 logging.info("starting new segment rendering iteration")
