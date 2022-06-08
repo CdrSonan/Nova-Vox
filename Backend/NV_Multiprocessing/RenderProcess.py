@@ -14,6 +14,83 @@ from MiddleLayer.IniParser import readSettings
 
 import matplotlib.pyplot as plt
 
+class DenseCache():
+    def __init__(self, size, device):
+        self.tensor = torch.zeros(size, device = device)
+    def read(self, start, end = None):
+        if end == None:
+            return self.tensor[start]
+        return self.tensor[start:end]
+    def write(self, value, start, end = None):
+        if end == None:
+            self.tensor[start] = value
+        else:
+            self.tensor[start:end] = value
+
+class SparseCache():
+    def __init__(self, size, device):
+        size2 = []
+        for i in size:
+            size2.append(0)
+        self.tensor = torch.zeros(size2, device = device)
+        self.start = None
+        self.end = None
+        self.fullSize = size
+    def read(self, start, end = None):
+        if start < 0:
+            start += self.fullSize[0]
+        if end == None:
+            if start < self.start or start >= self.end:
+                return 0
+            return self.tensor[start - self.start]
+        if end < 0:
+            end += self.fullSize[0]
+        start -= self.start
+        end -= self.end
+        prepend = 0
+        append = 0
+        if start < 0:
+            prepend -= start
+            start = 0
+        if end > 0:
+            append += end
+            end = 0
+        start += self.start
+        end += self.end
+        if start < self.end and end > self.start:
+            output = self.tensor[start:end]
+        else:
+            output = torch.zeros((0,) + self.fullsize[1:])
+        output = torch.cat((torch.zeros((prepend,) + self.fullsize[1:]), output, torch.zeros((append,) + self.fullsize[1:])), 0)
+        return output
+    def write(self, value, start, end = None):
+        if start < 0:
+            start += self.fullSize[0]
+        if end == None:
+            if start < self.start:
+                self.tensor =  torch.cat((torch.zeros((self.start - start,) + self.fullsize[1:]), self.tensor), 0)
+                self.start = start
+                self.tensor[0] = value
+            elif start >= self.end:
+                self.tensor =  torch.cat((self.tensor, torch.zeros((start - self.end,) + self.fullsize[1:])), 0)
+                self.start = start
+                self.tensor[0] = value
+        if end < 0:
+            end += self.fullSize[0]
+        start -= self.start
+        end -= self.end
+        prepend = 0
+        append = 0
+        if start < 0:
+            prepend -= start
+        if end > 0:
+            append += end
+        end += (self.end - self.start)
+        self.start -= prepend
+        self.end += append
+        self.tensor = torch.cat((torch.zeros((prepend,) + self.fullsize[1:]), self.tensor, torch.zeros((append,) + self.fullsize[1:])), 0)
+        self.tensor[start:end] = value
+
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection):
     def posToSegment(index, pos1, pos2):
         pos1Out = None
@@ -201,6 +278,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         if connection.poll() or (change.final == False):
             return updateFromMain(lastZero)
         return False
+
     logging.info("render process started, reading settings")
     settings = readSettings()
     if settings["lowSpecMode"] == "enabled":
