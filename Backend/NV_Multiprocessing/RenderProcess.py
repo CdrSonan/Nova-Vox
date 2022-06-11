@@ -15,8 +15,8 @@ from MiddleLayer.IniParser import readSettings
 import matplotlib.pyplot as plt
 
 class DenseCache():
-    def __init__(self, size, device):
-        self.tensor = torch.zeros(size, device = device)
+    def __init__(self, size, device, dType = torch.float32):
+        self.tensor = torch.zeros(size, device = device, dtype = dType)
     def read(self, start, end = None):
         if end == None:
             return self.tensor[start]
@@ -28,11 +28,11 @@ class DenseCache():
             self.tensor[start:end] = value
 
 class SparseCache():
-    def __init__(self, size, device):
+    def __init__(self, size, device, dType = torch.float32):
         size2 = []
         for i in size:
             size2.append(0)
-        self.tensor = torch.zeros(size2, device = device)
+        self.tensor = torch.zeros(size2, device = device, dtype = dType)
         self.start = None
         self.end = None
         self.fullSize = size
@@ -40,11 +40,15 @@ class SparseCache():
         if start < 0:
             start += self.fullSize[0]
         if end == None:
-            if start < self.start or start >= self.end:
-                return 0
+            if self.start == None:
+                return torch.zeros((1,) + self.fullSize[1:])
+            elif start < self.start or start >= self.end:
+                return torch.zeros((1,) + self.fullSize[1:])
             return self.tensor[start - self.start]
         if end < 0:
             end += self.fullSize[0]
+        if self.start == None or self.end == None:
+            return torch.zeros((end - start,) + self.fullSize[1:])
         start -= self.start
         end -= self.end
         prepend = 0
@@ -55,40 +59,58 @@ class SparseCache():
         if end > 0:
             append += end
             end = 0
-        start += self.start
-        end += self.end
-        if start < self.end and end > self.start:
-            output = self.tensor[start:end]
+        end += self.end - self.start
+        if end < 0:
+            prepend += end
+            output = self.tensor[0:0]
+        elif start > self.end - self.start:
+            append += self.end - self.start - start
+            output = self.tensor[0:0]
         else:
-            output = torch.zeros((0,) + self.fullsize[1:])
-        output = torch.cat((torch.zeros((prepend,) + self.fullsize[1:]), output, torch.zeros((append,) + self.fullsize[1:])), 0)
+            output = self.tensor[start:end]
+        output = torch.cat((torch.zeros((prepend,) + self.fullSize[1:]), output, torch.zeros((append,) + self.fullSize[1:])), 0)
         return output
     def write(self, value, start, end = None):
         if start < 0:
             start += self.fullSize[0]
         if end == None:
-            if start < self.start:
-                self.tensor =  torch.cat((torch.zeros((self.start - start,) + self.fullsize[1:]), self.tensor), 0)
+            if self.start == None or self.end == None:
+                self.start = start
+                self.end = start + 1
+                self.tensor = torch.zeros((1,) + self.fullSize[1:], device = self.tensor.device)
+                self.tensor[0] = value
+            elif start < self.start:
+                self.tensor =  torch.cat((torch.zeros((self.start - start,) + self.fullSize[1:]), self.tensor), 0)
                 self.start = start
                 self.tensor[0] = value
             elif start >= self.end:
-                self.tensor =  torch.cat((self.tensor, torch.zeros((start - self.end,) + self.fullsize[1:])), 0)
-                self.start = start
-                self.tensor[0] = value
+                self.tensor =  torch.cat((self.tensor, torch.zeros((start + 1 - self.end,) + self.fullSize[1:])), 0)
+                self.end = start + 1
+                self.tensor[-1] = value
+            else:
+                self.tensor[start - self.start] = value
+            return
         if end < 0:
             end += self.fullSize[0]
+        if self.start == None or self.end == None:
+            self.start = start
+            self.end = end
+            self.tensor = value.to(self.tensor.device)
+            return
         start -= self.start
         end -= self.end
         prepend = 0
         append = 0
         if start < 0:
             prepend -= start
+            start = 0
         if end > 0:
             append += end
-        end += (self.end - self.start)
+            end = 0
         self.start -= prepend
         self.end += append
-        self.tensor = torch.cat((torch.zeros((prepend,) + self.fullsize[1:]), self.tensor, torch.zeros((append,) + self.fullsize[1:])), 0)
+        end += (self.end - self.start)
+        self.tensor = torch.cat((torch.zeros((prepend,) + self.fullSize[1:]), self.tensor, torch.zeros((append,) + self.fullSize[1:])), 0)
         self.tensor[start:end] = value
 
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection):
@@ -160,30 +182,33 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             voicebankList.append(LiteVoicebank(change.data1))
             aiParamStackList.append(change.data3)
             inputList.append(change.data2)
-            length = inputList[-1].pitch.size()[0]
-            spectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
-            processedSpectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
-            excitationCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs))
-            voicedExcitationCache.append(torch.zeros(length * global_consts.batchSize, device = device_rs))
+            if settings["cachingMode"] == "best rendering speed":
+                length = inputList[-1].pitch.size()[0]
+                spectrumCache.append(DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs))
+                processedSpectrumCache.append(DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs))
+                excitationCache.append(DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64))
+                voicedExcitationCache.append(DenseCache((length * global_consts.batchSize,), device_rs))
         elif change.type == "removeTrack":
             del statusControl[change.data1]
             del voicebankList[change.data1]
             del aiParamStackList[change.data1]
             del inputList[change.data1]
-            del spectrumCache[change.data1]
-            del processedSpectrumCache[change.data1]
-            del excitationCache[change.data1]
-            del voicedExcitationCache[change.data1]
+            if settings["cachingMode"] == "best rendering speed":
+                del spectrumCache[change.data1]
+                del processedSpectrumCache[change.data1]
+                del excitationCache[change.data1]
+                del voicedExcitationCache[change.data1]
             connection.send(StatusChange(None, None, None, None))
         elif change.type == "duplicateTrack":
             statusControl.append(copy(statusControl[change.data1]))
             voicebankList.append(copy(voicebankList[change.data1]))
             aiParamStackList.append(copy(aiParamStackList[change.data1]))
             inputList.append(copy(inputList[change.data1]))
-            spectrumCache.append(copy(spectrumCache[change.data1]))
-            processedSpectrumCache.append(copy(processedSpectrumCache[change.data1]))
-            excitationCache.append(copy(excitationCache[change.data1]))
-            voicedExcitationCache.append(copy(voicedExcitationCache[change.data1]))
+            if settings["cachingMode"] == "best rendering speed":
+                spectrumCache.append(copy(spectrumCache[change.data1]))
+                processedSpectrumCache.append(copy(processedSpectrumCache[change.data1]))
+                excitationCache.append(copy(excitationCache[change.data1]))
+                voicedExcitationCache.append(copy(voicedExcitationCache[change.data1]))
         elif change.type == "changeVB":
             del voicebankList[change.data1]
             voicebankList.insert(change.data1, LiteVoicebank(change.data2))
@@ -304,16 +329,17 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
 
     window = torch.hann_window(global_consts.tripleBatchSize, device = device_rs)
     lastZero = None
-    spectrumCache = []
-    processedSpectrumCache = []
-    excitationCache = []
-    voicedExcitationCache = []
-    for i in range(len(statusControl)):
-        length = inputList[i].pitch.size()[0]
-        spectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
-        processedSpectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
-        excitationCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs))
-        voicedExcitationCache.append(torch.zeros(length * global_consts.batchSize, device = device_rs))
+    if settings["cachingMode"] == "best rendering speed":
+        spectrumCache = []
+        processedSpectrumCache = []
+        excitationCache = []
+        voicedExcitationCache = []
+        for i in range(len(statusControl)):
+            length = inputList[i].pitch.size()[0]
+            spectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
+            processedSpectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
+            excitationCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs))
+            voicedExcitationCache.append(torch.zeros(length * global_consts.batchSize, device = device_rs))
     while True:
         logging.info("starting new rendering iteration")
         for i in range(len(statusControl)):
@@ -340,18 +366,28 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             nextVoicedExcitation = None
             
             aiActive = False
-            if settings["cachingMode"] == "save RAM":
-                spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
-                processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
-                excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
-                voicedExcitation = torch.zeros(length * global_consts.batchSize, device = device_rs)
-                indicator = 0
-            else:
+            if settings["cachingMode"] == "best rendering speed":
                 spectrum = spectrumCache[i]
                 processedSpectrum = processedSpectrumCache[i]
                 excitation = excitationCache[i]
                 voicedExcitation = voicedExcitationCache[i]
                 indicator = -1
+            elif settings["cachingMode"] == "save RAM":
+                spectrum = SparseCache((length, global_consts.halfTripleBatchSize + 1), device_rs)
+                processedSpectrum = SparseCache((length, global_consts.halfTripleBatchSize + 1), device_rs)
+                excitation = SparseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64)
+                voicedExcitation = SparseCache((length * global_consts.batchSize,), device_rs)
+                indicator = 0
+            else:
+                spectrum = DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs)
+                processedSpectrum = DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs)
+                excitation = DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64)
+                voicedExcitation = DenseCache((length * global_consts.batchSize,), device_rs)
+                #spectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
+                #processedSpectrum = torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs)
+                #excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
+                #voicedExcitation = torch.zeros(length * global_consts.batchSize, device = device_rs)
+                indicator = 0
             firstPoint = None
             for k in range(1, len(internalStatusControl.rs)):
                 if internalStatusControl.rs[k] == 0 and internalStatusControl.rs[k - 1] > 0:
@@ -384,9 +420,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                     if aiActive:
                         logging.info("applying AI params to spectrum of sample " + str(j - 1) + ", sequence " + str(i))
                         #execute AI code
-                        processedSpectrum[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 3]] = torch.square(spectrum[internalInputs.borders[3 * (j - 1)]:internalInputs.borders[3 * (j - 1) + 3]])
+                        processedSpectrum.write(torch.square(spectrum.read(internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
                         if internalInputs.endCaps[j - 1]:
-                            processedSpectrum[internalInputs.borders[3 * (j - 1) + 3]:internalInputs.borders[3 * (j - 1) + 5]] = torch.square(spectrum[internalInputs.borders[3 * (j - 1) + 3]:internalInputs.borders[3 * (j - 1) + 5]])
+                            processedSpectrum.write(torch.square(spectrum.read(internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
                         internalStatusControl.ai[j - 1] = 1
                         connection.send(StatusChange(i, j - 1, 4))
 
@@ -422,17 +458,18 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         connection.send(StatusChange(i, j, 1))
 
                         logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
-                        voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] = currentVoicedExcitation
+                        voicedExcitation.write(currentVoicedExcitation, internalInputs.borders[3 * j]*global_consts.batchSize, internalInputs.borders[3 * j + 5]*global_consts.batchSize)
                         if internalInputs.startCaps[j]:
                             windowStart = internalInputs.borders[3 * j]
                             windowStartEx = internalInputs.borders[3 * j]
                         else:
+                            ########################continue here###############################
                             voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 2]*global_consts.batchSize] += previousVoicedExcitation[(internalInputs.borders[3 * j]-internalInputs.borders[3 * j + 2])*global_consts.batchSize:]
                             windowStart = internalInputs.borders[3 * j + 2]
                             windowStartEx = internalInputs.borders[3 * j + 1]
-                            excitation[internalInputs.borders[3 * j]:windowStartEx] = previousExcitation[internalInputs.borders[3 * j] - windowStartEx:]
+                            excitation.write(previousExcitation[internalInputs.borders[3 * j] - windowStartEx:], internalInputs.borders[3 * j], windowStartEx)
                             for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2]):
-                                spectrum[k] = voicebank.crfAi.processData(previousSpectrum[-2].to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), currentSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]))
+                                spectrum.write(voicebank.crfAi.processData(previousSpectrum[-2].to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), currentSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j])), k)
                         
                         if internalInputs.endCaps[j]:
                             windowEnd = internalInputs.borders[3 * j + 5]
@@ -441,14 +478,14 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             voicedExcitation[internalInputs.borders[3 * j + 3]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] += nextVoicedExcitation[0:(internalInputs.borders[3 * j + 5]-internalInputs.borders[3 * j + 3])*global_consts.batchSize]
                             windowEnd = internalInputs.borders[3 * j + 3]
                             windowEndEx = internalInputs.borders[3 * j + 4]
-                            excitation[windowEndEx:internalInputs.borders[3 * j + 5]] = nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx]
+                            excitation.write(nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx], windowEndEx, internalInputs.borders[3 * j + 5])
                             for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
-                                spectrum[k] = voicebank.crfAi.processData(currentSpectrum[-2].to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), nextSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
+                                spectrum.write(voicebank.crfAi.processData(currentSpectrum[-2].to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), nextSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3])), k)
                         
                         #implement crfai skipping if transition was already calculated in the previous frame
                         
-                        spectrum[windowStart:windowEnd] = currentSpectrum
-                        excitation[windowStartEx:windowEndEx] = currentExcitation
+                        spectrum.write(currentSpectrum, windowStart, windowEnd)
+                        excitation.write(currentExcitation, windowStartEx, windowEndEx)
 
                         connection.send(StatusChange(i, j, 2))
                         
@@ -457,11 +494,11 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
                                 pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
                                 fourierPitchShift = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch) - pitchBorder
-                                shiftedSpectrum = torch.roll(spectrum[k], fourierPitchShift)
+                                shiftedSpectrum = torch.roll(spectrum.read(k), fourierPitchShift)
                                 slope = torch.zeros(global_consts.halfTripleBatchSize + 1, device = device_rs)
                                 slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
                                 slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
-                                spectrum[k] = (slope * spectrum[k]) + ((1 - slope) * shiftedSpectrum)
+                                spectrum.write((slope * spectrum.read(k)) + ((1 - slope) * shiftedSpectrum), k)
                         
                         internalStatusControl.ai[j] = 0
                         internalStatusControl.rs[j] = 1
@@ -478,13 +515,13 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             breathiness = internalInputs.breathiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
                         else:
                             breathiness = torch.zeros([internalInputs.borders[3 * (j - 1) + 5] - startPoint,], device = device_rs)
-                        breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.maximum(torch.sum(torch.abs(excitation[startPoint:internalInputs.borders[3 * (j - 1) + 5]]), 1), torch.tensor([0.0001], device = device_rs)) * global_consts.breCompPremul
+                        breathinessCompensation = torch.sum(torch.abs(voicedSignal), 0)[0:-1] / torch.maximum(torch.sum(torch.abs(excitation.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])), 1), torch.tensor([0.0001], device = device_rs)) * global_consts.breCompPremul
                         breathinessUnvoiced = 1. + breathiness * breathinessCompensation * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                         breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
                         #voicedSignal = torch.ones_like(voicedSignal)
                         #excitation = torch.ones_like(excitation)
-                        voicedSignal = voicedSignal[:, 0:-1] * torch.transpose(processedSpectrum[startPoint:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessVoiced
-                        excitationSignal = torch.transpose(excitation[startPoint:internalInputs.borders[3 * (j - 1) + 5]] * processedSpectrum[startPoint:internalInputs.borders[3 * (j - 1) + 5]], 0, 1) * breathinessUnvoiced
+                        voicedSignal = voicedSignal[:, 0:-1] * torch.transpose(processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5]), 0, 1) * breathinessVoiced
+                        excitationSignal = torch.transpose(excitation.read(startPoint, internalInputs.borders[3 * (j - 1) + 5]) * processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5]), 0, 1) * breathinessUnvoiced
                         #voicedSignal = voicedSignal[:, 0:-1]
                         #excitationSignal = torch.transpose(excitation[0:internalInputs.borders[3 * (j - 1) + 5]], 0, 1)
 
@@ -501,10 +538,11 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 if (j > 0) & (interOutput == False):
                     connection.send(StatusChange(i, j - 1, 5))
 
-                spectrumCache[i] = spectrum
-                processedSpectrumCache[i] = processedSpectrum
-                excitationCache[i] = excitation
-                voicedExcitationCache[i] = voicedExcitation
+                if settings["cachingMode"] == "best rendering speed":
+                    spectrumCache[i] = spectrum
+                    processedSpectrumCache[i] = processedSpectrum
+                    excitationCache[i] = excitation
+                    voicedExcitationCache[i] = voicedExcitation
 
                 if rerenderFlag.is_set():
                     break
