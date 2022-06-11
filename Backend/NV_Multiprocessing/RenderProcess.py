@@ -113,7 +113,7 @@ class SparseCache():
         self.tensor = torch.cat((torch.zeros((prepend,) + self.fullSize[1:]), self.tensor, torch.zeros((append,) + self.fullSize[1:])), 0)
         self.tensor[start:end] = value
 
-def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection):
+def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection):
     def posToSegment(index, pos1, pos2):
         pos1Out = None
         for i in range(int(len(inputList[index].borders) / 3)):
@@ -172,8 +172,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         inputList[index].startCaps = startCaps
         inputList[index].endCaps = endCaps
 
-    def updateFromMain(lastZero):
-        change = connection.recv()
+    def updateFromMain(change, lastZero):
+        #change = connection.recv()
         #print("change", change.type, change.data2, change.final)
         if change.type == "terminate":
             return True
@@ -198,7 +198,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 del processedSpectrumCache[change.data1]
                 del excitationCache[change.data1]
                 del voicedExcitationCache[change.data1]
-            connection.send(StatusChange(None, None, None, None))
+            remoteConnection.put(StatusChange(None, None, None, None))
         elif change.type == "duplicateTrack":
             statusControl.append(copy(statusControl[change.data1]))
             voicebankList.append(copy(voicebankList[change.data1]))
@@ -283,7 +283,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 end = inputList[change.data1].borders[change.data3 + len(change.data4) - 1] * global_consts.batchSize
                 if lastZero == None or lastZero != [change.data1, start, end - start]:
                     lastZero = [change.data1, start, end - start]
-                    connection.send(StatusChange(change.data1, start, end - start, "zeroAudio"))
+                    remoteConnection.put(StatusChange(change.data1, start, end - start, "zeroAudio"))
                 for i in range(len(change.data4)):
                     change.data4[i] = int(change.data4[i])
                 inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
@@ -300,9 +300,14 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
             trimSequence(change.data1, change.data2, change.data3)
-        if connection.poll() or (change.final == False):
-            return updateFromMain(lastZero)
-        return False
+        #if connection.poll() or (change.final == False):
+        if change.final == False:
+            return updateFromMain(connection.get(), lastZero)
+        else:
+            try:
+                return updateFromMain(connection.get_nowait(), lastZero)
+            except:
+                return False
 
     logging.info("render process started, reading settings")
     settings = readSettings()
@@ -424,7 +429,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         if internalInputs.endCaps[j - 1]:
                             processedSpectrum.write(torch.square(spectrum.read(internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
                         internalStatusControl.ai[j - 1] = 1
-                        connection.send(StatusChange(i, j - 1, 4))
+                        remoteConnection.put(StatusChange(i, j - 1, 4))
 
                 logging.info("shifting internal data backwards")
                 previousSpectrum = currentSpectrum
@@ -455,7 +460,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             nextExcitation = rs.getExcitation(section, device_rs)
                             nextVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
 
-                        connection.send(StatusChange(i, j, 1))
+                        remoteConnection.put(StatusChange(i, j, 1))
 
                         logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
                         voicedExcitation.write(currentVoicedExcitation, internalInputs.borders[3 * j]*global_consts.batchSize, internalInputs.borders[3 * j + 5]*global_consts.batchSize)
@@ -464,7 +469,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             windowStartEx = internalInputs.borders[3 * j]
                         else:
                             ########################continue here###############################
-                            voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 2]*global_consts.batchSize] += previousVoicedExcitation[(internalInputs.borders[3 * j]-internalInputs.borders[3 * j + 2])*global_consts.batchSize:]
+                            voicedExcitation.write(voicedExcitation.read(internalInputs.borders[3*j]*global_consts.batchSize, internalInputs.borders[3*j+2]*global_consts.batchSize)+previousVoicedExcitation[(internalInputs.borders[3*j]-internalInputs.borders[3*j+2])*global_consts.batchSize:], internalInputs.borders[3*j]*global_consts.batchSize, internalInputs.borders[3*j+2]*global_consts.batchSize)
+                            #voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 2]*global_consts.batchSize] += previousVoicedExcitation[(internalInputs.borders[3 * j]-internalInputs.borders[3 * j + 2])*global_consts.batchSize:]
                             windowStart = internalInputs.borders[3 * j + 2]
                             windowStartEx = internalInputs.borders[3 * j + 1]
                             excitation.write(previousExcitation[internalInputs.borders[3 * j] - windowStartEx:], internalInputs.borders[3 * j], windowStartEx)
@@ -475,7 +481,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             windowEnd = internalInputs.borders[3 * j + 5]
                             windowEndEx = internalInputs.borders[3 * j + 5]
                         else:
-                            voicedExcitation[internalInputs.borders[3 * j + 3]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] += nextVoicedExcitation[0:(internalInputs.borders[3 * j + 5]-internalInputs.borders[3 * j + 3])*global_consts.batchSize]
+                            voicedExcitation.write(voicedExcitation.read(internalInputs.borders[3*j+3]*global_consts.batchSize, internalInputs.borders[3*j+5]*global_consts.batchSize)+nextVoicedExcitation[0:(internalInputs.borders[3*j+5]-internalInputs.borders[3*j+3])*global_consts.batchSize], internalInputs.borders[3*j+3]*global_consts.batchSize, internalInputs.borders[3*j+5]*global_consts.batchSize)
+                            #voicedExcitation[internalInputs.borders[3 * j + 3]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] += nextVoicedExcitation[0:(internalInputs.borders[3 * j + 5]-internalInputs.borders[3 * j + 3])*global_consts.batchSize]
                             windowEnd = internalInputs.borders[3 * j + 3]
                             windowEndEx = internalInputs.borders[3 * j + 4]
                             excitation.write(nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx], windowEndEx, internalInputs.borders[3 * j + 5])
@@ -487,7 +494,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         spectrum.write(currentSpectrum, windowStart, windowEnd)
                         excitation.write(currentExcitation, windowStartEx, windowEndEx)
 
-                        connection.send(StatusChange(i, j, 2))
+                        remoteConnection.put(StatusChange(i, j, 2))
                         
                         logging.info("applying partial pitch shift to spectrum of sample " + str(j) + ", sequence " + str(i))
                         if internalInputs.phonemes[j] != "_autopause":
@@ -502,14 +509,14 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         
                         internalStatusControl.ai[j] = 0
                         internalStatusControl.rs[j] = 1
-                        connection.send(StatusChange(i, j, 3))
+                        remoteConnection.put(StatusChange(i, j, 3))
                         
                 #if ((j > 0) & interOutput) or (j == len(internalStatusControl.ai)):
                 if ((j > 0) & interOutput) or (j == lastPoint):
                     logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
                     if aiActive:
                         startPoint = internalInputs.borders[3 * firstPoint]
-                        voicedSignal = torch.stft(voicedExcitation[startPoint*global_consts.batchSize:internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize], global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
+                        voicedSignal = torch.stft(voicedExcitation.read(startPoint*global_consts.batchSize, internalInputs.borders[3 * (j - 1) + 5]*global_consts.batchSize), global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
         
                         if internalInputs.useBreathiness:
                             breathiness = internalInputs.breathiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
@@ -529,14 +536,14 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                         waveform += excitationSignal.to(device = torch.device("cpu"))
                         lastZero = None
-                        connection.send(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
-                        connection.send(StatusChange(i, j - 1, 5))
+                        remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
+                        remoteConnection.put(StatusChange(i, j - 1, 5))
                         if internalInputs.endCaps[j - 1] == True:
                             aiActive = False
                             #reset recurrent AI Tensors
 
                 if (j > 0) & (interOutput == False):
-                    connection.send(StatusChange(i, j - 1, 5))
+                    remoteConnection.put(StatusChange(i, j - 1, 5))
 
                 if settings["cachingMode"] == "best rendering speed":
                     spectrumCache[i] = spectrum
@@ -552,9 +559,16 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         logging.info("rendering process finished for all sequences, waiting for render semaphore")
         rerenderFlag.wait()
         rerenderFlag.clear()
-        if connection.poll():
-            if updateFromMain(lastZero):
+        try:
+            c = connection.get_nowait()
+        except:
+            c = None
+        if c != None:
+            if updateFromMain(c, lastZero):
                 break
+        #if connection.poll():
+        #    if updateFromMain(lastZero):
+        #        break
         
 
 

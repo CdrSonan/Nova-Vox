@@ -1990,7 +1990,9 @@ class NovaVoxUI(Widget):
         self._keyboard.bind(on_key_up = self._on_keyboard_up)
         self._keyboard.target = None
     def update(self, deltatime):
+        print("recv start")
         change = manager.receiveChange()
+        print("recv end")
         if change == None:
             return None
         if change.type == False:
