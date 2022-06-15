@@ -465,6 +465,17 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.isVoiced.display["text"] = loc["voiced"]
         self.sideBar.isVoiced.display.pack(side = "right", fill = "x")
         self.sideBar.isVoiced.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.isPlosive = tkinter.Frame(self.sideBar)
+        self.sideBar.isPlosive.variable = tkinter.BooleanVar(self.sideBar.isPlosive, True)
+        self.sideBar.isPlosive.entry = tkinter.Checkbutton(self.sideBar.isPlosive)
+        self.sideBar.isPlosive.entry["variable"] = self.sideBar.isPlosive.variable
+        self.sideBar.isPlosive.entry["command"] = self.onPlosiveUpdateTrigger
+        self.sideBar.isPlosive.entry.pack(side = "right", fill = "x")
+        self.sideBar.isPlosive.display = tkinter.Label(self.sideBar.isPlosive)
+        self.sideBar.isPlosive.display["text"] = loc["plosive"]
+        self.sideBar.isPlosive.display.pack(side = "right", fill = "x")
+        self.sideBar.isPlosive.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.fileButton = tkinter.Button(self.sideBar)
         self.sideBar.fileButton["text"] = loc["cng_file"]
@@ -504,6 +515,7 @@ class PhonemedictUi(tkinter.Frame):
                 self.sideBar.voicedFilter.variable.set(loadedVB.phonemeDict[key].voicedFilter)
                 self.sideBar.unvoicedIter.variable.set(loadedVB.phonemeDict[key].unvoicedIterations)
                 self.sideBar.isVoiced.variable.set(loadedVB.phonemeDict[key].isVoiced)
+                self.sideBar.isPlosive.variable.set(loadedVB.phonemeDict[key].isPlosive)
                 self.enableButtons()
             else:
                 self.sideBar.expPitch.variable.set(None)
@@ -511,6 +523,7 @@ class PhonemedictUi(tkinter.Frame):
                 self.sideBar.voicedFilter.variable.set(None)
                 self.sideBar.unvoicedIter.variable.set(None)
                 self.sideBar.isVoiced.variable.set(False)
+                self.sideBar.isPlosive.variable.set(False)
                 self.disableButtons()
             self.updateSlider()
             self.onSliderMove(0)
@@ -530,6 +543,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.fileButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
         self.sideBar.isVoiced.entry["state"] = "disabled"
+        self.sideBar.isPlosive.entry["state"] = "disabled"
     
     def enableButtons(self):
         """Enables the per-phoneme settings buttons"""
@@ -540,6 +554,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.fileButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"
         self.sideBar.isVoiced.entry["state"] = "normal"
+        self.sideBar.isPlosive.entry["state"] = "normal"
     
     def onAddPress(self):
         """UI Frontend function for adding a phoneme to the Voicebank"""
@@ -661,6 +676,17 @@ class PhonemedictUi(tkinter.Frame):
         if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
             if loadedVB.phonemeDict[key].isVoiced != self.sideBar.isVoiced.variable.get():
                 loadedVB.phonemeDict[key].isVoiced = self.sideBar.isVoiced.variable.get()
+                calculateSpectra(loadedVB.phonemeDict[key])
+                self.onSliderMove(self.diagram.timeSlider.get())
+
+    def onPlosiveUpdateTrigger(self):
+        logging.info("Phonemedict voicing update callback")
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
+            if loadedVB.phonemeDict[key].isPlosive != self.sideBar.isPlosive.variable.get():
+                loadedVB.phonemeDict[key].isPlosive = self.sideBar.isPlosive.variable.get()
                 calculateSpectra(loadedVB.phonemeDict[key])
                 self.onSliderMove(self.diagram.timeSlider.get())
         

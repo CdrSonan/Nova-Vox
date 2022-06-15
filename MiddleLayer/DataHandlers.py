@@ -2,6 +2,7 @@ from kivy.properties import ObjectProperty
 import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.Param_Components.AiParams import AiParam
+from Backend.VB_Components.Voicebank import LiteVoicebank
 import global_consts
 
 class Parameter:
@@ -37,6 +38,14 @@ class Track:
         self.paramStack = []
         self.borders = [0, 1, 2]
         self.length = 5000
+        self.phonemeLengths = dict()
+        tmpVb = LiteVoicebank(self.vbPath)
+        for i in tmpVb.phonemeDict.keys:
+            if tmpVb.phonemeDict[i].isPlosive:
+                self.phonemeLengths[i] = tmpVb.phonemeDict[i].spectra.size()[0]
+            else:
+                self.phonemeLengths[i] = None
+                
     def generateCaps(self):
         noneList = []
         for i in self.phonemes:

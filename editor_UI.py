@@ -283,7 +283,6 @@ class MiddleLayer(Widget):
             i.phonemeEnd += offset
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
         self.submitOffset(False, phonIndex, offset)
-
         autopause = False
         if len(self.trackList[self.activeTrack].phonemes) == 0:
             return
@@ -322,11 +321,26 @@ class MiddleLayer(Widget):
                 iterationStart += 1
                 iterationOffset -= 1
         divisor += 3 * iterationOffset
-        for i in range(iterationStart, iterationEnd):
+        """for i in range(iterationStart, iterationEnd):
             j = i - self.trackList[self.activeTrack].notes[index].phonemeStart + iterationOffset
             self.trackList[self.activeTrack].borders[3 * i] = start + int((end - start) * (3 * j) / divisor)
             self.trackList[self.activeTrack].borders[3 * i + 1] = start + int((end - start) * (3 * j + 1) / divisor)
-            self.trackList[self.activeTrack].borders[3 * i + 2] = start + int((end - start) * (3 * j + 2) / divisor)
+            self.trackList[self.activeTrack].borders[3 * i + 2] = start + int((end - start) * (3 * j + 2) / divisor)"""
+        lengthDeltas = []
+        for i in range(iterationStart, iterationEnd):
+            for j in range(3):
+                lengthDeltas.append(None)
+        for i in range(iterationStart, iterationEnd):
+            if i < iterationEnd - 1 and self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] != None:
+                lengthDeltas[3 * i + 3] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + 1]] / 5
+                lengthDeltas[3 * i + 4] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + 1]] / 5
+            if self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] != None:
+                if lengthDeltas[3 * i] == None:
+                    lengthDeltas[3 * i] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5
+                    lengthDeltas[3 * i + 1] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5
+                else:
+                    lengthDeltas[3 * i] = min(lengthDeltas[3 * i], self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5)
+                    lengthDeltas[3 * i + 1] = min(lengthDeltas[3 * i + 1], self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5)
         for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
             self.repairBorders(3 * i + 2)
             self.repairBorders(3 * i + 1)
@@ -392,6 +406,7 @@ class MiddleLayer(Widget):
         self.repairBorders(index)#does not check entire changed border interval
         self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index].phonemeStart, brd2)
         self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart, brd1)
+
     def scaleNote(self, index, oldLength):
         length = self.trackList[self.activeTrack].notes[index].length
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
@@ -407,6 +422,7 @@ class MiddleLayer(Widget):
             self.repairBorders(3 * i + 1)
             self.repairBorders(3 * i)
         self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * iterationEnd + 2])
+    
     def adjustNote(self, index, oldLength, oldPos):
         result = None
         nextLength = oldLength
@@ -435,6 +451,7 @@ class MiddleLayer(Widget):
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + nextLength)
         return result
+
     def addNote(self, index, x, y, reference):
         if middleLayer.activeTrack == None:
             return
@@ -456,11 +473,13 @@ class MiddleLayer(Widget):
         else:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart, reference))
         self.adjustNote(index, 100, x)
+
     def removeNote(self, index):
         self.offsetPhonemes(index, self.trackList[self.activeTrack].notes[index].phonemeStart - self.trackList[self.activeTrack].notes[index].phonemeEnd)
         self.trackList[self.activeTrack].notes.pop(index)
         if index < len(self.trackList[self.activeTrack].notes):
             self.adjustNote(index, self.trackList[self.activeTrack].notes[index].length, self.trackList[self.activeTrack].notes[index].xPos)
+
     def changeNoteLength(self, index, x, length):
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         if index + 1 == len(self.trackList[self.activeTrack].notes):
@@ -480,6 +499,7 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].length = length
         self.trackList[self.activeTrack].notes[index].xPos = x
         return self.adjustNote(index, oldLength, oldPos)
+
     def moveNote(self, index, x, y):
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         if index + 1 == len(self.trackList[self.activeTrack].notes):
@@ -505,19 +525,17 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].xPos = x
         self.trackList[self.activeTrack].notes[index].yPos = y
         return self.adjustNote(index, oldLength, oldPos)
+
     def changeLyrics(self, index, text):
         self.trackList[self.activeTrack].notes[index].content = text
         if self.trackList[self.activeTrack].notes[index].phonemeMode:
             text = text.split(" ")
         else:
-            text = ""#TO DO: Dictionary lookup here
+            text = []#TO DO: Dictionary lookup here
         phonemes = []
-        """
         for i in text:
-            if i in self.trackList[self.activeTrack].phonemeDict:
+            if i in self.trackList[self.activeTrack].phonemeLengths:
                 phonemes.append(i)
-        """
-        phonemes = text#TO DO: Input validation, phoneme type awareness
         if phonemes == [""]:
             phonemes = []
         if (len(self.trackList[self.activeTrack].phonemes) > 0) and (self.trackList[self.activeTrack].notes[index].phonemeStart < self.trackList[self.activeTrack].notes[index].phonemeEnd):
@@ -1990,9 +2008,7 @@ class NovaVoxUI(Widget):
         self._keyboard.bind(on_key_up = self._on_keyboard_up)
         self._keyboard.target = None
     def update(self, deltatime):
-        print("recv start")
         change = manager.receiveChange()
-        print("recv end")
         if change == None:
             return None
         if change.type == False:
