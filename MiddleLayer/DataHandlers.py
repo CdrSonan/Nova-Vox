@@ -40,7 +40,7 @@ class Track:
         self.length = 5000
         self.phonemeLengths = dict()
         tmpVb = LiteVoicebank(self.vbPath)
-        for i in tmpVb.phonemeDict.keys:
+        for i in tmpVb.phonemeDict.keys():
             if tmpVb.phonemeDict[i].isPlosive:
                 self.phonemeLengths[i] = tmpVb.phonemeDict[i].spectra.size()[0]
             else:
