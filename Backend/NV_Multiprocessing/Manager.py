@@ -22,11 +22,9 @@ class RenderManager:
         #    return self.connection.recv()
             return None
     def sendChange(self, type, final = True, data1 = None, data2 = None, data3 = None, data4 = None, data5 = None):
-        print("send start", type, data1, data2)
         self.connection.put(InputChange(type, final, data1, data2, data3, data4, data5), True)
         if final:
             self.rerenderFlag.set()
-        print("send end")
     def restart(self, sequenceList, voicebankList, aiParamStackList):
         self.stop()
         del self.statusControl[:]
