@@ -25,6 +25,7 @@ def getSpectrum(vocalSegment, device):
         return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
     spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectrum.to(device = device)
     spectra = Loop.loopSamplerSpectrum(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
+    print("rs", windowStart, windowEnd, spectra.size(), vocalSegment.phonemeKey)
     return spectrum + (torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2) * spectra)
     
 def getExcitation(vocalSegment, device):

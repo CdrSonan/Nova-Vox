@@ -289,6 +289,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
                 statusControl[change.data1].ai[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
+                print("recv", change.data3, change.data3 + len(change.data4), change.data4)
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))
@@ -459,7 +460,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             nextSpectrum = rs.getSpectrum(section, device_rs)
                             nextExcitation = rs.getExcitation(section, device_rs)
                             nextVoicedExcitation = rs.getVoicedExcitation(section, device_rs)
-
                         remoteConnection.put(StatusChange(i, j, 1))
 
                         logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
@@ -468,26 +468,39 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                             windowStart = internalInputs.borders[3 * j]
                             windowStartEx = internalInputs.borders[3 * j]
                         else:
-                            ########################continue here###############################
                             voicedExcitation.write(voicedExcitation.read(internalInputs.borders[3*j]*global_consts.batchSize, internalInputs.borders[3*j+2]*global_consts.batchSize)+previousVoicedExcitation[(internalInputs.borders[3*j]-internalInputs.borders[3*j+2])*global_consts.batchSize:], internalInputs.borders[3*j]*global_consts.batchSize, internalInputs.borders[3*j+2]*global_consts.batchSize)
-                            #voicedExcitation[internalInputs.borders[3 * j]*global_consts.batchSize:internalInputs.borders[3 * j + 2]*global_consts.batchSize] += previousVoicedExcitation[(internalInputs.borders[3 * j]-internalInputs.borders[3 * j + 2])*global_consts.batchSize:]
                             windowStart = internalInputs.borders[3 * j + 2]
                             windowStartEx = internalInputs.borders[3 * j + 1]
                             excitation.write(previousExcitation[internalInputs.borders[3 * j] - windowStartEx:], internalInputs.borders[3 * j], windowStartEx)
                             for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2]):
-                                spectrum.write(voicebank.crfAi.processData(previousSpectrum[-2].to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), currentSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j])), k)
+                                if previousSpectrum.size()[0] == 1:
+                                    specA = previousSpectrum[-1]
+                                else:
+                                    specA = previousSpectrum[-2]
+                                if currentSpectrum.size()[0] == 1:
+                                    specB = currentSpectrum[0]
+                                else:
+                                    specB = currentSpectrum[1]
+                                spectrum.write(voicebank.crfAi.processData(specA.to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j])), k)
                         
                         if internalInputs.endCaps[j]:
                             windowEnd = internalInputs.borders[3 * j + 5]
                             windowEndEx = internalInputs.borders[3 * j + 5]
                         else:
                             voicedExcitation.write(voicedExcitation.read(internalInputs.borders[3*j+3]*global_consts.batchSize, internalInputs.borders[3*j+5]*global_consts.batchSize)+nextVoicedExcitation[0:(internalInputs.borders[3*j+5]-internalInputs.borders[3*j+3])*global_consts.batchSize], internalInputs.borders[3*j+3]*global_consts.batchSize, internalInputs.borders[3*j+5]*global_consts.batchSize)
-                            #voicedExcitation[internalInputs.borders[3 * j + 3]*global_consts.batchSize:internalInputs.borders[3 * j + 5]*global_consts.batchSize] += nextVoicedExcitation[0:(internalInputs.borders[3 * j + 5]-internalInputs.borders[3 * j + 3])*global_consts.batchSize]
                             windowEnd = internalInputs.borders[3 * j + 3]
                             windowEndEx = internalInputs.borders[3 * j + 4]
                             excitation.write(nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx], windowEndEx, internalInputs.borders[3 * j + 5])
                             for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
-                                spectrum.write(voicebank.crfAi.processData(currentSpectrum[-2].to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), nextSpectrum[1].to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3])), k)
+                                if currentSpectrum.size()[0] == 1:
+                                    specA = currentSpectrum[-1]
+                                else:
+                                    specA = currentSpectrum[-2]
+                                if nextSpectrum.size()[0] == 1:
+                                    specB = nextSpectrum[0]
+                                else:
+                                    specB = nextSpectrum[1]
+                                spectrum.write(voicebank.crfAi.processData(specA.to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3])), k)
                         
                         #implement crfai skipping if transition was already calculated in the previous frame
                         
