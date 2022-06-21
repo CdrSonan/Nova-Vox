@@ -330,17 +330,50 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].phonemes[i] = futurePhonemes[i - iterationStart]
         for i in range(3 * iterationStart, 3 * iterationEndBorder - 1):
             lengthDeltas.append(None)
-        for i in range(iterationStart, iterationEnd):
-            if self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] != None:
-                lengthDeltas[3 * i + 2] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5
-                lengthDeltas[3 * i + 3] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5
-                lengthDeltas[3 * i + 4] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5
+        preuttrActive = True
+        preuttr = 0.
+        for i in range(iterationEnd - iterationStart):
+            if self.trackList[self.activeTrack].phonemes[i + iterationStart] == "_autopause":
+                continue
+            if self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + iterationStart]] != None:
+                lengthDeltas[3 * i + 2] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + iterationStart]] / 5
+                lengthDeltas[3 * i + 3] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + iterationStart]] / 5
+                lengthDeltas[3 * i + 4] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + iterationStart]] / 5
+                if preuttrActive:
+                    preuttr -= self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + iterationStart]] * 3 / 5
                 if lengthDeltas[3 * i] == None:
-                    lengthDeltas[3 * i] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5
-                    lengthDeltas[3 * i + 1] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5
+                    lengthDeltas[3 * i] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + iterationStart]] / 5
+                    lengthDeltas[3 * i + 1] = self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + iterationStart]] / 5
                 else:
-                    lengthDeltas[3 * i] = min(lengthDeltas[3 * i], self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5)
-                    lengthDeltas[3 * i + 1] = min(lengthDeltas[3 * i + 1], self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] / 5)
+                    lengthDeltas[3 * i] = min(lengthDeltas[3 * i], self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + iterationStart]] / 5)
+                    lengthDeltas[3 * i + 1] = min(lengthDeltas[3 * i + 1], self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i + iterationStart]] / 5)
+            else:
+                preuttrActive = False
+        if preuttrActive:
+            preuttr = 0.
+        if index > 0:
+            preuttrLim = 0.
+            preuttrLim = self.trackList[self.activeTrack].notes[index - 1].phonemeEnd - self.trackList[self.activeTrack].notes[index - 1].phonemeStart
+            preuttrLim = 2 * preuttrLim + 6
+            if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index - 1].phonemeStart] == "_autopause":
+                preuttrLim -= 6
+            preuttrLim += self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index].xPos
+            preuttr = max(preuttr, preuttrLim)
+        preuttrNext = 0.
+        if index + 1 < len(self.trackList[self.activeTrack].notes):
+            iterationStartNext = self.trackList[self.activeTrack].notes[index + 1].phonemeStart
+            iterationEndNext = self.trackList[self.activeTrack].notes[index + 1].phonemeEnd
+            for i in range(iterationStartNext, iterationEndNext):
+                if self.trackList[self.activeTrack].phonemes[i] == "_autopause":
+                    continue
+                elif self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] != None:
+                    preuttrNext -= self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] * 3 / 5
+                else:
+                    break
+
+        start += preuttr
+        end += preuttrNext
+        print("preuttr", index, preuttr, preuttrNext)
         availableLength = end - start
         print(availableLength, lengthDeltas)
         for i in lengthDeltas:
@@ -348,6 +381,8 @@ class MiddleLayer(Widget):
                 divisor -= 1
                 availableLength -= i
         print(availableLength, lengthDeltas, divisor)
+        if divisor == 1:
+            divisor += 1
         availableLength = int(availableLength / (divisor - 1))
         for i in range(len(lengthDeltas)):
             if lengthDeltas[i] == None:
@@ -365,9 +400,9 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].borders[3 * i + 1] = start + int((end - start) * (3 * j + 1) / divisor)
                 self.trackList[self.activeTrack].borders[3 * i + 2] = start + int((end - start) * (3 * j + 2) / divisor)
 
-        for i in range(3 * iterationStart, 3 * iterationEndBorder):
+        for i in range(3 * (iterationStart + iterationOffset), 3 * iterationEndBorder):
             self.repairBorders(i)
-        self.submitNamedPhonParamChange(False, "borders", 3 * iterationStart, self.trackList[self.activeTrack].borders[3 * iterationStart:3 * iterationEndBorder])
+        self.submitNamedPhonParamChange(False, "borders", 3 * (iterationStart + iterationOffset), self.trackList[self.activeTrack].borders[3 * (iterationStart + iterationOffset):3 * iterationEndBorder])
 
     def makeAutoPauses(self, index):
         if self.trackList[self.activeTrack].notes[index].phonemeStart == self.trackList[self.activeTrack].notes[index].phonemeEnd:
@@ -446,16 +481,18 @@ class MiddleLayer(Widget):
         for i in range(3 * iterationStart, 3 * iterationEndBorder - 1):
             lengthDeltas.append(None)
         for i in range(iterationStart, iterationEnd):
+            if self.trackList[self.activeTrack].phonemes[i] == "_autopause":
+                continue
             if self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] != None:
-                lengthDeltas[3 * i + 2] = self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].borders[3 * i + 2]
-                lengthDeltas[3 * i + 3] = self.trackList[self.activeTrack].borders[3 * i + 4] - self.trackList[self.activeTrack].borders[3 * i + 3]
-                lengthDeltas[3 * i + 4] = self.trackList[self.activeTrack].borders[3 * i + 5] - self.trackList[self.activeTrack].borders[3 * i + 4]
-                if lengthDeltas[3 * i] == None:
-                    lengthDeltas[3 * i] = self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].borders[3 * i]
-                    lengthDeltas[3 * i + 1] = self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].borders[3 * i + 1]
+                lengthDeltas[3 * (i - iterationStart) + 2] = self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].borders[3 * i + 2]
+                lengthDeltas[3 * (i - iterationStart) + 3] = self.trackList[self.activeTrack].borders[3 * i + 4] - self.trackList[self.activeTrack].borders[3 * i + 3]
+                lengthDeltas[3 * (i - iterationStart) + 4] = self.trackList[self.activeTrack].borders[3 * i + 5] - self.trackList[self.activeTrack].borders[3 * i + 4]
+                if lengthDeltas[3 * (i - iterationStart)] == None:
+                    lengthDeltas[3 * (i - iterationStart)] = self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].borders[3 * i]
+                    lengthDeltas[3 * (i - iterationStart) + 1] = self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].borders[3 * i + 1]
                 else:
-                    lengthDeltas[3 * i] = min(lengthDeltas[3 * i], self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].borders[3 * i])
-                    lengthDeltas[3 * i + 1] = min(lengthDeltas[3 * i + 1], self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].borders[3 * i + 1])
+                    lengthDeltas[3 * (i - iterationStart)] = min(lengthDeltas[3 * i], self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].borders[3 * i])
+                    lengthDeltas[3 * (i - iterationStart) + 1] = min(lengthDeltas[3 * i + 1], self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].borders[3 * i + 1])
         for i in range(len(lengthDeltas)):
             if lengthDeltas[i] == None:
                 lengthDeltas[i] = (self.trackList[self.activeTrack].borders[3 * iterationStart + i + 1] - self.trackList[self.activeTrack].borders[3 * iterationStart + i]) * (length / oldLength)
@@ -466,7 +503,7 @@ class MiddleLayer(Widget):
                 counter += lengthDeltas[i - 3 * iterationStart]
         for i in range(3 * iterationStart, 3 * iterationEndBorder):
             self.repairBorders(i)
-        self.submitNamedPhonParamChange(False, "borders", 3 * iterationStart, self.trackList[self.activeTrack].borders[3 * iterationStart:3 * iterationEndBorder + 2])
+        self.submitNamedPhonParamChange(False, "borders", 3 * iterationStart, self.trackList[self.activeTrack].borders[3 * iterationStart:3 * iterationEndBorder])
     
     def adjustNote(self, index, oldLength, oldPos):
         result = None

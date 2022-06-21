@@ -41,14 +41,14 @@ class SparseCache():
             start += self.fullSize[0]
         if end == None:
             if self.start == None:
-                return torch.zeros((1,) + self.fullSize[1:])
+                return torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype)
             elif start < self.start or start >= self.end:
-                return torch.zeros((1,) + self.fullSize[1:])
+                return torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype)
             return self.tensor[start - self.start]
         if end < 0:
             end += self.fullSize[0]
         if self.start == None or self.end == None:
-            return torch.zeros((end - start,) + self.fullSize[1:])
+            return torch.zeros((end - start,) + self.fullSize[1:], dtype = self.tensor.dtype)
         start -= self.start
         end -= self.end
         prepend = 0
@@ -68,7 +68,7 @@ class SparseCache():
             output = self.tensor[0:0]
         else:
             output = self.tensor[start:end]
-        output = torch.cat((torch.zeros((prepend,) + self.fullSize[1:]), output, torch.zeros((append,) + self.fullSize[1:])), 0)
+        output = torch.cat((torch.zeros((prepend,) + self.fullSize[1:], dtype = self.tensor.dtype), output, torch.zeros((append,) + self.fullSize[1:], dtype = self.tensor.dtype)), 0)
         return output
     def write(self, value, start, end = None):
         if start < 0:
@@ -77,14 +77,14 @@ class SparseCache():
             if self.start == None or self.end == None:
                 self.start = start
                 self.end = start + 1
-                self.tensor = torch.zeros((1,) + self.fullSize[1:], device = self.tensor.device)
+                self.tensor = torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device)
                 self.tensor[0] = value
             elif start < self.start:
-                self.tensor =  torch.cat((torch.zeros((self.start - start,) + self.fullSize[1:]), self.tensor), 0)
+                self.tensor =  torch.cat((torch.zeros((self.start - start,) + self.fullSize[1:], dtype = self.tensor.dtype), self.tensor), 0)
                 self.start = start
                 self.tensor[0] = value
             elif start >= self.end:
-                self.tensor =  torch.cat((self.tensor, torch.zeros((start + 1 - self.end,) + self.fullSize[1:])), 0)
+                self.tensor =  torch.cat((self.tensor, torch.zeros((start + 1 - self.end,) + self.fullSize[1:], dtype = self.tensor.dtype)), 0)
                 self.end = start + 1
                 self.tensor[-1] = value
             else:
@@ -110,7 +110,7 @@ class SparseCache():
         self.start -= prepend
         self.end += append
         end += (self.end - self.start)
-        self.tensor = torch.cat((torch.zeros((prepend,) + self.fullSize[1:]), self.tensor, torch.zeros((append,) + self.fullSize[1:])), 0)
+        self.tensor = torch.cat((torch.zeros((prepend,) + self.fullSize[1:], dtype = self.tensor.dtype), self.tensor, torch.zeros((append,) + self.fullSize[1:], dtype = self.tensor.dtype)), 0)
         self.tensor[start:end] = value
 
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection):
@@ -289,7 +289,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
                 statusControl[change.data1].ai[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
-                print("recv", change.data3, change.data3 + len(change.data4), change.data4)
+                print("recv_new", change.data3, change.data3 + len(change.data4), change.data4)
+                print("recv_all", inputList[change.data1].borders)
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))
