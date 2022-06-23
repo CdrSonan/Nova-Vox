@@ -585,13 +585,14 @@ class MiddleLayer(Widget):
 
     def moveNote(self, index, x, y):
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
+        iterationStart = self.trackList[self.activeTrack].notes[index].phonemeStart
+        if iterationEnd > iterationStart:
+            if self.trackList[self.activeTrack].phonemes[iterationStart] == "_autopause":
+                iterationStart += 1
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
         elif self.trackList[self.activeTrack].phonemes[iterationEnd] == "_autopause":
             iterationEnd += 1
-        iterationStart = self.trackList[self.activeTrack].notes[index].phonemeStart
-        if self.trackList[self.activeTrack].phonemes[iterationStart] == "_autopause":
-            iterationStart += 1
         for i in range(iterationStart, iterationEnd):
             self.trackList[self.activeTrack].borders[3 * i] += x - self.trackList[self.activeTrack].notes[index].xPos
             self.trackList[self.activeTrack].borders[3 * i + 1] += x - self.trackList[self.activeTrack].notes[index].xPos
@@ -625,6 +626,7 @@ class MiddleLayer(Widget):
             if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
                 phonemes.insert(0, "_autopause")
         offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
+        print("offset", offset)
         self.offsetPhonemes(index, offset, futurePhonemes = phonemes)
         self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, phonemes)
