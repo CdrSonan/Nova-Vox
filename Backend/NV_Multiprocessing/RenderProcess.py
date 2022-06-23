@@ -173,8 +173,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         inputList[index].endCaps = endCaps
 
     def updateFromMain(change, lastZero):
-        #change = connection.recv()
-        #print("change", change.type, change.data2, change.final)
+        print("change", change.type, change.data2, change.data3, change.data4, change.final)
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
@@ -262,9 +261,9 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         if inputList[change.data1].phonemes[change.data3 + j] == "_autopause":
                             inputList[change.data1].startCaps[change.data3 + j] = False
                             inputList[change.data1].endCaps[change.data3 + j] = False
-                            if j + 1 < len(inputList[change.data1].startCaps):
+                            if change.data3 + j + 1 < len(inputList[change.data1].startCaps):
                                 inputList[change.data1].startCaps[change.data3 + j + 1] = False
-                            if j > 0:
+                            if change.data3 + j > 0:
                                 inputList[change.data1].endCaps[change.data3 + j - 1] = False
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[change.data3:change.data3 + len(change.data4)] *= 0
@@ -274,10 +273,12 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         if change.data4[j] == "_autopause":
                             inputList[change.data1].startCaps[change.data3 + j] = True
                             inputList[change.data1].endCaps[change.data3 + j] = True
-                            if j + 1 < len(inputList[change.data1].startCaps):
+                            if change.data3 + j + 1 < len(inputList[change.data1].startCaps):
                                 inputList[change.data1].startCaps[change.data3 + j + 1] = True
-                            if j > 0:
+                            if change.data3 + j > 0:
                                 inputList[change.data1].endCaps[change.data3 + j - 1] = True
+                        if j + 1 == len(change.data4):
+                            inputList[change.data1].endCaps[change.data3 + j] = True
             elif change.data2 == "borders":
                 start = inputList[change.data1].borders[change.data3] * global_consts.batchSize
                 end = inputList[change.data1].borders[change.data3 + len(change.data4) - 1] * global_consts.batchSize
@@ -289,8 +290,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 inputList[change.data1].borders[change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].rs[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
                 statusControl[change.data1].ai[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
-                print("recv_new", change.data3, change.data3 + len(change.data4), change.data4)
-                print("recv_all", inputList[change.data1].borders)
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
                 positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))
