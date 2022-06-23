@@ -173,7 +173,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         inputList[index].endCaps = endCaps
 
     def updateFromMain(change, lastZero):
-        print("change", change.type, change.data2, change.data3, change.data4, change.final)
+        print("change", change.type, change.data2, change.data3, change.final)
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
@@ -579,9 +579,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         if c != None:
             if updateFromMain(c, lastZero):
                 break
-        #if connection.poll():
-        #    if updateFromMain(lastZero):
-        #        break
         
 
 

@@ -264,10 +264,10 @@ class MiddleLayer(Widget):
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
     def offsetPhonemes(self, index, offset, pause = False, futurePhonemes = None):
         phonIndex = self.trackList[self.activeTrack].notes[index].phonemeStart
-        if len(self.trackList[self.activeTrack].phonemes) > phonIndex:
-            if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
-                phonIndex += 1
         if offset > 0:
+            if len(self.trackList[self.activeTrack].phonemes) > phonIndex:
+                if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
+                    phonIndex += 1
             for i in range(offset):
                 self.trackList[self.activeTrack].phonemes.insert(phonIndex + i, "_X")
                 self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOverlap[phonIndex:]], dim = 0)
@@ -473,16 +473,13 @@ class MiddleLayer(Widget):
         else:
             iterationEndBorder += 1
         iterationStart = self.trackList[self.activeTrack].notes[index].phonemeStart
-        """for i in range(self.trackList[self.activeTrack].notes[index].phonemeStart, iterationEnd):
-            self.trackList[self.activeTrack].borders[3 * i] = (self.trackList[self.activeTrack].borders[3 * i] - self.trackList[self.activeTrack].notes[index].xPos) * length / oldLength + self.trackList[self.activeTrack].notes[index].xPos
-            self.trackList[self.activeTrack].borders[3 * i + 1] = (self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].notes[index].xPos) * length / oldLength + self.trackList[self.activeTrack].notes[index].xPos
-            self.trackList[self.activeTrack].borders[3 * i + 2] = (self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].notes[index].xPos) * length / oldLength + self.trackList[self.activeTrack].notes[index].xPos"""
         lengthDeltas = []
+        if iterationEnd > iterationStart:
+            if self.trackList[self.activeTrack].phonemes[iterationStart] == "_autopause":
+                iterationStart += 1
         for i in range(3 * iterationStart, 3 * iterationEndBorder - 1):
             lengthDeltas.append(None)
         for i in range(iterationStart, iterationEnd):
-            if self.trackList[self.activeTrack].phonemes[i] == "_autopause":
-                continue
             if self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] != None:
                 lengthDeltas[3 * (i - iterationStart) + 2] = self.trackList[self.activeTrack].borders[3 * i + 3] - self.trackList[self.activeTrack].borders[3 * i + 2]
                 lengthDeltas[3 * (i - iterationStart) + 3] = self.trackList[self.activeTrack].borders[3 * i + 4] - self.trackList[self.activeTrack].borders[3 * i + 3]
@@ -2101,6 +2098,9 @@ class NovaVoxUI(Widget):
         elif change.type == "updateAudio":
             middleLayer.updateAudioBuffer(change.track, change.index, change.value)
         elif change.type == "zeroAudio":
+            if change.value < 0:
+                change.index += change.value
+                change.value *= -1
             middleLayer.updateAudioBuffer(change.track, change.index, torch.zeros([change.value,]))
         else:
             middleLayer.deletions.pop(0)
