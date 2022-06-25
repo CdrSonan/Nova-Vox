@@ -1,6 +1,10 @@
-class VocalSequence:
-    """temporary class for combining several VocalSegments into a sequence. Currently no acceleration structure"""
-    def __init__(self, length, borders, phonemes, startCaps, endCaps, offsets, repetititionSpacing, pitch, steadiness, breathiness, vibratoSpeed, vibratoStrength, useBreathiness, useSteadiness, useVibratoSpeed, useVibratoStrength):
+from torch import Tensor
+
+
+class VocalSequence():
+    """Class holding information about a vocal track as required by the rendering process"""
+    
+    def __init__(self, length:int, borders:Tensor, phonemes:list, startCaps:list, endCaps:list, offsets:Tensor, repetititionSpacing:Tensor, pitch:Tensor, steadiness:Tensor, breathiness:Tensor, vibratoSpeed:Tensor, vibratoStrength:Tensor, useBreathiness:bool, useSteadiness:bool, useVibratoSpeed:bool, useVibratoStrength:bool) -> None:
         self.length = length
         self.phonemeLength = len(phonemes)
         self.borders = borders
@@ -21,5 +25,5 @@ class VocalSequence:
         self.useSteadiness = useSteadiness
         self.useVibratoSpeed = useVibratoSpeed
         self.useVibratoStrength = useVibratoStrength
-
         self.parameters = []
+        

@@ -110,5 +110,6 @@ def getLocale():
         locale["pit_brdc"] = "apply pitch settings to all"
         locale["ai_smp_export"] = "export samples as AI dataset file"
         locale["ai_smp_import"] = "import samples as AI dataset file"
+        locale["pitch_calc_err"] = "error during pitch detection; using fallback method"
         
     return locale

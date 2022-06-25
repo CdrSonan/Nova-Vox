@@ -1,8 +1,9 @@
-from Backend.AudioSample import AudioSample
+import numbers
+from Backend.DataHandler.AudioSample import AudioSample
 from global_consts import sampleRate
 from os import path
 
-class UtauSample:
+class UtauSample():
     """class representing an audio sample loaded from UTAU.
     
     Methods:
@@ -12,7 +13,8 @@ class UtauSample:
         
         convert: returns a Nova-Vox compatible AudioSample object of the sample"""
 
-    def __init__(self, filepath, _type, key, start, end, offset, fixed, blank, preuttr, overlap, isVoiced = True, isPlosive = False):
+
+    def __init__(self, filepath:str, _type:int, key:str, start:float, end:float, offset:float, fixed:float, blank:float, preuttr:float, overlap:float, isVoiced:bool = True, isPlosive:bool = False) -> None:
         """initialises the object based on both UTAU and Nova-Vox sample properties.
         
         Arguments:
@@ -35,9 +37,14 @@ class UtauSample:
             preuttr: the pre-utterance property of the sample in UTAU
 
             overlap: the overlap property of the sample in UTAU
+
+            isVoiced: flag indicating whether the sample is voiced (voicedExcitation is muted for unvoiced samples during ESPER processing)
+
+            isPlosive: flag indicating whether the sample is considered a plosive sound (if possible, plosives retain their original length after border creation during synthesis)
             
         Returns:
             None"""
+            
 
         self.audioSample = AudioSample(filepath)
         self._type = _type
@@ -54,29 +61,25 @@ class UtauSample:
         else:
             self.end = end
         self.handle = path.split(self.audioSample.filepath)[1] + ", " + str(self.start) + " - " + str(self.end)
-
         self.offset = offset
         self.fixed = fixed
         self.blank = blank
         self.preuttr = preuttr
         self.overlap = overlap
-        self.isVoiced = isVoiced
-        self.isPlosive = isPlosive
+        self.audioSample.isVoiced = isVoiced
+        self.audioSample.isPlosive = isPlosive
 
-    def updateHandle(self):
+    def updateHandle(self) -> None:
         """updates the handle of the sample, which is used to represent it in the devkit UI, to reflect changed sample properties"""
 
         self.handle = path.split(self.audioSample.filepath)[1] + ", " + str(self.start) + " - " + str(self.end)
 
-    def convert(self):
+    def convert(self) -> AudioSample:
         """returns a Nova-Vox compatible AudioSample object of the sample.
-        
         The waveform is trimmed to the area between start and end, and all UTAU-specific data is discarded"""
 
         start = int(self.start * sampleRate / 1000)
         end = int(self.end * sampleRate / 1000)
-        audioSample = AudioSample(self.audioSample.filepath)
-        audioSample.waveform = audioSample.waveform[start:end]
-        audioSample.isVoiced = self.isVoiced
-        audioSample.isPlosive = self.isPlosive
-        return audioSample
+        self.audioSample.waveform = self.audioSample.waveform[start:end]
+        return self.audioSample
+        

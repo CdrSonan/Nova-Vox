@@ -1,10 +1,11 @@
 from math import pi, floor, ceil
 import torch
 import torchaudio
+from Backend.DataHandler.AudioSample import AudioSample
 import global_consts
 
-def calculateSpectra(audioSample):
-    """Method for calculating spectral data based on previously set attributes filterWidth, voicedIterations and unvoicedIterations.
+def calculateSpectra(audioSample:AudioSample):
+    """Method for calculating spectral data based on the previously set attributes filterWidth, voicedFilter and unvoicedIterations.
         
     Arguments:
         None
@@ -16,6 +17,8 @@ def calculateSpectra(audioSample):
     The algorithm first runs an amount of filtering iterations determined by voicedIterations, selectively saves the peaking frequencies of the signal into _voicedExcitations, 
     then runs the filtering algorithm again a number of iterations determined by unvoicedIterations.
     The function fills the spectrum, spectra and _voicedExcitations properties."""
+
+
     threshold = torch.nn.Threshold(0.001, 0.001)
     window = torch.hann_window(global_consts.tripleBatchSize * global_consts.filterBSMult)
     signals = torch.stft(audioSample.waveform, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, return_complex = True, onesided = True)
@@ -158,6 +161,10 @@ def calculateSpectra(audioSample):
         limit = floor(global_consts.batchSize / audioSample.pitchDeltas[i])
         func = audioSample.waveform[i * global_consts.batchSize:i * global_consts.batchSize + limit * audioSample.pitchDeltas[i].to(torch.int64)]
         funcspace = torch.linspace(0, (limit * audioSample.pitchDeltas[i] - 1) * 2 * pi / audioSample.pitchDeltas[i], limit * audioSample.pitchDeltas[i])
+#TODO: Test this, move to dedicated function called from calculatePitch()
+        func = audioSample.waveform[i * global_consts.batchSize:(i + 1) * global_consts.batchSize.to(torch.int64)]
+        funcspace = torch.linspace(0, global_consts.batchSize * 2 * pi / audioSample.pitchDeltas[i], global_consts.batchSize)
+
         sine = torch.sin(funcspace)
         cosine = torch.cos(funcspace)
         sine *= func
@@ -165,8 +172,6 @@ def calculateSpectra(audioSample):
         sine = torch.sum(sine)# / pi (would be required for normalization, but amplitude is irrelevant here, so normalization is not required)
         cosine = torch.sum(cosine)# / pi
         phase = torch.complex(sine, cosine).angle()
-        #if i == 0 and torch.isclose(phase, torch.zeros([1,]), atol = 1e-7):#edge case occured with synthetic data and phase at i=0 being exactly 0. Might be able to be removed.
-        #    phase = 0.
         if phase < 0:
             phase += 2 * pi
         offset = previousLimit
@@ -176,3 +181,4 @@ def calculateSpectra(audioSample):
         audioSample.phases[i] = phase
         previousLimit = limit + offset
         previousPhase = phase
+        

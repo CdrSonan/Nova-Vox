@@ -6,9 +6,9 @@ VbMetadata = Backend.VB_Components.VbMetadata.VbMetadata
 import Backend.VB_Components.SpecCrfAi
 SpecCrfAi = Backend.VB_Components.SpecCrfAi.SpecCrfAi
 LiteSpecCrfAi = Backend.VB_Components.SpecCrfAi.LiteSpecCrfAi
-import Backend.AudioSample
-AudioSample = Backend.AudioSample.AudioSample
-LiteAudioSample = Backend.AudioSample.LiteAudioSample
+import Backend.DataHandler.AudioSample
+AudioSample = Backend.DataHandler.AudioSample.AudioSample
+LiteAudioSample = Backend.DataHandler.AudioSample.LiteAudioSample
 import Backend.ESPER.PitchCalculator
 calculatePitch = Backend.ESPER.PitchCalculator.calculatePitch
 import Backend.ESPER.SpectralCalculator
