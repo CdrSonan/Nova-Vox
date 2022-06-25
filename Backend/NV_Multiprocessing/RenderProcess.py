@@ -173,7 +173,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         inputList[index].endCaps = endCaps
 
     def updateFromMain(change, lastZero):
-        print("change", change.type, change.data2, change.data3, change.final)
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
