@@ -96,12 +96,12 @@ begin
 end;
 
 [Files]
-Source: "D:\Nova-Vox\GitHub\Nova-Vox\dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "D:\Nova-Vox\GitHub\Nova-Vox\settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
-Source: "D:\Nova-Vox\GitHub\Nova-Vox\dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
-Source: "D:\Nova-Vox\GitHub\Nova-Vox\Voices\Adachi Rei.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Adachi_Rei; Flags: ignoreversion
-;Source: "D:\Nova-Vox\GitHub\Nova-Vox\Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion
-;Source: "D:\Nova-Vox\GitHub\Nova-Vox\Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{SourcePath}\dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{SourcePath}\settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
+Source: "{SourcePath}\dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
+Source: "{SourcePath}\Voices\Adachi Rei.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Adachi_Rei; Flags: ignoreversion
+;Source: "{SourcePath}\Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion
+;Source: "{SourcePath}\Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [INI]
 Filename: "{userappdata}\Nova-Vox\settings.ini"; Section: "Dirs"

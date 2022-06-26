@@ -3,5 +3,5 @@ def getLocale():
     locale = dict()
     lang = readSettings()["language"]
     if lang == "en":
-        pass
+        locale["render_process_name"] = "Nova-Vox rendering process"
     return locale

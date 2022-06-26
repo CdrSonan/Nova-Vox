@@ -6,7 +6,7 @@ from Locale.devkit_locale import getLocale
 import global_consts
 
 def calculatePitch(audioSample:AudioSample) -> None:
-    """current method for calculating pitch data for an AudioSample object  based on the previously set attributes expectedPitch and searchRange.
+    """current method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.
     
     Arguments:
         audioSample: The AudioSample object the operation is to be performed on
@@ -16,7 +16,7 @@ def calculatePitch(audioSample:AudioSample) -> None:
         
     This method of pitch calculation uses the detect_pitch_frequency method implemented in TorchAudio. It does not reliably work for values of searchRange below 0.33. This means a rather large search range is required, 
     introducing the risk of the pitch being detected as a whole multiple or fraction of its real value. For this reason, the pitch is multiplied or divided by a compensation factor if it is too far off the expected value.
-    In case the pitch detection fails in spite of the correctly set search range, it uses a fallback."""
+    In case the pitch detection fails in spite of the correctly set search range, it uses a fallback. Afterwards, it calls calculatePhases(), since phase information only needs to be updated when the pitch changes."""
 
     
     try:
@@ -30,6 +30,7 @@ def calculatePitch(audioSample:AudioSample) -> None:
         calculatePitchFallback(audioSample)
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
+    calculatePhases(audioSample)
 
 def calculatePitchFallback(audioSample:AudioSample) -> None:
     """Fallback method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.
@@ -78,3 +79,43 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
         cursor2 += global_consts.batchSize
         pitchDeltas[i] = audioSample.pitchDeltas[cursor]
     audioSample.pitchDeltas = pitchDeltas
+
+def calculatePhases(audioSample:AudioSample) -> None:
+    """calculates phase information for an AudioSample object. Should be called after pitch calculation.
+    
+    Arguments:
+        audioSample: The AudioSample object the operation is to be performed on
+        
+    Returns:
+        None
+        
+    This method fits a sine and cosine curve of the f0 frequency to the waveform. The phase is then determined by reinterpreting the premul factors of the two curves as real and imaginary part of a complex exponential function, and extracting its phase."""
+
+
+    audioSample.phases = torch.empty_like(audioSample.pitchDeltas)
+    previousLimit = 0
+    previousPhase = 0
+    for i in range(audioSample.pitchDeltas.size()[0]):
+        limit = math.floor(global_consts.batchSize / audioSample.pitchDeltas[i])
+        func = audioSample.waveform[i * global_consts.batchSize:i * global_consts.batchSize + limit * audioSample.pitchDeltas[i].to(torch.int64)]
+        funcspace = torch.linspace(0, (limit * audioSample.pitchDeltas[i] - 1) * 2 * math.pi / audioSample.pitchDeltas[i], limit * audioSample.pitchDeltas[i])
+        #TODO: Test new func and funcspace
+        func = audioSample.waveform[i * global_consts.batchSize:(i + 1) * global_consts.batchSize.to(torch.int64)]
+        funcspace = torch.linspace(0, global_consts.batchSize * 2 * math.pi / audioSample.pitchDeltas[i], global_consts.batchSize)
+
+        sine = torch.sin(funcspace)
+        cosine = torch.cos(funcspace)
+        sine *= func
+        cosine *= func
+        sine = torch.sum(sine)# / pi (would be required for normalization, but amplitude is irrelevant here, so normalization is not required)
+        cosine = torch.sum(cosine)# / pi
+        phase = torch.complex(sine, cosine).angle()
+        if phase < 0:
+            phase += 2 * math.pi
+        offset = previousLimit
+        if phase < previousPhase % (2 * math.pi):
+            offset += 1
+        phase += 2 * math.pi * offset
+        audioSample.phases[i] = phase
+        previousLimit = limit + offset
+        previousPhase = phase

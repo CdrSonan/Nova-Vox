@@ -10,168 +10,11 @@ from Backend.Param_Components.AiParams import AiParamStack
 from Backend.VB_Components.SpecCrfAi import LiteSpecCrfAi
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
+from Backend.NV_Multiprocessing.Caching import DenseCache, SparseCache
+from Backend.NV_Multiprocessing.Update import trimSequence, posToSegment
 from MiddleLayer.IniParser import readSettings
 
-import matplotlib.pyplot as plt
-
-class DenseCache():
-    def __init__(self, size, device, dType = torch.float32):
-        self.tensor = torch.zeros(size, device = device, dtype = dType)
-    def read(self, start, end = None):
-        if end == None:
-            return self.tensor[start]
-        return self.tensor[start:end]
-    def write(self, value, start, end = None):
-        if end == None:
-            self.tensor[start] = value
-        else:
-            self.tensor[start:end] = value
-
-class SparseCache():
-    def __init__(self, size, device, dType = torch.float32):
-        size2 = []
-        for i in size:
-            size2.append(0)
-        self.tensor = torch.zeros(size2, device = device, dtype = dType)
-        self.start = None
-        self.end = None
-        self.fullSize = size
-    def read(self, start, end = None):
-        if start < 0:
-            start += self.fullSize[0]
-        if end == None:
-            if self.start == None:
-                return torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype)
-            elif start < self.start or start >= self.end:
-                return torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype)
-            return self.tensor[start - self.start]
-        if end < 0:
-            end += self.fullSize[0]
-        if self.start == None or self.end == None:
-            return torch.zeros((end - start,) + self.fullSize[1:], dtype = self.tensor.dtype)
-        start -= self.start
-        end -= self.end
-        prepend = 0
-        append = 0
-        if start < 0:
-            prepend -= start
-            start = 0
-        if end > 0:
-            append += end
-            end = 0
-        end += self.end - self.start
-        if end < 0:
-            prepend += end
-            output = self.tensor[0:0]
-        elif start > self.end - self.start:
-            append += self.end - self.start - start
-            output = self.tensor[0:0]
-        else:
-            output = self.tensor[start:end]
-        output = torch.cat((torch.zeros((prepend,) + self.fullSize[1:], dtype = self.tensor.dtype), output, torch.zeros((append,) + self.fullSize[1:], dtype = self.tensor.dtype)), 0)
-        return output
-    def write(self, value, start, end = None):
-        if start < 0:
-            start += self.fullSize[0]
-        if end == None:
-            if self.start == None or self.end == None:
-                self.start = start
-                self.end = start + 1
-                self.tensor = torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device)
-                self.tensor[0] = value
-            elif start < self.start:
-                self.tensor =  torch.cat((torch.zeros((self.start - start,) + self.fullSize[1:], dtype = self.tensor.dtype), self.tensor), 0)
-                self.start = start
-                self.tensor[0] = value
-            elif start >= self.end:
-                self.tensor =  torch.cat((self.tensor, torch.zeros((start + 1 - self.end,) + self.fullSize[1:], dtype = self.tensor.dtype)), 0)
-                self.end = start + 1
-                self.tensor[-1] = value
-            else:
-                self.tensor[start - self.start] = value
-            return
-        if end < 0:
-            end += self.fullSize[0]
-        if self.start == None or self.end == None:
-            self.start = start
-            self.end = end
-            self.tensor = value.to(self.tensor.device)
-            return
-        start -= self.start
-        end -= self.end
-        prepend = 0
-        append = 0
-        if start < 0:
-            prepend -= start
-            start = 0
-        if end > 0:
-            append += end
-            end = 0
-        self.start -= prepend
-        self.end += append
-        end += (self.end - self.start)
-        self.tensor = torch.cat((torch.zeros((prepend,) + self.fullSize[1:], dtype = self.tensor.dtype), self.tensor, torch.zeros((append,) + self.fullSize[1:], dtype = self.tensor.dtype)), 0)
-        self.tensor[start:end] = value
-
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection):
-    def posToSegment(index, pos1, pos2):
-        pos1Out = None
-        for i in range(int(len(inputList[index].borders) / 3)):
-            if inputList[index].borders[3 * i + 2] > pos1:
-                pos1Out = max(i - 1, 0)
-                break
-        if pos1Out == None or pos1Out == int(len(inputList[index].borders) / 3) - 1:
-            return (0, 0)
-        pos2Out = int(len(inputList[index].borders) / 3) - 1
-        for i in range(pos1Out, int(len(inputList[index].borders) / 3)):
-            if inputList[index].borders[3 * i] > pos2:
-                pos2Out = max(i, 0)
-                break
-        return (pos1Out, pos2Out)
-    def trimSequence(index, position, delta):
-        phonemes = inputList[index].phonemes
-        offsets = inputList[index].offsets
-        repetititionSpacing = inputList[index].repetititionSpacing
-        borders = inputList[index].borders
-        startCaps = inputList[index].startCaps
-        endCaps = inputList[index].endCaps
-        if delta > 0:
-            phonemes = phonemes[0:position] + ["_0"] * delta + phonemes[position:]
-            offsets = torch.cat([offsets[0:position], torch.zeros([delta,]), offsets[position:]], 0)
-            repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.full([delta,], 0.5), repetititionSpacing[position:]], 0)
-            borders = borders[0:3 * position] + [0] * (3 * delta) + borders[3 * position:]
-            startCaps = startCaps[0:position] + [False] * delta + startCaps[position:]
-            endCaps = endCaps[0:position] + [False] * delta + endCaps[position:]
-            if position == 0:
-                startCaps[0] = True
-                if len(startCaps) > position + delta:
-                    startCaps[position + delta] = False
-            if position + delta >= len(endCaps) - 1:
-                endCaps[position] = False
-                endCaps[-1] = True
-            internalStatusControl.rs = torch.cat([internalStatusControl.rs[0:position], torch.zeros([delta,]), internalStatusControl.rs[position:]], 0)
-            internalStatusControl.ai = torch.cat([internalStatusControl.ai[0:position], torch.zeros([delta,]), internalStatusControl.ai[position:]], 0)
-        elif delta < 0:
-            phonemes = phonemes[0:position] + phonemes[position - delta:]
-            offsets = torch.cat([offsets[0:position], offsets[position - delta:]], 0)
-            repetititionSpacing = torch.cat([repetititionSpacing[0:position], repetititionSpacing[position - delta:]], 0)
-            borders = borders[0:3 * position] + borders[3 * position - 3 * delta:]
-            startCaps = startCaps[0:position] + startCaps[position - delta:]
-            endCaps = endCaps[0:position] + endCaps[position - delta:]
-            if len(startCaps) > 0:
-                if position == 0:
-                    startCaps[0] = True
-                if position >= len(endCaps) - 1:
-                    endCaps[-1] = True
-            internalStatusControl.rs = torch.cat([internalStatusControl.rs[0:position], internalStatusControl.rs[position - delta:]], 0)
-            internalStatusControl.ai = torch.cat([internalStatusControl.ai[0:position], internalStatusControl.ai[position - delta:]], 0)
-        inputList[index].phonemes = phonemes
-        inputList[index].offsets = offsets
-        inputList[index].repetititionSpacing = repetititionSpacing
-        inputList[index].borders = borders
-        inputList[index].startCaps = startCaps
-        inputList[index].endCaps = endCaps
-
     def updateFromMain(change, lastZero):
         if change.type == "terminate":
             return True
@@ -291,16 +134,15 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 statusControl[change.data1].ai[math.floor(change.data3 / 3):math.floor((change.data3 + len(change.data4)) / 3)] *= 0
             elif change.data2 in ["pitch", "steadiness", "breathiness"]:
                 eval("inputList[change.data1]." + change.data2)[change.data3:change.data3 + len(change.data4)] = change.data4
-                positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))
+                positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4), inputList)
                 statusControl[change.data1].rs[positions[0]:positions[1]] *= 0
                 statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
             else:
-                positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4))
+                positions = posToSegment(change.data1, change.data3, change.data3 + len(change.data4), inputList)
                 inputList[change.data1].aiParamInputs[change.data2][change.data3:change.data3 + len(change.data4)] = change.data4
                 statusControl[change.data1].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
-            trimSequence(change.data1, change.data2, change.data3)
-        #if connection.poll() or (change.final == False):
+            inputList, internalStatusControl = trimSequence(change.data1, change.data2, change.data3, inputList, internalStatusControl)
         if change.final == False:
             return updateFromMain(connection.get(), lastZero)
         else:
