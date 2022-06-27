@@ -58,10 +58,10 @@ class RenderManager():
         except:
             return None
             
-    def sendChange(self, type:str, final:bool = True, data1 = None, data2 = None, data3 = None, data4 = None, data5 = None) -> None:
+    def sendChange(self, type:str, final:bool = True, *data) -> None:
         """method for sending an InputChange object containing arbitrary data to the rendering process"""
 
-        self.connection.put(InputChange(type, final, data1, data2, data3, data4, data5), True)
+        self.connection.put(InputChange(type, final, *data), True)
         if final:
             self.rerenderFlag.set()
 

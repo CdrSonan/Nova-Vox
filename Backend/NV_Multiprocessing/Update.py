@@ -2,6 +2,28 @@ import torch
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl
 
 def trimSequence(index:int, position:int, delta:int, inputList:list, internalStatusControl:SequenceStatusControl) -> tuple[list, list]:
+    """Function used for adding to or removing phonemes from a VocalSequence. Automatically updates control structures and schedules updates as required
+    
+    Parameters:
+        index: the index of the track (in the InputList list) that phonemes are to be added to/removed from.
+        
+        position: When adding phonemes, the index of the phoneme (within the VocalSequence) they are added behind. When removing phonemes, the first index of the portion that is to be removed
+        
+        delta: The number of phonemes to add/remove. Use positive values for adding phonemes, and negative ones for removing them.
+        
+        inputList: list of VocalSequence objects representing all data held by the rendering process
+        
+        internalStatusControl: SequenceStatusControl object corresponding to inputList at position index
+        
+    Returns:
+        Tuple(inputList, internalStatusControl): inputList and internalStatusControl are the objects of the same name passed to the function as arguments, with the necessary adjustments to reflect the new phonemes.
+        
+    When adding phonemes, the function adds the placeholder phoneme "_0" in the position for the new phonemes. Therefore, it must be ensured that the phonemes are updated between the call of this function and the next
+    rendering iteration. The intended way for this is by setting the final flag of the InputChange object triggering updateFromMain, and subsequently this function, to False. A second InputChange can then be used to
+    update the phonemes as required. MiddleLayer.offsetPhonemes, the equivalent operation to this function on the main process, uses the "_X" placeholder phoneme instead of "_0". This is to make it easier to pinpoint
+    issues during debugging. Neither phoneme should be implemented by any Voicebank"""
+
+
     phonemes = inputList[index].phonemes
     offsets = inputList[index].offsets
     repetititionSpacing = inputList[index].repetititionSpacing
@@ -47,6 +69,22 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, internalSta
     return inputList, internalStatusControl
 
 def posToSegment(index:int, pos1:float, pos2:float, inputList:list) -> tuple(int, int):
+    """helper function converting the range between two time positions in a VocalSequence to a range between two phoneme indices.
+    
+    Arguments:
+        index: the index of the track (in the InputList list) that the conversion is to be performed for.
+
+        pos1, pos2: start and end of the interval to be converted. Both should be positive numbers and represent a time since the song startin engine ticks.
+        
+        inputList: list of VocalSequence objects representing all data held by the rendering process
+        
+    Returns:
+        Tuple(pos1Out, pos2Out): two phoneme indices chosen so that the range between the phonemes fully encompasses the space between pos1 and pos2, while still being as small as possible.
+        
+    The main purpose of this function is to convert a time interval that is to be updated, e.g. because of a parameter curve change by the user, to the range of phonemes that needs to be updated to achieve this.
+    Therefore, this step is only required for parameters that use a curve, and not for changes of per-phoneme properties."""
+
+
     pos1Out = None
     for i in range(int(len(inputList[index].borders) / 3)):
         if inputList[index].borders[3 * i + 2] > pos1:

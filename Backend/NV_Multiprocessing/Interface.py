@@ -25,11 +25,7 @@ class StatusChange():
 class InputChange():
     """Container for messages sent from the main process to the rendering process"""
     #TODO: rework to use *data opt parameter
-    def __init__(self, type:str, final:bool, data1, data2, data3, data4, data5) -> None:
+    def __init__(self, type:str, final:bool, *data) -> None:
         self.type = type
         self.final = final
-        self.data1 = data1
-        self.data2 = data2
-        self.data3 = data3
-        self.data4 = data4
-        self.data5 = data5
+        self.data = data
