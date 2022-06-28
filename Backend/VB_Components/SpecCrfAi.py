@@ -3,15 +3,16 @@ import numpy as np
 import math
 import torch
 import torch.nn as nn
+from torch.utils.data import dataloader
 import global_consts
 
-import matplotlib.pyplot as plt
-
 class SpecCrfAi(nn.Module):
-    """class for generating crossphades between the spectra of different phonemes using AI.
+    """class for generating crossfades between the spectra of different phonemes using AI.
     
     Attributes:
-        layer1-4, ReLu1-4: FC and Nonlinear layers of the NN.
+        layerStart/End 1/2, ReLuStart/End 1/2: leading and trailing FC and Nonlinear layers of the NN.
+
+        hiddenLayers: ordered dictionary containing all layers between the leading and trailing ones
         
         learningRate: Learning Rate of the NN
         
@@ -39,15 +40,19 @@ class SpecCrfAi(nn.Module):
     The structure of the NN is a forward-feed fully connected NN with ReLU nonlinear activation functions.
     It is designed to process non-negative data. Negative data can still be processed, but may negatively impact performance.
     The size of the NN layers is set to match the batch size and tick rate of the rest of the engine.
-    Since network performance deteriorates with skewed data, it internally passes the input through a square root function and squares the output."""
+    Since performance deteriorates with skewed data, it internally passes the input through a square root function and squares the output."""
         
         
-    def __init__(self, device = None, learningRate=5e-5, hiddenLayerCount = 3):
+    def __init__(self, device:torch.device = None, learningRate:float=5e-5, hiddenLayerCount:int = 3) -> None:
         """Constructor initialising NN layers and prerequisite attributes.
         
         Arguments:
+            device: the device the AI is to be loaded on
+
             learningRate: desired learning rate of the NN as float. supports scientific format.
             
+            hiddenLayerCount: number of hidden layers (between leading and trailing layers)
+
         Returns:
             None"""
             
@@ -80,7 +85,7 @@ class SpecCrfAi(nn.Module):
         self.sampleCount = 0
         self.loss = None
         
-    def forward(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
+    def forward(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:float) -> torch.Tensor:
         """Forward NN pass with unprocessed in-and outputs.
         
         Arguments:
@@ -99,8 +104,6 @@ class SpecCrfAi(nn.Module):
         spectrum4 = torch.unsqueeze(spectrum4, 1)
         spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
         limit = torch.max(spectra, dim = 1)[0]
-        #fac = torch.tensor([factor], device = self.device)
-        #x = torch.cat((torch.reshape(spectra, (-1,)), fac), dim = 0)
         fac = torch.full((global_consts.halfTripleBatchSize + 1, 1), factor, device = self.device)
         x = torch.cat((spectra, fac), dim = 1)
         x = x.float()
@@ -125,17 +128,10 @@ class SpecCrfAi(nn.Module):
         cutoffWindow[int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
         x = torch.fft.irfft(cutoffWindow * x, dim = 0, n = global_consts.halfTripleBatchSize + 1)
         x = self.threshold(x)
-
-        """plt.plot(spectrum1)
-        plt.plot(spectrum2)
-        plt.plot(spectrum3)
-        plt.plot(spectrum4)
-        plt.plot(limit)
-        plt.show()"""
         
         return x
     
-    def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
+    def processData(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:float) -> torch.Tensor:
         """forward NN pass with data pre-and postprocessing as expected by other classes
         
         Arguments:
@@ -155,7 +151,7 @@ class SpecCrfAi(nn.Module):
         output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), torch.sqrt(spectrum3), torch.sqrt(spectrum4), factor)))
         return output
     
-    def train(self, indata, epochs=1):
+    def train(self, indata, epochs:int=1) -> None:
         """NN training with forward and backward passes, Loss criterion and optimizer runs based on a dataset of spectral transition samples.
         
         Arguments:
@@ -177,7 +173,7 @@ class SpecCrfAi(nn.Module):
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
                     print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
-                    #data = torch.sqrt(data.to(device = self.device))
+                    data = torch.sqrt(data.to(device = self.device))
                     data = data.to(device = self.device)
                     data = torch.squeeze(data)
                     spectrum1 = data[0]
@@ -208,7 +204,7 @@ class SpecCrfAi(nn.Module):
             self.sampleCount += len(indata)
             self.loss = loss
             
-    def dataLoader(self, data):
+    def dataLoader(self, data) -> dataloader:
         """helper method for shuffled data loading from an arbitrary dataset.
         
         Arguments:
@@ -218,9 +214,9 @@ class SpecCrfAi(nn.Module):
             Iterable representing the same dataset, with the order of its elements shuffled"""
         
         
-        return torch.utils.data.DataLoader(dataset=data, shuffle=True)
+        return dataloader(dataset=data, shuffle=True)
     
-    def getState(self):
+    def getState(self) -> dict:
         """returns the state of the NN, its optimizer and their prerequisites as well as its epoch attribute in a Dictionary.
         
         Arguments:
@@ -257,7 +253,7 @@ class LiteSpecCrfAi(nn.Module):
         
     This version of the AI can only run data through the NN forward, backpropagation and, by extension, training, are not possible."""
 
-    def __init__(self, specCrfAi = None, device = None):
+    def __init__(self, specCrfAi:SpecCrfAi = None, device:torch.device = None) -> None:
         """Constructor initialising NN layers and other attributes based on SpecCrfAi base object.
         
         Arguments:
@@ -272,7 +268,7 @@ class LiteSpecCrfAi(nn.Module):
         if specCrfAi == None:
             hiddenLayerCount = 3
         else:
-            hiddenLayerCount = 3#specCrfAi.hiddenLayerCount
+            hiddenLayerCount = specCrfAi.hiddenLayerCount
 
         self.convolution = nn.Conv1d(5, 5, 1, device = device)
         self.layerStart1 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, 5 * global_consts.halfTripleBatchSize + 5, device = device)
@@ -301,7 +297,7 @@ class LiteSpecCrfAi(nn.Module):
             self.load_state_dict(specCrfAi.getState()['model_state_dict'])
             self.eval()
         
-    def forward(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
+    def forward(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:float) -> torch.Tensor:
         """Forward NN pass with unprocessed in-and outputs.
         
         Arguments:
@@ -348,15 +344,9 @@ class LiteSpecCrfAi(nn.Module):
         x = torch.fft.irfft(cutoffWindow * x, dim = 0, n = global_consts.halfTripleBatchSize + 1)
         x = self.threshold(x)
 
-        """plt.plot(spectrum1)
-        plt.plot(spectrum2)
-        plt.plot(spectrum3)
-        plt.plot(spectrum4)
-        plt.plot(x.detach())
-        plt.show()"""
         return x
     
-    def processData(self, spectrum1, spectrum2, spectrum3, spectrum4, factor):
+    def processData(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:float) -> torch.Tensor:
         """forward NN pass with data pre-and postprocessing as expected by other classes
         
         Arguments:
@@ -376,7 +366,7 @@ class LiteSpecCrfAi(nn.Module):
         output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), torch.sqrt(spectrum3), torch.sqrt(spectrum4), factor)))
         return output
     
-    def getState(self):
+    def getState(self) -> dict:
         """returns the state of the NN and its epoch attribute in a Dictionary.
         
         Arguments:
@@ -393,7 +383,7 @@ class LiteSpecCrfAi(nn.Module):
         return AiState
 
 class RelLoss(nn.Module):
-    """function for calculating relative loss values between target and actual Tensor objects. Designed to be used with AI optimizers.
+    """function for calculating relative loss values between target and actual Tensor objects. Designed to be used with AI optimizers. Currently unused.
     
     Attributes:
         None
@@ -418,7 +408,7 @@ class RelLoss(nn.Module):
         
         super(RelLoss, self).__init__()
  
-    def forward(self, inputs, targets):  
+    def forward(self, inputs:torch.Tensor, targets:torch.Tensor) -> float:  
         """calculates relative loss based on input and target tensors after successful initialisation.
         
         Arguments:
@@ -429,9 +419,6 @@ class RelLoss(nn.Module):
         Returns:
             Relative error value calculated from the difference between input and target Tensor as Float"""
         
-        
-        #inputs = inputs.view(-1)
-        #targets = targets.view(-1)
         differences = torch.abs(inputs - targets)
         refs = torch.abs(targets)
         out = (differences / refs).sum() / inputs.size()[0]

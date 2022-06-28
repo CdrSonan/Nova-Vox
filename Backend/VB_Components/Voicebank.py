@@ -1,18 +1,12 @@
 import logging
 import torch
 
-import Backend.VB_Components.VbMetadata
-VbMetadata = Backend.VB_Components.VbMetadata.VbMetadata
-import Backend.VB_Components.SpecCrfAi
-SpecCrfAi = Backend.VB_Components.SpecCrfAi.SpecCrfAi
-LiteSpecCrfAi = Backend.VB_Components.SpecCrfAi.LiteSpecCrfAi
-import Backend.DataHandler.AudioSample
-AudioSample = Backend.DataHandler.AudioSample.AudioSample
-LiteAudioSample = Backend.DataHandler.AudioSample.LiteAudioSample
-import Backend.ESPER.PitchCalculator
-calculatePitch = Backend.ESPER.PitchCalculator.calculatePitch
-import Backend.ESPER.SpectralCalculator
-calculateSpectra = Backend.ESPER.SpectralCalculator.calculateSpectra
+from Backend.VB_Components.VbMetadata import VbMetadata
+from Backend.VB_Components.SpecCrfAi import SpecCrfAi, LiteSpecCrfAi
+from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample
+from Backend.ESPER.PitchCalculator import calculatePitch
+from Backend.ESPER.SpectralCalculator import calculateSpectra
+from Backend.DataHandler.UtauSample import UtauSample
 import global_consts
 
 class Voicebank:
@@ -69,7 +63,7 @@ class Voicebank:
         finalizeCrfAi: finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
         
         
-    def __init__(self, filepath, device = None):
+    def __init__(self, filepath:str, device:torch.device = None) -> None:
         """ Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank.
         
         Arguments:
@@ -95,8 +89,9 @@ class Voicebank:
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
         
-    def save(self, filepath):
+    def save(self, filepath:str) -> None:
         """saves the loaded Voicebank to a file"""
+
         torch.save({
             "metadata":self.metadata,
             "crfAiState":self.crfAi.getState(),
@@ -105,12 +100,12 @@ class Voicebank:
             "wordDict":self.wordDict
             }, filepath)
         
-    def loadMetadata(self, filepath):
+    def loadMetadata(self, filepath:str) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
         data = torch.load(filepath)
         self.metadata = data["metadata"]
     
-    def loadPhonemeDict(self, filepath, additive):
+    def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
         """loads Phoneme data from a Voicebank file.
         
         Arguments:
@@ -132,8 +127,9 @@ class Voicebank:
         else:
             self.phonemeDict = data["phonemeDict"]
     
-    def loadCrfWeights(self, filepath):
+    def loadCrfWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
+
         data = torch.load(filepath)
         self.crfAi = SpecCrfAi(self.device)
         self.crfAi.epoch = data["crfAiState"]['epoch']
@@ -145,21 +141,23 @@ class Voicebank:
             self.crfAi = LiteSpecCrfAi(self.crfAi, self.device)
         self.crfAi.eval()
         
-    def loadParameters(self, filepath, additive):
+    def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
+
         if additive:
             pass
         else:
             pass
         
-    def loadWordDict(self, filepath, additive):
+    def loadWordDict(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
+
         if additive:
             pass
         else:
             pass
         
-    def addPhoneme(self, key, filepath):
+    def addPhoneme(self, key:str, filepath:str) -> None:
         """adds a phoneme to the Voicebank's PhonemeDict.
         
         Arguments:
@@ -172,7 +170,7 @@ class Voicebank:
         calculatePitch(self.phonemeDict[key])
         calculateSpectra(self.phonemeDict[key])
 
-    def addPhonemeUtau(self, sample):
+    def addPhonemeUtau(self, sample:UtauSample) -> None:
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
             self.phonemeDict[sample.key] = sample.convert()
             calculatePitch(self.phonemeDict[sample.key])
@@ -180,43 +178,51 @@ class Voicebank:
         else:
             logging.warning("skipped one or several samples below the size threshold")
     
-    def delPhoneme(self, key):
+    def delPhoneme(self, key:str) -> None:
         """deletes a phoneme from the Voicebank's PhonemeDict"""
+
         self.phonemeDict.pop(key)
     
-    def changePhonemeKey(self, key, newKey):
+    def changePhonemeKey(self, key:str, newKey:str) -> None:
         """changes the key of a Phoneme to a new key without changing its underlaying data"""
+
         self.phonemeDict[newKey] = self.phonemeDict.pop(key)
     
-    def changePhonemeFile(self, key, filepath):
+    def changePhonemeFile(self, key:str, filepath:str) -> None:
         """changes the file of a Phoneme"""
+
         self.phonemeDict[key] = AudioSample(filepath)
     
-    def finalizePhoneme(self, key):
+    def finalizePhoneme(self, key:str) -> None:
         """finalizes a Phoneme, discarding any data related to it that's not strictly required for synthesis"""
+
         self.phonemeDict[key] = LiteAudioSample(self.phonemeDict[key])
         print("staged phoneme " + key + " finalized")
     
-    def addTrainSample(self, filepath):
+    def addTrainSample(self, filepath:str) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
+
         self.stagedTrainSamples.append(AudioSample(filepath))
 
-    def addTrainSampleUtau(self, sample):
+    def addTrainSampleUtau(self, sample:UtauSample) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
+
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
             self.stagedTrainSamples.append(sample.convert())
         else:
             logging.warning("skipped one or several samples below the size threshold")
     
-    def delTrainSample(self, index):
+    def delTrainSample(self, index:int) -> None:
         """removes an audio sample from the list of staged training phonemes"""
+
         del self.stagedTrainSamples[index]
     
-    def changeTrainSampleFile(self, index, filepath):
+    def changeTrainSampleFile(self, index:int, filepath:str) -> None:
         """currently unused method that changes the file of a staged phoneme crossfade Ai training sample"""
+
         self.stagedTrainSamples[index] = AudioSample(filepath)
     
-    def trainCrfAi(self, epochs, additive, unvoicedIterations, expPitch, pSearchRange):
+    def trainCrfAi(self, epochs:int, additive:bool, unvoicedIterations:int, expPitch:float, pSearchRange:float) -> None:
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
         
         Arguments:
@@ -247,7 +253,7 @@ class Voicebank:
         self.crfAi.train(self.stagedTrainSamples, epochs = epochs)
         print("AI training complete")
         
-    def finalizCrfAi(self):
+    def finalizCrfAi(self) -> None:
         """finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
         self.crfAi = LiteSpecCrfAi(self.crfAi, self.device)
 
@@ -283,7 +289,7 @@ class LiteVoicebank:
         loadWordDict: currently placeholder"""
         
         
-    def __init__(self, filepath):
+    def __init__(self, filepath:str) -> None:
         """ Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank.
         
         Arguments:
@@ -308,12 +314,12 @@ class LiteVoicebank:
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
         
-    def loadMetadata(self, filepath):
+    def loadMetadata(self, filepath:str) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
         data = torch.load(filepath)
         self.metadata = data["metadata"]
     
-    def loadPhonemeDict(self, filepath, additive):
+    def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
         """loads Phoneme data from a Voicebank file.
         
         Arguments:
@@ -335,21 +341,21 @@ class LiteVoicebank:
         else:
             self.phonemeDict = data["phonemeDict"]
     
-    def loadCrfWeights(self, filepath):
+    def loadCrfWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
         data = torch.load(filepath)
         self.crfAi.epoch = data["crfAiState"]['epoch']
         self.crfAi.load_state_dict(data["crfAiState"]['model_state_dict'])
         self.crfAi.eval()
         
-    def loadParameters(self, filepath, additive):
+    def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
         if additive:
             pass
         else:
             pass
         
-    def loadWordDict(self, filepath, additive):
+    def loadWordDict(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
         if additive:
             pass

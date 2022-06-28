@@ -1,5 +1,8 @@
 import torch
-def h_poly(t):
+
+def h_poly(t:torch.Tensor) -> torch.Tensor:
+    """returns Hermite basis functions for the cubic hermite splines used in cubic interpolation"""
+
     tt = t[None, :]**torch.arange(4, device=t.device)[:, None]
     A = torch.tensor([
         [1, 0, -3, 2],
@@ -9,7 +12,21 @@ def h_poly(t):
     ], dtype=t.dtype, device=t.device)
     return A @ tt
 
-def interp(x, y, xs):
+def interp(x:torch.Tensor, y:torch.Tensor, xs:float) -> float:
+    """perform cubic interpolation using Hermite splines
+    
+    Arguments:
+        x, y: Tensors of x and y values representing sample points on a curve. Should be the same length in dimension 0.
+        
+        xs: The position the interpolation should be performed at. Must be between the minimum and maximum of x.
+        
+    Returns:
+        y value corresponding to xs, so the point [xs, y] lies on the curve defined by x and y
+        
+    cubic Hermite interpolation is not as accurate for audio as sinc interpolation and produces more artifacting in fourier space.
+    Nonetheless, it is an excellent compromise between accuracy and speed."""
+
+    
     m = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
     m = torch.cat([m[[0]], (m[1:] + m[:-1]) / 2, m[[-1]]])
     idxs = torch.searchsorted(x[1:], xs)

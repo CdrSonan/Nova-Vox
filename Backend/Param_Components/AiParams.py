@@ -1,8 +1,12 @@
 class AiParam:
+    """currently unused container class for an AI-driven parameter"""
+    
     def __init__(self, filepath = None):
         pass
 
 class AiParamStack:
+    """currently unused class for holding and managing an execution stack of AI-driven parameters. Will be replaced by appropriate container for node tree."""
+
     def __init__(self, params):
         self.params = params
         self.enabled = []

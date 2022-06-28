@@ -7,8 +7,11 @@ import global_consts
 import Backend.Resampler.Loop as Loop
 import Backend.Resampler.CubicSplineInter as CubicSplineInter
 interpolate = CubicSplineInter.interp
+from Backend.DataHandler.VocalSegment import VocalSegment
 
-def getSpectrum(vocalSegment, device):
+def getSpectrum(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+    """resampler function for aquiring the spectrum of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
+
     if vocalSegment.phonemeKey == "_autopause":
         offset = 0
     else:
@@ -27,26 +30,24 @@ def getSpectrum(vocalSegment, device):
     spectra = Loop.loopSamplerSpectrum(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
     return spectrum + (torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2) * spectra)
     
-def getExcitation(vocalSegment, device):
+def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+    """resampler function for aquiring the unvoiced excitation of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
+
     if vocalSegment.phonemeKey == "_autopause":
         premul = 1
     else:
         premul = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].excitation.size()[0] / (vocalSegment.end3 - vocalSegment.start1 + 1)
     if vocalSegment.startCap:
         windowStart = 0
-        brStart = 0
         length = -vocalSegment.start1
     else:
         windowStart = math.floor((vocalSegment.start2 - vocalSegment.start1) * premul)
-        brStart = vocalSegment.start2 - vocalSegment.start1
         length = -vocalSegment.start2
     if vocalSegment.endCap:
         windowEnd = math.ceil((vocalSegment.end3 - vocalSegment.start1) * premul)
-        brEnd = vocalSegment.end3 - vocalSegment.start1
         length += vocalSegment.end3
     else:
         windowEnd = math.ceil((vocalSegment.end2 - vocalSegment.start1) * premul)
-        brEnd = vocalSegment.end2 - vocalSegment.start1
         length += vocalSegment.end2
     if vocalSegment.phonemeKey == "_autopause":
         return torch.zeros([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], dtype = torch.complex64)
@@ -58,8 +59,9 @@ def getExcitation(vocalSegment, device):
     excitation = transform(excitation)[:, 0:length]
     return excitation.transpose(0, 1)
     
-def getVoicedExcitation(vocalSegment, device):
-    import matplotlib.pyplot as plt
+def getVoicedExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+    """resampler function for aquiring the voiced excitation of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
+
     if vocalSegment.phonemeKey == "_autopause":
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,])
     offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)
@@ -75,20 +77,20 @@ def getVoicedExcitation(vocalSegment, device):
     for i in range(vocalSegment.end3 - vocalSegment.start1):
         precisePitch = pitchDeltas[i]
         nativePitchMod = math.ceil(nativePitch + ((precisePitch - nativePitch) * (1. - vocalSegment.steadiness[i])))
-        rescale_factor = float(vocalSegment.pitch[i] / nativePitchMod)
-        buffer = 10 #this is a terrible idea, but it seems to work
-        if cursor < math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]):#case for first sample, where no padding can be provided to acommodate stft overlap space
+        rescaleFactor = float(vocalSegment.pitch[i] / nativePitchMod)
+        buffer = 10 #this is a terrible idea, but it seems to work well enough
+        if cursor < math.ceil(global_consts.batchSize * nativePitchMod / vocalSegment.pitch[i]):#case for first sample, where no padding can be provided to acommodate stft overlap space
             voicedExcitationPart = torch.cat((voicedExcitation, torch.zeros(math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i]) - cursor).to(device = device)), 0)
             length = (3*math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i])) + buffer
             voicedExcitationPart = voicedExcitationPart[offset:length + offset]
             x = torch.linspace(0, 1, length, device = device)
-            xs = torch.linspace(0, 1, int(length * rescale_factor), device = device)
+            xs = torch.linspace(0, 1, int(length * rescaleFactor), device = device)
             voicedExcitationPart = interpolate(x, voicedExcitationPart, xs)[0:global_consts.tripleBatchSize]
         else:
             length = math.ceil(global_consts.batchSize*nativePitchMod/vocalSegment.pitch[i])
             voicedExcitationPart = voicedExcitation[cursor - length + offset:cursor + (2*length) + offset + buffer]
             x = torch.linspace(0, 1, 3 * length + buffer, device = device)
-            xs = torch.linspace(0, 1, int((3 * length + buffer) * rescale_factor), device = device)
+            xs = torch.linspace(0, 1, int((3 * length + buffer) * rescaleFactor), device = device)
             voicedExcitationPart = interpolate(x, voicedExcitationPart, xs)[0:global_consts.tripleBatchSize]
         voicedExcitationFourier[i] = torch.fft.rfft(voicedExcitationPart * window)
         cursor += math.ceil(global_consts.batchSize * (nativePitchMod/vocalSegment.pitch[i]))
