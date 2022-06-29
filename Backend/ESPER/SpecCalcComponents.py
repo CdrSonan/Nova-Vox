@@ -3,7 +3,7 @@ import torch
 import global_consts
 from math import pi, floor
 
-def calculateHighResSpectra(audioSample:AudioSample) -> tuple[torch.Tensor, AudioSample]:
+def calculateHighResSpectra(audioSample:AudioSample) -> tuple([torch.Tensor, AudioSample]):
     """calculates high spectral resolution, but low time resolution approximate spectra for an AudioSample object. This data can then be used to separate voiced and unvoiced excitation."""
 
     window = torch.hann_window(global_consts.tripleBatchSize * global_consts.filterBSMult)
@@ -21,7 +21,7 @@ def calculateHighResSpectra(audioSample:AudioSample) -> tuple[torch.Tensor, Audi
         audioSample.spectra = workingSpectra
     return signals, audioSample
 
-def calculateResonance(audioSample:AudioSample) -> tuple[torch.Tensor, AudioSample]:
+def calculateResonance(audioSample:AudioSample) -> tuple([torch.Tensor, AudioSample]):
     """calculates a resonance curve relative to the pitch of an audio sample in high-res fourier space. Frequencies with a higher resonance are more likely to be voiced."""
 
     resonanceFunction = torch.zeros_like(audioSample.spectra)
@@ -66,7 +66,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample, signals:torch.Tensor, resona
     audioSample.excitation = torch.transpose(audioSample.excitation, 0, 1)
     return audioSample
 
-def transformHighRestoStdRes(audioSample:AudioSample) -> tuple[torch.Tensor, AudioSample]:
+def transformHighRestoStdRes(audioSample:AudioSample) -> tuple([torch.Tensor, AudioSample]):
     """istft followed by stft. used to map the unvoiced and voiced excitation signals of an AudioSample object to the spectral resolution used during synthesis"""
 
     audioSample.excitation = torch.istft(audioSample.excitation, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, onesided = True)

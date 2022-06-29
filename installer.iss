@@ -45,6 +45,7 @@ Name: "custom"; Description: "Custom installation"; Flags: iscustom
 [Components]
 Name: "main"; Description: "Nova-Vox Editor and Dependencies"; Types: full minimal custom; Flags: fixed
 Name: "devkit"; Description: "Devkit Executable"; Types: full custom
+Name: "devkit\phontables"; Description: "Phonetic tables for Devkit"; Types: full custom
 Name: "voices"; Description: "Default Voicebanks"; Types: full custom
 Name: "voices\Adachi_Rei"; Description: "Adachi Rei UTAU port"; Types: full custom
 Name: "params"; Description: "Default Parameters"; Types: full custom
@@ -58,6 +59,9 @@ Name: {code:GetDataDir}; Flags: uninsneveruninstall
 Name: "{code:GetDataDir}\Voices"; Flags: uninsneveruninstall
 Name: "{code:GetDataDir}\Parameters"; Flags: uninsneveruninstall
 Name: "{code:GetDataDir}\Addons"; Flags: uninsneveruninstall
+Name: "{code:GetDataDir}\Devkit_Phonetics\IPAConversions"; Components: devkit
+Name: "{code:GetDataDir}\Devkit_Phonetics\Lists"; Components: devkit
+Name: "{code:GetDataDir}\Devkit_Phonetics\UtauConversions"; Components: devkit
 Name: "{userappdata}\Nova-Vox\Logs"
 
 
@@ -102,6 +106,7 @@ Source: "{SourcePath}\dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Comp
 Source: "{SourcePath}\Voices\Adachi Rei.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Adachi_Rei; Flags: ignoreversion
 ;Source: "{SourcePath}\Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion
 ;Source: "{SourcePath}\Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{SourcePath}\Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [INI]
 Filename: "{userappdata}\Nova-Vox\settings.ini"; Section: "Dirs"

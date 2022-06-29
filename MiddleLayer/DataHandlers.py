@@ -5,17 +5,35 @@ from Backend.Param_Components.AiParams import AiParam
 from Backend.VB_Components.Voicebank import LiteVoicebank
 import global_consts
 
-class Parameter:
-    def __init__(self, path):
+class Parameter():
+    """class for holding and managing a parameter curve as seen by the main process. Exact layout will change with node tree implementation."""
+
+    def __init__(self, path:str) -> None:
         self.paramPath = path
         self.curve = torch.full([1000], 0)
         self.name = ""
         self.enabled = True
-    def to_param(self, length):
-        return AiParam(self.path)
+    def to_param(self, length:int) -> AiParam:
+        return AiParam(self.paramPath)
 
-class Track:
-    def __init__(self, path):
+class Track():
+    """class for holding and managing a vocal track as seen by the main process. Contains all settings required for processing on the main process.
+    
+    Methods:
+        __init__: constructor for a track with default settings and a Voicebank specified by a filepath
+        
+        generateCaps: utility function for generating startCap and endCap attributes for the track.
+        
+        toSequence: converts the track to a VOcalSequence object for sending it to the rendering thread"""
+
+
+    def __init__(self, path:str) -> None:
+        """constructor function for a track with default settings.
+        
+        Arguments:
+            path: string or path object pointing to the voicebank file that should be used by the track."""
+
+
         self.volume = 1.
         self.vbPath = path
         self.notes = []
@@ -46,17 +64,26 @@ class Track:
             else:
                 self.phonemeLengths[i] = None
                 
+    #TODO: find out if this can be removed
     def generateCaps(self):
+        """utility function for generating startCap and endCap attributes for the track. These are not required by the main process, and are instead sent to the rendering process with to_sequence"""
+
         noneList = []
         for i in self.phonemes:
             noneList.append(False)
         return [noneList, noneList]
-    def to_sequence(self):
+    #TODO: this too
+
+    def toSequence(self):
+        """converts the track to a VOcalSequence object for sending it to the rendering thread. Also handles conversion of MIDI pitch to frequency."""
+
         caps = self.generateCaps()
         pitch = torch.full_like(self.pitch, global_consts.sampleRate) / (torch.pow(2, (self.pitch - torch.full_like(self.pitch, 69)) / torch.full_like(self.pitch, 12)) * 440)
         return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useVibratoSpeed, self.useVibratoStrength)
 
 class Note:
+    """Container class for a note as handled by the main process. Contains a reference property pointing at its UI representation."""
+
     def __init__(self, xPos, yPos, start = 0, end = 1, reference = None):
         self.reference = ObjectProperty()
         self.reference = reference

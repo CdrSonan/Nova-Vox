@@ -15,6 +15,7 @@ import logging
 import torch
 import csv
 import sys
+import os
 import global_consts
 import Backend.VB_Components.Voicebank
 Voicebank = Backend.VB_Components.Voicebank.Voicebank
@@ -990,6 +991,7 @@ class UtauImportUi(tkinter.Frame):
         logging.info("Initializing UTAU import UI")
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
+        self.phoneticsPath = os.path.join(readSettings()["dataDir"], "Devkit_Phoneticss")
         self.createWidgets()
         self.master.wm_title(loc["utau_lbl"])
         if (sys.platform.startswith('win')): 
@@ -1090,25 +1092,38 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.importButton["command"] = self.onImportPress
         self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        self.stripPrefix = tkinter.Frame(self)
-        self.stripPrefix.variable = tkinter.StringVar(self.stripPrefix)
-        self.stripPrefix.entry = tkinter.Entry(self.stripPrefix)
-        self.stripPrefix.entry["textvariable"] = self.stripPrefix.variable
-        self.stripPrefix.entry.pack(side = "right", fill = "x")
-        self.stripPrefix.display = tkinter.Label(self.stripPrefix)
-        self.stripPrefix.display["text"] = loc["stripPrefix"]
-        self.stripPrefix.display.pack(side = "right", fill = "x")
-        self.stripPrefix.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.otoSettings = tkinter.LabelFrame(self, text = loc["oto_set"])
+        self.otoSettings.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
 
-        self.stripPostfix = tkinter.Frame(self)
-        self.stripPostfix.variable = tkinter.StringVar(self.stripPostfix)
-        self.stripPostfix.entry = tkinter.Entry(self.stripPostfix)
-        self.stripPostfix.entry["textvariable"] = self.stripPostfix.variable
-        self.stripPostfix.entry.pack(side = "right", fill = "x")
-        self.stripPostfix.display = tkinter.Label(self.stripPostfix)
-        self.stripPostfix.display["text"] = loc["stripPostfix"]
-        self.stripPostfix.display.pack(side = "right", fill = "x")
-        self.stripPostfix.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.otoSettings.stripPrefix = tkinter.Frame(self.otoSettings)
+        self.otoSettings.stripPrefix.variable = tkinter.StringVar(self.otoSettings.stripPrefix)
+        self.otoSettings.stripPrefix.entry = tkinter.Entry(self.otoSettings.stripPrefix)
+        self.otoSettings.stripPrefix.entry["textvariable"] = self.otoSettings.stripPrefix.variable
+        self.otoSettings.stripPrefix.entry.pack(side = "right", fill = "x")
+        self.otoSettings.stripPrefix.display = tkinter.Label(self.otoSettings.stripPrefix)
+        self.otoSettings.stripPrefix.display["text"] = loc["stripPrefix"]
+        self.otoSettings.stripPrefix.display.pack(side = "right", fill = "x")
+        self.otoSettings.stripPrefix.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.otoSettings.stripPostfix = tkinter.Frame(self.otoSettings)
+        self.otoSettings.stripPostfix.variable = tkinter.StringVar(self.otoSettings.stripPostfix)
+        self.otoSettings.stripPostfix.entry = tkinter.Entry(self.otoSettings.stripPostfix)
+        self.otoSettings.stripPostfix.entry["textvariable"] = self.otoSettings.stripPostfix.variable
+        self.otoSettings.stripPostfix.entry.pack(side = "right", fill = "x")
+        self.otoSettings.stripPostfix.display = tkinter.Label(self.otoSettings.stripPostfix)
+        self.otoSettings.stripPostfix.display["text"] = loc["stripPostfix"]
+        self.otoSettings.stripPostfix.display.pack(side = "right", fill = "x")
+        self.otoSettings.stripPostfix.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        languages = os.listdir(os.path.join(self.phoneticsPath, "Lists"))
+        self.otoSettings.language = tkinter.Frame(self.otoSettings)
+        self.otoSettings.language.variable = tkinter.StringVar(self.otoSettings.language)
+        self.otoSettings.language.entry = tkinter.OptionMenu(self.otoSettings.language, self.otoSettings.language.variable, *languages)
+        self.otoSettings.language.entry.pack(side = "right", fill = "x")
+        self.otoSettings.language.display = tkinter.Label(self.otoSettings.language)
+        self.otoSettings.language.display["text"] = loc["phon_def"]
+        self.otoSettings.language.display.pack(side = "right", fill = "x")
+        self.otoSettings.language.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
@@ -1301,67 +1316,58 @@ class UtauImportUi(tkinter.Frame):
         """UI Frontend function for parsing an oto.ini file, and loading its samples into the SampleList"""
         logging.info("oto.ini load button callback")
         global loadedVB
-        custom_phonemes = tkinter.messagebox.askyesnocancel(loc["warning"], loc["utau_cstm_phn_msg"], icon = "question", default='no')
-        if custom_phonemes != None:
-            if custom_phonemes:
-                phonemepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".txt_desc"], ".txt"), (loc["all_files_desc"], "*")))
-            else:
-                phonemepath = "Backend/UtauDefaultPhonemes.ini"
-            phonemes = []
-            types = []
-            reader = csv.reader(open(phonemepath), delimiter = " ")
+        phonemePath = os.path.join(self.phoneticsPath, "Lists", self.otoSettings.language.variable)
+        if os.path.isfile(os.path.join(self.phoneticsPath, "UtauConversions", self.otoSettings.language.variable)):
+            conversionPath = os.path.join(self.phoneticsPath, "UtauConversions", self.otoSettings.language.variable)
+        else:
+            conversionPath = None
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["oto.ini_desc"], ".ini"), (loc["all_files_desc"], "*")))
+        if filepath != "":
+            f = open(filepath, "r", encoding = "Shift_JIS")
+            reader = csv.reader(f, delimiter = ",")
+            f.close()
+            i = 0
+
+            reader = csv.reader(open(filepath, encoding = "Shift_JIS"), delimiter = "=")
+            otoPath = path.split(filepath)[0]
+
             for row in reader:
-                phonemes.append(row[0])
-                types.append(row[1])
-            filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["oto.ini_desc"], ".ini"), (loc["all_files_desc"], "*")))
-            if filepath != "":
-
-                f = open(filepath, "r", encoding = "Shift_JIS")
-                reader = csv.reader(f, delimiter = ",")
-                rowCount = sum(1 for row in reader)
-                f.close()
-                i = 0
-
-                reader = csv.reader(open(filepath, encoding = "Shift_JIS"), delimiter = "=")
-                otoPath = path.split(filepath)[0]
-
-                for row in reader:
-                    print("processing " + str(row))
-                    i += 1
-                    self.update()
-                    filename = row[0]
-                    properties = row[1].split(",")
-                    occuredError = None
-                    try:
-                        fetchedSamples = fetchSamples(filename, properties, phonemes, types, otoPath, self.stripPrefix.variable.get(), self.stripPostfix.variable.get())
-                        for sample in fetchedSamples:
-                            if sample._type == 1:
+                print("processing " + str(row))
+                i += 1
+                self.update()
+                filename = row[0]
+                properties = row[1].split(",")
+                occuredError = None
+                try:
+                    fetchedSamples = fetchSamples(filename, properties, otoPath, self.stripPrefix.variable.get(), self.stripPostfix.variable.get(), phonemePath, conversionPath)
+                    for sample in fetchedSamples:
+                        if sample._type == 1:
+                            self.sampleList.append(sample)
+                            self.phonemeList.list.lb.insert("end", sample.handle)
+                        else:
+                            for i in range(len(self.sampleList)):
+                                if self.sampleList[i].key == sample.key:
+                                    if sample.end - sample.start > self.sampleList[i].end - self.sampleList[i].start:
+                                        self.sampleList[i] = sample
+                                        self.sampleList[i].updateHandle()
+                                        self.phonemeList.list.lb.delete(i)
+                                        self.phonemeList.list.lb.insert(i, sample.handle)
+                                    break
+                            else:
                                 self.sampleList.append(sample)
                                 self.phonemeList.list.lb.insert("end", sample.handle)
-                            else:
-                                for i in range(len(self.sampleList)):
-                                    if self.sampleList[i].key == sample.key:
-                                        if sample.end - sample.start > self.sampleList[i].end - self.sampleList[i].start:
-                                            self.sampleList[i] = sample
-                                            self.sampleList[i].updateHandle()
-                                            self.phonemeList.list.lb.delete(i)
-                                            self.phonemeList.list.lb.insert(i, sample.handle)
-                                        break
-                                else:
-                                    self.sampleList.append(sample)
-                                    self.phonemeList.list.lb.insert("end", sample.handle)
 
-                    except LookupError as error:
-                        print(error)
-                        if occuredError == None:
-                            occuredError = 0
-                        logging.warning(error)
-                    except Exception as error:
-                        print(error)
-                        occuredError = 1
-                        logging.error(error)
-                self.update()
-                if occuredError == 0:
-                    tkinter.messagebox.showinfo(loc["info"], loc["oto_msng_phn"])
-                elif occuredError == 1:
-                    tkinter.messagebox.showerror(loc["error"], loc["oto_error"])
+                except LookupError as error:
+                    print(error)
+                    if occuredError == None:
+                        occuredError = 0
+                    logging.warning(error)
+                except Exception as error:
+                    print(error)
+                    occuredError = 1
+                    logging.error(error)
+            self.update()
+            if occuredError == 0:
+                tkinter.messagebox.showinfo(loc["info"], loc["oto_msng_phn"])
+            elif occuredError == 1:
+                tkinter.messagebox.showerror(loc["error"], loc["oto_error"])

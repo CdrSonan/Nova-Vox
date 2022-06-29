@@ -44,3 +44,15 @@ defaultExpectedPitch = 249.
 defaultSearchRange = 0.55
 defaultVoicedFilter = 10
 defaultUnvoicedIterations = 20
+
+#control phoneme list
+controlPhonemes = [
+    ("-", "C"),
+    ("=", "C"),
+    (">", "C"),
+    ("<", "C"),
+    ("+", "R"),
+    ("_0", "R"),
+    ("_X", "R"),
+    ("_autopause", "R")
+]

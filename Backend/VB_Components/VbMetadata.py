@@ -1,6 +1,6 @@
 from PIL import Image
 
-class VbMetadata:
+class VbMetadata():
     """Helper class for holding Voicebank metadata. To be expanded.
     
     Attributes:

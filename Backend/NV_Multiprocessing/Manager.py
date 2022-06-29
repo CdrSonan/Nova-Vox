@@ -40,7 +40,7 @@ class RenderManager():
         self.remoteConnection = mp.Queue(0)
         for i in sequenceList:
             self.statusControl.append(SequenceStatusControl(i))
-        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, aiParamStackList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale["render_process_name"], daemon = True)
+        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, aiParamStackList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale()["render_process_name"], daemon = True)
         self.renderProcess.start()
 
     def receiveChange(self) -> StatusChange:

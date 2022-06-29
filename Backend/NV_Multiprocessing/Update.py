@@ -1,7 +1,7 @@
 import torch
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl
 
-def trimSequence(index:int, position:int, delta:int, inputList:list, internalStatusControl:SequenceStatusControl) -> tuple[list, list]:
+def trimSequence(index:int, position:int, delta:int, inputList:list, internalStatusControl:SequenceStatusControl) -> tuple([list, list]):
     """Function used for adding to or removing phonemes from a VocalSequence. Automatically updates control structures and schedules updates as required
     
     Parameters:
@@ -68,7 +68,7 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, internalSta
     inputList[index].endCaps = endCaps
     return inputList, internalStatusControl
 
-def posToSegment(index:int, pos1:float, pos2:float, inputList:list) -> tuple(int, int):
+def posToSegment(index:int, pos1:float, pos2:float, inputList:list) -> tuple([int, int]):
     """helper function converting the range between two time positions in a VocalSequence to a range between two phoneme indices.
     
     Arguments:

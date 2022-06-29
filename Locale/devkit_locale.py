@@ -8,6 +8,8 @@ Created on Tue Aug 17 08:59:27 2021
 from MiddleLayer.IniParser import readSettings
 
 def getLocale():
+    """reads language settings and returns a dictionary with all locale-specific strings required by the devkit."""
+    
     locale = dict()
     lang = readSettings()["language"]
     if lang == "en":
@@ -93,6 +95,7 @@ def getLocale():
         locale["time_lbl"] = "time in ms"
         locale["smp_list"] = "sample list"
         locale["per_smp_set"] = "per-sample settings"
+        locale["oto_set"] = "oto.ini parser settings"
         locale["smp_phoneme"] = "phoneme"
         locale["smp_transition"] = "transition"
         locale["waveform"] = "waveform"
@@ -100,7 +103,7 @@ def getLocale():
         locale["fixed"] = "consonant"
         locale["overlap"] = "overlap"
         locale["preuttr"] = "pre-utterance"
-        locale["utau_cstm_phn_msg"] = "use custom phoneme definition file for import?"
+        locale["phon_def"] = "phoneme definition file:"
         locale["NV_area"] = "Nova-Vox sample"
         locale["oto_msng_phn"] = "One or several phonetic symbols contained in the UTAU Voicebank could not be found on the given phoneme table, resulting in some samples not being imported. See devkit.log for details."
         locale["oto_error"] = "An unknown error occured when reading the oto.ini file. Please check the integrity and encoding od the file. See devkit.log for details."

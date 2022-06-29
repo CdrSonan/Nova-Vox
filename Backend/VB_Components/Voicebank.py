@@ -9,7 +9,7 @@ from Backend.ESPER.SpectralCalculator import calculateSpectra
 from Backend.DataHandler.UtauSample import UtauSample
 import global_consts
 
-class Voicebank:
+class Voicebank():
     """Class for holding a Voicebank as handled by the devkit.
     
     Attributes:
@@ -257,7 +257,7 @@ class Voicebank:
         """finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
         self.crfAi = LiteSpecCrfAi(self.crfAi, self.device)
 
-class LiteVoicebank:
+class LiteVoicebank():
     """Class for holding a Voicebank as handled by the devkit.
     
     Attributes:
