@@ -29,11 +29,11 @@ def readSettings(path:str = None) -> dict:
     return settings
     
 def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDevice, loglevel, dataDir):
-    """function for writing a set of settings to the Nova-Vox settings file. Will be replaced by a more general function later."""
+    """function for writing a set of settings to the Nova-Vox settings file. Not intended to be used by addons; use writeCustomSettings instead."""
 
     if path == None:
         path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
-    with open(path, 'w') as f:
+    with open(path, 'r+') as f:
         f.write("[lang]" + "\n")
         f.write("language = " + lang + "\n")
         f.write("\n")
@@ -64,4 +64,32 @@ def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDe
     if osPath.isdir(addonPath) == False:
         mkdir(addonPath)
 
-#TODO: writer for custom settings files
+def writeCustomSettings(category:str, data:dict, path:str = None) -> None:
+    """function for allowing addons to write their own settings to the Nova-Vox settings file, or an individual .ini file.
+    
+    Arguments:
+        category: The section of the .ini file that the settings will be stored in. By convention, this should be the name or handle of the addon using this function.
+        
+        data: dictionary of key-value pairs representing setting names and their respective values. All values must be strings.
+        
+        path: optional file path for a custom settings file."""
+
+    if path == None:
+        path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
+    with open(path, 'r+') as f:
+        rightCategory = False
+        for line in f:
+            if rightCategory:
+                for i in data.keys:
+                    if line.startswith(i):
+                        f.write(i + " = " + data[i] + "\n")
+                        del data[i]
+            if line.startswith("[" + category + "]"):
+                if rightCategory:
+                    break
+                else:
+                    rightCategory = True
+        else:
+            f.write(line + "\n" + "[" + category + "]\n")
+        for i in data.keys:
+            f.write(line + "\n" + i + " = " + data[i] + "\n")

@@ -82,7 +82,6 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
     output = []
 
     filepath = path.join(otoPath, filename)
-    #TODO: adjust to new phoneme types
     intermediate = max(-2 * (fixed - preuttr) + offset + fixed, (fixed / 2) + offset)
     if len(sequence) == 1:
         if typeSequence[0] == "V":
@@ -90,11 +89,15 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
             sample.end -= blank
             output.append(sample)
         elif typeSequence[0] == "C":
-            sample = UtauSample(filepath, 0, sequence[0], offset, None, offset, fixed, blank, preuttr, overlap, False, True)
+            sample = UtauSample(filepath, 0, sequence[0], offset, None, offset, fixed, blank, preuttr, overlap, False, False)
             sample.end -= blank
             output.append(sample)
-        elif typeSequence[0] == "c":
-            sample = UtauSample(filepath, 0, sequence[0], offset, None, offset, fixed, blank, preuttr, overlap, False, False)
+        elif typeSequence[0] == "T":
+            sample = UtauSample(filepath, 0, sequence[0], offset, None, offset, fixed, blank, preuttr, overlap, True, True)
+            sample.end -= blank
+            output.append(sample)
+        elif typeSequence[0] == "P":
+            sample = UtauSample(filepath, 0, sequence[0], offset, None, offset, fixed, blank, preuttr, overlap, False, True)
             sample.end -= blank
             output.append(sample)
     elif len(sequence) == 2:
@@ -110,29 +113,26 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
                 output.append(sample)
                 sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
                 output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True)
+                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
                 sample.end -= blank
                 output.append(sample)
-            elif typeSequence[1] == "c":
+            elif typeSequence[1] == "T":
                 sample = UtauSample(filepath, 0, sequence[0], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
                 output.append(sample)
                 sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
                 output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
+                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, True)
                 sample.end -= blank
                 output.append(sample)
-        elif typeSequence[0] == "C" :
-            if typeSequence[1] == "V":
-                sample = UtauSample(filepath, 0, sequence[0], offset, intermediate, offset, fixed, blank, preuttr, overlap, False, True)
+            elif typeSequence[1] == "P":
+                sample = UtauSample(filepath, 0, sequence[0], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
                 output.append(sample)
                 sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
                 output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False)
+                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True)
                 sample.end -= blank
                 output.append(sample)
-            elif typeSequence[1] == "C" or typeSequence[1] == "c":
-                print("skipped CC sample")
-        elif typeSequence[0] == "c":
+        elif typeSequence[0] == "C" :
             if typeSequence[1] == "V":
                 sample = UtauSample(filepath, 0, sequence[0], offset, intermediate, offset, fixed, blank, preuttr, overlap, False, False)
                 output.append(sample)
@@ -141,43 +141,170 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
                 sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False)
                 sample.end -= blank
                 output.append(sample)
+            elif typeSequence[1] == "C":
+                sample = UtauSample(filepath, 0, sequence[0], offset, intermediate, offset, fixed, blank, preuttr, overlap, False, False)
+                output.append(sample)
+                sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                output.append(sample)
+                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
+                sample.end -= blank
+                output.append(sample)
+        elif typeSequence[0] == "T":
+            if typeSequence[1] == "V":
+                sample = UtauSample(filepath, 0, sequence[0], offset, intermediate, offset, fixed, blank, preuttr, overlap, True, True)
+                output.append(sample)
+                sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                output.append(sample)
+                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False)
+                sample.end -= blank
+                output.append(sample)
+            elif typeSequence[1] == "C":
+                sample = UtauSample(filepath, 0, sequence[0], offset, intermediate, offset, fixed, blank, preuttr, overlap, True, True)
+                output.append(sample)
+                sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                output.append(sample)
+                sample = UtauSample(filepath, 0, sequence[1], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
+                sample.end -= blank
+                output.append(sample)
     elif len(sequence) == 3:
-        if typeSequence[0] == "V":
-            if typeSequence[1] == "C":
-                sample = UtauSample(filepath, 1, None, offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
-                output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[1], intermediate, offset + overlap, offset, fixed, blank, preuttr, overlap, False, True)
-                output.append(sample)
-                sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
-                output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False)
-                sample.end -= blank
-                output.append(sample)
-            elif typeSequence[1] == "c":
-                sample = UtauSample(filepath, 1, None, offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
-                output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[1], intermediate, offset + overlap, offset, fixed, blank, preuttr, overlap, False, False)
-                output.append(sample)
-                sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
-                output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False)
-                sample.end -= blank
-                output.append(sample)
-        elif typeSequence[0] == "C" or typeSequence[0] == "c":
-            if typeSequence[2] == "C":
-                sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
-                output.append(sample)
-                sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
-                output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True)
-                sample.end -= blank
-                output.append(sample)
-            elif typeSequence[2] == "c":
-                sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
-                output.append(sample)
-                sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
-                output.append(sample)
-                sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
-                sample.end -= blank
-                output.append(sample)
+        if typeSequence[0] == "V" or typeSequence[0] == "C":
+            if typeSequence[1] == "V":
+                if typeSequence[2] == "C":
+                    sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
+                    sample.end -= blank
+                    output.append(sample)
+                elif typeSequence[2] == "T":
+                    sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, True)
+                    sample.end -= blank
+                    output.append(sample)
+                elif typeSequence[2] == "P":
+                    sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True)
+                    sample.end -= blank
+                    output.append(sample)
+            elif typeSequence[1] == "C":
+                if typeSequence[2] == "V":
+                    sample = UtauSample(filepath, 1, None, offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[1], intermediate, offset + overlap, offset, fixed, blank, preuttr, overlap, False, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False)
+                    sample.end -= blank
+                    output.append(sample)
+                elif typeSequence[2] == "C":
+                    sample = UtauSample(filepath, 1, None, offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[1], intermediate, offset + overlap, offset, fixed, blank, preuttr, overlap, False, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
+                    sample.end -= blank
+                    output.append(sample)
+            elif typeSequence[1] == "T":
+                if typeSequence[2] == "V":
+                    sample = UtauSample(filepath, 1, None, offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[1], intermediate, offset + overlap, offset, fixed, blank, preuttr, overlap, True, True)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False)
+                    sample.end -= blank
+                    output.append(sample)
+                elif typeSequence[2] == "C":
+                    sample = UtauSample(filepath, 1, None, offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[1], intermediate, offset + overlap, offset, fixed, blank, preuttr, overlap, True, True)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
+                    sample.end -= blank
+                    output.append(sample)
+            elif typeSequence[1] == "P":
+                if typeSequence[2] == "V":
+                    sample = UtauSample(filepath, 1, None, offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[1], intermediate, offset + overlap, offset, fixed, blank, preuttr, overlap, False, True)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False)
+                    sample.end -= blank
+                    output.append(sample)
+                elif typeSequence[2] == "C":
+                    sample = UtauSample(filepath, 1, None, offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[1], intermediate, offset + overlap, offset, fixed, blank, preuttr, overlap, False, True)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
+                    sample.end -= blank
+                    output.append(sample)
+        elif typeSequence[0] == "T" or typeSequence[0] == "P":
+            if typeSequence[1] == "V":
+                if typeSequence[2] == "C":
+                    sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
+                    sample.end -= blank
+                    output.append(sample)
+                elif typeSequence[2] == "T":
+                    sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, True)
+                    sample.end -= blank
+                    output.append(sample)
+                elif typeSequence[2] == "P":
+                    sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, True, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True)
+                    sample.end -= blank
+                    output.append(sample)
+            elif typeSequence[1] == "C":
+                if typeSequence[2] == "C":
+                    sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, False, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False)
+                    sample.end -= blank
+                    output.append(sample)
+                elif typeSequence[2] == "T":
+                    sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, False, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, True)
+                    sample.end -= blank
+                    output.append(sample)
+                elif typeSequence[2] == "P":
+                    sample = UtauSample(filepath, 0, sequence[1], offset + overlap, intermediate, offset, fixed, blank, preuttr, overlap, False, False)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
+                    output.append(sample)
+                    sample = UtauSample(filepath, 0, sequence[2], offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True)
+                    sample.end -= blank
+                    output.append(sample)
     return output

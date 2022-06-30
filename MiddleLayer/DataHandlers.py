@@ -65,7 +65,7 @@ class Track():
                 self.phonemeLengths[i] = None
                 
     #TODO: find out if this can be removed
-    def generateCaps(self):
+    def generateCaps(self) -> tuple([list, list]):
         """utility function for generating startCap and endCap attributes for the track. These are not required by the main process, and are instead sent to the rendering process with to_sequence"""
 
         noneList = []
@@ -74,17 +74,17 @@ class Track():
         return [noneList, noneList]
     #TODO: this too
 
-    def toSequence(self):
+    def toSequence(self) -> VocalSequence:
         """converts the track to a VOcalSequence object for sending it to the rendering thread. Also handles conversion of MIDI pitch to frequency."""
 
         caps = self.generateCaps()
         pitch = torch.full_like(self.pitch, global_consts.sampleRate) / (torch.pow(2, (self.pitch - torch.full_like(self.pitch, 69)) / torch.full_like(self.pitch, 12)) * 440)
         return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useVibratoSpeed, self.useVibratoStrength)
 
-class Note:
+class Note():
     """Container class for a note as handled by the main process. Contains a reference property pointing at its UI representation."""
 
-    def __init__(self, xPos, yPos, start = 0, end = 1, reference = None):
+    def __init__(self, xPos, yPos, start = 0, end = 1, reference = None) -> None:
         self.reference = ObjectProperty()
         self.reference = reference
         self.length = 100
