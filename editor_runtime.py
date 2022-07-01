@@ -14,7 +14,6 @@ if pyi_splash.is_alive():
     pyi_splash.update_text("loading PyTorch libraries...")
 import torch
 import torch.multiprocessing as mp
-import torchaudio
 if pyi_splash.is_alive():
     pyi_splash.update_text("reading settings...")
 from MiddleLayer.IniParser import readSettings
@@ -31,13 +30,9 @@ torch.backends.cudnn.allow_tf32 = tcores
 
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading Nova-Vox Backend...")
-import global_consts
-from Backend.VB_Components.Voicebank import LiteVoicebank as Voicebank
-from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.NV_Multiprocessing.Manager import RenderManager
 import sys
 from os import getenv, path, makedirs
-
 if pyi_splash.is_alive():
     pyi_splash.update_text("starting logging process...")
 import logging
@@ -70,7 +65,6 @@ if __name__ == '__main__':
     mp.freeze_support()
     if pyi_splash.is_alive():
         pyi_splash.update_text("loading UI libraries...")
-    import tkinter.filedialog
     from kivy.app import App
     from kivy.core.window import Window
     from kivy.lang import Builder
@@ -83,13 +77,21 @@ if __name__ == '__main__':
     else:
         print("could not read low-spec mode setting. low-spec mode has been disabled by default.")
         updateInterval = 0.25
+    global manager
+    global sequenceList
+    global voicebankList
+    global aiParamStackList
+    sequenceList = []
+    voicebankList = []
+    aiParamStackList = []
+    manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
+    from UI.code.editor.Main import NovaVoxUI
     class NovaVoxApp(App):
         def build(self):
             self.icon = path.join("icon", "nova-vox-logo-2-color.png")
             ui = NovaVoxUI()
             Clock.schedule_interval(ui.update, updateInterval)
             return ui
-    from editor_UI import NovaVoxUI
     Window.minimum_height = 500
     Window.minimum_width = 800
     Config.set('graphics', 'width', '1900')

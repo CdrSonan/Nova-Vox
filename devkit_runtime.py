@@ -6,7 +6,7 @@ Created on Fri Sep  3 18:54:17 2021
 """
 
 print("loading...")
-import devkit_UI
+from UI.code.devkit.Main import RootUi
 from MiddleLayer.IniParser import readSettings
 print("initializing...")
 
@@ -38,6 +38,6 @@ logPath = path.join(logPath, "devkit.log")
 logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename=logPath, filemode = "w", force = True, level=loglevel)
 logging.info("logging service started")
 
-rootUi = devkit_UI.RootUi()
+rootUi = RootUi()
 print("initialization complete")
 rootUi.mainloop()
