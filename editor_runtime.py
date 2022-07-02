@@ -30,7 +30,6 @@ torch.backends.cudnn.allow_tf32 = tcores
 
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading Nova-Vox Backend...")
-from Backend.NV_Multiprocessing.Manager import RenderManager
 import sys
 from os import getenv, path, makedirs
 if pyi_splash.is_alive():
@@ -77,14 +76,6 @@ if __name__ == '__main__':
     else:
         print("could not read low-spec mode setting. low-spec mode has been disabled by default.")
         updateInterval = 0.25
-    global manager
-    global sequenceList
-    global voicebankList
-    global aiParamStackList
-    sequenceList = []
-    voicebankList = []
-    aiParamStackList = []
-    manager = RenderManager(sequenceList, voicebankList, aiParamStackList)
     from UI.code.editor.Main import NovaVoxUI
     class NovaVoxApp(App):
         def build(self):

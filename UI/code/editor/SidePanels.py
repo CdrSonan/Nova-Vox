@@ -21,6 +21,7 @@ from MiddleLayer.IniParser import readSettings, writeSettings
 
 from UI.code.editor.Util import ListElement
 
+
 class FileSidePanel(ModalView):
     def openRenderPopup(self):
         FileRenderPopup().open()
@@ -38,6 +39,7 @@ class FileRenderPopup(Popup):
         self.format = format
     def render(self, path):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         data = torch.zeros_like(middleLayer.audioBuffer[0])
         for i in range(len(middleLayer.audioBuffer)):
             data += middleLayer.audioBuffer[i] * middleLayer.trackList[i].volume
@@ -130,6 +132,7 @@ class ParamSidePanel(ModalView):
         self.selectedIndex = index
     def importVoicebank(self, path, name):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.importParam(path, name)
 
 class ScriptingSidePanel(ModalView):
@@ -146,8 +149,12 @@ class ScriptingSidePanel(ModalView):
             popup = Popup(title = "script error", content = Label(text = repr(e)), size_hint = (None, None), size = (400, 400))
             popup.open()
     def saveCache(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.scriptCache = self.ids["scripting_editor"].text
     def loadCache(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         self.ids["scripting_editor"].text = middleLayer.scriptCache
     
 
@@ -169,6 +176,8 @@ class SettingsSidePanel(ModalView):
                 self.audioDeviceNames.append(device["name"])
         self.ids["settings_audioDevice"].values = self.audioDeviceNames
     def restartAudioStream(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.audioStream.close()
         identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
         middleLayer.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, identifier, callback = middleLayer.playCallback)

@@ -1,20 +1,22 @@
 import torch
 
 from kivy.uix.widget import Widget
-
 from kivy.core.window import Window
 
 from MiddleLayer.MiddleLayer import MiddleLayer
 
+from UI.code.editor.AdaptiveSpace import *
+from UI.code.editor.Headers import *
 from UI.code.editor.PianoRoll import *
+from UI.code.editor.Popups import *
+from UI.code.editor.SidePanels import *
+from UI.code.editor.Util import *
 
 class NovaVoxUI(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         global middleLayer
         middleLayer = MiddleLayer(self.ids)
-        global manager
-        from editor_runtime import manager
         self._keyboard = Window.request_keyboard(None, self, 'text')
         if self._keyboard.widget:
             pass
@@ -22,7 +24,7 @@ class NovaVoxUI(Widget):
         self._keyboard.bind(on_key_up = self._on_keyboard_up)
         self._keyboard.target = None
     def update(self, deltatime):
-        change = manager.receiveChange()
+        change = middleLayer.manager.receiveChange()
         if change == None:
             return None
         if change.type == False:

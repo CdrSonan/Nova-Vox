@@ -35,6 +35,8 @@ class Note(ToggleButton):
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
     def on_touch_down(self, touch):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if middleLayer.mode != "notes":
             return False
         if self.collide_point(*touch.pos):
@@ -53,6 +55,8 @@ class Note(ToggleButton):
             return True
         return super().on_touch_down(touch)
     def on_touch_up(self, touch):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if middleLayer.mode != "notes" or touch.is_mouse_scrolling or "initialPos" not in touch.ud.keys():
             return False
         coord = self.to_local(touch.x, touch.y)
@@ -70,10 +74,14 @@ class Note(ToggleButton):
         else:
             self.add_widget(NoteProperties(reference = self))
     def changeInputMode(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         self.inputMode = not self.inputMode
         middleLayer.trackList[middleLayer.activeTrack].notes[self.index].phonemeMode = self.inputMode
         middleLayer.changeLyrics(self.index, self.children[1].text)
     def delete(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.removeNote(self.index)
         for i in self.parent.children:
             if i.__class__.__name__ == "Note":
@@ -81,6 +89,8 @@ class Note(ToggleButton):
                     i.index -= 1
         self.parent.remove_widget(self)
     def changeLyrics(self, text, focus = False):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if focus == False:
             middleLayer.changeLyrics(self.index, text)
 
@@ -125,6 +135,8 @@ class PianoRoll(ScrollView):
         self.basePitchLine = None
         self.generateTimingMarkers()
     def generate_notes(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         index = 0
         for i in middleLayer.trackList[middleLayer.activeTrack].notes:
             note = Note(index = index, xPos = i.xPos, yPos = i.yPos, length = i.length * self.xScale, height = self.yScale, inputMode = i.phonemeMode)
@@ -153,6 +165,8 @@ class PianoRoll(ScrollView):
             Line(points = points)
             del self.children[0].children[0].canvas.children[-2]
     def redrawPitch(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         data1 = middleLayer.trackList[middleLayer.activeTrack].pitch
         data2 = middleLayer.trackList[middleLayer.activeTrack].basePitch
         points1 = []
@@ -174,6 +188,8 @@ class PianoRoll(ScrollView):
             Color(1, 0, 0, 1)
             self.pitchLine = Line(points = points1)
     def changeMode(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if middleLayer.mode == "notes":
             for i in self.timingMarkers:
                 self.children[0].canvas.remove(i)
@@ -206,6 +222,8 @@ class PianoRoll(ScrollView):
             del self.timingMarkers[:]
             self.redrawPitch()
     def updateTrack(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         removes = []
         for i in self.children[0].children:
             if i.__class__.__name__ == "Note":
@@ -237,10 +255,12 @@ class PianoRoll(ScrollView):
         self.scroll_x = scrollValue
     def triggerScroll(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.scrollValue = self.scroll_x
         middleLayer.applyScroll()
     def on_touch_down(self, touch):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         if touch.is_mouse_scrolling == False:
             if super(PianoRoll, self).on_touch_down(touch):
                 return True
@@ -312,6 +332,8 @@ class PianoRoll(ScrollView):
                 return True
         return False
     def on_touch_move(self, touch):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super().on_touch_move(touch)
         if self.collide_point(*touch.pos) == False or touch.ud['param']:
@@ -434,6 +456,7 @@ class PianoRoll(ScrollView):
             return super().on_touch_move(touch)
     def on_touch_up(self, touch):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(PianoRoll, self).on_touch_up(touch)
         if 'startPoint' in touch.ud and touch.ud['param'] == False:

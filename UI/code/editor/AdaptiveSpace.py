@@ -7,11 +7,14 @@ class AdaptiveSpace(AnchorLayout):
     def redraw(self):
         self.children[0].redraw()
     def applyScroll(self, scrollValue):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if middleLayer.activeTrack == None:
             return
         self.children[0].scroll_x = scrollValue
     def triggerScroll(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.scrollValue = self.children[0].scroll_x
         middleLayer.applyScroll()
 
@@ -21,6 +24,8 @@ class ParamCurve(ScrollView):
     line = ObjectProperty()
     line = Line()
     def redraw(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if middleLayer.activeParam == "steadiness":
             data = middleLayer.trackList[middleLayer.activeTrack].steadiness
         elif middleLayer.activeParam == "breathiness":
@@ -73,6 +78,7 @@ class ParamCurve(ScrollView):
             return super(ParamCurve, self).on_touch_move(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:
             global middleLayer
+            from UI.code.editor.Main import middleLayer
             coord = self.to_local(touch.x, touch.y)
             x = int(coord[0] / self.xScale)
             y = min(max(coord[1], 0.), self.height)
@@ -138,6 +144,7 @@ class ParamCurve(ScrollView):
             return super(ParamCurve, self).on_touch_move(touch)
     def on_touch_up(self, touch):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(ParamCurve, self).on_touch_up(touch)
         if 'startPoint' in touch.ud:
@@ -162,6 +169,8 @@ class TimingOptns(ScrollView):
     rectangles1 = ListProperty()
     rectangles2 = ListProperty()
     def redraw(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         for i in self.rectangles1:
             self.children[0].canvas.remove(i)
         del self.rectangles1[:]
@@ -184,6 +193,8 @@ class TimingOptns(ScrollView):
                 self.rectangles2.append(ObjectProperty())
                 self.rectangles2[-1] = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
     def on_touch_down(self, touch):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if touch.is_mouse_scrolling == False:
             if super(TimingOptns, self).on_touch_down(touch):
                 return True
@@ -235,6 +246,8 @@ class TimingOptns(ScrollView):
                 return self.points1[bar][0]
             else:
                 return self.points2[bar][0]
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(TimingOptns, self).on_touch_move(touch)
         if 'startPoint' in touch.ud:
@@ -324,6 +337,7 @@ class TimingOptns(ScrollView):
                         break
             return None
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(TimingOptns, self).on_touch_up(touch)
         if middleLayer.tool == "draw":
@@ -369,6 +383,8 @@ class PitchOptns(ScrollView):
             self.line1 = Line()
             self.line2 = Line()
     def redraw(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         self.children[0].canvas.remove(self.line1)
         self.children[0].canvas.remove(self.line2)
         data1 = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength
@@ -423,6 +439,7 @@ class PitchOptns(ScrollView):
             return super(PitchOptns, self).on_touch_move(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:
             global middleLayer
+            from UI.code.editor.Main import middleLayer
             coord = self.to_local(touch.x, touch.y)
             x = int(coord[0] / self.xScale)
             if touch.ud['section']:
@@ -491,6 +508,7 @@ class PitchOptns(ScrollView):
             return super(PitchOptns, self).on_touch_move(touch)
     def on_touch_up(self, touch):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(PitchOptns, self).on_touch_up(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:

@@ -22,9 +22,11 @@ from UI.code.editor.Headers import SingerPanel, ParamPanel
 class MiddleLayer(Widget):
     def __init__(self, ids, **kwargs):
         super().__init__(**kwargs)
-        global manager
-        global aiParamStackList
-        from editor_runtime import manager, aiParamStackList
+        self.sequenceList = []
+        self.voicebankList = []
+        self.aiParamStackList = []
+        from Backend.NV_Multiprocessing.Manager import RenderManager
+        self.manager = RenderManager(self.sequenceList, self.voicebankList, self.aiParamStackList)
         self.ids = ids
         self.trackList = []
         self.activeTrack = None
@@ -59,7 +61,7 @@ class MiddleLayer(Widget):
         image = im.texture
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.audioBuffer.append(torch.zeros([5000 * global_consts.batchSize,]))
-        aiParamStackList.append(AiParamStack([]))
+        self.aiParamStackList.append(AiParamStack([]))
         self.submitAddTrack(track)
     def importParam(self, path, name):
         self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
@@ -100,12 +102,12 @@ class MiddleLayer(Widget):
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.audioBuffer.append(deepcopy(self.audioBuffer[index]))
-        aiParamStackList.append(AiParamStack([]))
+        self.aiParamStackList.append(AiParamStack([]))
         self.submitDuplicateTrack(index)
     def deleteTrack(self, index):
         self.trackList.pop(index)
         self.audioBuffer.pop(index)
-        aiParamStackList.pop(index)
+        self.aiParamStackList.pop(index)
         if index <= self.activeTrack and index > 0:
             self.changeTrack(self.activeTrack - 1)
         for i in self.ids["singerList"].children:
@@ -632,41 +634,41 @@ class MiddleLayer(Widget):
             self.submitNamedPhonParamChange(False, "borders", index, [self.trackList[self.activeTrack].borders[index],])
             self.repairBorders(index + 1)
     def submitTerminate(self):
-        manager.sendChange("terminate", True)
+        self.manager.sendChange("terminate", True)
     def submitAddTrack(self, track):
-        manager.sendChange("addTrack", True, track.vbPath, track.to_sequence(), aiParamStackList[-1])
+        self.manager.sendChange("addTrack", True, track.vbPath, track.to_sequence(), self.aiParamStackList[-1])
     def submitRemoveTrack(self, index):
-        manager.sendChange("removeTrack", True, index)
+        self.manager.sendChange("removeTrack", True, index)
     def submitDuplicateTrack(self, index):
-        manager.sendChange("duplicateTrack", True, index)
+        self.manager.sendChange("duplicateTrack", True, index)
     def submitChangeVB(self, index, path):
-        manager.sendChange("changeVB", True, index, path)
+        self.manager.sendChange("changeVB", True, index, path)
     def submitAddParam(self, path):
-        manager.sendChange("addParam", True, self.activeTrack, path)
+        self.manager.sendChange("addParam", True, self.activeTrack, path)
     def submitRemoveParam(self, index):
-        manager.sendChange("removeParam", True, self.activeTrack, index)
+        self.manager.sendChange("removeParam", True, self.activeTrack, index)
     def submitEnableParam(self, index, name):
         if index == -1:
-            manager.sendChange("enableParam", True, self.activeTrack, name)
+            self.manager.sendChange("enableParam", True, self.activeTrack, name)
         else:
-            manager.sendChange("enableParam", True, self.activeTrack, index)
+            self.manager.sendChange("enableParam", True, self.activeTrack, index)
     def submitDisableParam(self, index, name):
         if index == -1:
-            manager.sendChange("disableParam", True, self.activeTrack, name)
+            self.manager.sendChange("disableParam", True, self.activeTrack, name)
         else:
-            manager.sendChange("disableParam", True, self.activeTrack, index)
+            self.manager.sendChange("disableParam", True, self.activeTrack, index)
     def submitBorderChange(self, final, index, data):
-        manager.sendChange("changeInput", final, self.activeTrack, "borders", index, data)
+        self.manager.sendChange("changeInput", final, self.activeTrack, "borders", index, data)
     def submitNamedParamChange(self, final, param, index, data):
-        manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
+        self.manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     def submitNamedPhonParamChange(self, final, param, index, data):
-        manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
+        self.manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     def submitParamChange(self, final, param, index, data):
-        manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
+        self.manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     def submitOffset(self, final, index, offset):
-        manager.sendChange("offset", final, self.activeTrack, index, offset)
+        self.manager.sendChange("offset", final, self.activeTrack, index, offset)
     def submitFinalize(self):
-        manager.sendChange("finalize", True)
+        self.manager.sendChange("finalize", True)
     def updateRenderStatus(self, track, index, value):
         for i in self.deletions:
             if i == track:

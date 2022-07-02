@@ -14,17 +14,21 @@ class SingerPanel(AnchorLayout):
     index = NumericProperty()
     def changeTrack(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.changeTrack(self.index)
     def openSettings(self):
         SingerSettingsPanel(self.index).open()
     def copyTrack(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.copyTrack(self.index, self.name, self.image)
     def deleteTrack(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.deleteTrack(self.index)
     def updateVolume(self, volume):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.updateVolume(self.index, volume)
 
 class ParamPanel(ToggleButton):
@@ -60,17 +64,21 @@ class ParamPanel(ToggleButton):
                 i.x = self.x + 103
     def enableParam(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         if self.children[0].state == "down":
             middleLayer.enableParam(self.index, self.name)
         else:
             middleLayer.disableParam(self.index, self.name)
     def moveParam(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         delta = 0
         middleLayer.moveParam(self.name, self.switchable, self.sortable, self.index, delta, self.children[0].state == "down")
     def deleteParam(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.deleteParam(self.index)
     def changeParam(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.changeParam(self.index, self.name)

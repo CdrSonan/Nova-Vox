@@ -11,6 +11,7 @@ from MiddleLayer.IniParser import readSettings
 class SingerSettingsPanel(Popup):
     def __init__(self, index, **kwargs):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         super().__init__(**kwargs)
         self.index = index
         self.vbData = []
@@ -31,6 +32,7 @@ class SingerSettingsPanel(Popup):
         self.children[0].children[0].children[0].children[0].text = str(self.pauseThreshold)
     def listVoicebanks(self):
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         voicePath = os.path.join(readSettings()["dataDir"], "Voices")
         if os.path.isdir(voicePath) == False:
             popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
@@ -46,6 +48,8 @@ class SingerSettingsPanel(Popup):
         self.modVoicebanks = copy(self.voicebanks)
         self.modVoicebanks.append("None")
     def on_pre_dismiss(self):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         if self.children[0].children[0].children[0].children[2].text == "None":
             middleLayer.trackList[self.index].mixinVB = None
         else:
