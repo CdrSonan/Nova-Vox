@@ -20,7 +20,13 @@ from UI.code.editor.AdaptiveSpace import ParamCurve, TimingOptns, PitchOptns
 from UI.code.editor.Headers import SingerPanel, ParamPanel
 
 class MiddleLayer(Widget):
-    def __init__(self, ids, **kwargs):
+    """Central class of the program. Contains data handlers for all data on the main process, and callbacks for modifying it, which are triggered from the UI.
+    Through its manager attribute, it indirectly also handles communication between the main and rendering process.
+    Contains some functions for updating the UI when mode changes occur, but these functions may be moved to a dedicated class in the future."""
+
+    def __init__(self, ids, **kwargs) -> None:
+        """Constructor called once during program startup. uses the id list of the main UI for referencing various UI elements and updating them. Functionality related to such UI updates may be moved to a dedicated class in the future, deprecating this argument."""
+        
         super().__init__(**kwargs)
         self.sequenceList = []
         self.voicebankList = []
@@ -50,7 +56,18 @@ class MiddleLayer(Widget):
                 device = i["name"] + ", " + settings["audioApi"]
         self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback)
         self.scriptCache = ""
-    def importVoicebank(self, path, name, inImage):
+
+    def importVoicebank(self, path:str, name:str, inImage) -> None:
+        """Creates a new vocal track with a Voicebank loaded from disk.
+
+        Arguments:
+            path: filepath of the .nvvb Voicebank file used for the track
+
+            name: display name of the Voicebank/track
+
+            inImage: image displayed in the track header"""
+
+
         track = dh.Track(path)
         self.trackList.append(track)
         canvas_img = inImage
@@ -63,15 +80,32 @@ class MiddleLayer(Widget):
         self.audioBuffer.append(torch.zeros([5000 * global_consts.batchSize,]))
         self.aiParamStackList.append(AiParamStack([]))
         self.submitAddTrack(track)
-    def importParam(self, path, name):
+
+    def importParam(self, path:str, name:str) -> None:
+        """placeholder function for importing an Ai-driven parameter. Deprecated with the introduction of node-based processing."""
+
         self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
         self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = True, sortable = True, deletable = True, index = len(self.trackList[self.activeTrack].paramStack) - 1))
         self.submitAddParam(path)
-    def changeTrack(self, index):
+
+    def changeTrack(self, index) -> None:
+        """Helper function triggering the required UI updates when the user selects a different track"""
+
         self.activeTrack = index
         self.updateParamPanel()
         self.updatePianoRoll()
-    def copyTrack(self, index, name, inImage):
+
+    def copyTrack(self, index:int, name:str, inImage) -> None:
+        """Duplicates a vocal track and all of its associated data.
+
+        Arguments:
+            index: the index of the track to duplicate in self.trackList
+            
+            name: the display name of the duplicated track
+            
+            inImage: Image displayed in the header of the duplicated track"""
+
+
         reference = self.trackList[index]
         self.trackList.append(dh.Track(reference.vbPath))
         self.trackList[-1].volume = copy(reference.volume)
@@ -104,7 +138,10 @@ class MiddleLayer(Widget):
         self.audioBuffer.append(deepcopy(self.audioBuffer[index]))
         self.aiParamStackList.append(AiParamStack([]))
         self.submitDuplicateTrack(index)
-    def deleteTrack(self, index):
+
+    def deleteTrack(self, index:int) -> None:
+        """Deletes the track at index index in self.trackList, and all of its associated data"""
+
         self.trackList.pop(index)
         self.audioBuffer.pop(index)
         self.aiParamStackList.pop(index)
@@ -122,7 +159,10 @@ class MiddleLayer(Widget):
             self.ids["adaptiveSpace"].clear_widgets()
             self.activeTrack = None
             self.updatePianoRoll()
-    def deleteParam(self, index):
+
+    def deleteParam(self, index:int) -> None:
+        """Placeholder function for removing an Ai-driven parameter from a track's stack. Deprecated with the introduction of node-based processing."""
+
         self.trackList[self.activeTrack].paramStack.pop(index)
         if index <= self.activeParam:
             self.changeParam(self.activeParam - 1)
@@ -132,7 +172,16 @@ class MiddleLayer(Widget):
             if i.index > index:
                 i.index = i.index - 1
         self.submitRemoveParam(index)
-    def enableParam(self, index, name):
+
+    def enableParam(self, index:int, name:str = None) -> None:
+        """Enables a toggle-able parameter curve of a vocal track.
+
+        Arguments:
+            index: index of the parameter curve in the curve stack. -1 for named resampler parameters.
+            
+            name: when adressing a named resampler parameter, the name of the parameter. Otherwise ignored."""
+
+
         if index == -1:
             if name == "steadiness":
                 self.trackList[self.activeTrack].useSteadiness = True
@@ -145,7 +194,16 @@ class MiddleLayer(Widget):
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = True
         self.submitEnableParam(index, name)
-    def disableParam(self, index, name):
+        
+    def disableParam(self, index:int, name:str) -> None:
+        """Disables a toggle-able parameter curve of a vocal track.
+
+        Arguments:
+            index: index of the parameter curve in the curve stack. -1 for named resampler parameters.
+            
+            name: When adressing a named resampler parameter, the name of the parameter. Otherwise ignored."""
+
+
         if index == -1:
             if name == "steadiness":
                 self.trackList[self.activeTrack].useSteadiness = False
@@ -158,7 +216,11 @@ class MiddleLayer(Widget):
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = False
         self.submitDisableParam(index, name)
-    def moveParam(self, name, switchable, sortable, deletable, index, delta, switchState = True):
+
+    def moveParam(self, name:str, switchable:bool, sortable:bool, deletable:bool, index:int, delta:int, switchState:bool = True) -> None:
+        """Moves a sortable parameter curve at index index of the current track's param curve stack to a different position defined by delta.
+        All other arguments specify information about the parameter being moved for re-applying its header widget."""
+
         param = self.trackList[self.activeTrack].paramStack[index]
         if delta > 0:
             for i in range(delta):
@@ -174,7 +236,10 @@ class MiddleLayer(Widget):
                 break
         self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = switchable, sortable = sortable, deletable = deletable, index = index), index = index + delta, switchState = switchState)
         self.changeParam(index + delta)
-    def updateParamPanel(self):
+
+    def updateParamPanel(self) -> None:
+        """updates the adaptive space and parameter panel after a track or mode change"""
+
         self.ids["paramList"].clear_widgets()
         self.ids["adaptiveSpace"].clear_widgets()
         if self.mode == "notes":
@@ -196,9 +261,15 @@ class MiddleLayer(Widget):
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoStrength))
             self.ids["adaptiveSpace"].add_widget(PitchOptns())
             self.changeParam(-1, "vibrato speed")
-    def updatePianoRoll(self):
+
+    def updatePianoRoll(self) -> None:
+        """updates the piano roll UI after a track or mode change"""
+
         self.ids["pianoRoll"].updateTrack()
-    def changeParam(self, index, name):
+
+    def changeParam(self, index:int, name:str) -> None:
+        """updates the adaptive space after an active parameter change"""
+
         if index == -1:
             if name == "steadiness":
                 self.activeParam = "steadiness"
@@ -211,7 +282,10 @@ class MiddleLayer(Widget):
         else:
             self.activeParam = index
         self.ids["adaptiveSpace"].children[0].redraw()
-    def applyParamChanges(self, data, start, section = False):
+
+    def applyParamChanges(self, data:list, start:int, section:bool = False) -> None:
+        """submits edits made to a parameter curve to the rendering process. For multicurve parameter views, section represents whether the upper or lower curve was edited."""
+
         if self.activeParam == "steadiness":
             self.trackList[self.activeTrack].steadiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
             self.submitNamedParamChange(True, "steadiness", start, torch.tensor(data, dtype = torch.half))
@@ -235,16 +309,41 @@ class MiddleLayer(Widget):
         else:
             self.trackList[self.activeTrack].paramStack[self.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
             self.submitParamChange(True, self.activeParam, start, torch.tensor(data, dtype = torch.half))
-    def applyPitchChanges(self, data, start):
+
+    def applyPitchChanges(self, data:list, start:int) -> None:
+        """submits edits made to the pitch curve to the rendering process"""
+
         self.trackList[self.activeTrack].pitch[start:start + len(data)] = torch.tensor(data, dtype = torch.float32)
         data = self.noteToPitch(torch.tensor(data, dtype = torch.float32))
         self.submitNamedPhonParamChange(True, "pitch", start, torch.tensor(data, dtype = torch.half))
-    def changePianoRollMode(self):
+
+    def changePianoRollMode(self) -> None:
+        """helper function for piano roll UI updates when changing modes"""
+
         self.ids["pianoRoll"].changeMode()
-    def applyScroll(self):
+
+    def applyScroll(self) -> None:
+        """helper function for synchromizing scrolling between the piano roll and adaptive space"""
+
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
-    def offsetPhonemes(self, index, offset, pause = False, futurePhonemes = None):
+
+    def offsetPhonemes(self, index:int, offset:int, pause:bool = False, futurePhonemes:list = None) -> None:
+        """adds or deletes phonemes from the active track, and recalculates timing markers to fit the new sequence.
+
+        Arguments:
+            index: the index to add phonemes at, or remove them from
+
+            offset: if positive, number of phonemes added. If negative, number of phonemes removed.
+            
+            pause: Flag indicating whether an _autopause control phoneme should be inserted
+            
+            futurePhonemes: when using positive offset, a "preview" of the phonemes that are to be inserted. Used for timing marker calculations.
+            
+        When using a positive offset, this function adds the placeholder phoneme _X (or several of them). These should be overwritten with normal
+        phonemes before submitting the change to the rendering process with the final flag set."""
+
+        #TODO: refactor timing calculations to dedicated function and add callback in switchNote
         phonIndex = self.trackList[self.activeTrack].notes[index].phonemeStart
         if offset > 0:
             if len(self.trackList[self.activeTrack].phonemes) > phonIndex and self.trackList[self.activeTrack].notes[index].phonemeEnd > phonIndex:
@@ -384,7 +483,9 @@ class MiddleLayer(Widget):
             self.repairBorders(i)
         self.submitNamedPhonParamChange(False, "borders", 3 * (iterationStart + iterationOffset), self.trackList[self.activeTrack].borders[3 * (iterationStart + iterationOffset):3 * iterationEndBorder])
 
-    def makeAutoPauses(self, index):
+    def makeAutoPauses(self, index:int) -> None:
+        """helper function for calculating the _autopause phonemes required by the note at position index of the active track"""
+
         if index > 0:
             offset = 0
             if self.trackList[self.activeTrack].notes[index].phonemeStart < self.trackList[self.activeTrack].notes[index].phonemeEnd:
@@ -410,11 +511,15 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] = "_autopause"
                 self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd])
 
-    def recalculatePauses(self, index):
+    def recalculatePauses(self, index:int) -> None:
+        """recalculates all _autopause phonemes for the track at position index of the track list. Used during startup and repair operations."""
+
         for i in range(len(self.trackList[index].notes)):
             self.makeAutoPauses(i)
     
-    def switchNote(self, index):
+    def switchNote(self, index:int) -> None:
+        """Switches the places of the notes at positions index and index + 1 or the active track. Does currently not clean up timing markers afterwards, so doing so manually or by prompting a call of offsetPhonemes is currently required."""
+
         note = self.trackList[self.activeTrack].notes.pop(index + 1)
         seq1 = self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd]
         seq2 = self.trackList[self.activeTrack].phonemes[note.phonemeStart:note.phonemeEnd]
@@ -444,7 +549,10 @@ class MiddleLayer(Widget):
         self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index].phonemeStart, brd2)
         self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart, brd1)
 
-    def scaleNote(self, index, oldLength):
+    def scaleNote(self, index:int, oldLength:int) -> None:
+        """Changes the length of the note at position index of the active track. THe new length is read from its UI representation, the old length must be given as an argument.
+        It does not perform any checks of surrounding notes or other conditions. Therefore, it is recommended to call changeNoteLength instead whenever possible."""
+
         length = self.trackList[self.activeTrack].notes[index].length
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         iterationEndBorder = iterationEnd
@@ -490,7 +598,9 @@ class MiddleLayer(Widget):
             self.repairBorders(i)
         self.submitNamedPhonParamChange(False, "borders", 3 * iterationStart, self.trackList[self.activeTrack].borders[3 * iterationStart:3 * iterationEndBorder])
     
-    def adjustNote(self, index, oldLength, oldPos):
+    def adjustNote(self, index:int, oldLength:int, oldPos:int) -> None:
+        """Adjusts a note's attributes after it has been moved or scaled with respect to its surrounding notes. The current position and length are read from its UI representation, the old one must be given as arguments."""
+
         result = None
         nextLength = oldLength
         if index + 1 < len(self.trackList[self.activeTrack].notes):
@@ -519,7 +629,9 @@ class MiddleLayer(Widget):
             self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + nextLength)
         return result
 
-    def addNote(self, index, x, y, reference):
+    def addNote(self, index:int, x:int, y:int, reference) -> None:
+        """adds a new note at position (x, y) and index index to the active track. reference is an ObjectProperty pointing to its UI representation."""
+
         if self.activeTrack == None:
             return
         if index == 0:
@@ -541,13 +653,17 @@ class MiddleLayer(Widget):
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart, reference))
         self.adjustNote(index, 100, x)
 
-    def removeNote(self, index):
+    def removeNote(self, index:int) -> None:
+        """removes the note at position index of the active track"""
+
         self.offsetPhonemes(index, self.trackList[self.activeTrack].notes[index].phonemeStart - self.trackList[self.activeTrack].notes[index].phonemeEnd)
         self.trackList[self.activeTrack].notes.pop(index)
         if index < len(self.trackList[self.activeTrack].notes):
             self.adjustNote(index, self.trackList[self.activeTrack].notes[index].length, self.trackList[self.activeTrack].notes[index].xPos)
 
-    def changeNoteLength(self, index, x, length):
+    def changeNoteLength(self, index:int, x:int, length:int) -> None:
+        """changes the length and start position of the note at position index of the active track to length and x. This makes this function useful for moving either the beginning or the end of a note."""
+
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
@@ -567,7 +683,9 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].xPos = x
         return self.adjustNote(index, oldLength, oldPos)
 
-    def moveNote(self, index, x, y):
+    def moveNote(self, index:int, x:int, y:int) -> None:
+        """moves the note at position index of the active track to the position (x, y)."""
+
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         iterationStart = self.trackList[self.activeTrack].notes[index].phonemeStart
         if iterationEnd > iterationStart:
@@ -594,7 +712,9 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].yPos = y
         return self.adjustNote(index, oldLength, oldPos)
 
-    def changeLyrics(self, index, text):
+    def changeLyrics(self, index:int, text:str) -> None:
+        """changes the lyrics of the note at position index of the active track to text. Performs dictionary lookup and phoneme sanitization, respecting the note's phoneme input mode."""
+
         self.trackList[self.activeTrack].notes[index].content = text
         if self.trackList[self.activeTrack].notes[index].phonemeMode:
             text = text.split(" ")
@@ -616,77 +736,117 @@ class MiddleLayer(Widget):
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, phonemes)
         self.makeAutoPauses(index)
         self.submitFinalize()
-    def changeBorder(self, border, pos):
+
+    def changeBorder(self, border:int, pos:int) -> None:
+        """sets the position of the timing marker at index border of the active track to pos"""
+
         self.trackList[self.activeTrack].borders[border] = pos
         self.repairBorders(border)
         self.submitBorderChange(True, border, [pos,])
-    def repairNotes(self, index):
+
+    def repairNotes(self, index:int) -> None:
+        """checks if the note at position index of the active track has exactly the same position as the previous note. If so, it is moved forward by one tick, ensuring that no note gets assigned a length of 0."""
         if index == 0 or index == len(self.trackList[self.activeTrack].notes):
             return
         if self.trackList[self.activeTrack].notes[index].xPos == self.trackList[self.activeTrack].notes[index - 1].xPos:
             self.trackList[self.activeTrack].notes[index].xPos += 1
             self.repairNotes(index + 1)
-    def repairBorders(self, index):
+
+    def repairBorders(self, index:int) -> None:
+        """checks if the note at position index of the active track has exactly the same position as the previous note. If so, it is moved forward by one tick, ensuring that no note gets assigned a length of 0."""
+
         if index == 0 or index == len(self.trackList[self.activeTrack].borders):
-            return None
+            return
         if self.trackList[self.activeTrack].borders[index] < self.trackList[self.activeTrack].borders[index - 1] + 1.:
             self.trackList[self.activeTrack].borders[index] = self.trackList[self.activeTrack].borders[index - 1] + 1.
             self.submitNamedPhonParamChange(False, "borders", index, [self.trackList[self.activeTrack].borders[index],])
             self.repairBorders(index + 1)
-    def submitTerminate(self):
+
+    def submitTerminate(self) -> None:
         self.manager.sendChange("terminate", True)
-    def submitAddTrack(self, track):
+
+    def submitAddTrack(self, track:dh.Track) -> None:
         self.manager.sendChange("addTrack", True, track.vbPath, track.to_sequence(), self.aiParamStackList[-1])
-    def submitRemoveTrack(self, index):
+
+    def submitRemoveTrack(self, index:int) -> None:
         self.manager.sendChange("removeTrack", True, index)
-    def submitDuplicateTrack(self, index):
+    
+    def submitDuplicateTrack(self, index:int) -> None:
         self.manager.sendChange("duplicateTrack", True, index)
-    def submitChangeVB(self, index, path):
+    
+    def submitChangeVB(self, index:int, path:str) -> None:
         self.manager.sendChange("changeVB", True, index, path)
-    def submitAddParam(self, path):
+    
+    def submitAddParam(self, path:str) -> None:
         self.manager.sendChange("addParam", True, self.activeTrack, path)
-    def submitRemoveParam(self, index):
+    
+    def submitRemoveParam(self, index:int) -> None:
         self.manager.sendChange("removeParam", True, self.activeTrack, index)
-    def submitEnableParam(self, index, name):
+    
+    def submitEnableParam(self, index:int, name:str) -> None:
         if index == -1:
             self.manager.sendChange("enableParam", True, self.activeTrack, name)
         else:
             self.manager.sendChange("enableParam", True, self.activeTrack, index)
-    def submitDisableParam(self, index, name):
+    
+    def submitDisableParam(self, index:int, name:str) -> None:
         if index == -1:
             self.manager.sendChange("disableParam", True, self.activeTrack, name)
         else:
             self.manager.sendChange("disableParam", True, self.activeTrack, index)
-    def submitBorderChange(self, final, index, data):
+    
+    def submitBorderChange(self, final:bool, index:int, data) -> None:
         self.manager.sendChange("changeInput", final, self.activeTrack, "borders", index, data)
-    def submitNamedParamChange(self, final, param, index, data):
+    
+    def submitNamedParamChange(self, final:bool, param, index:int, data) -> None:
         self.manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
-    def submitNamedPhonParamChange(self, final, param, index, data):
+    
+    def submitNamedPhonParamChange(self, final:bool, param, index:int, data) -> None:
         self.manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
-    def submitParamChange(self, final, param, index, data):
+    
+    def submitParamChange(self, final:bool, param, index:int, data) -> None:
         self.manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
-    def submitOffset(self, final, index, offset):
+    
+    def submitOffset(self, final:bool, index:int, offset:int) -> None:
         self.manager.sendChange("offset", final, self.activeTrack, index, offset)
-    def submitFinalize(self):
+    
+    def submitFinalize(self) -> None:
         self.manager.sendChange("finalize", True)
-    def updateRenderStatus(self, track, index, value):
+    
+    def updateRenderStatus(self, track:int, index:int, value:int) -> None:
+        """updates the visual representation of the rendering progress of the note at index index of track track"""
+
         for i in self.deletions:
             if i == track:
                 return None
             elif i < track:
                 track -= 1
-    def updateVolume(self, index, volume):
+            #update code here
+    
+    def updateVolume(self, index:int, volume:float) -> None:
+        """updates the volume of the track at position index of the track list"""
+
         self.trackList[index].volume = volume
-    def updateAudioBuffer(self, track, index, data):
+    
+    def updateAudioBuffer(self, track:int, index:int, data:torch.Tensor) -> None:
+        """updates the audio buffer. The data of the track at position track of the trackList is updated with the tensor Data, starting from position index"""
+
         for i in self.deletions:
             if i == track:
                 return None
             elif i < track:
                 track -= 1
         self.audioBuffer[track][index:index + len(data)] = data
-    def movePlayhead(self, position):
+    
+    def movePlayhead(self, position:int) -> None:
+        """sets the position of the playback head in the piano roll UI"""
+
         self.ids["pianoRoll"].changePlaybackPos(position)
-    def play(self, state = None):
+    
+    def play(self, state:bool = None) -> None:
+        """starts or stops audio playback.
+        If state is true, starts playback, if state is false, stops playback. If state is None or not given, starts playback if it is not already in progress, and stops playback if it is."""
+
         if state == None:
             state = not(self.playing)
         if state == True:
@@ -696,7 +856,10 @@ class MiddleLayer(Widget):
             self.ids["playButton"].state = "normal"
             self.audioStream.stop()
         self.playing = state
-    def playCallback(self, outdata, frames, time, status):
+    
+    def playCallback(self, outdata, frames, time, status) -> None:
+        """callback function used for updating the driver audio stream with new data from the audio buffer during playback"""
+
         if self.playing:
             newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
             mainAudioBuffer = torch.zeros([newBufferPos - self.mainAudioBufferPos],)
@@ -713,10 +876,16 @@ class MiddleLayer(Widget):
         else:
             buffer = torch.zeros([global_consts.audioBufferSize, 2], dtype = torch.float32).expand(-1, 2).numpy()
         outdata[:] = buffer.copy()
-    def noteToPitch(self, data):
+
+    def noteToPitch(self, data:torch.Tensor) -> torch.Tensor:
+        """Utility function for converting the y position of a note to its corresponding pitch, following the MIDI standard."""
+
         #return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
         return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 36)) / torch.full_like(data, 12)) * 440)
-    def recalculateBasePitch(self, index, oldStart, oldEnd):
+
+    def recalculateBasePitch(self, index:int, oldStart:float, oldEnd:float) -> None:
+        """recalculates the base pitch curve after the note at position index of the active track has been modified. oldStart and oldEnd are the start and end of the note before the transformation leading to the function call."""
+
         dipWidth = global_consts.pitchDipWidth
         dipHeight = global_consts.pitchDipHeight
         transitionLength1 = min(global_consts.pitchTransitionLength, int(self.trackList[self.activeTrack].notes[index].length))
