@@ -23,21 +23,33 @@ from UI.code.editor.Util import ListElement
 
 
 class FileSidePanel(ModalView):
-    def openRenderPopup(self):
+    """Side panel for saving, loading, importing, exporting and rendering files"""
+
+    def openRenderPopup(self) -> None:
+        """opens a popup containing the settings for rendering files"""
+
         FileRenderPopup().open()
 
 class FileRenderPopup(Popup):
-    def __init__(self, **kwargs):
+    """Popup triggered from the file side panel, containing settings specific to rendering files"""
+
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.final = False
         self.format = "WAV"
         self.bitdepth = "PCM_24"
         self.sampleRate = "48000"
-    def reloadBitdepths(self, format):
+
+    def reloadBitdepths(self, format:str) -> None:
+        """reloades the available bitdepths when a new export format is selected"""
+
         self.children[0].children[0].children[0].children[1].children[1].values = soundfile.available_subtypes(format).keys()
         self.children[0].children[0].children[0].children[1].children[1].text = self.children[0].children[0].children[0].children[1].children[1].values[0]
         self.format = format
-    def render(self, path):
+
+    def render(self, path:str) -> None:
+        """renders the audio buffer held by the middle layer to a file using the specified settings"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         data = torch.zeros_like(middleLayer.audioBuffer[0])
@@ -46,10 +58,16 @@ class FileRenderPopup(Popup):
             data = data.numpy()
         with soundfile.SoundFile(path, "w", int(self.sampleRate), 1, self.bitdepth, None, self.format) as file:
             file.write(data)
-    def finalisingClose(self):
+
+    def finalisingClose(self) -> None:
+        """sets the final flag, so the popup can be dismissed"""
+
         self.final = True
         self.dismiss()
-    def on_dismiss(self):
+
+    def on_dismiss(self) -> bool:
+        """callback function cancelling the dismissal of the popup if necessary, and starting rendering otherwise"""
+
         if self.final == False:
             return False
         tkui = Tk()
@@ -63,12 +81,17 @@ class FileRenderPopup(Popup):
         return False
 
 class SingerSidePanel(ModalView):
-    def __init__(self, **kwargs):
+    """Side panel containing a list of installed Voicebanks, and options to display info about them and load them"""
+
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.voicebanks = []
         self.filepaths = []
         self.selectedIndex = None
-    def listVoicebanks(self): 
+
+    def listVoicebanks(self) -> None: 
+        """reads a list of available Voicebanks from disk and displays it"""
+
         voicePath = os.path.join(readSettings()["dataDir"], "Voices")
         if os.path.isdir(voicePath) == False:
             popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
@@ -84,7 +107,10 @@ class SingerSidePanel(ModalView):
         for i in self.voicebanks:
             self.ids["singers_list"].add_widget(ListElement(text = i.name, index = j))
             j += 1
-    def detailElement(self, index):
+
+    def detailElement(self, index:int) -> None:
+        """displays more detailed information about a Voicebank selected from the list"""
+
         self.ids["singer_name"].text = self.voicebanks[index].name
         canvas_img = self.voicebanks[index].image
         data = BytesIO()
@@ -96,17 +122,25 @@ class SingerSidePanel(ModalView):
         self.ids["singer_description"].text = self.voicebanks[index].description
         self.ids["singer_license"].text = self.voicebanks[index].license
         self.selectedIndex = index
-    def importVoicebank(self, path, name, image):
+
+    def importVoicebank(self, path:str, name:str, image) -> None:
+        """adds a new vocal track using the selected Voicebank when the import button is pressed"""
+
         global middleLayer
         middleLayer.importVoicebank(path, name, image)
 
 class ParamSidePanel(ModalView):
-    def __init__(self, **kwargs):
+    """Side panel containing a list of installed AI-driven parameters, and options to display info about them and load them"""
+
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.parameters = []
         self.filepaths = []
         self.selectedIndex = None
-    def listParams(self):
+
+    def listParams(self) -> None:
+        """reads a list of available parameters from disk and displays it"""
+
         paramPath = os.path.join(readSettings()["dataDir"], "Parameters")
         if os.path.isdir(paramPath) == False:
             popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
@@ -122,7 +156,10 @@ class ParamSidePanel(ModalView):
         for i in self.parameters:
             self.ids["params_list"].add_widget(ListElement(text = i.name, index = j))
             j += 1
-    def detailElement(self, index):
+
+    def detailElement(self, index:int) -> None:
+        """displays more detailed information about a parameter selected from the list"""
+
         self.ids["param_name"].text = self.voicebanks[index].name
         self.ids["param_type"].text = self.voicebanks[index]._type
         self.ids["param_capacity"].text = self.voicebanks[index].capacity
@@ -130,44 +167,63 @@ class ParamSidePanel(ModalView):
         self.ids["param_version"].text = self.voicebanks[index].version
         self.ids["param_license"].text = self.voicebanks[index].license
         self.selectedIndex = index
-    def importVoicebank(self, path, name):
+
+    def importParameter(self, path:str, name:str) -> None:
+        """imports the selected parameter, and attaches it to the node tree of the active track"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         middleLayer.importParam(path, name)
 
 class ScriptingSidePanel(ModalView):
-    def openDevkit(self):
+    """side panel containing options for scripting, loading and unloading addons, and opening the devkit"""
+
+    def openDevkit(self) -> None:
+        """opens the devkit as a separate process through the OS"""
+
         try:
             subprocess.Popen("Devkit.exe")
         except:
             popup = Popup(title = "error", content = Label(text = "Devkit not installed"), size_hint = (None, None), size = (400, 400))
             popup.open()
-    def runScript(self):
+
+    def runScript(self) -> None:
+        """executes the script entered into the script editor"""
+
         try:
             exec(self.ids["scripting_editor"].text)
         except Exception as e:
             popup = Popup(title = "script error", content = Label(text = repr(e)), size_hint = (None, None), size = (400, 400))
             popup.open()
-    def saveCache(self):
+
+    def saveCache(self) -> None:
+        """saves the content of the script editor to a cache when the side panel is closed"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         middleLayer.scriptCache = self.ids["scripting_editor"].text
-    def loadCache(self):
+
+    def loadCache(self) -> None:
+        """loads the content of the script editor from cache when the side panel is opened"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         self.ids["scripting_editor"].text = middleLayer.scriptCache
-    
 
 class SettingsSidePanel(ModalView):
-    def __init__(self, **kwargs):
+    """Class for a side panel displaying a settings menu for the program"""
+
+    def __init__(self, **kwargs) -> None:
         audioApis = sounddevice.query_hostapis()
         self.audioApiNames =  []
         for i in audioApis:
             self.audioApiNames.append(i["name"])
-        #self.refreshAudioDevices()
         self.audioDeviceNames = []
         super().__init__(**kwargs)
-    def refreshAudioDevices(self, api):
+
+    def refreshAudioDevices(self, api:str) -> None:
+        """refreshes the list of available audio devices"""
+
         self.audioDeviceNames = []
         devices = sounddevice.query_hostapis(self.audioApiNames.index(api))["devices"]
         for i in devices:
@@ -175,20 +231,29 @@ class SettingsSidePanel(ModalView):
             if device["max_output_channels"]:
                 self.audioDeviceNames.append(device["name"])
         self.ids["settings_audioDevice"].values = self.audioDeviceNames
-    def restartAudioStream(self):
+
+    def restartAudioStream(self) -> None:
+        """restarts the audio stream after a device change"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         middleLayer.audioStream.close()
         identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
         middleLayer.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, identifier, callback = middleLayer.playCallback)
-    def changeDataDir(self):
+
+    def changeDataDir(self) -> None:
+        """Changes the directory that is searched for Voicebanks, Parameters etc."""
+
         tkui = Tk()
         tkui.withdraw()
         newDir = filedialog.askdirectory()
         if newDir != "":
             self.ids["settings_datadir"].text = newDir
         tkui.destroy()
-    def readSettings(self):
+
+    def readSettings(self) -> None:
+        """reads the settings from the settings file"""
+
         settings = readSettings()
         self.ids["settings_lang"].text = settings["language"]
         self.ids["settings_accel"].text = settings["accelerator"]
@@ -200,7 +265,10 @@ class SettingsSidePanel(ModalView):
         self.ids["settings_audioDevice"].text = settings["audioDevice"]
         self.ids["settings_loglevel"].text = settings["loglevel"]
         self.ids["settings_datadir"].text = settings["dataDir"]
-    def writeSettings(self):
+
+    def writeSettings(self) -> None:
+        """writes the settings to the settings file"""
+        
         if self.ids["settings_audioDevice"].text in self.audioDeviceNames:
             audioDevice = self.ids["settings_audioDevice"].text
         else:

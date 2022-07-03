@@ -20,7 +20,7 @@ loadedVB = None
 class RootUi(tkinter.Frame):
     """Class of the Devkit main window"""
 
-    def __init__(self, master=tkinter.Tk()):
+    def __init__(self, master=tkinter.Tk()) -> None:
         """Initialize a new main window. Called once during devkit startup"""
 
         logging.info("initializing Root UI")
@@ -45,7 +45,7 @@ class RootUi(tkinter.Frame):
             print("could not read accelerator setting. Accelerator has been set to CPU by default.")
             self.device = torch.device("cpu")
         
-    def createWidgets(self):
+    def createWidgets(self) -> None:
         """Initialize all widgets of the main window. Called once during main window initialization."""
 
         self.infoDisplay = tkinter.Label(self)
@@ -106,41 +106,41 @@ class RootUi(tkinter.Frame):
 
         self.bind("<Destroy>", self.onDestroy)
         
-    def onMetadataPress(self):
+    def onMetadataPress(self) -> None:
         """opens Metadata UI window when Metadata button in the main window is pressed"""
 
         logging.info("Metadata button callback")
         self.metadataUi = MetadataUi(tkinter.Tk())
         self.metadataUi.mainloop()
     
-    def onPhonemedictPress(self):
+    def onPhonemedictPress(self) -> None:
         """opens Phoneme Dict UI window when Phoneme Dict button in the main window is pressed"""
 
         logging.info("PhonemeDict button callback")
         self.phonemedictUi = PhonemedictUi(tkinter.Tk())
         self.phonemedictUi.mainloop()
     
-    def onCrfaiPress(self):
+    def onCrfaiPress(self) -> None:
         """opens Phoneme Crossfade AI UI window when Phoneme Crossfade AI button in the main window is pressed"""
 
         logging.info("Crfai button callback")
         self.crfaiUi = CrfaiUi(tkinter.Tk())
         self.crfaiUi.mainloop()
     
-    def onParameterPress(self):
+    def onParameterPress(self) -> None:
         logging.info("Parameter button callback")
     
-    def onWorddictPress(self):
+    def onWorddictPress(self) -> None:
         logging.info("Worddict button callback")
 
-    def onUtauimportPress(self):
+    def onUtauimportPress(self) -> None:
         """opens the UTAU import tool when the UTAU import tool button in the main window is pressed"""
 
         logging.info("UTAU import button callback")
         self.utauImportUi = UtauImportUi(tkinter.Tk())
         self.utauImportUi.mainloop()
 
-    def onDestroy(self, event):
+    def onDestroy(self, event) -> None:
         logging.info("Root UI destroyed")
         if hasattr(self, 'metadataUi'):
             self.metadataUi.master.destroy()
@@ -149,7 +149,7 @@ class RootUi(tkinter.Frame):
         if hasattr(self, 'crfaiUi'):
             self.crfaiUi.master.destroy()
     
-    def onSavePress(self):
+    def onSavePress(self) -> None:
         """Saves the currently loaded Voicebank to a .nvvb file"""
 
         logging.info("save button callback")
@@ -161,7 +161,7 @@ class RootUi(tkinter.Frame):
             loadedVB.save(filepath)
             self.master.wm_title(loadedVBPath)
         
-    def onOpenPress(self):
+    def onOpenPress(self) -> None:
         """opens a Voicebank and loads all of its data"""
 
         logging.info("open button callback")
@@ -183,7 +183,7 @@ class RootUi(tkinter.Frame):
                 self.saveButton["state"] = "active"
                 self.master.wm_title(loadedVBPath)
     
-    def onNewPress(self):
+    def onNewPress(self) -> None:
         """creates a new, empty Voicebank object in memory"""
         
         logging.info("new button callback")

@@ -20,7 +20,7 @@ loc = getLocale()
 class UtauImportUi(tkinter.Frame):
     """Class of the UTAU import UI window"""
 
-    def __init__(self, master=None):
+    def __init__(self, master=None) -> None:
         logging.info("Initializing UTAU import UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
@@ -34,7 +34,7 @@ class UtauImportUi(tkinter.Frame):
         
         self.sampleList = []
         
-    def createWidgets(self):
+    def createWidgets(self) -> None:
         """Initializes all widgets of the UTAU import UI window."""
 
         global loadedVB
@@ -178,7 +178,7 @@ class UtauImportUi(tkinter.Frame):
 
         self.phonemeList.list.lastFocusedIndex = None
         
-    def onSelectionChange(self, event):
+    def onSelectionChange(self, event) -> None:
         """Adjusts the per-sample part of the UI to display the correct values when the selected sample in the SampleList list changes"""
 
         logging.info("UTAU sample list selection change callback")
@@ -198,24 +198,24 @@ class UtauImportUi(tkinter.Frame):
             self.updateDiagram()
 
                 
-    def onListFocusOut(self, event):
+    def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last focused element of the SampleList when the SampleList loses entry focus"""
 
         logging.info("UTAU sample list focus loss callback")
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
         
-    def disableButtons(self):
+    def disableButtons(self) -> None:
         """Helper function disabling the key button"""
 
         self.sideBar.key.entry["state"] = "disabled"
     
-    def enableButtons(self):
+    def enableButtons(self) -> None:
         """Helper function enabling the key button"""
 
         self.sideBar.key.entry["state"] = "normal"
 
-    def onTypeChange(self, event = None):
+    def onTypeChange(self, event = None) -> None:
         """UI Frontend function for changing the type (phoneme or transition) of a sample"""
 
         logging.info("Utau sample type change callback")
@@ -226,7 +226,7 @@ class UtauImportUi(tkinter.Frame):
         else:
             self.enableButtons
     
-    def onAddPress(self):
+    def onAddPress(self) -> None:
         """UI Frontend function for adding a sample to the SampleList"""
 
         logging.info("UTAU sample add button callback")
@@ -241,7 +241,7 @@ class UtauImportUi(tkinter.Frame):
             self.sampleList.append(sample)
             self.phonemeList.list.lb.insert("end", sample.handle)
         
-    def onRemovePress(self):
+    def onRemovePress(self) -> None:
         """UI Frontend function for removing a sample from the SampleList"""
 
         logging.info("UTAU sample remove button callback")
@@ -255,7 +255,7 @@ class UtauImportUi(tkinter.Frame):
                 self.phonemeList.list.lb.selection_set(index)
             self.updateDiagram()
 
-    def updateDiagram(self):
+    def updateDiagram(self) -> None:
         """updates the diagram displaying sample waveform, UTAU and Nova-Vox timing markers, when a new sample is selected from the list"""
 
         logging.info("UTAU diagram update callback")
@@ -283,7 +283,7 @@ class UtauImportUi(tkinter.Frame):
         self.diagram.canvas.draw()
         self.diagram.ax.clear()
             
-    def onKeyChange(self, event):
+    def onKeyChange(self, event) -> None:
         """UI Frontend function for changing the key of a phoneme-type UTAU sample"""
 
         logging.info("UTAU sample key change callback")
@@ -293,7 +293,7 @@ class UtauImportUi(tkinter.Frame):
         if key != newKey:
             self.sampleList[index].key = newKey
         
-    def onFrameUpdateTrigger(self, event):
+    def onFrameUpdateTrigger(self, event) -> None:
         """UI Frontend function for updating the start and end data of a sample"""
 
         logging.info("UTAU sample frame update callback")
@@ -306,7 +306,7 @@ class UtauImportUi(tkinter.Frame):
         self.phonemeList.list.lb.insert(index, sample.handle)   
         self.updateDiagram()
         
-    def onImportPress(self):
+    def onImportPress(self) -> None:
         """UI Frontend function for importing an UTAU sample from the SampleList as phoneme or transition sample"""
 
         logging.info("UTAU import button callback")
@@ -329,7 +329,7 @@ class UtauImportUi(tkinter.Frame):
         if self.phonemeList.list.lb.size() > 0:
             self.updateDiagram()
 
-    def onImportAllPress(self):
+    def onImportAllPress(self) -> None:
         """UI Frontend function for importing the entire SampleList as phoneme and transition samples"""
 
         logging.info("UTAU import all button callback")
@@ -350,7 +350,7 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.end.variable.set(None)
         self.phonemeList.list.lb.selection_set(0)
         
-    def onOkPress(self):
+    def onOkPress(self) -> None:
         """Updates the last selected sample and closes the UTAU import UI window when the OK button is pressed"""
 
         logging.info("UTAU OK button callback")
@@ -362,7 +362,7 @@ class UtauImportUi(tkinter.Frame):
                 self.onFrameUpdateTrigger(None)
         self.master.destroy()
 
-    def onLoadPress(self):
+    def onLoadPress(self) -> None:
         """UI Frontend function for parsing an oto.ini file, and loading its samples into the SampleList"""
         
         logging.info("oto.ini load button callback")

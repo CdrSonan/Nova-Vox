@@ -10,7 +10,7 @@ loc = getLocale()
 class MetadataUi(tkinter.Frame):
     """Class of the Metadata window"""
 
-    def __init__(self, master=None):
+    def __init__(self, master=None) -> None:
         logging.info("Initializing Metadata UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
@@ -21,7 +21,7 @@ class MetadataUi(tkinter.Frame):
         if (sys.platform.startswith('win')): 
             self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
-    def createWidgets(self):
+    def createWidgets(self) -> None:
         """initializes all widgets of the Metadata window. Called once during initialization"""
 
         global loadedVB
@@ -95,7 +95,7 @@ class MetadataUi(tkinter.Frame):
         self.loadButton["command"] = self.onLoadPress
         self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
-    def applyImage(self):
+    def applyImage(self) -> None:
         """helper function for showing the image saved as part of the loaded Voicebank in the UI"""
 
         logging.info("Metadata Image change button callback")
@@ -105,7 +105,7 @@ class MetadataUi(tkinter.Frame):
         self.image.display.create_image(100, 100, image = self.storedImage)
         
 
-    def onImagePress(self):
+    def onImagePress(self) -> None:
         """opens a file browser to select a different image file for the Voicebank"""
 
         logging.info("Metadata Image change button callback")
@@ -118,7 +118,7 @@ class MetadataUi(tkinter.Frame):
         loadedVB.metadata.image = pilImage
         self.applyImage()
         
-    def onOkPress(self):
+    def onOkPress(self) -> None:
         """Applies all changes and closes the window when the OK button is pressed"""
 
         logging.info("Metadata OK button callback")
@@ -130,7 +130,7 @@ class MetadataUi(tkinter.Frame):
         loadedVB.metadata.license = self.license.variable.get()
         self.master.destroy()
 
-    def onLoadPress(self):
+    def onLoadPress(self) -> None:
         """Opens a file browser, and loads the Voicebank metadata from a specified .nvvb file"""
 
         logging.info("Metadata load button callback")

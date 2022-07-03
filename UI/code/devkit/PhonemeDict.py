@@ -17,7 +17,7 @@ from Backend.ESPER.SpectralCalculator import calculateSpectra
 class PhonemedictUi(tkinter.Frame):
     """Class of the phoneme dictionnary UI window"""
 
-    def __init__(self, master=None):
+    def __init__(self, master=None) -> None:
         logging.info("Initializing Phonemedict UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
@@ -28,7 +28,7 @@ class PhonemedictUi(tkinter.Frame):
         if (sys.platform.startswith('win')): 
             self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
-    def createWidgets(self):
+    def createWidgets(self) -> None:
         """Initializes all widgets of the Phoneme Dict UI window."""
 
         global loadedVB
@@ -187,7 +187,7 @@ class PhonemedictUi(tkinter.Frame):
 
         self.phonemeList.list.lastFocusedIndex = None
         
-    def onSelectionChange(self, event):
+    def onSelectionChange(self, event) -> None:
         """Adjusts the per-phoneme part of the UI to display the correct values when the selected Phoneme in the Phoneme list changes"""
 
         logging.info("Phonemedict selection change callback")
@@ -216,14 +216,14 @@ class PhonemedictUi(tkinter.Frame):
             self.updateSlider()
             self.onSliderMove(0)
                 
-    def onListFocusOut(self, event):
+    def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last focused element of the Phoneme list when Phoneme list loses entry focus"""
 
         logging.info("Phonemedict list focus loss callback")
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
         
-    def disableButtons(self):
+    def disableButtons(self) -> None:
         """Helper function disabling all per-phoneme settings buttons"""
 
         self.sideBar.expPitch.entry["state"] = "disabled"
@@ -235,7 +235,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.isVoiced.entry["state"] = "disabled"
         self.sideBar.isPlosive.entry["state"] = "disabled"
     
-    def enableButtons(self):
+    def enableButtons(self) -> None:
         """Helper function enabling all per-phoneme settings buttons"""
 
         self.sideBar.expPitch.entry["state"] = "normal"
@@ -247,7 +247,7 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.isVoiced.entry["state"] = "normal"
         self.sideBar.isPlosive.entry["state"] = "normal"
     
-    def onAddPress(self):
+    def onAddPress(self) -> None:
         """UI Frontend function for adding a phoneme to the Voicebank"""
 
         logging.info("Phonemedict add button callback")
@@ -263,7 +263,7 @@ class PhonemedictUi(tkinter.Frame):
                 calculateSpectra(loadedVB.phonemeDict[key])
                 self.phonemeList.list.lb.insert("end", key)
         
-    def onRemovePress(self):
+    def onRemovePress(self) -> None:
         """UI Frontend function for removing a phoneme from the Voicebank"""
 
         logging.info("Phonemedict remove button callback")
@@ -280,7 +280,7 @@ class PhonemedictUi(tkinter.Frame):
             if self.phonemeList.list.lb.size() == 0:
                 self.disableButtons()
 
-    def onSliderMove(self, value):
+    def onSliderMove(self, value:float) -> None:
         """Updates the phoneme diagram to display the correct time frame when the time slider is moved"""
 
         logging.info("Phonemedict slider movement callback")
@@ -304,7 +304,7 @@ class PhonemedictUi(tkinter.Frame):
         self.diagram.canvas.draw()
         self.diagram.ax.clear()
 
-    def updateSlider(self):
+    def updateSlider(self) -> None:
         """replaces the time slider with a new slider object of the same class, but different maximum, when a new sample with possibly different length is selected from the sample list"""
 
         logging.info("Phonemedict slider properties update callback")
@@ -316,7 +316,7 @@ class PhonemedictUi(tkinter.Frame):
         self.diagram.timeSlider = tkinter.Scale(self.diagram, from_ = 0, to = maxValue, orient = "horizontal", length = 600, command = self.onSliderMove)
         self.diagram.timeSlider.pack(side = "left", fill = "both", expand = True, padx = 5, pady = 2)
             
-    def onKeyChange(self, event):
+    def onKeyChange(self, event) -> None:
         """UI Frontend function for changing the key of a phoneme"""
 
         logging.info("Phonemedict key change callback")
@@ -329,7 +329,7 @@ class PhonemedictUi(tkinter.Frame):
             self.phonemeList.list.lb.delete(index)
             self.phonemeList.list.lb.insert(index, newKey)
 
-    def onPitBrdcPress(self):
+    def onPitBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the pitch search settings of the currently selected sample to all samples"""
 
         pitch = self.sideBar.expPitch.variable.get()
@@ -343,7 +343,7 @@ class PhonemedictUi(tkinter.Frame):
                     calculatePitch(j)
                     calculateSpectra(j)
 
-    def onSpecBrdcPress(self):
+    def onSpecBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the spectral filtering & analysis settings of the currently selected sample to all samples"""
 
         voicedFilter = self.sideBar.voicedFilter.variable.get()
@@ -357,7 +357,7 @@ class PhonemedictUi(tkinter.Frame):
                     calculateSpectra(j)
         self.onSliderMove(self.diagram.timeSlider.get())
         
-    def onPitchUpdateTrigger(self, event):
+    def onPitchUpdateTrigger(self, event) -> None:
         """Updates the pitch and phase data of a phoneme"""
 
         logging.info("Phonemedict pitch update callback")
@@ -371,7 +371,7 @@ class PhonemedictUi(tkinter.Frame):
                 calculatePitch(loadedVB.phonemeDict[key])
                 calculateSpectra(loadedVB.phonemeDict[key])
     
-    def onVoicedUpdateTrigger(self):
+    def onVoicedUpdateTrigger(self) -> None:
         """UI Frontend function for updating the "Voiced" flag of a phoneme"""
 
         logging.info("Phonemedict voicing update callback")
@@ -384,7 +384,7 @@ class PhonemedictUi(tkinter.Frame):
                 calculateSpectra(loadedVB.phonemeDict[key])
                 self.onSliderMove(self.diagram.timeSlider.get())
 
-    def onPlosiveUpdateTrigger(self):
+    def onPlosiveUpdateTrigger(self) -> None:
         """UI Frontend function for updating the "Plosive" flag of a phoneme"""
 
         logging.info("Phonemedict voicing update callback")
@@ -397,7 +397,7 @@ class PhonemedictUi(tkinter.Frame):
                 calculateSpectra(loadedVB.phonemeDict[key])
                 self.onSliderMove(self.diagram.timeSlider.get())
         
-    def onSpectralUpdateTrigger(self, event):
+    def onSpectralUpdateTrigger(self, event) -> None:
         """updates the spectral and excitation data of a phoneme"""
 
         logging.info("Phonemedict spectral update callback")
@@ -411,7 +411,7 @@ class PhonemedictUi(tkinter.Frame):
                 calculateSpectra(loadedVB.phonemeDict[key])
                 self.onSliderMove(self.diagram.timeSlider.get())
         
-    def onFilechangePress(self, event):
+    def onFilechangePress(self, event) -> None:
         """UI Frontend function for changing the file associated with a phoneme"""
 
         logging.info("Phonemedict file change button callback")
@@ -427,7 +427,7 @@ class PhonemedictUi(tkinter.Frame):
             self.phonemeList.list.lb.insert(index, key)
             
         
-    def onFinalizePress(self):
+    def onFinalizePress(self) -> None:
         """UI Frontend function for finalizing a phoneme, reducing its size when saving the VOicebank to a file"""
 
         logging.info("Phonemedict finalize button callback")
@@ -442,7 +442,7 @@ class PhonemedictUi(tkinter.Frame):
         self.disableButtons()
         
         
-    def onOkPress(self):
+    def onOkPress(self) -> None:
         """Updates the last selected phoneme and closes the Phoneme Dict UI window when the OK button is pressed"""
 
         logging.info("Phonemedict OK button callback")
@@ -457,7 +457,7 @@ class PhonemedictUi(tkinter.Frame):
                     self.onSpectralUpdateTrigger(None)
         self.master.destroy()
 
-    def onLoadPress(self):
+    def onLoadPress(self) -> None:
         """UI Frontend function for loading the phoneme dict of a different Voicebank"""
 
         logging.info("Phonemedict load button callback")

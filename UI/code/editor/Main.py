@@ -13,7 +13,7 @@ from UI.code.editor.SidePanels import *
 from UI.code.editor.Util import *
 
 class NovaVoxUI(Widget):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         global middleLayer
         middleLayer = MiddleLayer(self.ids)
@@ -23,7 +23,10 @@ class NovaVoxUI(Widget):
         self._keyboard.bind(on_key_down = self._on_keyboard_down)
         self._keyboard.bind(on_key_up = self._on_keyboard_up)
         self._keyboard.target = None
-    def update(self, deltatime):
+
+    def update(self, deltatime:float) -> None:
+        """periodically called update function tied to UI updates that reads changes from the rendering process and passes them to the middleLayer"""
+
         change = middleLayer.manager.receiveChange()
         if change == None:
             return None
@@ -39,22 +42,34 @@ class NovaVoxUI(Widget):
         else:
             middleLayer.deletions.pop(0)
         return self.update(deltatime)
-    def setMode(self, mode):
+
+    def setMode(self, mode) -> None:
+        """signals the middleLAyer a change of the input mode and prompts the required UI updates"""
+
         global middleLayer
         middleLayer.mode = mode
         if middleLayer.activeTrack == None:
             return
         middleLayer.updateParamPanel()
         middleLayer.changePianoRollMode()
-    def setTool(self, tool):
+
+    def setTool(self, tool) -> None:
+        """signals the middleLAyer a change of the current tool"""
+
         global middleLayer
         middleLayer.tool = tool
-    def play(self, state):
+
+    def play(self, state:bool) -> None:
+        """signals the middle layer a state change of the playback toggle"""
+
         if state == "down":
             middleLayer.play(True)
         else:
             middleLayer.play(False)
-    def spoolBack(self):
+
+    def spoolBack(self) -> None:
+        """sets the playback head to the beginning of the active track"""
+
         if middleLayer.activeTrack == None or len(middleLayer.trackList[middleLayer.activeTrack].borders) == 0:
             middleLayer.mainAudioBufferPos = 0
             middleLayer.movePlayhead(0)
@@ -62,17 +77,28 @@ class NovaVoxUI(Widget):
             middleLayer.mainAudioBufferPos = middleLayer.trackList[middleLayer.activeTrack].borders[0]
             middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[0])
             
-    def spoolForward(self):
+    def spoolForward(self) -> None:
+        """sets the playback head to the end of the active track"""
+
         if middleLayer.activeTrack == None or len(middleLayer.trackList[middleLayer.activeTrack].borders) == 0:
             return
         else:
             middleLayer.mainAudioBufferPos = middleLayer.trackList[middleLayer.activeTrack].borders[-1]
             middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
-    def undo(self):
+
+    def undo(self) -> None:
+        """placeholder for undo function"""
+
         print("undo callback")
-    def redo(self):
+
+    def redo(self) -> None:
+        """placeholder for redo function"""
+
         print("redo callback")
-    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers) -> None:
+        """universal function for processing keyboard shortcuts and keeping track of modifier keys"""
+
         if keyboard.target != None:
             return False
         if keycode[0] == 303 or keycode[0] == 304: 
@@ -82,7 +108,10 @@ class NovaVoxUI(Widget):
         else:
             print("keycode pressed:", keycode[0])
         return True
-    def _on_keyboard_up(self, keyboard, keycode):
+
+    def _on_keyboard_up(self, keyboard, keycode) -> None:
+        """signals the middleLayer when modifier keys have been let go of"""
+        
         if keyboard.target != None:
             return False
         if keycode[0] == 303 or keycode[0] == 304: 

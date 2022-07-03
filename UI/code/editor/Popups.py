@@ -9,7 +9,9 @@ import torch
 from MiddleLayer.IniParser import readSettings
 
 class SingerSettingsPanel(Popup):
-    def __init__(self, index, **kwargs):
+    """Popup displaying per-track settings"""
+
+    def __init__(self, index, **kwargs) -> None:
         global middleLayer
         from UI.code.editor.Main import middleLayer
         super().__init__(**kwargs)
@@ -30,7 +32,10 @@ class SingerSettingsPanel(Popup):
         self.children[0].children[0].children[0].children[2].text = self.mixinVB
         self.children[0].children[0].children[0].children[2].values = self.modVoicebanks
         self.children[0].children[0].children[0].children[0].text = str(self.pauseThreshold)
-    def listVoicebanks(self):
+
+    def listVoicebanks(self) -> None:
+        """creates a list of installed Voicebanks for switching the one used by the track"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         voicePath = os.path.join(readSettings()["dataDir"], "Voices")
@@ -47,7 +52,10 @@ class SingerSettingsPanel(Popup):
                 self.filepaths.append(os.path.join(voicePath, file))
         self.modVoicebanks = copy(self.voicebanks)
         self.modVoicebanks.append("None")
-    def on_pre_dismiss(self):
+
+    def on_pre_dismiss(self) -> None:
+        """applies all changed settings before closing the popup"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if self.children[0].children[0].children[0].children[2].text == "None":
@@ -67,4 +75,6 @@ class SingerSettingsPanel(Popup):
                     break
         
 class LicensePanel(Popup):
+    """panel displaying the Nova-Vox license, contributors and other info"""
+    
     pass

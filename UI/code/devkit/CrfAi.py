@@ -9,7 +9,7 @@ loc = getLocale()
 class CrfaiUi(tkinter.Frame):
     """Class of the Spectral Crossfade AI UI window"""
 
-    def __init__(self, master=None):
+    def __init__(self, master=None) -> None:
         logging.info("Initializing Crfai UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
@@ -20,7 +20,7 @@ class CrfaiUi(tkinter.Frame):
         if (sys.platform.startswith('win')): 
             self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
-    def createWidgets(self):
+    def createWidgets(self) -> None:
         """creates all widgets of the window. Called once during initialization"""
 
         global loadedVB
@@ -135,7 +135,7 @@ class CrfaiUi(tkinter.Frame):
         if type(loadedVB.crfAi).__name__ == "SavedSpecCrfAi":
             self.disableButtons()
         
-    def onSelectionChange(self, event):
+    def onSelectionChange(self, event) -> None:
         """Helper function for retaining information about the last selected transition sample when the selected item in the transition sample list changes"""
 
         logging.info("Crfai selection change callback")
@@ -143,14 +143,14 @@ class CrfaiUi(tkinter.Frame):
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
             
-    def onListFocusOut(self, event):
+    def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""
 
         logging.info("Crfai list focus loss callback")
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
     
-    def onAddPress(self):
+    def onAddPress(self) -> None:
         """UI Frontend function for adding a new transition sample to the list of staged AI training samples"""
 
         logging.info("Crfai add button callback")
@@ -161,7 +161,7 @@ class CrfaiUi(tkinter.Frame):
                 loadedVB.addTrainSample(i)
                 self.phonemeList.list.lb.insert("end", i)
         
-    def onRemovePress(self):
+    def onRemovePress(self) -> None:
         """UI Frontend function for removing a transition sample from the list of staged AI training samples"""
 
         logging.info("Crfai remove button callback")
@@ -175,7 +175,7 @@ class CrfaiUi(tkinter.Frame):
             else:
                 self.phonemeList.list.lb.selection_set(index)
 
-    def onExportPress(self):
+    def onExportPress(self) -> None:
         """UI Frontend function for exporting an AI training dataset using Pickle."""
 
         logging.info("Crfai dataset export callback")
@@ -183,7 +183,7 @@ class CrfaiUi(tkinter.Frame):
         filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".dat", filetypes = ((".dat", ".dat"), (loc["all_files_desc"], "*")))
         torch.save(loadedVB.stagedTrainSamples, filepath)
 
-    def onImportPress(self):
+    def onImportPress(self) -> None:
         """UI Frontend function for importing a previously saved AI training dataset. Overwrites any previously staged training samples."""
 
         logging.info("Crfai dataset export callback")
@@ -191,7 +191,7 @@ class CrfaiUi(tkinter.Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
         loadedVB.stagedTrainSamples = torch.load(filepath)
                 
-    def onTrainPress(self):
+    def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""
 
         logging.info("Crfai train button callback")
@@ -206,7 +206,7 @@ class CrfaiUi(tkinter.Frame):
         self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.crfAi.sampleCount) + loc["AI_stat_3"])
         logging.info("Crfai train button callback completed")
         
-    def onFinalizePress(self):
+    def onFinalizePress(self) -> None:
         """UI Frontend function for finalizing the phoneme crossfade AI, reducing its size when saving the Voicebnank to a file."""
 
         logging.info("Crfai finalize button callback")
@@ -214,7 +214,7 @@ class CrfaiUi(tkinter.Frame):
         loadedVB.finalizCrfAi()
         self.disableButtons()
         
-    def disableButtons(self):
+    def disableButtons(self) -> None:
         """Utility function for disabling the AI settings buttons"""
 
         self.sideBar.unvoicedIter.entry["state"] = "disabled"
@@ -222,7 +222,7 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.trainButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
     
-    def enableButtons(self):
+    def enableButtons(self) -> None:
         """Utility function for enabling the AI settings buttons"""
 
         self.sideBar.unvoicedIter.entry["state"] = "normal"
@@ -230,14 +230,14 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.trainButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"
         
-    def onOkPress(self):
+    def onOkPress(self) -> None:
         """closes the window when the OK button is pressed"""
 
         logging.info("Crfai OK button callback")
         global loadedVB
         self.master.destroy()
 
-    def onLoadPress(self):
+    def onLoadPress(self) -> None:
         """UI Frontend function for loading the AI state from the Phoneme Crossfade AI of a different Voicebank"""
         
         logging.info("Crfai load button callback")

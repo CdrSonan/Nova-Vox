@@ -1,1 +1,5 @@
-post-installation info
+post-installation info:
+
+-first-time PYC compilation
+
+-links to website for downloads & resources

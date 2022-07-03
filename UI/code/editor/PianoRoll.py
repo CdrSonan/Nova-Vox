@@ -12,29 +12,41 @@ from kivy.clock import mainthread
 import global_consts
 
 class NoteProperties(Bubble):
+    """class for the context menu of a note"""
+
     reference = ObjectProperty()
-    def on_parent(self, instance, value):
+
+    def on_parent(self, instance, value) -> None:
         for i in self.content.children:
             i.reference = self.reference
         return super().on_parent(instance, value)
 
-
-
 class Note(ToggleButton):
+    """class for a note on the piano roll"""
+
     index = NumericProperty()
     xPos = NumericProperty()
     yPos = NumericProperty()
     length = NumericProperty()
     inputMode = BooleanProperty()
-    def on_parent(self, note, parent):
+
+    def on_parent(self, note, parent) -> None:
+        """redraw call during initial note creation"""
+
         if parent == None:
             return
         self.redraw()
-    def redraw(self):
+
+    def redraw(self) -> None:
+        """redraws the note"""
+
         self.pos = (self.xPos * self.parent.parent.xScale, self.yPos * self.parent.parent.yScale)
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
-    def on_touch_down(self, touch):
+
+    def on_touch_down(self, touch) -> bool:
+        """callback function used for processing mouse input on the note"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if middleLayer.mode != "notes":
@@ -54,7 +66,10 @@ class Note(ToggleButton):
             touch.ud['param'] = False
             return True
         return super().on_touch_down(touch)
-    def on_touch_up(self, touch):
+
+    def on_touch_up(self, touch) -> bool:
+        """callback function used for processing mouse input on the note"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if middleLayer.mode != "notes" or touch.is_mouse_scrolling or "initialPos" not in touch.ud.keys():
@@ -68,18 +83,27 @@ class Note(ToggleButton):
                 self.trigger_action()
             return True
         return False
-    def on_state(self, screen, state):
+
+    def on_state(self, screen, state) -> None:
+        """creates or removes the note's context menu when it is selected or deselected"""
+
         if state == "normal":
             self.remove_widget(self.children[0])
         else:
             self.add_widget(NoteProperties(reference = self))
-    def changeInputMode(self):
+
+    def changeInputMode(self) -> None:
+        """switches the note's input mode between text and phonemes"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         self.inputMode = not self.inputMode
         middleLayer.trackList[middleLayer.activeTrack].notes[self.index].phonemeMode = self.inputMode
         middleLayer.changeLyrics(self.index, self.children[1].text)
-    def delete(self):
+
+    def delete(self) -> None:
+        """deletes the note"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         middleLayer.removeNote(self.index)
@@ -88,31 +112,46 @@ class Note(ToggleButton):
                 if i.index > self.index:
                     i.index -= 1
         self.parent.remove_widget(self)
-    def changeLyrics(self, text, focus = False):
+
+    def changeLyrics(self, text:str, focus = False) -> None:
+        """changes the lyrics of the note"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if focus == False:
             middleLayer.changeLyrics(self.index, text)
 
 class PianoRollOctave(FloatLayout):
+    """header of a one octave region on the piano roll"""
+
     pass
 
 class PianoRollOctaveBackground(FloatLayout):
+    """background of the piano roll spanning one octave"""
+
     pass
 
 class PlaybackHead(Widget):
+    """playback head widget for the piano roll"""
+
     pass
 
 class TimingBar(FloatLayout):
+    """header of the piano roll, displaying the current measures and other timing information"""
+
     pass
 
 class TimingLabel(Label):
+    """A label for a time on the timing bar and piano roll"""
+
     index = NumericProperty()
     reference = ObjectProperty()
     modulo = NumericProperty()
 
 class PianoRoll(ScrollView):
-    def __init__(self, **kwargs):
+    """Class for the editor piano roll"""
+
+    def __init__(self, **kwargs) -> None:
         super(PianoRoll, self).__init__(**kwargs)
         self.length = NumericProperty()
         self.length = 5000
@@ -134,7 +173,10 @@ class PianoRoll(ScrollView):
         self.pitchLine = None
         self.basePitchLine = None
         self.generateTimingMarkers()
-    def generate_notes(self):
+
+    def generate_notes(self) -> None:
+        """plots all notes of a track, fetching the required data from the middleLayer"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         index = 0
@@ -144,8 +186,11 @@ class PianoRoll(ScrollView):
             self.children[0].add_widget(note)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].reference = note
             index += 1
+
     @mainthread
-    def generateTimingMarkers(self):
+    def generateTimingMarkers(self) -> None:
+        """plots all timing markers that are currently in view"""
+
         t = 0
         i = 0
         while t < self.length * self.scroll_x * (self.children[0].width - self.width):
@@ -156,7 +201,10 @@ class PianoRoll(ScrollView):
             self.children[0].children[-global_consts.octaves - 1].add_widget(TimingLabel(index = i, reference = self.children[0].children[-global_consts.octaves - 1], modulo = modulo))
             t += self.tempo
             i += 1
-    def changePlaybackPos(self, playbackPos):
+
+    def changePlaybackPos(self, playbackPos:float) -> None:
+        """changes the position of the playback head"""
+
         with self.children[0].children[0].canvas:
             points = self.children[0].children[0].canvas.children[-1].points
             points[0] = playbackPos * self.xScale
@@ -164,7 +212,10 @@ class PianoRoll(ScrollView):
             del self.children[0].children[0].canvas.children[-1]
             Line(points = points)
             del self.children[0].children[0].canvas.children[-2]
-    def redrawPitch(self):
+
+    def redrawPitch(self) -> None:
+        """redraws the pitch curve, fetching the required data from the middleLayer"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         data1 = middleLayer.trackList[middleLayer.activeTrack].pitch
@@ -187,7 +238,10 @@ class PianoRoll(ScrollView):
             self.basePitchLine = Line(points = points2)
             Color(1, 0, 0, 1)
             self.pitchLine = Line(points = points1)
-    def changeMode(self):
+
+    def changeMode(self) -> None:
+        """prompts all UI changes required when the input mode changes"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if middleLayer.mode == "notes":
@@ -221,7 +275,10 @@ class PianoRoll(ScrollView):
                 self.children[0].canvas.remove(i)
             del self.timingMarkers[:]
             self.redrawPitch()
-    def updateTrack(self):
+
+    def updateTrack(self) -> None:
+        """updates the piano roll as required when the active track changes"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         removes = []
@@ -251,14 +308,22 @@ class PianoRoll(ScrollView):
         if middleLayer.mode == "pitch":
             self.redrawPitch()
 
-    def applyScroll(self, scrollValue):
+    def applyScroll(self, scrollValue:float) -> None:
+        """sets the x scroll value of the  widget"""
+
         self.scroll_x = scrollValue
-    def triggerScroll(self):
+
+    def triggerScroll(self) -> None:
+        """signals the middleLayer that the x scroll value of the widget has changed. Used for synchronizing scrolling between the adaptive space and piano roll."""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         middleLayer.scrollValue = self.scroll_x
         middleLayer.applyScroll()
-    def on_touch_down(self, touch):
+
+    def on_touch_down(self, touch) -> bool:
+        """Callback function used for processing mouse input on the piano roll"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if touch.is_mouse_scrolling == False:
@@ -331,7 +396,10 @@ class PianoRoll(ScrollView):
                 touch.ud['param'] = False
                 return True
         return False
-    def on_touch_move(self, touch):
+
+    def on_touch_move(self, touch) -> bool:
+        """Callback function used for processing mouse input on the piano roll"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
@@ -454,7 +522,10 @@ class PianoRoll(ScrollView):
                         touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.basePitchLine.points[2 * (i + touch.ud['startPoint'][0]) + 1]]
         else:
             return super().on_touch_move(touch)
-    def on_touch_up(self, touch):
+
+    def on_touch_up(self, touch) -> bool:
+        """Callback function used for processing mouse input on the piano roll"""
+        
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:

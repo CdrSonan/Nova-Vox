@@ -4,26 +4,40 @@ from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.scrollview import ScrollView
 
 class AdaptiveSpace(AnchorLayout):
-    def redraw(self):
+    """Contains a ParamCurve, TimingOptions or PitchOptions widget depending on the current mode, and handles adressing and switching between them."""
+
+    def redraw(self) -> None:
+        """redraws the currently widget currently displayed by the adaptive space. Used during several update procedures."""
+
         self.children[0].redraw()
-    def applyScroll(self, scrollValue):
+
+    def applyScroll(self, scrollValue) -> None:
+        """sets the scroll position of the widget currently displayed by the adaptive space. Used for keeping scrolling synchronized between adaptive space and piano roll."""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if middleLayer.activeTrack == None:
             return
         self.children[0].scroll_x = scrollValue
-    def triggerScroll(self):
+
+    def triggerScroll(self) -> None:
+        """sends the scroll value of the widget currently displayed by the adaptive space to the middle layer, for updating the piano roll scroll accordingly."""
         global middleLayer
         from UI.code.editor.Main import middleLayer
         middleLayer.scrollValue = self.children[0].scroll_x
         middleLayer.applyScroll()
 
 class ParamCurve(ScrollView):
+    """Widget displaying a single, editable curve used for controlling a tuning parameter"""
+
     xScale = NumericProperty(1)
     seqLength = NumericProperty(5000)
     line = ObjectProperty()
     line = Line()
-    def redraw(self):
+
+    def redraw(self) -> None:
+        """redraws the bar diagram, using data fetched from the middleLayer."""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if middleLayer.activeParam == "steadiness":
@@ -43,7 +57,9 @@ class ParamCurve(ScrollView):
             Color(1, 0, 0, 1)
             self.line = Line(points = points)
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch) -> bool:
+        """Callback function used for editing the curve"""
+
         if touch.is_mouse_scrolling == False:
             if super(ParamCurve, self).on_touch_down(touch):
                 return True
@@ -73,7 +89,10 @@ class ParamCurve(ScrollView):
             return True
         else:
             return False
-    def on_touch_move(self, touch):
+
+    def on_touch_move(self, touch) -> bool:
+        """Callback function used for editing the curve"""
+
         if "param" not in touch.ud:
             return super(ParamCurve, self).on_touch_move(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:
@@ -142,7 +161,10 @@ class ParamCurve(ScrollView):
                         touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
         else:
             return super(ParamCurve, self).on_touch_move(touch)
-    def on_touch_up(self, touch):
+
+    def on_touch_up(self, touch) -> bool:
+        """Callback function used for editing the curve"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
@@ -162,13 +184,18 @@ class ParamCurve(ScrollView):
             return super(ParamCurve, self).on_touch_up(touch)
 
 class TimingOptns(ScrollView):
+    """Widget displaying the timing options of loop overlap and loop offset as bar diagrams"""
+
     xScale = NumericProperty(1)
     seqLength = NumericProperty(5000)
     points1 = ListProperty()
     points2 = ListProperty()
     rectangles1 = ListProperty()
     rectangles2 = ListProperty()
-    def redraw(self):
+
+    def redraw(self) -> None:
+        """redraws the curve, using data fetched from the middleLayer."""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         for i in self.rectangles1:
@@ -192,7 +219,10 @@ class TimingOptns(ScrollView):
             for i in self.points2:
                 self.rectangles2.append(ObjectProperty())
                 self.rectangles2[-1] = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
-    def on_touch_down(self, touch):
+
+    def on_touch_down(self, touch) -> bool:
+        """Callback function used for editing the timing parameters"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if touch.is_mouse_scrolling == False:
@@ -226,8 +256,11 @@ class TimingOptns(ScrollView):
             return True
         else:
             return False
-    def on_touch_move(self, touch):
-        def getPreviousBar(self, x):
+
+    def on_touch_move(self, touch) -> bool:
+        """Callback function used for editing the timing parameters"""
+
+        def getPreviousBar(self, x:float) -> float:
             if touch.ud['section']:
                 for i in range(len(self.points1)):
                     j = len(self.points1) - i - 1
@@ -239,13 +272,15 @@ class TimingOptns(ScrollView):
                     if x > self.points2[j][0]:
                         return j
             return None
-        def barToPos(self, bar, x):
+
+        def barToPos(self, bar:int, x:float) -> float:
             if bar == None:
                 return x
             if touch.ud['section']:
                 return self.points1[bar][0]
             else:
                 return self.points2[bar][0]
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
@@ -319,8 +354,11 @@ class TimingOptns(ScrollView):
                         touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
         else:
             return super(TimingOptns, self).on_touch_move(touch)
-    def on_touch_up(self, touch):
-        def getCurrentBar(self, x):
+
+    def on_touch_up(self, touch) -> bool:
+        """Callback function used for editing the timing parameters"""
+
+        def getCurrentBar(self, x:int) -> int:
             if touch.ud['section']:
                 for i in range(len(self.points1)):
                     j = len(self.points1) - i - 1
@@ -336,6 +374,7 @@ class TimingOptns(ScrollView):
                     if x > self.points2[j][0]:
                         break
             return None
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
@@ -372,17 +411,22 @@ class TimingOptns(ScrollView):
             self.redraw()
         else:
             return super(TimingOptns, self).on_touch_up(touch)
+
 class PitchOptns(ScrollView):
     xScale = NumericProperty(1)
     seqLength = NumericProperty(5000)
-    def __init__(self, **kwargs):
+
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.line1 = ObjectProperty()
         self.line2 = ObjectProperty()
         with self.children[0].canvas:
             self.line1 = Line()
             self.line2 = Line()
-    def redraw(self):
+
+    def redraw(self) -> None:
+        """redraws the curve using data fetched from the middleLayer"""
+
         global middleLayer
         from UI.code.editor.Main import middleLayer
         self.children[0].canvas.remove(self.line1)
@@ -403,7 +447,10 @@ class PitchOptns(ScrollView):
             Color(1, 0, 0, 1)
             self.line1 = Line(points = points1)
             self.line2 = Line(points = points2)
-    def on_touch_down(self, touch):
+
+    def on_touch_down(self, touch) -> bool:
+        """Callback function used for editing the curve"""
+
         if touch.is_mouse_scrolling == False:
             if super(PitchOptns, self).on_touch_down(touch):
                 return True
@@ -434,7 +481,10 @@ class PitchOptns(ScrollView):
             return True
         else:
             return False
-    def on_touch_move(self, touch):
+
+    def on_touch_move(self, touch) -> bool:
+        """Callback function used for editing the curve"""
+
         if "param" not in touch.ud:
             return super(PitchOptns, self).on_touch_move(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:
@@ -506,7 +556,10 @@ class PitchOptns(ScrollView):
                         touch.ud['line'].points += [(i + touch.ud['startPoint'][0]) * self.xScale, self.height / 2]
         else:
             return super(PitchOptns, self).on_touch_move(touch)
-    def on_touch_up(self, touch):
+
+    def on_touch_up(self, touch) -> bool:
+        """Callback function used for editing the curve"""
+        
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
