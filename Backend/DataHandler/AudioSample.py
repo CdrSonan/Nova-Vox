@@ -75,6 +75,7 @@ class AudioSample():
         self.excitation = torch.tensor([], dtype = float)
         self.voicedExcitation = torch.tensor([], dtype = float)
         self.phases = torch.tensor([], dtype = float)
+        self.harmonics = torch.tensor([], dtype = float)
         self.isVoiced = True
         self.isPlosive = False
         

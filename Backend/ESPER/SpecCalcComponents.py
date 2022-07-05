@@ -136,17 +136,19 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
 
     wave = torch.cat((torch.zeros([global_consts.halfTripleBatchSize,]), audioSample.waveform, torch.zeros([global_consts.halfTripleBatchSize,])), 0)
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)# + 1 ???
+    audioSample.harmonics = torch.zeros([length, global_consts.nHarmonics])
     windows = torch.empty((length, global_consts.tripleBatchSize))
+    signals = torch.empty((length, global_consts.tripleBatchSize))
     for i in range(length):
         windows[i] = wave[i * global_consts.batchSize:i * global_consts.batchSize + global_consts.tripleBatchSize]
-    upTransitionMarkers = []
-    downTransitionMarkers = []
-    maximumMarkers = []
-    minimumMarkers = []
     counter = 0
     for i in windows:
         pitch = audioSample.pitchDeltas[counter]
         counter += 1
+        upTransitionMarkers = []
+        downTransitionMarkers = []
+        maximumMarkers = []
+        minimumMarkers = []
 
         zeroTransitions = torch.tensor([], dtype = int)
         for j in range(1, i.size()[0]):
@@ -240,7 +242,27 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
         for j in range(length):
             markers.append((upTransitionMarkers[i] + downTransitionMarkers[i] + maximumMarkers[i] + minimumMarkers[i]) / 4)
 
-        interpolationPoints = interp(torch.linspace(0, markers.size()[0]), markers, torch.linspace(0, markers.size()[0] * global_consts.nHarmonics))
+        interpolationPoints = interp(torch.linspace(0, markers.size()[0] - 1, markers.size()[0]), markers, torch.linspace(0, markers.size()[0] * global_consts.nHarmonics - 1, markers.size()[0] * global_consts.nHarmonics))
 
+        interpolatedWave = interp(torch.linspace(0, i.size()[0] - 1, i.size()[0]), i, interpolationPoints)
         if length == 1:
-            
+            #fallback
+            pass
+        else:
+            harmFunction = []
+            for j in range(global_consts.nHarmonics):
+                harm = 0
+                harm += interpolatedWave[j] * (j / global_consts.nHarmonics)
+                for k in range(1, length - 1):
+                    harm += interpolatedWave[j + k * global_consts.nHarmonics]
+                harm += interpolatedWave[length + j] * (1 - (j / global_consts.nHarmonics))
+                harmFunction.append(harm)
+                harmFunction = torch.tensor(harmFunction)
+            harmFunctionFull = torch.tile(harmFunction, (length,))
+            harmFunctionFull = interp(interpolationPoints, harmFunctionFull, torch.linspace(0, i.size()[0] - 1, i.size()[0]))
+            window -= harmFunctionFull
+            window *= torch.hann_window(global_consts.tripleBatchSize)
+            signals[i] = torch.fft.rfft(window)
+            harmFunction = torch.roll(harmFunction, markers[0])
+            audioSample.harmonics[i] = torch.fft.rfft(torch.tensor(harmFunction))
+    return signals.abs(), audioSample

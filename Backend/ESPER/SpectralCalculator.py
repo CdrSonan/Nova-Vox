@@ -1,5 +1,5 @@
 from Backend.DataHandler.AudioSample import AudioSample
-from Backend.ESPER.SpecCalcComponents import calculateHighResSpectra, calculateResonance, calculatePhaseContinuity, finalizeSpectra, separateVoicedUnvoiced, transformHighRestoStdRes, lowRangeSmooth, highRangeSmooth
+from Backend.ESPER.SpecCalcComponents import calculateHighResSpectra, calculateResonance, calculatePhaseContinuity, dioPitchMarkers, finalizeSpectra, separateVoicedUnvoiced, transformHighRestoStdRes, lowRangeSmooth, highRangeSmooth
 
 def calculateSpectra(audioSample:AudioSample) -> None:
     """Method for calculating spectral data based on the previously set attributes filterWidth, voicedFilter and unvoicedIterations.
@@ -24,11 +24,12 @@ def calculateSpectra(audioSample:AudioSample) -> None:
     """
 
 
-    signals, audioSample = calculateHighResSpectra(audioSample)
-    resonanceFunction, audioSample = calculateResonance(audioSample)
-    phaseContinuity = calculatePhaseContinuity(signals)
-    audioSample = separateVoicedUnvoiced(audioSample, signals, resonanceFunction, phaseContinuity)
-    signalsAbs, audioSample = transformHighRestoStdRes(audioSample)
+    #signals, audioSample = calculateHighResSpectra(audioSample)
+    #resonanceFunction, audioSample = calculateResonance(audioSample)
+    #phaseContinuity = calculatePhaseContinuity(signals)
+    signalsAbs, audioSample = dioPitchMarkers(audioSample)
+    #audioSample = separateVoicedUnvoiced(audioSample, signals, resonanceFunction, phaseContinuity) !!!replace!!!
+    #signalsAbs, audioSample = transformHighRestoStdRes(audioSample)
     lowSpectra = lowRangeSmooth(audioSample, signalsAbs)
     highSpectra = highRangeSmooth(audioSample, signalsAbs)
     audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)
