@@ -357,6 +357,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         
                         #TODO: implement crfai skipping if transition was already calculated in the previous frame
                         
+                        #istft of voiced excitation + pitch shift
+
                         #write remaining spectral data to cache
                         spectrum.write(currentSpectrum, windowStart, windowEnd)
                         excitation.write(currentExcitation, windowStartEx, windowEndEx)

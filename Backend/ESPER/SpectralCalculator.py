@@ -27,9 +27,10 @@ def calculateSpectra(audioSample:AudioSample) -> None:
     #signals, audioSample = calculateHighResSpectra(audioSample)
     #resonanceFunction, audioSample = calculateResonance(audioSample)
     #phaseContinuity = calculatePhaseContinuity(signals)
-    signalsAbs, audioSample = dioPitchMarkers(audioSample)
     #audioSample = separateVoicedUnvoiced(audioSample, signals, resonanceFunction, phaseContinuity) !!!replace!!!
     #signalsAbs, audioSample = transformHighRestoStdRes(audioSample)
+    audioSample = dioPitchMarkers(audioSample)
+    signalsAbs = audioSample.excitation.abs()
     lowSpectra = lowRangeSmooth(audioSample, signalsAbs)
     highSpectra = highRangeSmooth(audioSample, signalsAbs)
     audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)
