@@ -59,19 +59,28 @@ class SpecCrfAi(nn.Module):
             
         super(SpecCrfAi, self).__init__()
         self.convolution = nn.Conv1d(5, 5, 1, device = device)
-        self.layerStart1 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, 5 * global_consts.halfTripleBatchSize + 5, device = device)
+        self.layerStart1 = torch.nn.Linear(6 * global_consts.halfTripleBatchSize + 6, 5 * global_consts.halfTripleBatchSize + 5, device = device)
         self.ReLuStart1 = nn.ReLU()
         self.layerStart2 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuStart2 = nn.ReLU()
+        self.harmConvolution = nn.Conv1d(5, 5, 1, device = device)
+        self.harmLayerStart1 = torch.nn.Linear(6 * global_consts.nHarmonics, 5 * global_consts.nHarmonics, device = device)
+        self.harmReLuStart1 = nn.ReLU()
+        self.harmLayerStart2 = torch.nn.Linear(5 * global_consts.nHarmonics, 4 * global_consts.nHarmonics, device = device)
+        self.harmReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
-            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 4 * global_consts.halfTripleBatchSize, device = device)
+            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * (global_consts.halfTripleBatchSize + global_consts.nHarmonics), 4 * (global_consts.halfTripleBatchSize + global_consts.nHarmonics), device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
         self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 2 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuEnd1 = nn.ReLU()
         self.layerEnd2 = torch.nn.Linear(2 * global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
+        self.harmLayerEnd1 = torch.nn.Linear(4 * global_consts.nHarmonics, 2 * global_consts.nHarmonics, device = device)
+        self.harmReLuEnd1 = nn.ReLU()
+        self.harmLayerEnd2 = torch.nn.Linear(2 * global_consts.nHarmonics, global_consts.nHarmonics, device = device)
+        self.harmReLuEnd2 = nn.ReLU()
         self.threshold = torch.nn.Threshold(0.001, 0.001)
 
         self.device = device
@@ -84,8 +93,11 @@ class SpecCrfAi(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
         self.loss = None
+
+        self.pred = SpecPredAI(device, learningRate)
+        self.currPrediction = torch.zeros((global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1,), device = device)
         
-    def forward(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:float) -> torch.Tensor:
+    def forward(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
         """Forward NN pass with unprocessed in-and outputs.
         
         Arguments:
@@ -97,15 +109,32 @@ class SpecCrfAi(nn.Module):
             Tensor object representing the NN output
             
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
-        
+
+
+        spectrum1 = specharm1[global_consts.nHarmonics:]
+        spectrum2 = specharm2[global_consts.nHarmonics:]
+        spectrum3 = specharm3[global_consts.nHarmonics:]
+        spectrum4 = specharm4[global_consts.nHarmonics:]
         spectrum1 = torch.unsqueeze(spectrum1, 1)
         spectrum2 = torch.unsqueeze(spectrum2, 1)
         spectrum3 = torch.unsqueeze(spectrum3, 1)
         spectrum4 = torch.unsqueeze(spectrum4, 1)
         spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
+        harm1 = specharm1[global_consts.nHarmonics:]
+        harm2 = specharm2[global_consts.nHarmonics:]
+        harm3 = specharm3[global_consts.nHarmonics:]
+        harm4 = specharm4[global_consts.nHarmonics:]
+        harm1 = torch.unsqueeze(harm1, 1)
+        harm2 = torch.unsqueeze(harm2, 1)
+        harm3 = torch.unsqueeze(harm3, 1)
+        harm4 = torch.unsqueeze(harm4, 1)
+        harms = torch.cat((harm1, harm2, harm3, harm4), dim = 1)
         limit = torch.max(spectra, dim = 1)[0]
         fac = torch.full((global_consts.halfTripleBatchSize + 1, 1), factor, device = self.device)
-        x = torch.cat((spectra, fac), dim = 1)
+        facHarm = torch.full((global_consts.nHarmonics, 1), factor, device = self.device)
+        predSpectrum = self.currPrediction[global_consts.nHarmonics:]
+        predHarm = self.currPrediction[:global_consts.nHarmonics]
+        x = torch.cat((spectra, fac, predSpectrum), dim = 1)
         x = x.float()
         x = torch.unsqueeze(torch.transpose(x, 0, 1), 0)
         x = self.convolution(x)
@@ -114,11 +143,27 @@ class SpecCrfAi(nn.Module):
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
         x = self.ReLuStart2(x)
+        y = torch.cat((harms, facHarm, predHarm), dim = 1)
+        y = y.float()
+        y = torch.unsqueeze(torch.transpose(y, 0, 1), 0)
+        y = self.harmConvolution(y)
+        y = torch.reshape(y, (-1,))
+        y = self.harmLayerStart1(y)
+        y = self.harmReLuStart1(y)
+        y = self.harmLayerStart2(y)
+        y = self.harmReLuStart2(y)
+        x = torch.cat((x, y), 0)
         x = self.hiddenLayers(x)
+        y = x[:global_consts.nHarmonics]
+        x = x[global_consts.nHarmonics:]
         x = self.layerEnd1(x)
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
+        y = self.harmLayerEnd1(y)
+        y = self.harmReLuEnd1(y)
+        y = self.harmLayerEnd2(y)
+        y = self.harmReLuEnd2(y)
         x = torch.minimum(x, limit)
 
         spectralFilterWidth = 4 * global_consts.filterTEEMult
@@ -129,9 +174,11 @@ class SpecCrfAi(nn.Module):
         x = torch.fft.irfft(cutoffWindow * x, dim = 0, n = global_consts.halfTripleBatchSize + 1)
         x = self.threshold(x)
         
-        return x
+        result = torch.cat((x, y), 0)
+        self.currPrediction = self.pred.processData(result)
+        return result
     
-    def processData(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:float) -> torch.Tensor:
+    def processData(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
         """forward NN pass with data pre-and postprocessing as expected by other classes
         
         Arguments:
@@ -148,7 +195,7 @@ class SpecCrfAi(nn.Module):
         
         
         self.eval()
-        output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), torch.sqrt(spectrum3), torch.sqrt(spectrum4), factor)))
+        output = torch.square(torch.squeeze(self(torch.sqrt(specharm1), torch.sqrt(specharm2), torch.sqrt(specharm3), torch.sqrt(specharm4), factor)))
         return output
     
     def train(self, indata, epochs:int=1) -> None:
@@ -164,7 +211,7 @@ class SpecCrfAi(nn.Module):
             
         Like processData(), train() also takes the square root of the input internally before using the data for inference."""
         
-        
+        self.pred.train(indata, epochs)
         if indata != False:
             if (self.epoch == 0) or self.epoch == epochs:
                 self.epoch = epochs
@@ -191,11 +238,12 @@ class SpecCrfAi(nn.Module):
                     data = threshold(torch.fft.irfft(torch.unsqueeze(cutoffWindow, 1) * data, dim = 0, n = length))
                     
                     indexList = np.arange(0, data.size()[0], 1)
-                    np.random.shuffle(indexList)
+                    #np.random.shuffle(indexList)
+                    self.resetSpecPred
                     for i in indexList:
                         factor = i / float(data.size()[0])
                         spectrumTarget = data[i]
-                        output = torch.squeeze(self(spectrum1, spectrum2, spectrum3, spectrum4, factor))
+                        output = torch.squeeze(self.forward(spectrum1, spectrum2, spectrum3, spectrum4, factor))
                         loss = self.criterion(output, spectrumTarget)
                         self.optimizer.zero_grad()
                         loss.backward()
@@ -203,6 +251,13 @@ class SpecCrfAi(nn.Module):
                         print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
             self.sampleCount += len(indata)
             self.loss = loss
+
+    def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
+        return self.pred.processData(specharm)
+
+    def resetSpecPred(self) -> None:
+        self.pred.resetState()
+        self.currPrediction = torch.zeros((global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1,), device = self.currPrediction.device)
             
     def dataLoader(self, data) -> dataloader:
         """helper method for shuffled data loading from an arbitrary dataset.
@@ -229,6 +284,8 @@ class SpecCrfAi(nn.Module):
         AiState = {'epoch': self.epoch,
                  'model_state_dict': self.state_dict(),
                  'optimizer_state_dict': self.optimizer.state_dict(),
+                 'pred_model_state_dict': self.pred.state_dict(),
+                 'pred_optimizer_state_dict': self.pred.optimizer.state_dict(),
                  'loss': self.loss,
                  'sampleCount': self.sampleCount
                  }
@@ -275,18 +332,29 @@ class LiteSpecCrfAi(nn.Module):
         self.ReLuStart1 = nn.ReLU()
         self.layerStart2 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuStart2 = nn.ReLU()
+        self.harmConvolution = nn.Conv1d(5, 5, 1, device = device)
+        self.harmLayerStart1 = torch.nn.Linear(5 * global_consts.nHarmonics, 5 * global_consts.nHarmonics, device = device)
+        self.harmReLuStart1 = nn.ReLU()
+        self.harmLayerStart2 = torch.nn.Linear(5 * global_consts.nHarmonics, 4 * global_consts.nHarmonics, device = device)
+        self.harmReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
-            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 4 * global_consts.halfTripleBatchSize, device = device)
+            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * (global_consts.halfTripleBatchSize + global_consts.nHarmonics), 4 * (global_consts.halfTripleBatchSize + global_consts.nHarmonics), device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
         self.layerEnd1 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize, 2 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuEnd1 = nn.ReLU()
         self.layerEnd2 = torch.nn.Linear(2 * global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
+        self.harmLayerEnd1 = torch.nn.Linear(4 * global_consts.nHarmonics, 2 * global_consts.nHarmonics, device = device)
+        self.harmReLuEnd1 = nn.ReLU()
+        self.harmLayerEnd2 = torch.nn.Linear(2 * global_consts.nHarmonics, global_consts.nHarmonics, device = device)
+        self.harmReLuEnd2 = nn.ReLU()
         self.threshold = torch.nn.Threshold(0.001, 0.001)
         
         self.device = device
+
+        self.pred = SpecPredAI(device)
 
         if specCrfAi == None:
             self.epoch = 0
@@ -295,9 +363,10 @@ class LiteSpecCrfAi(nn.Module):
             self.epoch = specCrfAi.getState()['epoch']
             self.sampleCount = specCrfAi.getState()['sampleCount']
             self.load_state_dict(specCrfAi.getState()['model_state_dict'])
+            self.pred.load_state_dict(specCrfAi.getState()['pred_model_state_dict'])
             self.eval()
         
-    def forward(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:float) -> torch.Tensor:
+    def forward(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
         """Forward NN pass with unprocessed in-and outputs.
         
         Arguments:
@@ -309,18 +378,32 @@ class LiteSpecCrfAi(nn.Module):
             Tensor object representing the NN output
             
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
-        
-        
+
+
+        spectrum1 = specharm1[global_consts.nHarmonics:]
+        spectrum2 = specharm2[global_consts.nHarmonics:]
+        spectrum3 = specharm3[global_consts.nHarmonics:]
+        spectrum4 = specharm4[global_consts.nHarmonics:]
         spectrum1 = torch.unsqueeze(spectrum1, 1)
         spectrum2 = torch.unsqueeze(spectrum2, 1)
         spectrum3 = torch.unsqueeze(spectrum3, 1)
         spectrum4 = torch.unsqueeze(spectrum4, 1)
         spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
+        harm1 = specharm1[global_consts.nHarmonics:]
+        harm2 = specharm2[global_consts.nHarmonics:]
+        harm3 = specharm3[global_consts.nHarmonics:]
+        harm4 = specharm4[global_consts.nHarmonics:]
+        harm1 = torch.unsqueeze(harm1, 1)
+        harm2 = torch.unsqueeze(harm2, 1)
+        harm3 = torch.unsqueeze(harm3, 1)
+        harm4 = torch.unsqueeze(harm4, 1)
+        harms = torch.cat((harm1, harm2, harm3, harm4), dim = 1)
         limit = torch.max(spectra, dim = 1)[0]
-        #fac = torch.tensor([factor], device = self.device)
-        #x = torch.cat((torch.reshape(spectra, (-1,)), fac), dim = 0)
         fac = torch.full((global_consts.halfTripleBatchSize + 1, 1), factor, device = self.device)
-        x = torch.cat((spectra, fac), dim = 1)
+        facHarm = torch.full((global_consts.nHarmonics, 1), factor, device = self.device)
+        predSpectrum = self.currPrediction[global_consts.nHarmonics:]
+        predHarm = self.currPrediction[:global_consts.nHarmonics]
+        x = torch.cat((spectra, fac, predSpectrum), dim = 1)
         x = x.float()
         x = torch.unsqueeze(torch.transpose(x, 0, 1), 0)
         x = self.convolution(x)
@@ -329,11 +412,27 @@ class LiteSpecCrfAi(nn.Module):
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
         x = self.ReLuStart2(x)
+        y = torch.cat((harms, facHarm, predHarm), dim = 1)
+        y = y.float()
+        y = torch.unsqueeze(torch.transpose(y, 0, 1), 0)
+        y = self.harmConvolution(y)
+        y = torch.reshape(y, (-1,))
+        y = self.harmLayerStart1(y)
+        y = self.harmReLuStart1(y)
+        y = self.harmLayerStart2(y)
+        y = self.harmReLuStart2(y)
+        x = torch.cat((x, y), 0)
         x = self.hiddenLayers(x)
+        y = x[:global_consts.nHarmonics]
+        x = x[global_consts.nHarmonics:]
         x = self.layerEnd1(x)
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
+        y = self.harmLayerEnd1(y)
+        y = self.harmReLuEnd1(y)
+        y = self.harmLayerEnd2(y)
+        y = self.harmReLuEnd2(y)
         x = torch.minimum(x, limit)
 
         spectralFilterWidth = 4 * global_consts.filterTEEMult
@@ -343,10 +442,12 @@ class LiteSpecCrfAi(nn.Module):
         cutoffWindow[int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
         x = torch.fft.irfft(cutoffWindow * x, dim = 0, n = global_consts.halfTripleBatchSize + 1)
         x = self.threshold(x)
-
-        return x
+        
+        result = torch.cat((x, y), 0)
+        self.currPrediction = self.pred.processData(result)
+        return result
     
-    def processData(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:float) -> torch.Tensor:
+    def processData(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
         """forward NN pass with data pre-and postprocessing as expected by other classes
         
         Arguments:
@@ -363,8 +464,15 @@ class LiteSpecCrfAi(nn.Module):
         
         
         self.eval()
-        output = torch.square(torch.squeeze(self(torch.sqrt(spectrum1), torch.sqrt(spectrum2), torch.sqrt(spectrum3), torch.sqrt(spectrum4), factor)))
+        output = torch.square(torch.squeeze(self(torch.sqrt(specharm1), torch.sqrt(specharm2), torch.sqrt(specharm3), torch.sqrt(specharm4), factor)))
         return output
+
+    def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
+        return self.pred.processData(specharm)
+
+    def resetSpecPred(self) -> None:
+        self.pred.resetState()
+        self.currPrediction = torch.zeros((global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1,), device = self.currPrediction.device)
     
     def getState(self) -> dict:
         """returns the state of the NN and its epoch attribute in a Dictionary.
@@ -378,7 +486,8 @@ class LiteSpecCrfAi(nn.Module):
             
         AiState = {'epoch': self.epoch,
                  'sampleCount': self.sampleCount,
-                 'model_state_dict': self.state_dict()
+                 'model_state_dict': self.state_dict(),
+                 'pred_model_state_dict': self.pred.state_dict()
                  }
         return AiState
 
@@ -423,3 +532,93 @@ class RelLoss(nn.Module):
         refs = torch.abs(targets)
         out = (differences / refs).sum() / inputs.size()[0]
         return out
+
+class SpecPredAI(nn.Module):
+    def __init__(self, device:torch.device = None, learningRate:float=5e-5) -> None:
+        super().__init__()
+        self.layer1Harm = torch.nn.Linear(global_consts.nHarmonics, global_consts.nHarmonics)
+        self.layer1Spec = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
+        self.ReLuHarm1 = nn.ReLU()
+        self.ReLuSpec1 = nn.ReLU()
+        recSize =  global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1
+        self.sharedRecurrency = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = 2)
+        self.layer2Harm = torch.nn.Linear(global_consts.nHarmonics, global_consts.nHarmonics)
+        self.layer2Spec = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
+        self.layer3Harm = torch.nn.Linear(global_consts.nHarmonics, global_consts.nHarmonics)
+        self.layer3Spec = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
+
+        self.learningRate = learningRate
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
+        self.criterion = nn.L1Loss()
+        self.state = (torch.zeros((2, recSize), device = device), torch.zeros((2, recSize), device = device))
+
+    def forward(self, specharm:torch.Tensor) -> torch.Tensor:
+        harmonics = specharm[:global_consts.nHarmonics]
+        spectrum = specharm[global_consts.nHarmonics:]
+        spectrum = torch.unsqueeze(spectrum)
+        harmonics = torch.unsqueeze(harmonics)
+        harmonics = self.layer1Harm(harmonics)
+        spectrum = self.layer1Spec(spectrum)
+        harmonics = self.ReLuHarm1(harmonics)
+        spectrum = self.ReLuSpec1(spectrum)
+        x = torch.cat((harmonics, spectrum), 0)
+        x, self.state = self.sharedRecurrency(x, self.state)
+        harmonics = x[:global_consts.nHarmonics]
+        spectrum = x[global_consts.nHarmonics:]
+        harmonics = self.layer2Harm(harmonics)
+        spectrum = self.layer2Spec(spectrum)
+        harmonics = self.layer3Harm(harmonics)
+        spectrum = self.layer3Spec(spectrum)
+
+        spectralFilterWidth = 4 * global_consts.filterTEEMult
+        spectrum = torch.fft.rfft(spectrum, dim = 0)
+        cutoffWindow = torch.zeros_like(spectrum)
+        cutoffWindow[0:int(spectralFilterWidth / 2)] = 1.
+        cutoffWindow[int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
+        spectrum = torch.fft.irfft(cutoffWindow * spectrum, dim = 0, n = global_consts.halfTripleBatchSize + 1)
+        spectrum = self.threshold(spectrum)
+        return torch.cat((harmonics, spectrum), 0)
+
+    def processData(self, specharm:torch.Tensor) -> torch.Tensor:
+        harmonics = specharm[:global_consts.nHarmonics]
+        spectrum = specharm[global_consts.nHarmonics:]
+        spectrum = torch.unsqueeze(spectrum)
+        harmonics = torch.unsqueeze(harmonics)
+        harmonics = self.layer1Harm(harmonics)
+        spectrum = self.layer1Spec(spectrum)
+        harmonics = self.ReLuHarm1(harmonics)
+        spectrum = self.ReLuSpec1(spectrum)
+        x = torch.cat((harmonics, spectrum), 0)
+        x, self.state = self.sharedRecurrency(x, self.state)
+        return x
+
+    def train(self, indata, epochs:int=1) -> None:
+        if indata == False:
+            return
+        for epoch in range(epochs):
+            for data in self.dataLoader(indata):
+                self.resetState()
+                for i in range(len(data) - 1):
+                    input = data[i]
+                    target = data[i + 1]
+                    output = self.forward(input)
+                    loss = self.criterion(output, target)
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
+
+    def resetState(self) -> None:
+        recSize =  global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1
+        self.state = (torch.zeros((2, recSize), device = self.state[0].device), torch.zeros((2, recSize), device = self.state[1].device))
+
+    def dataLoader(self, data) -> dataloader:
+        """helper method for shuffled data loading from an arbitrary dataset.
+        
+        Arguments:
+            data: Tensor, List or Iterable representing a dataset with several elements
+            
+        Returns:
+            Iterable representing the same dataset, with the order of its elements shuffled"""
+        
+        
+        return dataloader(dataset=data, shuffle=True)

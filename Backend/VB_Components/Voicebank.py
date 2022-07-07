@@ -134,8 +134,10 @@ class Voicebank():
         self.crfAi = SpecCrfAi(self.device)
         self.crfAi.epoch = data["crfAiState"]['epoch']
         self.crfAi.load_state_dict(data["crfAiState"]['model_state_dict'])
+        self.crfAi.pred.load_state_dict(data["crfAiState"]['pred_model_state_dict'])
         if "loss" in data["crfAiState"].keys():
             self.crfAi.optimizer.load_state_dict(data["crfAiState"]['optimizer_state_dict'])
+            self.crfAi.pred.optimizer.load_state_dict(data["crfAiState"]['pred_optimizer_state_dict'])
             self.crfAi.loss = data["crfAiState"]['loss']
         else:
             self.crfAi = LiteSpecCrfAi(self.crfAi, self.device)

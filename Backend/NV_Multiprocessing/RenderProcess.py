@@ -316,7 +316,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
 
                         #calculate CrfAi transitions as required
                         logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
-                        voicedExcitation.write(currentVoicedExcitation, internalInputs.borders[3 * j]*global_consts.batchSize, internalInputs.borders[3 * j + 5]*global_consts.batchSize)
+                        voicedExcitation.write(currentVoicedExcitation, internalInputs.borders[3 * j]*global_consts.nHarmonics, internalInputs.borders[3 * j + 5]*global_consts.nHarmonics)
                         if internalInputs.startCaps[j]:
                             windowStart = internalInputs.borders[3 * j]
                             windowStartEx = internalInputs.borders[3 * j]

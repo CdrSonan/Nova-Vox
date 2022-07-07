@@ -115,7 +115,7 @@ def getVoicedExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.nHarmonics,])
     offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)
     nativePitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch.to(device = device)
-    requiredSize = math.ceil(torch.max(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.nHarmonics
+    requiredSize = math.ceil(torch.max(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1 + (offset / global_consts.batchSize)) * global_consts.nHarmonics
     pitchDeltas = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas
     pitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch
     voicedExcitation = Loop.loopSamplerVoicedExcitation(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].harmonics, requiredSize, vocalSegment.repetititionSpacing, pitchDeltas, pitch, vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].phases, device)
@@ -145,7 +145,7 @@ def getVoicedExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch
         cursor += math.ceil(global_consts.batchSize * (nativePitchMod/vocalSegment.pitch[i]))
     voicedExcitationFourier = voicedExcitationFourier.transpose(0, 1)
     voicedExcitation = torch.istft(voicedExcitationFourier, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = (vocalSegment.end3 - vocalSegment.start1)*global_consts.batchSize)"""
-
+    voicedExcitation = voicedExcitation[offset:(vocalSegment.end3 - vocalSegment.start1) * global_consts.nHarmonics + offset]
     if vocalSegment.startCap == False:
         factor = math.log(0.5, (vocalSegment.start2 - vocalSegment.start1) / (vocalSegment.start3 - vocalSegment.start1))
         slope = torch.linspace(0, 1, (vocalSegment.start3 - vocalSegment.start1) * global_consts.nHarmonics, device = device)
@@ -156,4 +156,4 @@ def getVoicedExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch
         slope = torch.linspace(1, 0, (vocalSegment.end3 - vocalSegment.end1) * global_consts.nHarmonics, device = device)
         slope = torch.pow(slope, factor)
         voicedExcitation[(vocalSegment.end1 - vocalSegment.start1) * global_consts.nHarmonics:(vocalSegment.end3 - vocalSegment.start1) * global_consts.nHarmonics] *= slope
-    return voicedExcitation[0:(vocalSegment.end3 - vocalSegment.start1) * global_consts.nHarmonics]
+    return voicedExcitation#[0:(vocalSegment.end3 - vocalSegment.start1) * global_consts.nHarmonics]
