@@ -70,10 +70,9 @@ class AudioSample():
         del sampleRate
         self.pitchDeltas = torch.tensor([], dtype = int)
         self.pitch = torch.tensor([0], dtype = int)
-        self.spectra = torch.tensor([[]], dtype = float)
+        self.specharm = torch.tensor([[]], dtype = float)
         self.spectrum = torch.tensor([], dtype = float)
         self.excitation = torch.tensor([], dtype = float)
-        self.voicedExcitation = torch.tensor([], dtype = float)
         self.phases = torch.tensor([], dtype = float)
         self.harmonics = torch.tensor([], dtype = float)
         self.isVoiced = True
@@ -106,7 +105,7 @@ class LiteAudioSample():
         __init__: Constructor for initialising the class based on an AudioSample object, discarding all extraneous data."""
     
     
-    def __init__(self, audioSample) -> None:
+    def __init__(self, audioSample:AudioSample) -> None:
         """Constructor for initialising the class based on an AudioSample object, discarding all extraneous data.
         
         Arguments:
@@ -118,8 +117,7 @@ class LiteAudioSample():
             
         self.pitchDeltas = audioSample.pitchDeltas
         self.pitch = audioSample.pitch
-        self.spectra = audioSample.spectra
+        self.specharm = audioSample.specharm
         self.spectrum = audioSample.spectrum
         self.excitation = audioSample.excitation
-        self.voicedExcitation = audioSample.voicedExcitation
         self.phases = audioSample.phases
