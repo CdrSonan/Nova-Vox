@@ -81,3 +81,11 @@ def calculatePhaseDiff(batchRS:int, phases:torch.Tensor, pitch:torch.Tensor) -> 
 
     phaseDiff = int(((finalPhase - alignPhase) % (2 * math.pi)) / (2 * math.pi) * interpolatedPitch)
     return phaseDiff
+
+def phaseInterp(phaseA: torch.Tensor, phaseB: torch.Tensor, factor: torch.Tensor) -> torch.Tensor:
+    diff = phaseB - phaseA
+    diff = torch.remainder(diff, 2 * math.pi)
+    diffB = diff - 2 * math.pi
+    mask = torch.ge(diff.abs(), diffB.abs())
+    diff.masked_scatter(mask, diffB)
+    return phaseA + factor * diff
