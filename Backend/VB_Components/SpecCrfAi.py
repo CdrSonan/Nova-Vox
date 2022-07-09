@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import dataloader
 import global_consts
+from Backend.Resampler.PhaseShift import phaseInterp
 
 class SpecCrfAi(nn.Module):
     """class for generating crossfades between the spectra of different phonemes using AI.
@@ -110,20 +111,23 @@ class SpecCrfAi(nn.Module):
             
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
 
-
-        spectrum1 = specharm1[global_consts.nHarmonics:]
-        spectrum2 = specharm2[global_consts.nHarmonics:]
-        spectrum3 = specharm3[global_consts.nHarmonics:]
-        spectrum4 = specharm4[global_consts.nHarmonics:]
+        phase1 = specharm1[global_consts.nHarmonics:2 * global_consts.nHarmonics]
+        phase2 = specharm2[global_consts.nHarmonics:2 * global_consts.nHarmonics]
+        phase3 = specharm3[global_consts.nHarmonics:2 * global_consts.nHarmonics]
+        phase4 = specharm4[global_consts.nHarmonics:2 * global_consts.nHarmonics]
+        spectrum1 = specharm1[2 * global_consts.nHarmonics:]
+        spectrum2 = specharm2[2 * global_consts.nHarmonics:]
+        spectrum3 = specharm3[2 * global_consts.nHarmonics:]
+        spectrum4 = specharm4[2 * global_consts.nHarmonics:]
         spectrum1 = torch.unsqueeze(spectrum1, 1)
         spectrum2 = torch.unsqueeze(spectrum2, 1)
         spectrum3 = torch.unsqueeze(spectrum3, 1)
         spectrum4 = torch.unsqueeze(spectrum4, 1)
         spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
-        harm1 = specharm1[global_consts.nHarmonics:]
-        harm2 = specharm2[global_consts.nHarmonics:]
-        harm3 = specharm3[global_consts.nHarmonics:]
-        harm4 = specharm4[global_consts.nHarmonics:]
+        harm1 = specharm1[:global_consts.nHarmonics]
+        harm2 = specharm2[:global_consts.nHarmonics]
+        harm3 = specharm3[:global_consts.nHarmonics]
+        harm4 = specharm4[:global_consts.nHarmonics]
         harm1 = torch.unsqueeze(harm1, 1)
         harm2 = torch.unsqueeze(harm2, 1)
         harm3 = torch.unsqueeze(harm3, 1)
@@ -174,7 +178,9 @@ class SpecCrfAi(nn.Module):
         x = torch.fft.irfft(cutoffWindow * x, dim = 0, n = global_consts.halfTripleBatchSize + 1)
         x = self.threshold(x)
         
-        result = torch.cat((x, y), 0)
+        phases = phaseInterp(phaseInterp(phase1, phase2, 0.5), phaseInterp(phase3, phase4, 0.5), factor)
+
+        result = torch.cat((y, phases, x), 0)
         self.currPrediction = self.pred.processData(result)
         return result
     
@@ -238,12 +244,13 @@ class SpecCrfAi(nn.Module):
                     data = threshold(torch.fft.irfft(torch.unsqueeze(cutoffWindow, 1) * data, dim = 0, n = length))
                     
                     indexList = np.arange(0, data.size()[0], 1)
-                    #np.random.shuffle(indexList)
                     self.resetSpecPred
                     for i in indexList:
                         factor = i / float(data.size()[0])
                         spectrumTarget = data[i]
                         output = torch.squeeze(self.forward(spectrum1, spectrum2, spectrum3, spectrum4, factor))
+                        output = torch.cat((output[:global_consts.nHarmonics], output[2 * global_consts.nHarmonics:]), 0)
+                        spectrumTarget = torch.cat((spectrumTarget[:global_consts.nHarmonics], spectrumTarget[2 * global_consts.nHarmonics:]), 0)
                         loss = self.criterion(output, spectrumTarget)
                         self.optimizer.zero_grad()
                         loss.backward()
@@ -379,20 +386,23 @@ class LiteSpecCrfAi(nn.Module):
             
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
 
-
-        spectrum1 = specharm1[global_consts.nHarmonics:]
-        spectrum2 = specharm2[global_consts.nHarmonics:]
-        spectrum3 = specharm3[global_consts.nHarmonics:]
-        spectrum4 = specharm4[global_consts.nHarmonics:]
+        phase1 = specharm1[global_consts.nHarmonics:2 * global_consts.nHarmonics]
+        phase2 = specharm2[global_consts.nHarmonics:2 * global_consts.nHarmonics]
+        phase3 = specharm3[global_consts.nHarmonics:2 * global_consts.nHarmonics]
+        phase4 = specharm4[global_consts.nHarmonics:2 * global_consts.nHarmonics]
+        spectrum1 = specharm1[2 * global_consts.nHarmonics:]
+        spectrum2 = specharm2[2 * global_consts.nHarmonics:]
+        spectrum3 = specharm3[2 * global_consts.nHarmonics:]
+        spectrum4 = specharm4[2 * global_consts.nHarmonics:]
         spectrum1 = torch.unsqueeze(spectrum1, 1)
         spectrum2 = torch.unsqueeze(spectrum2, 1)
         spectrum3 = torch.unsqueeze(spectrum3, 1)
         spectrum4 = torch.unsqueeze(spectrum4, 1)
         spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
-        harm1 = specharm1[global_consts.nHarmonics:]
-        harm2 = specharm2[global_consts.nHarmonics:]
-        harm3 = specharm3[global_consts.nHarmonics:]
-        harm4 = specharm4[global_consts.nHarmonics:]
+        harm1 = specharm1[:global_consts.nHarmonics]
+        harm2 = specharm2[:global_consts.nHarmonics]
+        harm3 = specharm3[:global_consts.nHarmonics]
+        harm4 = specharm4[:global_consts.nHarmonics]
         harm1 = torch.unsqueeze(harm1, 1)
         harm2 = torch.unsqueeze(harm2, 1)
         harm3 = torch.unsqueeze(harm3, 1)
@@ -443,7 +453,9 @@ class LiteSpecCrfAi(nn.Module):
         x = torch.fft.irfft(cutoffWindow * x, dim = 0, n = global_consts.halfTripleBatchSize + 1)
         x = self.threshold(x)
         
-        result = torch.cat((x, y), 0)
+        phases = phaseInterp(phaseInterp(phase1, phase2, 0.5), phaseInterp(phase3, phase4, 0.5), factor)
+
+        result = torch.cat((y, phases, x), 0)
         self.currPrediction = self.pred.processData(result)
         return result
     

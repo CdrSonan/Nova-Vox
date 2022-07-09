@@ -2,7 +2,7 @@ import torch
 import global_consts
 import math
 
-def phaseShiftFourier(inputTensor:torch.Tensor, pitch:torch.Tensor, phase:float, device:torch.device) -> torch.Tensor:
+def phaseShiftFourier(inputTensor:torch.Tensor, phase:float, device:torch.device) -> torch.Tensor:
     """currently unused function for phase shifting an arbitrary signal in fourier space.
     
     Arguments:
@@ -21,7 +21,7 @@ def phaseShiftFourier(inputTensor:torch.Tensor, pitch:torch.Tensor, phase:float,
     absolutes = inputTensor.abs()
     phases = inputTensor.angle()
     phaseOffsets = torch.full(phases.size(), phase, device = device)
-    phaseOffsets *= (torch.linspace(0, global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1) / pitch)
+    phaseOffsets *= torch.linspace(0, global_consts.nHarmonics - 1, global_consts.nHarmonics)
     phases += phaseOffsets
     return torch.polar(absolutes, phases)
 
