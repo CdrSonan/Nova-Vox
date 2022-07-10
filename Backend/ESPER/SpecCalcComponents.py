@@ -211,37 +211,37 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
             window = i[upTransitionMarkers[j] - 1:upTransitionMarkers[j + 1] + 1]
             convKernel = torch.tensor([1., 1.5, 1.])
             scores = torch.tensor([])
-            for k in range(window.size()[0] - 2):
-                scores = torch.cat((scores, (torch.sum(window[k:k+2] * convKernel))), 0)
-            maximumMarkers.append(torch.max(scores)[1] + upTransitionMarkers[j])
+            for k in range(window.size()[0] - 3):
+                scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
+            maximumMarkers.append(torch.argmax(scores) + upTransitionMarkers[j])
 
         window = i[upTransitionMarkers[-1] - 1:-1]
         convKernel = torch.tensor([1., 1.5, 1.])
         scores = torch.tensor([])
-        for k in range(window.size()[0] - 2):
-            scores = torch.cat((scores, (torch.sum(window[k:k+2] * convKernel))), 0)
-        maximumMarkers.append(torch.max(scores)[1] + upTransitionMarkers[j])
+        for k in range(window.size()[0] - 3):
+            scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
+        maximumMarkers.append(torch.argmax(scores) + upTransitionMarkers[j])
 
         for j in range(length - 1):
             window = i[downTransitionMarkers[j] - 1:downTransitionMarkers[j + 1] + 1]
             convKernel = torch.tensor([-1., -1.5, -1.])
             scores = torch.tensor([])
-            for k in range(window.size()[0] - 2):
-                scores = torch.cat((scores, (torch.sum(window[k:k+2] * convKernel))), 0)
-            minimumMarkers.append(torch.max(scores)[1] + upTransitionMarkers[j])
+            for k in range(window.size()[0] - 3):
+                scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
+            minimumMarkers.append(torch.argmax(scores) + upTransitionMarkers[j])
 
         window = i[downTransitionMarkers[-1] - 1:-1]
         convKernel = torch.tensor([-1., -1.5, -1.])
         scores = torch.tensor([])
-        for k in range(window.size()[0] - 2):
-            scores = torch.cat((scores, (torch.sum(window[k:k+2] * convKernel))), 0)
-        minimumMarkers.append(torch.max(scores)[1] + upTransitionMarkers[j])
+        for k in range(window.size()[0] - 3):
+            scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
+        minimumMarkers.append(torch.argmax(scores) + upTransitionMarkers[j])
 
-        markers = []
+        markers = torch.tensor([])
         for j in range(length):
-            markers.append((upTransitionMarkers[i] + downTransitionMarkers[i] + maximumMarkers[i] + minimumMarkers[i]) / 4)
+            markers = torch.cat((markers, torch.unsqueeze((upTransitionMarkers[j] + downTransitionMarkers[j] + maximumMarkers[j] + minimumMarkers[j]) / 4, 0)), 0)
 
-        interpolationPoints = interp(torch.linspace(0, markers.size()[0] - 1, markers.size()[0]), markers, torch.linspace(0, markers.size()[0] * global_consts.nHarmonics - 1, markers.size()[0] * global_consts.nHarmonics))
+        interpolationPoints = interp(torch.linspace(0, len(markers) - 1, len(markers)), markers, torch.linspace(0, len(markers) * global_consts.nHarmonics - 1, len(markers) * global_consts.nHarmonics))
 
         interpolatedWave = interp(torch.linspace(0, i.size()[0] - 1, i.size()[0]), i, interpolationPoints)
         if length == 1:

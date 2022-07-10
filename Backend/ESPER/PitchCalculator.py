@@ -100,7 +100,7 @@ def calculatePhases(audioSample:AudioSample) -> None:
         func = audioSample.waveform[i * global_consts.batchSize:i * global_consts.batchSize + limit * audioSample.pitchDeltas[i].to(torch.int64)]
         funcspace = torch.linspace(0, (limit * audioSample.pitchDeltas[i] - 1) * 2 * math.pi / audioSample.pitchDeltas[i], limit * audioSample.pitchDeltas[i])
         #TODO: Test new func and funcspace
-        func = audioSample.waveform[i * global_consts.batchSize:(i + 1) * global_consts.batchSize.to(torch.int64)]
+        func = audioSample.waveform[i * global_consts.batchSize:(i + 1) * global_consts.batchSize]
         funcspace = torch.linspace(0, global_consts.batchSize * 2 * math.pi / audioSample.pitchDeltas[i], global_consts.batchSize)
 
         sine = torch.sin(funcspace)

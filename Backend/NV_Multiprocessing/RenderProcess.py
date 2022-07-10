@@ -380,8 +380,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         harms = torch.polar(abs, angle)
                         voicedSignal = torch.empty((internalInputs.borders[3 * (j - 1) + 5] - startPoint,global_consts.halfTripleBatchSize + 1))
                         for k in range(harms.size()[0]):
-                            requiredSize = torch.ceil()
-                            voicedSignal[k] = torch.fft.irfft(harms[k])
+                            requiredSize = internalInputs.pitch[k + internalInputs.borders[3 * j]] / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch
+                            voicedSignal[k] = interp(torch.linspace(0, global_consts.nHarmonics - 1, global_consts.nHarmonics), torch.fft.irfft(harms[k], requiredSize), torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1))
                         voicedSignal = torch.stft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
         
                         if internalInputs.useBreathiness:
