@@ -135,14 +135,15 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
     """calculates pitch markers using the DIO algorithm, for later use in spectral processing"""
 
     wave = torch.cat((torch.zeros([global_consts.halfTripleBatchSize * global_consts.filterBSMult,]), audioSample.waveform, torch.zeros([global_consts.halfTripleBatchSize * global_consts.filterBSMult,])), 0)
-    length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)# + 1 ???
+    length = audioSample.pitchDeltas.size()[0]#math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)# + 1 ???
     windows = torch.empty((length, global_consts.tripleBatchSize * global_consts.filterBSMult))
-    audioSample.excitation = torch.empty((length, global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1))
+    audioSample.excitation = torch.empty((length, global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1), dtype = torch.complex64)
     audioSample.specharm = torch.empty((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3))
     for i in range(length):
         windows[i] = wave[i * global_consts.batchSize:i * global_consts.batchSize + global_consts.tripleBatchSize * global_consts.filterBSMult]
     counter = 0
     for i in windows:
+        print(counter, "/", windows.size()[0])
         pitch = audioSample.pitchDeltas[counter]
         upTransitionMarkers = torch.tensor([], dtype = torch.int16)
         downTransitionMarkers = torch.tensor([], dtype = torch.int16)
@@ -218,11 +219,18 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
             maximumMarkers = torch.cat((maximumMarkers, torch.unsqueeze(torch.argmax(scores) + upTransitionMarkers[j], 0)), 0)
 
         window = i[upTransitionMarkers[-1] - 1:-1]
-        convKernel = torch.tensor([1., 1.5, 1.])
-        scores = torch.tensor([])
-        for k in range(window.size()[0] - 3):
-            scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
-        maximumMarkers = torch.cat((maximumMarkers, torch.unsqueeze(torch.argmax(scores) + upTransitionMarkers[-1], 0)), 0)
+        if window.size()[0] >= pitch / 2:
+            convKernel = torch.tensor([1., 1.5, 1.])
+            scores = torch.tensor([])
+            for k in range(window.size()[0] - 3):
+                scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
+            maximumMarkers = torch.cat((maximumMarkers, torch.unsqueeze(torch.argmax(scores) + upTransitionMarkers[-1], 0)), 0)
+            skip = False
+        else:
+            upTransitionMarkers = upTransitionMarkers[:-1]
+            downTransitionMarkers = downTransitionMarkers[:-1]
+            length -= 1
+            skip = True
 
         for j in range(length - 1):
             window = i[downTransitionMarkers[j] - 1:downTransitionMarkers[j + 1] + 1]
@@ -233,11 +241,16 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
             minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[j], 0)), 0)
 
         window = i[downTransitionMarkers[-1] - 1:-1]
-        convKernel = torch.tensor([-1., -1.5, -1.])
-        scores = torch.tensor([])
-        for k in range(window.size()[0] - 3):
-            scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
-        minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[-1], 0)), 0)
+        if window.size()[0] >= pitch / 2 or skip:
+            convKernel = torch.tensor([-1., -1.5, -1.])
+            scores = torch.tensor([])
+            for k in range(window.size()[0] - 3):
+                scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
+            minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[-1], 0)), 0)
+        else:
+            upTransitionMarkers = upTransitionMarkers[:-1]
+            downTransitionMarkers = downTransitionMarkers[:-1]
+            length -= 1
 
         markers = torch.tensor([])
         for j in range(length):
@@ -268,6 +281,6 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
             audioSample.phases[counter] = audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1]
         counter += 1
-    audioSample.excitation = torch.istft(audioSample.excitation, global_consts.halfTripleBatchSize * global_consts.filterBSMult, global_consts.batchSize, global_consts.halfTripleBatchSize * global_consts.filterBSMult)
-    audioSample.excitation = torch.stft(audioSample.excitation, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize))
+    audioSample.excitation = torch.istft(audioSample.excitation.transpose(0, 1), n_fft = global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1, hop_length = global_consts.batchSize, win_length = global_consts.halfTripleBatchSize * global_consts.filterBSMult)
+    audioSample.excitation = torch.stft(audioSample.excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = torch.hann_window(global_consts.tripleBatchSize), return_complex = True, onesided = True)
     return audioSample
