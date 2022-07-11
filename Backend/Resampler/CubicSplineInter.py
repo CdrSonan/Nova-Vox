@@ -12,7 +12,7 @@ def h_poly(t:torch.Tensor) -> torch.Tensor:
     ], dtype=t.dtype, device=t.device)
     return A @ tt
 
-def interp(x:torch.Tensor, y:torch.Tensor, xs:float) -> float:
+def interp(x:torch.Tensor, y:torch.Tensor, xs:torch.Tensor) -> torch.Tensor:
     """perform cubic interpolation using Hermite splines
     
     Arguments:
@@ -34,3 +34,10 @@ def interp(x:torch.Tensor, y:torch.Tensor, xs:float) -> float:
     hh = h_poly((xs - x[idxs]) / dx)
     return hh[0] * y[idxs] + hh[1] * m[idxs] * dx + hh[2] * y[idxs + 1] + hh[3] * m[idxs + 1] * dx
     
+def extrap(x:torch.Tensor, y:torch.Tensor, xs:torch.Tensor) -> torch.Tensor:
+    derr = y[-1] - y[-2]
+    derr2 = y[-1] - 2 * y[-2] + y[-3]
+    extraY = y[-1] + (derr + 0.2 * derr2) * (torch.max(xs) - x[-1]) / (x[-1] - x[-2])
+    x = torch.cat((x, torch.unsqueeze(torch.max(xs), 0)), 0)
+    y = torch.cat((y, torch.unsqueeze(extraY, 0)), 0)
+    return interp(x, y, xs)
