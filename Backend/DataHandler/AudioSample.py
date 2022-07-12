@@ -71,7 +71,7 @@ class AudioSample():
         self.pitchDeltas = torch.tensor([], dtype = int)
         self.pitch = torch.tensor([0], dtype = int)
         self.specharm = torch.tensor([[]], dtype = float)
-        self.spectrum = torch.tensor([], dtype = float)
+        self.avgSpecharm = torch.tensor([], dtype = float)
         self.excitation = torch.tensor([], dtype = float)
         self.phases = torch.tensor([], dtype = float)
         self.harmonics = torch.tensor([], dtype = float)
@@ -118,6 +118,6 @@ class LiteAudioSample():
         self.pitchDeltas = audioSample.pitchDeltas
         self.pitch = audioSample.pitch
         self.specharm = audioSample.specharm
-        self.spectrum = audioSample.spectrum
+        self.avgSpecharm = audioSample.avgSpecharm
         self.excitation = audioSample.excitation
         self.phases = audioSample.phases
