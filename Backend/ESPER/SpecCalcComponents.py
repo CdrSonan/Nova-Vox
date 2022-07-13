@@ -4,6 +4,8 @@ import torch
 import global_consts
 import math
 
+import matplotlib.pyplot as plt
+
 def calculateHighResSpectra(audioSample:AudioSample) -> tuple([torch.Tensor, AudioSample]):
     """calculates high spectral resolution, but low time resolution approximate spectra for an AudioSample object. This data can then be used to separate voiced and unvoiced excitation."""
 
@@ -261,44 +263,41 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
         markers = torch.tensor([])
         for j in range(length):
             markers = torch.cat((markers, torch.unsqueeze((upTransitionMarkers[j] + downTransitionMarkers[j] + maximumMarkers[j] + minimumMarkers[j]) / 4, 0)), 0)
-
-        interpolationPoints = interp(torch.linspace(0, len(markers) - 1, len(markers)), markers, torch.linspace(0, len(markers) - 1, len(markers) * global_consts.nHarmonics))
-        interpolatedWave = interp(torch.linspace(0, i.size()[0] - 1, i.size()[0]), i, interpolationPoints)
         if length == 1:
             #fallback
             print("case")
-            pass
-        else:
-            harmFunction = torch.tensor([])
-            for j in range(global_consts.nHarmonics):
-                harm = 0
-                harm += interpolatedWave[j] * (j / global_consts.nHarmonics)
-                for k in range(1, length - 1):
-                    harm += interpolatedWave[j + k * global_consts.nHarmonics]
-                harm += interpolatedWave[length + j] * (1 - (j / global_consts.nHarmonics))
-                harm /= length
-                harmFunction = torch.cat((harmFunction, torch.unsqueeze(harm, 0)), 0)
-            halfRange = math.ceil(i.size()[0] / global_consts.nHarmonics / 2)
-            harmFunctionFull = torch.tile(harmFunction, (2 * (length + halfRange),))
-            interpolationPoints = extrap(torch.linspace(global_consts.nHarmonics * halfRange, global_consts.nHarmonics * (length + halfRange) + 1, global_consts.nHarmonics * length), interpolationPoints, torch.linspace(0, global_consts.nHarmonics * (length + halfRange) * 2 + 1, global_consts.nHarmonics * (length + halfRange) * 2))
-            harmFunctionFull = interp(interpolationPoints, harmFunctionFull, torch.linspace(0, i.size()[0] - 1, i.size()[0]))
-            import matplotlib.pyplot as plt
-            plt.plot(torch.linspace(counter * global_consts.batchSize, counter * global_consts.batchSize + i.size()[0], i.size()[0]), harmFunctionFull)
-            plt.plot(torch.linspace(counter * global_consts.batchSize, counter * global_consts.batchSize + global_consts.nHarmonics, global_consts.nHarmonics), harmFunction)
-            plt.plot(torch.linspace(counter * global_consts.batchSize, counter * global_consts.batchSize + i.size()[0], i.size()[0]), i)
-            plt.show()
-            offharm = i - harmFunctionFull
-            offharm *= torch.hann_window(global_consts.tripleBatchSize * global_consts.filterBSMult)
-            audioSample.excitation[counter] = torch.fft.rfft(offharm)
-            harmFunction = torch.roll(harmFunction, int(markers[0].item()))[:global_consts.halfTripleBatchSize * global_consts.filterBSMult]
-            harmFunction = torch.fft.rfft(harmFunction)
-            harmFunction = torch.cat((harmFunction.abs(), harmFunction.angle()), 0)
-            audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
-            audioSample.phases[counter] = audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1]
+            continue
+        interpolationPoints = interp(torch.linspace(0, len(markers) - 1, len(markers)), markers, torch.linspace(0, len(markers) - 1, (len(markers) - 1) * global_consts.nHarmonics + 1))
+        interpolatedWave = interp(torch.linspace(0, i.size()[0] - 1, i.size()[0]), i, interpolationPoints)
+        harmFunction = torch.tensor([])
+        for j in range(global_consts.nHarmonics):
+            harm = 0
+            harm += interpolatedWave[j] * (j / global_consts.nHarmonics)
+            for k in range(1, length - 1):
+                harm += interpolatedWave[j + k * global_consts.nHarmonics]
+            harm += interpolatedWave[length + j - 1] * (1 - (j / global_consts.nHarmonics))
+            harm /= (length - 1)
+            harmFunction = torch.cat((harmFunction, torch.unsqueeze(harm, 0)), 0)
+        halfRange = math.ceil(i.size()[0] / global_consts.nHarmonics / 2)
+        harmFunctionFull = torch.tile(harmFunction, (length - 1 + 2 * halfRange,))
+        interpolationPoints = extrap(torch.linspace(global_consts.nHarmonics * halfRange, global_consts.nHarmonics * (length - 1 + halfRange) + 1, global_consts.nHarmonics * (length - 1) + 1), interpolationPoints, torch.linspace(0, global_consts.nHarmonics * (length - 1 + halfRange * 2) + 1, global_consts.nHarmonics * (length - 1 + halfRange * 2)))
+        harmFunctionFull = interp(interpolationPoints, harmFunctionFull, torch.linspace(0, i.size()[0] - 1, i.size()[0]))
+        #plt.plot(torch.linspace(counter * global_consts.batchSize, counter * global_consts.batchSize + i.size()[0], i.size()[0]), harmFunctionFull)
+        #plt.plot(torch.linspace(counter * global_consts.batchSize, counter * global_consts.batchSize + global_consts.nHarmonics, global_consts.nHarmonics), harmFunction)
+        #plt.plot(torch.linspace(counter * global_consts.batchSize, counter * global_consts.batchSize + i.size()[0], i.size()[0]), i)
+        #plt.show()
+        offharm = i - harmFunctionFull
+        offharm *= torch.hann_window(global_consts.tripleBatchSize * global_consts.filterBSMult)
+        audioSample.excitation[counter] = torch.fft.rfft(offharm)
+        harmFunction = torch.roll(harmFunction, int(markers[0].item()))[:global_consts.halfTripleBatchSize * global_consts.filterBSMult]
+        harmFunction = torch.fft.rfft(harmFunction)
+        harmFunction = torch.cat((harmFunction.abs(), harmFunction.angle()), 0)
+        audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
+        audioSample.phases[counter] = audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1]
         counter += 1
     audioSample.excitation = torch.istft(audioSample.excitation.transpose(0, 1), n_fft = global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1, hop_length = global_consts.batchSize, win_length = global_consts.halfTripleBatchSize * global_consts.filterBSMult)
-    #plt.plot(audioSample.excitation)
-    #plt.show()
+    plt.plot(audioSample.excitation)
+    plt.show()
     
     audioSample.excitation = torch.stft(audioSample.excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = torch.hann_window(global_consts.tripleBatchSize), return_complex = True, onesided = True)
     return audioSample
