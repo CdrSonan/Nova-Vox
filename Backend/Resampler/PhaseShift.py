@@ -8,8 +8,6 @@ def phaseShiftFourier(inputTensor:torch.Tensor, phase:float, device:torch.device
     Arguments:
         inputTensor: complex tensor representing the input
         
-        pitch: the pitch of the f0 frequency, or other frequency the phase is to be taken from
-        
         phase: the amount the phase is to be shifted by
         
         device: the device to perform the calculations on
@@ -21,7 +19,7 @@ def phaseShiftFourier(inputTensor:torch.Tensor, phase:float, device:torch.device
     absolutes = inputTensor.abs()
     phases = inputTensor.angle()
     phaseOffsets = torch.full(phases.size(), phase, device = device)
-    phaseOffsets *= torch.linspace(0, global_consts.nHarmonics - 1, global_consts.nHarmonics)
+    phaseOffsets *= torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1)
     phases += phaseOffsets
     return torch.polar(absolutes, phases)
 

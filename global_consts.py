@@ -13,7 +13,7 @@ tripleBatchSize = 576
 halfTripleBatchSize = 288
 
 #analysis spectral processing
-filterBSMult = 1
+filterBSMult = 2
 filterTEEMult = 32
 filterHRSSMult = 4
 nFormants = 50
