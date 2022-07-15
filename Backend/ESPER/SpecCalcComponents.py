@@ -58,17 +58,16 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     diff = torch.zeros_like(signals, dtype = torch.float32)
     if diff.size()[0] == 1:
         return diff
-    for i in range(diff.size()[0] - 1):
-        diff[i] = signals[i].angle() - signals[i + 1].angle()
+    diff = diff[:-1]
+    for i in range(diff.size()[0]):
+        diff[i] = signals[i + 1].angle() - signals[i].angle()
     diff = torch.remainder(diff, 2 * math.pi)
     diffB = diff - 2 * math.pi
     mask = torch.ge(diff.abs(), diffB.abs())
-    diff.masked_scatter(mask, diffB)
-    diff = torch.cat((diff, torch.unsqueeze(diff[-1], 0)), 0)
-    for i in range(1, diff.size()[0] - 1):
-        diff[i] = (diff[i - 1] + diff[i]) / 2.
-    diff /= torch.linspace(1, int(global_consts.nHarmonics / 2) + 1, int(global_consts.nHarmonics / 2) + 1)
-    return math.pi - torch.abs(diff)
+    diff -= mask.to(torch.float) * 2 * math.pi
+    diff = torch.abs(diff)
+    #diff /= torch.linspace(1, int(global_consts.nHarmonics / 2) + 1, int(global_consts.nHarmonics / 2) + 1)
+    return math.pi - diff
 
 def separateVoicedUnvoiced(audioSample:AudioSample, signals:torch.Tensor, resonanceFunction:torch.Tensor, phaseContinuity:torch.Tensor) -> AudioSample:
     """uses high-res spectrum magnitude in relation to stft magnitude, resonance and phase continuity to determine which parts of an AudioSample object are voiced"""
@@ -289,8 +288,8 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
 
         for j in range(length - 1):
             harmFunction = torch.cat((harmFunction, torch.unsqueeze(torch.fft.rfft(interpolatedWave[j * global_consts.nHarmonics:(j + 1) * global_consts.nHarmonics]), -1)), 1)
-        phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
-        adjustedAmplitudes = harmFunction.abs()# * torch.clamp(phaseContinuity / math.pi, 1 / 3, 2 / 3) * 3. - 1.
+        phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1) / math.pi
+        adjustedAmplitudes = harmFunction.abs() * torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1)
         harmFunction = torch.cat((adjustedAmplitudes, harmFunction.angle()), 0)
         harmFunction = torch.polar(harmFunction[:int(global_consts.nHarmonics / 2) + 1], harmFunction[int(global_consts.nHarmonics / 2) + 1:])
         harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (length - 1) * global_consts.nHarmonics, center = False, onesided = True, return_complex = False)
@@ -298,10 +297,7 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
         
         offharm = (interpolatedWave[:-1] - harmFunctionFull)
         offharm = extrap(interpolationPoints[:-1], offharm, torch.linspace(0, i.size()[0] - 1, i.size()[0]))
-        
         offharm = offharm[int(global_consts.tripleBatchSize * (global_consts.filterBSMult - 1) / 2):int(global_consts.tripleBatchSize * (global_consts.filterBSMult + 1) / 2)]
-        plt.plot(offharm)
-        plt.show()
         offharm *= torch.hann_window(global_consts.tripleBatchSize)
         audioSample.excitation[counter] = torch.fft.rfft(offharm)
         harmFunction = phaseShiftFourier(harmFunction, markers[0].item() / global_consts.nHarmonics, torch.device("cpu"))
