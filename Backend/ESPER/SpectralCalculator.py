@@ -1,7 +1,7 @@
 import torch
 
 from Backend.DataHandler.AudioSample import AudioSample
-from Backend.ESPER.SpecCalcComponents import calculateHighResSpectra, calculateResonance, calculatePhaseContinuity, dioPitchMarkers, finalizeSpectra, separateVoicedUnvoiced, transformHighRestoStdRes, lowRangeSmooth, highRangeSmooth
+from Backend.ESPER.SpecCalcComponents import finalizeSpectra, separateVoicedUnvoiced, lowRangeSmooth, highRangeSmooth
 
 def calculateSpectra(audioSample:AudioSample) -> None:
     """Method for calculating spectral data based on the previously set attributes filterWidth, voicedFilter and unvoicedIterations.
@@ -31,7 +31,7 @@ def calculateSpectra(audioSample:AudioSample) -> None:
     #phaseContinuity = calculatePhaseContinuity(signals)
     #audioSample = separateVoicedUnvoiced(audioSample, signals, resonanceFunction, phaseContinuity) !!!replace!!!
     #signalsAbs, audioSample = transformHighRestoStdRes(audioSample)
-    audioSample = dioPitchMarkers(audioSample)
+    audioSample = separateVoicedUnvoiced(audioSample)
     signalsAbs = audioSample.excitation.abs()
     signalsAbs = torch.sqrt(torch.transpose(signalsAbs, 0, 1))
     lowSpectra = lowRangeSmooth(audioSample, signalsAbs)

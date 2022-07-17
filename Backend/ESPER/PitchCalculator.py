@@ -4,6 +4,7 @@ from torchaudio.functional import detect_pitch_frequency
 from Backend.DataHandler.AudioSample import AudioSample
 from Locale.devkit_locale import getLocale
 import global_consts
+from Backend.Resampler.CubicSplineInter import interp
 
 def calculatePitch(audioSample:AudioSample) -> None:
     """current method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.
@@ -29,8 +30,10 @@ def calculatePitch(audioSample:AudioSample) -> None:
         print(getLocale()["pitch_calc_err"], e)
         calculatePitchFallback(audioSample)
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
+    length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
+    audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0]), audioSample.pitchDeltas, torch.linspace(0., 1., length))
     audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
-    calculatePhases(audioSample)
+    #calculatePhases(audioSample)
 
 def calculatePitchFallback(audioSample:AudioSample) -> None:
     """Fallback method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.

@@ -1,60 +1,17 @@
+import torchaudio
 from Backend.DataHandler.AudioSample import AudioSample
 from Backend.Resampler.CubicSplineInter import interp, extrap
 from Backend.Resampler.PhaseShift import phaseShiftFourier
 import torch
+from torchaudio.functional import lowpass_biquad
 import global_consts
 import math
 
 import matplotlib.pyplot as plt
 
-def calculateHighResSpectra(audioSample:AudioSample) -> tuple([torch.Tensor, AudioSample]):
-    """calculates high spectral resolution, but low time resolution approximate spectra for an AudioSample object. This data can then be used to separate voiced and unvoiced excitation."""
-
-    window = torch.hann_window(global_consts.tripleBatchSize * global_consts.filterBSMult)
-    signals = torch.stft(audioSample.waveform, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, return_complex = True, onesided = True)
-    signals = torch.transpose(signals, 0, 1)
-    signalsAbs = signals.abs()
-    spectralFilterWidth = torch.max(torch.floor(audioSample.pitch / global_consts.tripleBatchSize * global_consts.filterBSMult * global_consts.filterHRSSMult), torch.Tensor([1])).int().item()
-    workingSpectra = torch.sqrt(signalsAbs)
-    audioSample.spectra = workingSpectra.clone()
-    for j in range(audioSample.voicedFilter):
-        for i in range(spectralFilterWidth):
-            audioSample.spectra = torch.roll(workingSpectra, -i, dims = 1) + audioSample.spectra + torch.roll(workingSpectra, i, dims = 1)
-        audioSample.spectra = audioSample.spectra / (2 * spectralFilterWidth + 1)
-        workingSpectra = torch.min(workingSpectra, audioSample.spectra)
-        audioSample.spectra = workingSpectra
-    return signals, audioSample
-
-def calculateResonance(audioSample:AudioSample) -> tuple([torch.Tensor, AudioSample]):
-    """calculates a resonance curve relative to the pitch of an audio sample in high-res fourier space. Frequencies with a higher resonance are more likely to be voiced."""
-
-    resonanceFunction = torch.zeros_like(audioSample.spectra)
-    for i in range(resonanceFunction.size()[0]):
-        #sin(2*pi*a)/(a^2-1) with a = f/f0 = l0/l
-        for j in range(global_consts.nFormants):
-            freqspace = torch.linspace(0, audioSample.pitch / (j + 1), global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1)
-            freqspace = torch.sin(2 * math.pi * freqspace) / (torch.pow(freqspace, torch.full([1,], 2.)) - torch.ones([1,]))
-            freqspace = torch.pow(freqspace / math.pi, torch.full([1,], 2.))# / (j + 1)
-            resonanceFunction[i] = torch.max(resonanceFunction[i], freqspace)
-        transitionPoint = min(int(global_consts.halfTripleBatchSize * global_consts.filterBSMult / audioSample.pitch * global_consts.nFormants), resonanceFunction.size()[1])
-        resonanceFunction[i][transitionPoint - global_consts.nFormants:transitionPoint] *= torch.linspace(1, 0, global_consts.nFormants)
-        resonanceFunction[i][transitionPoint - global_consts.nFormants:transitionPoint] += torch.linspace(0, 1, global_consts.nFormants)
-        resonanceFunction[i][transitionPoint:] = torch.ones_like(resonanceFunction[i][transitionPoint:])
-    return resonanceFunction, audioSample
-
 def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     """calculates phase continuity function of an stft sequence. Frequencies with a high phase continuity are more likely to be voiced."""
 
-    """phaseContinuity = torch.empty_like(signals, dtype = torch.float32)
-    for i in range(phaseContinuity.size()[0] - 1):
-        phaseContinuity[i] = signals[i].angle() - signals[i + 1].angle()
-    phaseContinuity[-1] = phaseContinuity[-2]
-    phaseContinuity = torch.remainder(phaseContinuity, torch.full([1,], 2 * math.pi))
-    phaseContinuity -= math.pi
-    phaseContinuity -= 2 * phaseContinuity * torch.heaviside(phaseContinuity, torch.zeros([1,]))
-    phaseContinuity += math.pi
-    phaseContinuity /= math.pi
-    return phaseContinuity"""
     diff = torch.zeros_like(signals, dtype = torch.float32)
     if diff.size()[0] == 1:
         return diff
@@ -66,34 +23,16 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     mask = torch.ge(diff.abs(), diffB.abs())
     diff -= mask.to(torch.float) * 2 * math.pi
     diff = torch.abs(diff)
-    #diff /= torch.linspace(1, int(global_consts.nHarmonics / 2) + 1, int(global_consts.nHarmonics / 2) + 1)
-    return math.pi - diff
+    return 1. - diff
 
-def separateVoicedUnvoiced(audioSample:AudioSample, signals:torch.Tensor, resonanceFunction:torch.Tensor, phaseContinuity:torch.Tensor) -> AudioSample:
-    """uses high-res spectrum magnitude in relation to stft magnitude, resonance and phase continuity to determine which parts of an AudioSample object are voiced"""
-
-    signalsAbs = signals.abs()
-    audioSample.voicedExcitation = signals.clone()
-    audioSample.voicedExcitation *= torch.gt(signalsAbs * resonanceFunction * (1. - 0.2 * torch.pow(phaseContinuity, torch.tensor([2.,]))), audioSample.spectra * audioSample.voicedFilter)
-    audioSample.excitation = signals.clone()
-    audioSample.excitation *= torch.less_equal(signalsAbs * resonanceFunction * (1. - 0.2 * torch.pow(phaseContinuity, torch.tensor([2.,]))), audioSample.spectra * audioSample.voicedFilter)
-    if audioSample.isVoiced == False:
-        audioSample.voicedExcitation *= 0
-    audioSample.voicedExcitation = torch.transpose(audioSample.voicedExcitation, 0, 1)
-    audioSample.excitation = torch.transpose(audioSample.excitation, 0, 1)
-    return audioSample
-
-def transformHighRestoStdRes(audioSample:AudioSample) -> tuple([torch.Tensor, AudioSample]):
-    """istft followed by stft. used to map the unvoiced and voiced excitation signals of an AudioSample object to the spectral resolution used during synthesis"""
-
-    audioSample.excitation = torch.istft(audioSample.excitation, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, onesided = True)
-    audioSample.voicedExcitation = torch.istft(audioSample.voicedExcitation, global_consts.tripleBatchSize * global_consts.filterBSMult, hop_length = global_consts.batchSize * global_consts.filterBSMult, win_length = global_consts.tripleBatchSize * global_consts.filterBSMult, window = window, onesided = True)
-    window = torch.hann_window(global_consts.tripleBatchSize)
-    audioSample.excitation = torch.stft(audioSample.excitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
-    audioSample.voicedExcitation = torch.stft(audioSample.voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
-    signalsAbs = audioSample.excitation.abs() + audioSample.voicedExcitation.abs()
-    signalsAbs = torch.sqrt(torch.transpose(signalsAbs, 0, 1))
-    return signalsAbs, audioSample
+def calculateAmplitudeContinuity(amplitudes:torch.Tensor) -> torch.Tensor:
+    amplitudeContinuity = amplitudes.clone()
+    amplitudeContinuity[:,1:] += torch.roll(amplitudes, 1, 1)[:,1:]
+    amplitudeContinuity[:,:-1] += torch.roll(amplitudes, -1, 1)[:,:-1]
+    amplitudeContinuity[:,1:-1] = amplitudeContinuity[:,1:-1] / 3.
+    amplitudeContinuity[:, 0] = amplitudeContinuity[:, 0] / 2.
+    amplitudeContinuity[:, -1] = amplitudeContinuity[:, -1] / 2.
+    return amplitudeContinuity
 
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
     """calculates a spectrum based on an adaptation of the True Envelope Estimator algorithm. Used for low-frequency area, as it can produce artifacting in high-frequency area"""
@@ -137,23 +76,162 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
     highSpectra = threshold(highSpectra)
     audioSample.specharm[:, global_consts.nHarmonics + 2:] = slope * lowSpectra + ((1. - slope) * highSpectra)
 
-    #audioSample.spectrum = torch.mean(audioSample.specharm[:, global_consts.nHarmonics + 2:], 0)
     audioSample.avgSpecharm = torch.mean(torch.cat((audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1], audioSample.specharm[:, global_consts.nHarmonics + 2:]), 1), 0)
     for i in range(audioSample.specharm.size()[0]):
         audioSample.specharm[i, global_consts.nHarmonics + 2:] -= audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]
         audioSample.specharm[i, :int(global_consts.nHarmonics / 2) + 1] -= audioSample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1]
 
-    #audioSample.voicedExcitation = audioSample.voicedExcitation / torch.transpose(torch.square(audioSample.spectrum + audioSample.spectra)[0:audioSample.voicedExcitation.size()[1]], 0, 1)
     audioSample.excitation = torch.transpose(audioSample.excitation, 0, 1) / torch.square(audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[1], global_consts.nHarmonics + 2:])
 
-    #window = torch.hann_window(global_consts.tripleBatchSize)
-    #audioSample.voicedExcitation = torch.istft(audioSample.voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True)
+def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -> list:
+    pitch = audioSample.pitchDeltas[counter]
+    maximumMarkers = torch.tensor([], dtype = torch.int16)
+    minimumMarkers = torch.tensor([], dtype = torch.int16)
 
-def dioPitchMarkers(audioSample:AudioSample) -> list:
+    zeroTransitionsUp = torch.tensor([], dtype = int)
+    for j in range(1, window.size()[0]):
+        if (window[j-1] < 0) and (window[j] >= 0):
+            zeroTransitionsUp = torch.cat([zeroTransitionsUp, torch.tensor([j])], 0)
+    zeroTransitionsDown = torch.tensor([], dtype = int)
+    for j in range(1, window.size()[0]):
+        if (window[j-1] >= 0) and (window[j] < 0):
+            zeroTransitionsDown = torch.cat([zeroTransitionsDown, torch.tensor([j])], 0)
+
+    upTransitionCandidates = zeroTransitionsUp[0:torch.searchsorted(zeroTransitionsUp, zeroTransitionsUp[0] + pitch)]
+    derrs = torch.index_select(window, 0, upTransitionCandidates) - torch.index_select(window, 0, upTransitionCandidates - 1)
+    upTransitionMarkers = torch.unsqueeze(upTransitionCandidates[torch.argmax(derrs)], 0)
+    downTransitionCandidates = zeroTransitionsDown[torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0]):torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0] + pitch)]
+    derrs = torch.index_select(window, 0, downTransitionCandidates) - torch.index_select(window, 0, downTransitionCandidates - 1)
+    downTransitionMarkers = torch.unsqueeze(downTransitionCandidates[torch.argmin(derrs)], 0)
+
+    base = 0
+    while base < global_consts.tripleBatchSize * global_consts.filterBSMult - pitch:
+        error = math.inf
+        validTransitions = []
+        transition = upTransitionMarkers[-1] + pitch
+        for j in zeroTransitionsUp:
+            if j > upTransitionMarkers[-1] + 1.5 * pitch:
+                break
+            if j > max(downTransitionMarkers[-1], upTransitionMarkers[-1] + 0.5 * pitch):
+                validTransitions.append(j)
+        for j in validTransitions:
+            if j + pitch > global_consts.tripleBatchSize * global_consts.filterBSMult:
+                if pitch > upTransitionMarkers[-1]:
+                    continue
+                sample = window[upTransitionMarkers[-1] - pitch:upTransitionMarkers[-1]]
+                shiftedSample = window[j - pitch:j]
+            else:
+                sample = window[upTransitionMarkers[-1]:upTransitionMarkers[-1] + pitch]
+                shiftedSample = window[j:j + pitch]
+            newError = torch.sum(torch.pow(sample - shiftedSample, 2))# * ((j - upTransitionMarkers[-1] - pitch) * 0.5 + 0.5)
+            if error > newError:
+                transition = j.item()
+                error = newError
+        upTransitionMarkers = torch.cat((upTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
+
+        error = math.inf
+        validTransitions = []
+        transition = downTransitionMarkers[-1] + pitch
+        for j in zeroTransitionsDown:
+            if j > downTransitionMarkers[-1] + 1.5 * pitch:
+                break
+            if j > max(upTransitionMarkers[-1], downTransitionMarkers[-1] + 0.5 * pitch):
+                validTransitions.append(j)
+        for j in validTransitions:
+            if j + pitch > global_consts.tripleBatchSize * global_consts.filterBSMult:
+                if pitch > downTransitionMarkers[-1]:
+                    continue
+                sample = window[downTransitionMarkers[-1] - pitch:downTransitionMarkers[-1]]
+                shiftedSample = window[j - pitch:j]
+            else:
+                sample = window[downTransitionMarkers[-1]:downTransitionMarkers[-1] + pitch]
+                shiftedSample = window[j:j + pitch]
+            newError = torch.sum(torch.pow(sample - shiftedSample, 2))# * ((j - downTransitionMarkers[-1] - pitch) * 0.5 + 0.5)
+            if error > newError:
+                transition = j.item()
+                error = newError
+        downTransitionMarkers = torch.cat((downTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
+        base = transition
+
+    length = min(len(upTransitionMarkers), len(downTransitionMarkers))
+    upTransitionMarkers = upTransitionMarkers[:length]
+    downTransitionMarkers = downTransitionMarkers[:length]
+
+    #window = lowpass_biquad(window, global_consts.sampleRate, global_consts.sampleRate / pitch * global_consts.DIOLowpass)
+
+    for j in range(length - 1):
+        if upTransitionMarkers[j] + 3 < downTransitionMarkers[j]:
+            workingWindow = window[upTransitionMarkers[j] - 2:downTransitionMarkers[j] + 1]
+        else:
+            workingWindow = window[upTransitionMarkers[j] - 2:downTransitionMarkers[j + 1] + 1]
+        convKernel = torch.tensor([1., 1.1, 1.])
+        scores = torch.tensor([])
+        for k in range(workingWindow.size()[0] - 2):
+            bias = 1. - (global_consts.DIOBias * k / (workingWindow.size()[0] - 2))
+            scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
+        maximumMarkers = torch.cat((maximumMarkers, torch.unsqueeze(torch.argmax(scores) + upTransitionMarkers[j], 0)), 0)
+    if upTransitionMarkers[-1] + 3 < downTransitionMarkers[-1]:
+        workingWindow = window[upTransitionMarkers[-1] - 2:downTransitionMarkers[-1] + 1]
+    else:
+        workingWindow = window[upTransitionMarkers[-1] - 2:-1]
+    if workingWindow.size()[0] >= pitch / 2:
+        convKernel = torch.tensor([1., 1.1, 1.])
+        scores = torch.tensor([])
+        for k in range(workingWindow.size()[0] - 2):
+            bias = 1. - (global_consts.DIOBias * k / (workingWindow.size()[0] - 2))
+            scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
+        maximumMarkers = torch.cat((maximumMarkers, torch.unsqueeze(torch.argmax(scores) + upTransitionMarkers[-1], 0)), 0)
+        skip = False
+    else:
+        upTransitionMarkers = upTransitionMarkers[:-1]
+        downTransitionMarkers = downTransitionMarkers[:-1]
+        length -= 1
+        skip = True
+
+    for j in range(length - 1):
+        if downTransitionMarkers[j] + 3 < upTransitionMarkers[j]:
+            workingWindow = window[downTransitionMarkers[j] - 2:upTransitionMarkers[j] + 1]
+        else:
+            workingWindow = window[downTransitionMarkers[j] - 2:upTransitionMarkers[j + 1] + 1]
+        convKernel = torch.tensor([-1., -1.1, -1.])
+        scores = torch.tensor([])
+        for k in range(workingWindow.size()[0] - 2):
+            bias = 1. - (global_consts.DIOBias * k / (workingWindow.size()[0] - 2))
+            scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
+        minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[j], 0)), 0)
+    if downTransitionMarkers[-1] + 3 < upTransitionMarkers[-1]:
+        workingWindow = window[downTransitionMarkers[-1] - 2:upTransitionMarkers[-1] + 1]
+    else:
+        workingWindow = window[downTransitionMarkers[-1] - 2:-1]
+    if workingWindow.size()[0] >= pitch / 2 or skip:
+        convKernel = torch.tensor([-1., -1.1, -1.])
+        scores = torch.tensor([])
+        for k in range(workingWindow.size()[0] - 2):
+            bias = 1. - (global_consts.DIOBias * k / (workingWindow.size()[0] - 2))
+            scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
+        minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[-1], 0)), 0)
+    else:
+        upTransitionMarkers = upTransitionMarkers[:-1]
+        downTransitionMarkers = downTransitionMarkers[:-1]
+        length -= 1
+
+    """plt.plot(window)
+    plt.vlines(upTransitionMarkers, -1., 1., color = "red")
+    plt.vlines(downTransitionMarkers, -1., 1., color = "green")
+    plt.vlines(maximumMarkers, -1., 1., color = "blue")
+    plt.vlines(minimumMarkers, -1., 1., color = "black")
+    plt.show()"""
+
+    markers = torch.tensor([])
+    for j in range(length):
+        markers = torch.cat((markers, torch.unsqueeze((upTransitionMarkers[j] + downTransitionMarkers[j] + maximumMarkers[j] + minimumMarkers[j]) / 4, 0)), 0)
+    return markers
+
+def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
     """calculates pitch markers using the DIO algorithm, for later use in spectral processing"""
 
     wave = torch.cat((torch.zeros([global_consts.halfTripleBatchSize * global_consts.filterBSMult,]), audioSample.waveform, torch.zeros([global_consts.halfTripleBatchSize * global_consts.filterBSMult,])), 0)
-    length = audioSample.pitchDeltas.size()[0]#math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)# + 1 ???
+    length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)# + 1 ??? audioSample.pitchDeltas.size()[0]
     windows = torch.empty((length, global_consts.tripleBatchSize * global_consts.filterBSMult))
     audioSample.excitation = torch.empty((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
     audioSample.specharm = torch.empty((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3))
@@ -162,124 +240,12 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
     counter = 0
     for i in windows:
         print(counter, "/", windows.size()[0])
-        pitch = audioSample.pitchDeltas[counter]
-        upTransitionMarkers = torch.tensor([], dtype = torch.int16)
-        downTransitionMarkers = torch.tensor([], dtype = torch.int16)
-        maximumMarkers = torch.tensor([], dtype = torch.int16)
-        minimumMarkers = torch.tensor([], dtype = torch.int16)
-
-        zeroTransitions = torch.tensor([], dtype = int)
-        for j in range(1, i.size()[0]):
-            if (i[j-1] < 0) and (i[j] >= 0):
-                zeroTransitions = torch.cat([zeroTransitions, torch.tensor([j])], 0)
-        error = math.inf
-        base = 0
-        while base < global_consts.tripleBatchSize * global_consts.filterBSMult - pitch:
-            validTransitions = []
-            transition = base + pitch
-            for j in zeroTransitions:
-                if j > base + 1.5 * pitch:
-                    break
-                if j > base + 0.5 * pitch:
-                    validTransitions.append(j)
-            for j in validTransitions:
-                if j + pitch > global_consts.tripleBatchSize * global_consts.filterBSMult:
-                    if pitch > base:
-                        continue
-                    sample = i[base - pitch:base]
-                    shiftedSample = i[j - pitch:j]
-                else:
-                    sample = i[base:base + pitch]
-                    shiftedSample = i[j:j + pitch]
-                newError = torch.sum(torch.pow(sample - shiftedSample, 2))
-                if error > newError:
-                    transition = j.item()
-                    error = newError
-            upTransitionMarkers = torch.cat((upTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
-            base = transition
-
-        zeroTransitions = torch.tensor([], dtype = int)
-        for j in range(1, i.size()[0]):
-            if (i[j-1] >= 0) and (i[j] < 0):
-                zeroTransitions = torch.cat([zeroTransitions, torch.tensor([j])], 0)
-        error = math.inf
-        base = 0
-        while base < global_consts.tripleBatchSize * global_consts.filterBSMult - pitch:
-            validTransitions = []
-            transition = base + pitch
-            for j in zeroTransitions:
-                if j > base + 1.5 * pitch:
-                    break
-                if j > base + 0.5 * pitch:
-                    validTransitions.append(j)
-            for j in validTransitions:
-                if j + pitch > global_consts.tripleBatchSize * global_consts.filterBSMult:
-                    if pitch > base:
-                        continue
-                    sample = i[base - pitch:base]
-                    shiftedSample = i[j - pitch:j]
-                else:
-                    sample = i[base:base + pitch]
-                    shiftedSample = i[j:j + pitch]
-                newError = torch.sum(torch.pow(sample - shiftedSample, 2))
-                if error > newError:
-                    transition = j.item()
-                    error = newError
-            downTransitionMarkers = torch.cat((downTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
-            base = transition
-
-        length = min(len(upTransitionMarkers), len(downTransitionMarkers))
-        upTransitionMarkers = upTransitionMarkers[:length]
-        downTransitionMarkers = downTransitionMarkers[:length]
-
-        for j in range(length - 1):
-            window = i[upTransitionMarkers[j] - 1:upTransitionMarkers[j + 1] + 1]
-            convKernel = torch.tensor([1., 1.5, 1.])
-            scores = torch.tensor([])
-            for k in range(window.size()[0] - 3):
-                scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
-            maximumMarkers = torch.cat((maximumMarkers, torch.unsqueeze(torch.argmax(scores) + upTransitionMarkers[j], 0)), 0)
-
-        window = i[upTransitionMarkers[-1] - 1:-1]
-        if window.size()[0] >= pitch / 2:
-            convKernel = torch.tensor([1., 1.5, 1.])
-            scores = torch.tensor([])
-            for k in range(window.size()[0] - 3):
-                scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
-            maximumMarkers = torch.cat((maximumMarkers, torch.unsqueeze(torch.argmax(scores) + upTransitionMarkers[-1], 0)), 0)
-            skip = False
-        else:
-            upTransitionMarkers = upTransitionMarkers[:-1]
-            downTransitionMarkers = downTransitionMarkers[:-1]
-            length -= 1
-            skip = True
-
-        for j in range(length - 1):
-            window = i[downTransitionMarkers[j] - 1:downTransitionMarkers[j + 1] + 1]
-            convKernel = torch.tensor([-1., -1.5, -1.])
-            scores = torch.tensor([])
-            for k in range(window.size()[0] - 3):
-                scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
-            minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[j], 0)), 0)
-
-        window = i[downTransitionMarkers[-1] - 1:-1]
-        if window.size()[0] >= pitch / 2 or skip:
-            convKernel = torch.tensor([-1., -1.5, -1.])
-            scores = torch.tensor([])
-            for k in range(window.size()[0] - 3):
-                scores = torch.cat((scores, torch.unsqueeze(torch.sum(window[k:k+3] * convKernel), 0)), 0)
-            minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[-1], 0)), 0)
-        else:
-            upTransitionMarkers = upTransitionMarkers[:-1]
-            downTransitionMarkers = downTransitionMarkers[:-1]
-            length -= 1
-
-        markers = torch.tensor([])
-        for j in range(length):
-            markers = torch.cat((markers, torch.unsqueeze((upTransitionMarkers[j] + downTransitionMarkers[j] + maximumMarkers[j] + minimumMarkers[j]) / 4, 0)), 0)
+        markers = DIOPitchMarkers(audioSample, i, counter)
+        length = len(markers)
         if length == 1:
             #fallback
             print("case")
+            counter += 1
             continue
         interpolationPoints = interp(torch.linspace(0, len(markers) - 1, len(markers)), markers, torch.linspace(0, len(markers) - 1, (len(markers) - 1) * global_consts.nHarmonics + 1))
         interpolatedWave = interp(torch.linspace(0, i.size()[0] - 1, i.size()[0]), i, interpolationPoints)
@@ -288,13 +254,21 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
 
         for j in range(length - 1):
             harmFunction = torch.cat((harmFunction, torch.unsqueeze(torch.fft.rfft(interpolatedWave[j * global_consts.nHarmonics:(j + 1) * global_consts.nHarmonics]), -1)), 1)
-        phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1) / math.pi
-        adjustedAmplitudes = harmFunction.abs() * torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1)
-        harmFunction = torch.cat((adjustedAmplitudes, harmFunction.angle()), 0)
-        harmFunction = torch.polar(harmFunction[:int(global_consts.nHarmonics / 2) + 1], harmFunction[int(global_consts.nHarmonics / 2) + 1:])
+
+        amplitudes = harmFunction.abs()
+        amplitudeContinuity = calculateAmplitudeContinuity(amplitudes)
+        phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
+        phaseContinuity = torch.pow(phaseContinuity, 2)
+        adjustedAmplitudes = amplitudeContinuity# * torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1)
+        harmFunction = torch.polar(adjustedAmplitudes, harmFunction.angle())
         harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (length - 1) * global_consts.nHarmonics, center = False, onesided = True, return_complex = False)
         harmFunction = harmFunction[:, math.floor((length - 1) / 2)]
-        
+
+        """if counter >= 90:
+            plt.plot(interpolatedWave)
+            plt.plot(harmFunctionFull)
+            plt.show()"""
+
         offharm = (interpolatedWave[:-1] - harmFunctionFull)
         offharm = extrap(interpolationPoints[:-1], offharm, torch.linspace(0, i.size()[0] - 1, i.size()[0]))
         offharm = offharm[int(global_consts.tripleBatchSize * (global_consts.filterBSMult - 1) / 2):int(global_consts.tripleBatchSize * (global_consts.filterBSMult + 1) / 2)]
@@ -303,8 +277,9 @@ def dioPitchMarkers(audioSample:AudioSample) -> list:
         harmFunction = phaseShiftFourier(harmFunction, markers[0].item() / global_consts.nHarmonics, torch.device("cpu"))
         harmFunction = torch.cat((harmFunction.abs(), harmFunction.angle()), 0)
         audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
-        audioSample.phases[counter] = audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1]
+        #audioSample.phases[counter] = audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1]
         counter += 1
+    torchaudio.save("test.wav", torch.istft(audioSample.excitation.transpose(0, 1), n_fft = global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = torch.hann_window(global_consts.tripleBatchSize)).unsqueeze(-1), global_consts.sampleRate, False, format = "wav")
     plt.plot(torch.istft(audioSample.excitation.transpose(0, 1), n_fft = global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = torch.hann_window(global_consts.tripleBatchSize)))
     plt.show()
     return audioSample

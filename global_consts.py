@@ -14,6 +14,8 @@ halfTripleBatchSize = 288
 
 #analysis spectral processing
 filterBSMult = 2
+DIOBias = 0.4
+DIOLowpass = 1.
 filterTEEMult = 32
 filterHRSSMult = 4
 nFormants = 50
