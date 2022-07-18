@@ -22,7 +22,7 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     diffB = diff - 2 * math.pi
     mask = torch.ge(diff.abs(), diffB.abs())
     diff -= mask.to(torch.float) * 2 * math.pi
-    diff[:, 0] = 0.
+    #diff[:, 0] = 0.
     diff = torch.abs(diff)
     return 1. - (diff / math.pi)
 
@@ -35,11 +35,8 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor) -> torch.Tensor:
     amplitudeContinuity[:,1:-1] = amplitudeContinuity[:,1:-1] / 3.
     amplitudeContinuity[:, 0] = amplitudeContinuity[:, 0] / 2.
     amplitudeContinuity[:, -1] = amplitudeContinuity[:, -1] / 2.
-    #amplitudeContinuity /= amplitudes
-    #plt.plot(amplitudeContinuity)
-    #plt.show()
-    #amplitudeContinuity *= torch.exp(-1 * global_consts.DIOTolerance * amplitudeContinuity) * global_consts.DIOTolerance * math.e
-    amplitudeContinuity = torch.cos((torch.min(amplitudeContinuity / amplitudes, amplitudes / amplitudeContinuity) - 1) * math.pi / 2.)
+    amplitudeContinuity /= amplitudes
+    #amplitudeContinuity = torch.cos((torch.min(amplitudeContinuity / amplitudes, amplitudes / amplitudeContinuity) - 1) * math.pi / 2.)
     return amplitudeContinuity
 
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
@@ -112,13 +109,15 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
     derrs = torch.index_select(window, 0, downTransitionCandidates) - torch.index_select(window, 0, downTransitionCandidates - 1)
     downTransitionMarkers = torch.unsqueeze(downTransitionCandidates[torch.argmin(derrs)], 0)
 
-    base = 0
-    while base < global_consts.tripleBatchSize * global_consts.filterBSMult - pitch:
+    while downTransitionMarkers[-1] < global_consts.tripleBatchSize * global_consts.filterBSMult - pitch * global_consts.DIOLastWinTolerance:
         error = math.inf
         validTransitions = []
-        transition = upTransitionMarkers[-1] + pitch
+        if upTransitionMarkers.size()[0] > 1:
+            transition = downTransitionMarkers[-1] + upTransitionMarkers[-1] - upTransitionMarkers[-2]
+        else:
+            transition = upTransitionMarkers[-1] + pitch
         for j in zeroTransitionsUp:
-            if j > upTransitionMarkers[-1] + (1 + global_consts.DIOTolerance) * pitch:
+            if j > min(upTransitionMarkers[-1] + (1 + global_consts.DIOTolerance) * pitch, global_consts.tripleBatchSize * global_consts.filterBSMult):
                 break
             if j > max(downTransitionMarkers[-1], upTransitionMarkers[-1] + (1 - global_consts.DIOTolerance) * pitch):
                 validTransitions.append(j)
@@ -131,7 +130,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
             else:
                 sample = window[upTransitionMarkers[-1]:upTransitionMarkers[-1] + pitch]
                 shiftedSample = window[j:j + pitch]
-            newError = torch.sum(torch.pow(sample - shiftedSample, 2))# * ((j - upTransitionMarkers[-1] - pitch) * 0.5 + 0.5)
+            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * ((j - upTransitionMarkers[-1]) / pitch * 0.5 + 0.5)
             if error > newError:
                 transition = j.item()
                 error = newError
@@ -139,9 +138,12 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
 
         error = math.inf
         validTransitions = []
-        transition = downTransitionMarkers[-1] + pitch
+        if downTransitionMarkers.size()[0] > 1:
+            transition = upTransitionMarkers[-1] + downTransitionMarkers[-1] - downTransitionMarkers[-2]
+        else:
+            transition = downTransitionMarkers[-1] + pitch
         for j in zeroTransitionsDown:
-            if j > downTransitionMarkers[-1] + (1 + global_consts.DIOTolerance) * pitch:
+            if j > min(downTransitionMarkers[-1] + (1 + global_consts.DIOTolerance) * pitch, global_consts.tripleBatchSize * global_consts.filterBSMult):
                 break
             if j > max(upTransitionMarkers[-1], downTransitionMarkers[-1] + (1 - global_consts.DIOTolerance) * pitch):
                 validTransitions.append(j)
@@ -154,16 +156,16 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
             else:
                 sample = window[downTransitionMarkers[-1]:downTransitionMarkers[-1] + pitch]
                 shiftedSample = window[j:j + pitch]
-            newError = torch.sum(torch.pow(sample - shiftedSample, 2))# * ((j - downTransitionMarkers[-1] - pitch) * 0.5 + 0.5)
+            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * ((j - downTransitionMarkers[-1]) / pitch * 0.5 + 0.5)
             if error > newError:
                 transition = j.item()
                 error = newError
         downTransitionMarkers = torch.cat((downTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
-        base = transition
 
-    length = min(len(upTransitionMarkers), len(downTransitionMarkers))
-    upTransitionMarkers = upTransitionMarkers[:length]
-    downTransitionMarkers = downTransitionMarkers[:length]
+    if downTransitionMarkers[-1] > global_consts.tripleBatchSize * global_consts.filterBSMult:
+        upTransitionMarkers = upTransitionMarkers[:-1]
+        downTransitionMarkers = downTransitionMarkers[:-1]
+    length = len(upTransitionMarkers)
 
     for j in range(length):
         workingWindow = window[upTransitionMarkers[j] - 2:downTransitionMarkers[j] + 1]
@@ -181,7 +183,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
             bias = 1. - (global_consts.DIOBias * k / (workingWindow.size()[0] - 2))
             scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
         minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[j], 0)), 0)
-    if workingWindow.size()[0] - downTransitionMarkers[-1] >= pitch * global_consts.DIOLastWinTolerance:
+    if window.size()[0] - downTransitionMarkers[-1] > pitch * global_consts.DIOLastWinTolerance:
         workingWindow = window[downTransitionMarkers[-1] - 2:-1]
         convKernel = torch.tensor([-1., -1.1, -1.])
         scores = torch.tensor([])
@@ -190,20 +192,21 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
             scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
         minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[-1], 0)), 0)
     else:
-        upTransitionMarkers = upTransitionMarkers[:-1]
-        downTransitionMarkers = downTransitionMarkers[:-1]
-        length -= 1
+        marker = minimumMarkers[-1] + torch.mean(torch.tensor((upTransitionMarkers[-1] - upTransitionMarkers[-2], downTransitionMarkers[-1] - downTransitionMarkers[-2], maximumMarkers[-1] - maximumMarkers[-2]), dtype = torch.float32))
+        minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(marker, 0)), 0)
 
-    """plt.plot(window)
-    plt.vlines(upTransitionMarkers, -1., 1., color = "red")
-    plt.vlines(downTransitionMarkers, -1., 1., color = "green")
-    plt.vlines(maximumMarkers, -1., 1., color = "blue")
-    plt.vlines(minimumMarkers, -1., 1., color = "black")
-    plt.show()"""
-
+    """if counter >= 85:
+        plt.plot(window)
+        plt.vlines(upTransitionMarkers, -1., 1., color = "red")
+        plt.vlines(downTransitionMarkers, -1., 1., color = "green")
+        plt.vlines(maximumMarkers, -1., 1., color = "blue")
+        plt.vlines(minimumMarkers, -1., 1., color = "black")
+        plt.show()"""
     markers = torch.tensor([])
     for j in range(length):
         markers = torch.cat((markers, torch.unsqueeze((upTransitionMarkers[j] + downTransitionMarkers[j] + maximumMarkers[j] + minimumMarkers[j]) / 4, 0)), 0)
+    if markers[-1] >= global_consts.tripleBatchSize * global_consts.filterBSMult - 1:
+        markers = markers[:-1]
     return markers
 
 def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
@@ -242,11 +245,6 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         harmFunction = torch.polar(amplitudes, harmFunction.angle())
         harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (length - 1) * global_consts.nHarmonics, center = False, onesided = True, return_complex = False)
         harmFunction = harmFunction[:, math.floor((length - 1) / 2)]
-
-        """if counter >= 90:
-            plt.plot(interpolatedWave)
-            plt.plot(harmFunctionFull)
-            plt.show()"""
 
         offharm = (interpolatedWave[:-1] - harmFunctionFull)
         offharm = extrap(interpolationPoints[:-1], offharm, torch.linspace(0, i.size()[0] - 1, i.size()[0]))

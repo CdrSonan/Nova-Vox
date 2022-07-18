@@ -13,9 +13,9 @@ tripleBatchSize = 576
 halfTripleBatchSize = 288
 
 #analysis spectral processing
-filterBSMult = 3
+filterBSMult = 2
 DIOBias = 0.4
-DIOTolerance = 2.
+DIOTolerance = 0.2
 DIOLastWinTolerance = 0.9
 filterTEEMult = 32
 filterHRSSMult = 4
