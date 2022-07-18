@@ -21,7 +21,6 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     diffB = diff - 2 * math.pi
     mask = torch.ge(diff.abs(), diffB.abs())
     diff -= mask.to(torch.float) * 2 * math.pi
-    #diff[:, 0] = 0.
     diff = torch.abs(diff)
     return 1. - (diff / math.pi)
 
@@ -132,7 +131,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
             else:
                 sample = window[upTransitionMarkers[-1]:upTransitionMarkers[-1] + pitch]
                 shiftedSample = window[j:j + pitch]
-            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * ((j - upTransitionMarkers[-1]) / pitch * 0.5 + 0.5)
+            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * ((j - upTransitionMarkers[-1]) / pitch * global_consts.DIOBias + 1. - global_consts.DIOBias)
             if error > newError:
                 transition = j.item()
                 error = newError
@@ -158,7 +157,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
             else:
                 sample = window[downTransitionMarkers[-1]:downTransitionMarkers[-1] + pitch]
                 shiftedSample = window[j:j + pitch]
-            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * ((j - downTransitionMarkers[-1]) / pitch * 0.5 + 0.5)
+            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * ((j - downTransitionMarkers[-1]) / pitch * global_consts.DIOBias + 1. - global_consts.DIOBias)
             if error > newError:
                 transition = j.item()
                 error = newError
@@ -197,13 +196,6 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
         marker = minimumMarkers[-1] + torch.mean(torch.tensor((upTransitionMarkers[-1] - upTransitionMarkers[-2], downTransitionMarkers[-1] - downTransitionMarkers[-2], maximumMarkers[-1] - maximumMarkers[-2]), dtype = torch.float32))
         minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(marker, 0)), 0)
 
-    """if counter >= 85:
-        plt.plot(window)
-        plt.vlines(upTransitionMarkers, -1., 1., color = "red")
-        plt.vlines(downTransitionMarkers, -1., 1., color = "green")
-        plt.vlines(maximumMarkers, -1., 1., color = "blue")
-        plt.vlines(minimumMarkers, -1., 1., color = "black")
-        plt.show()"""
     markers = torch.tensor([])
     for j in range(length):
         markers = torch.cat((markers, torch.unsqueeze((upTransitionMarkers[j] + downTransitionMarkers[j] + maximumMarkers[j] + minimumMarkers[j]) / 4, 0)), 0)
