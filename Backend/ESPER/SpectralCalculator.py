@@ -32,8 +32,7 @@ def calculateSpectra(audioSample:AudioSample) -> None:
     #audioSample = separateVoicedUnvoiced(audioSample, signals, resonanceFunction, phaseContinuity) !!!replace!!!
     #signalsAbs, audioSample = transformHighRestoStdRes(audioSample)
     audioSample = separateVoicedUnvoiced(audioSample)
-    signalsAbs = audioSample.excitation.abs()
-    signalsAbs = torch.sqrt(torch.transpose(signalsAbs, 0, 1))
+    signalsAbs = torch.sqrt(audioSample.excitation.abs())
     lowSpectra = lowRangeSmooth(audioSample, signalsAbs)
     highSpectra = highRangeSmooth(audioSample, signalsAbs)
     audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)

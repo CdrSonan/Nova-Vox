@@ -3,7 +3,6 @@ from Backend.DataHandler.AudioSample import AudioSample
 from Backend.Resampler.CubicSplineInter import interp, extrap
 from Backend.Resampler.PhaseShift import phaseShiftFourier
 import torch
-from torchaudio.functional import lowpass_biquad
 import global_consts
 import math
 
@@ -86,7 +85,7 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
         audioSample.specharm[i, global_consts.nHarmonics + 2:] -= audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]
         audioSample.specharm[i, :int(global_consts.nHarmonics / 2) + 1] -= audioSample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1]
 
-    audioSample.excitation = torch.transpose(audioSample.excitation, 0, 1) / torch.square(audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[1], global_consts.nHarmonics + 2:])
+    audioSample.excitation = audioSample.excitation / torch.square(audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[1], global_consts.nHarmonics + 2:])
 
 def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -> list:
     pitch = audioSample.pitchDeltas[counter]
@@ -108,6 +107,9 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
     downTransitionCandidates = zeroTransitionsDown[torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0]):torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0] + pitch)]
     derrs = torch.index_select(window, 0, downTransitionCandidates) - torch.index_select(window, 0, downTransitionCandidates - 1)
     downTransitionMarkers = torch.unsqueeze(downTransitionCandidates[torch.argmin(derrs)], 0)
+
+    print(zeroTransitionsUp)
+    print(zeroTransitionsDown)
 
     while downTransitionMarkers[-1] < global_consts.tripleBatchSize * global_consts.filterBSMult - pitch * global_consts.DIOLastWinTolerance:
         error = math.inf
@@ -162,7 +164,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
                 error = newError
         downTransitionMarkers = torch.cat((downTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
 
-    if downTransitionMarkers[-1] > global_consts.tripleBatchSize * global_consts.filterBSMult:
+    if downTransitionMarkers[-1] >= global_consts.tripleBatchSize * global_consts.filterBSMult:
         upTransitionMarkers = upTransitionMarkers[:-1]
         downTransitionMarkers = downTransitionMarkers[:-1]
     length = len(upTransitionMarkers)

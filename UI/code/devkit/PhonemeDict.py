@@ -289,17 +289,13 @@ class PhonemedictUi(tkinter.Frame):
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
         spectrum = loadedVB.phonemeDict[key].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + loadedVB.phonemeDict[key].specharm[value, global_consts.nHarmonics + 2:]
-        window = torch.hann_window(global_consts.tripleBatchSize)
-        #voicedExcitation = torch.stft(loadedVB.phonemeDict[key].voicedExcitation, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, return_complex = True, onesided = True)
-        #voicedExcitation = torch.abs(voicedExcitation[:, value]) * spectrum
         harmonics = loadedVB.phonemeDict[key].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1] + loadedVB.phonemeDict[key].specharm[value, :int(global_consts.nHarmonics / 2) + 1]
-        print(harmonics)
         excitation = torch.abs(loadedVB.phonemeDict[key].excitation[value]) * spectrum
         xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
         harmScale = torch.linspace(0, global_consts.nHarmonics / 2 * global_consts.sampleRate / loadedVB.phonemeDict[key].pitchDeltas[value], int(global_consts.nHarmonics / 2) + 1)
-        self.diagram.ax.plot(xScale, excitation, label = loc["excitation"])
-        self.diagram.ax.vlines(harmScale, 0., harmonics, label = loc["vExcitation"])
-        self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"])
+        self.diagram.ax.plot(xScale, excitation, label = loc["excitation"], color = "red")
+        self.diagram.ax.vlines(harmScale, 0., harmonics, label = loc["vExcitation"], color = "blue")
+        self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"], color = "orange")
         self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
         self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
