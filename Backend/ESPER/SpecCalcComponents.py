@@ -22,16 +22,24 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     diffB = diff - 2 * math.pi
     mask = torch.ge(diff.abs(), diffB.abs())
     diff -= mask.to(torch.float) * 2 * math.pi
+    diff[:, 0] = 0.
     diff = torch.abs(diff)
     return 1. - (diff / math.pi)
 
 def calculateAmplitudeContinuity(amplitudes:torch.Tensor) -> torch.Tensor:
+    if amplitudes.size()[1] == 1:
+        return torch.ones_like(amplitudes)
     amplitudeContinuity = amplitudes.clone()
-    amplitudeContinuity[:,1:] += torch.roll(amplitudes, 1, 1)[:,1:]
-    amplitudeContinuity[:,:-1] += torch.roll(amplitudes, -1, 1)[:,:-1]
+    amplitudeContinuity[:,1:] += amplitudes[:, :-1]
+    amplitudeContinuity[:,:-1] += amplitudes[:, 1:]
     amplitudeContinuity[:,1:-1] = amplitudeContinuity[:,1:-1] / 3.
     amplitudeContinuity[:, 0] = amplitudeContinuity[:, 0] / 2.
     amplitudeContinuity[:, -1] = amplitudeContinuity[:, -1] / 2.
+    #amplitudeContinuity /= amplitudes
+    #plt.plot(amplitudeContinuity)
+    #plt.show()
+    #amplitudeContinuity *= torch.exp(-1 * global_consts.DIOTolerance * amplitudeContinuity) * global_consts.DIOTolerance * math.e
+    amplitudeContinuity = torch.cos((torch.min(amplitudeContinuity / amplitudes, amplitudes / amplitudeContinuity) - 1) * math.pi / 2.)
     return amplitudeContinuity
 
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
@@ -230,8 +238,8 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         amplitudeContinuity = calculateAmplitudeContinuity(amplitudes)
         phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
         phaseContinuity = torch.pow(phaseContinuity, 2)
-        adjustedAmplitudes = amplitudeContinuity * torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1)
-        harmFunction = torch.polar(adjustedAmplitudes, harmFunction.angle())
+        amplitudes *= amplitudeContinuity * torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1)
+        harmFunction = torch.polar(amplitudes, harmFunction.angle())
         harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (length - 1) * global_consts.nHarmonics, center = False, onesided = True, return_complex = False)
         harmFunction = harmFunction[:, math.floor((length - 1) / 2)]
 
