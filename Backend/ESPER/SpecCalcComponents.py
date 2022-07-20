@@ -114,7 +114,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
         error = math.inf
         validTransitions = []
         if upTransitionMarkers.size()[0] > 1:
-            transition = downTransitionMarkers[-1] + upTransitionMarkers[-1] - upTransitionMarkers[-2]
+            transition = upTransitionMarkers[-1] + downTransitionMarkers[-1] - downTransitionMarkers[-2]
         else:
             transition = upTransitionMarkers[-1] + pitch
         for j in zeroTransitionsUp:
@@ -137,12 +137,11 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
                 error = newError
         upTransitionMarkers = torch.cat((upTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
 
+        print(upTransitionMarkers, downTransitionMarkers, validTransitions)
+
         error = math.inf
         validTransitions = []
-        if downTransitionMarkers.size()[0] > 1:
-            transition = upTransitionMarkers[-1] + downTransitionMarkers[-1] - downTransitionMarkers[-2]
-        else:
-            transition = downTransitionMarkers[-1] + pitch
+        transition = downTransitionMarkers[-1] + upTransitionMarkers[-1] - upTransitionMarkers[-2]
         for j in zeroTransitionsDown:
             if j > min(downTransitionMarkers[-1] + (1 + global_consts.DIOTolerance) * pitch, global_consts.tripleBatchSize * global_consts.filterBSMult):
                 break
@@ -162,6 +161,8 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
                 transition = j.item()
                 error = newError
         downTransitionMarkers = torch.cat((downTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
+
+        print(upTransitionMarkers, downTransitionMarkers, validTransitions)
 
     if downTransitionMarkers[-1] >= global_consts.tripleBatchSize * global_consts.filterBSMult:
         upTransitionMarkers = upTransitionMarkers[:-1]
