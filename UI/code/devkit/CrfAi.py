@@ -2,8 +2,10 @@ import logging
 import tkinter
 import torch
 import sys
+from os import path, system
 
 from Locale.devkit_locale import getLocale
+from MiddleLayer.IniParser import readSettings
 loc = getLocale()
 
 class CrfaiUi(tkinter.Frame):
@@ -94,6 +96,16 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.epochs.display.pack(side = "right", fill = "x")
         self.sideBar.epochs.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
+        self.sideBar.logging = tkinter.Frame(self.sideBar)
+        self.sideBar.logging.variable = tkinter.BooleanVar(self.sideBar.logging, False)
+        self.sideBar.logging.entry = tkinter.Checkbox()
+        self.sideBar.logging.entry["variable"] = self.sideBar.logging.variable
+        self.sideBar.logging.entry.pack(side = "right", fill = "x")
+        self.sideBar.logging.display = tkinter.Label(self.sideBar.logging)
+        self.sideBar.logging.display["text"] = loc["logging"]
+        self.sideBar.logging.display.pack(side = "right", fill = "x")
+        self.sideBar.logging.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
         self.sideBar.exportButton = tkinter.Button(self.sideBar)
         self.sideBar.exportButton["text"] = loc["ai_smp_export"]
         self.sideBar.exportButton["command"] = self.onExportPress
@@ -113,6 +125,11 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.finalizeButton["text"] = loc["finalize"]
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+
+        self.sideBar.tensorBoardButton = tkinter.Button(self.sideBar)
+        self.sideBar.tensorBoardButton["text"] = loc["finalize"]
+        self.sideBar.tensorBoardButton["command"] = lambda : system("tensorboard.exe --" + path.join(readSettings()["dataDir"], "Nova-Vox", "Logs"))
+        self.sideBar.tensorBoardButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
         if loadedVB.crfAi.epoch == None:
             epoch = loc["varying"]
@@ -198,7 +215,7 @@ class CrfaiUi(tkinter.Frame):
         global loadedVB
         self.statusVar.set("training Ai...")
         self.update()
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get(), self.sideBar.expPitch.variable.get(), self.sideBar.pSearchRange.variable.get())
+        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get(), self.sideBar.expPitch.variable.get(), self.sideBar.pSearchRange.variable.get(), self.sideBar.logging.variable.get())
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             loadedVB.delTrainSample(0)

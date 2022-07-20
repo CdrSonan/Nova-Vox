@@ -1,11 +1,14 @@
 from typing import OrderedDict
 import numpy as np
 import math
+from os import path, getenv
 import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 import global_consts
 from Backend.Resampler.PhaseShift import phaseInterp
+from MiddleLayer.IniParser import readSettings
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 
@@ -95,7 +98,7 @@ class SpecCrfAi(nn.Module):
         #self.criterion = RelLoss()
         self.epoch = 0
         self.sampleCount = 0
-        self.loss = None
+        self.loss = 0
 
         self.pred = SpecPredAI(device, learningRate)
         self.currPrediction = torch.zeros((1, 1, halfHarms + global_consts.halfTripleBatchSize + 1), device = device)
@@ -210,7 +213,7 @@ class SpecCrfAi(nn.Module):
         output = torch.square(torch.squeeze(self(torch.sqrt(specharm1), torch.sqrt(specharm2), torch.sqrt(specharm3), torch.sqrt(specharm4), factor)))
         return output
     
-    def train(self, indata, epochs:int=1) -> None:
+    def train(self, indata, epochs:int=1, logging:bool = False) -> None:
         """NN training with forward and backward passes, Loss criterion and optimizer runs based on a dataset of spectral transition samples.
         
         Arguments:
@@ -223,7 +226,13 @@ class SpecCrfAi(nn.Module):
             
         Like processData(), train() also takes the square root of the input internally before using the data for inference."""
         
-        self.pred.train(indata, epochs)
+        if logging:
+            writer = SummaryWriter(path.join(getenv("APPDATA"), "Nova-Vox", "Logs"))
+            writer.add_graph(self, indata[0])
+        else:
+            writer = None
+
+        self.pred.train(indata, epochs, writer)
         if indata != False:
             if (self.epoch == 0) or self.epoch == epochs:
                 self.epoch = epochs
@@ -261,9 +270,22 @@ class SpecCrfAi(nn.Module):
                         self.optimizer.zero_grad()
                         loss.backward()
                         self.optimizer.step()
+                        writer.add_scalar("Main DNN loss", loss.data)
                         print('Main DNN: epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
             self.sampleCount += len(indata)
-            self.loss = loss
+            self.loss = (self.loss * 99 + loss.data) / 100
+            hparams = dict()
+            hparams["Main DNN epochs"] = epochs
+            hparams["learning rate"] = self.learningRate
+            hparams["hidden layer count"] = self.hiddenLayerCount
+            metrics = dict()
+            metrics["acc. sample count"] = self.sampleCount
+            metrics["wtd. main DNN train loss"] = self.loss
+            writer.add_hparams(hparams, metrics)
+        writer.close()
+
+    def test(self, writer:SummaryWriter = None) -> None:
+        pass
 
     def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
         self.pred.state[0].detach()
@@ -574,6 +596,7 @@ class SpecPredAI(nn.Module):
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
         self.criterion = nn.L1Loss()
+        self.loss = 0
         self.state = (torch.zeros((2, 1, recSize), device = device), torch.zeros((2, 1, recSize), device = device))
 
         self.threshold = torch.nn.Threshold(0.001, 0.001)
@@ -618,12 +641,11 @@ class SpecPredAI(nn.Module):
         x, self.state = self.sharedRecurrency(x, self.state)
         return x
 
-    def train(self, indata, epochs:int=1) -> None:
+    def train(self, indata, epochs:int=1, writer:SummaryWriter = None) -> None:
         if indata == False:
             return
         for epoch in range(epochs):
             for data in self.dataLoader(indata):
-                print(data.size())
                 self.resetState()
                 input = torch.cat((data[:, :-1, :halfHarms], data[:, :-1, 2 * halfHarms:]), 2)
                 target = torch.cat((data[:, 1:, :halfHarms], data[:, 1:, 2 * halfHarms:]), 2)
@@ -634,7 +656,14 @@ class SpecPredAI(nn.Module):
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
+                self.loss = (self.loss * 99 + loss.data) / 100
+                writer.add_scalar("LSTM Predictor loss", loss.data)
                 print('LSTM Predictor: epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
+        hparams = dict()
+        hparams["LSTM Predictor epochs"] = epochs
+        metrics = dict()
+        metrics["wtd. LSTM Pred. train loss"] = self.loss
+        writer.add_hparams(hparams, metrics)
 
     def resetState(self) -> None:
         recSize =  halfHarms + global_consts.halfTripleBatchSize + 1

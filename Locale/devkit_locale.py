@@ -60,6 +60,8 @@ def getLocale():
         locale["fwidth"] = "spectral filter width:"
         locale["vfilter"] = "voiced excitation filter strength:"
         locale["uviter"] = "unvoiced excitation filter iterations:"
+        locale["logging"] = "use TensorBoard logging"
+        locale["tensorBoard"] = "launch TensorBoard"
         locale["voiced"] = "is voiced phoneme"
         locale["plosive"] = "is plosive-like phoneme"
         locale["spec_brdc"] = "apply spectral settings to all"

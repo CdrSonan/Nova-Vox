@@ -224,7 +224,7 @@ class Voicebank():
 
         self.stagedTrainSamples[index] = AudioSample(filepath)
     
-    def trainCrfAi(self, epochs:int, additive:bool, unvoicedIterations:int, expPitch:float, pSearchRange:float) -> None:
+    def trainCrfAi(self, epochs:int, additive:bool, unvoicedIterations:int, expPitch:float, pSearchRange:float, logging:bool = False) -> None:
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
         
         Arguments:
@@ -243,6 +243,7 @@ class Voicebank():
         print("sample preprocessing started")
         sampleCount = len(self.stagedTrainSamples)
         for i in range(sampleCount):
+            print("processing sample [", i + 1, "/", sampleCount, "]")
             self.stagedTrainSamples[i].expectedPitch = expPitch
             self.stagedTrainSamples[i].searchRange = pSearchRange
             self.stagedTrainSamples[i].voicedFilter = 1
@@ -253,7 +254,7 @@ class Voicebank():
             self.stagedTrainSamples[i] = (avgSpecharm + self.stagedTrainSamples[i].specharm).to(device = self.device)
         print("sample preprocessing complete")
         print("AI training started")
-        self.crfAi.train(self.stagedTrainSamples, epochs = epochs)
+        self.crfAi.train(self.stagedTrainSamples, epochs = epochs, logging = logging)
         print("AI training complete")
         
     def finalizCrfAi(self) -> None:
