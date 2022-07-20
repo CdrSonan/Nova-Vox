@@ -231,7 +231,7 @@ class SpecCrfAi(nn.Module):
                 self.epoch = None
             for epoch in range(epochs):
                 for data in self.dataLoader(indata):
-                    print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
+                    print('Main DNN: epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
                     data = torch.sqrt(data.to(device = self.device))
                     data = data.to(device = self.device)
                     data = torch.squeeze(data)
@@ -261,14 +261,14 @@ class SpecCrfAi(nn.Module):
                         self.optimizer.zero_grad()
                         loss.backward()
                         self.optimizer.step()
-                        print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
+                        print('Main DNN: epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
             self.sampleCount += len(indata)
             self.loss = loss
 
     def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
         self.pred.state[0].detach()
         self.pred.state[1].detach()
-        return self.pred.processData(specharm)
+        return self.pred.processData(specharm).detach()
 
     def resetSpecPred(self) -> None:
         self.pred.resetState()
@@ -492,7 +492,7 @@ class LiteSpecCrfAi(nn.Module):
     def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
         self.pred.state[0].detach()
         self.pred.state[1].detach()
-        return self.pred.processData(specharm)
+        return self.pred.processData(specharm).detach()
 
     def resetSpecPred(self) -> None:
         self.pred.resetState()
@@ -565,7 +565,7 @@ class SpecPredAI(nn.Module):
         self.ReLuHarm1 = nn.ReLU()
         self.ReLuSpec1 = nn.ReLU()
         recSize =  halfHarms + global_consts.halfTripleBatchSize + 1
-        self.sharedRecurrency = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = 2)
+        self.sharedRecurrency = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = 2, batch_first = True)
         self.layer2Harm = torch.nn.Linear(halfHarms, halfHarms)
         self.layer2Spec = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
         self.layer3Harm = torch.nn.Linear(halfHarms, halfHarms)
@@ -576,32 +576,34 @@ class SpecPredAI(nn.Module):
         self.criterion = nn.L1Loss()
         self.state = (torch.zeros((2, 1, recSize), device = device), torch.zeros((2, 1, recSize), device = device))
 
+        self.threshold = torch.nn.Threshold(0.001, 0.001)
+
     def forward(self, specharm:torch.Tensor) -> torch.Tensor:
-        harmonics = specharm[:halfHarms]
-        spectrum = specharm[halfHarms:]
-        spectrum = torch.unsqueeze(spectrum)
-        harmonics = torch.unsqueeze(harmonics)
+        harmonics = specharm[:, :halfHarms]
+        spectrum = specharm[:, halfHarms:]
         harmonics = self.layer1Harm(harmonics)
         spectrum = self.layer1Spec(spectrum)
         harmonics = self.ReLuHarm1(harmonics)
         spectrum = self.ReLuSpec1(spectrum)
-        x = torch.cat((harmonics, spectrum), 0)
+        x = torch.cat((harmonics, spectrum), 1)
+        x = torch.unsqueeze(x, 0)
         x, self.state = self.sharedRecurrency(x, self.state)
-        harmonics = x[:halfHarms]
-        spectrum = x[halfHarms:]
+        x = torch.squeeze(x)
+        harmonics = x[:, :halfHarms]
+        spectrum = x[:, halfHarms:]
         harmonics = self.layer2Harm(harmonics)
         spectrum = self.layer2Spec(spectrum)
         harmonics = self.layer3Harm(harmonics)
         spectrum = self.layer3Spec(spectrum)
 
         spectralFilterWidth = 4 * global_consts.filterTEEMult
-        spectrum = torch.fft.rfft(spectrum, dim = 0)
+        spectrum = torch.fft.rfft(spectrum, dim = 1)
         cutoffWindow = torch.zeros_like(spectrum)
-        cutoffWindow[0:int(spectralFilterWidth / 2)] = 1.
-        cutoffWindow[int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
-        spectrum = torch.fft.irfft(cutoffWindow * spectrum, dim = 0, n = global_consts.halfTripleBatchSize + 1)
+        cutoffWindow[:, 0:int(spectralFilterWidth / 2)] = 1.
+        cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
+        spectrum = torch.fft.irfft(cutoffWindow * spectrum, dim = 1, n = global_consts.halfTripleBatchSize + 1)
         spectrum = self.threshold(spectrum)
-        return torch.cat((harmonics, spectrum), 0)
+        return torch.cat((harmonics, spectrum), 1)
 
     def processData(self, specharm:torch.Tensor) -> torch.Tensor:
         harmonics = specharm[:halfHarms]
@@ -621,15 +623,18 @@ class SpecPredAI(nn.Module):
             return
         for epoch in range(epochs):
             for data in self.dataLoader(indata):
+                print(data.size())
                 self.resetState()
-                for i in range(len(data) - 1):
-                    input = torch.cat((data[i, :halfHarms], data[i, 2 * halfHarms:]), 0)
-                    target = torch.cat((data[i + 1, :halfHarms], data[i + 1, 2 * halfHarms:]), 0)
-                    output = self.forward(input)
-                    loss = self.criterion(output, target)
-                    self.optimizer.zero_grad()
-                    loss.backward()
-                    self.optimizer.step()
+                input = torch.cat((data[:, :-1, :halfHarms], data[:, :-1, 2 * halfHarms:]), 2)
+                target = torch.cat((data[:, 1:, :halfHarms], data[:, 1:, 2 * halfHarms:]), 2)
+                input = torch.squeeze(input)
+                target = torch.squeeze(target)
+                output = self.forward(input)
+                loss = self.criterion(output, target)
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+                print('LSTM Predictor: epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
 
     def resetState(self) -> None:
         recSize =  halfHarms + global_consts.halfTripleBatchSize + 1
