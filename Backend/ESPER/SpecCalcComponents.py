@@ -6,8 +6,6 @@ import torch
 import global_consts
 import math
 
-import matplotlib.pyplot as plt
-
 def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     """calculates phase continuity function of an stft sequence. Frequencies with a high phase continuity are more likely to be voiced."""
 
@@ -25,6 +23,8 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     return 1. - (diff / math.pi)
 
 def calculateAmplitudeContinuity(amplitudes:torch.Tensor) -> torch.Tensor:
+    """calculates amplitude continuity function  base on the absolute values of an stft sequence. Frequencies with a high amplitude continuity are more likely to be voiced."""
+
     if amplitudes.size()[1] == 1:
         return torch.ones_like(amplitudes)
     amplitudeContinuity = amplitudes.clone()
@@ -87,6 +87,8 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
     audioSample.excitation = audioSample.excitation / torch.square(audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[1], global_consts.nHarmonics + 2:])
 
 def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -> list:
+    "calculates DIO Pitch markers for a single window of an AudioSample. They can then be used for voiced/unvoiced signal separation."
+
     pitch = audioSample.pitchDeltas[counter]
     maximumMarkers = torch.tensor([], dtype = torch.int16)
     minimumMarkers = torch.tensor([], dtype = torch.int16)
@@ -106,9 +108,6 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
     downTransitionCandidates = zeroTransitionsDown[torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0]):torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0] + pitch)]
     derrs = torch.index_select(window, 0, downTransitionCandidates) - torch.index_select(window, 0, downTransitionCandidates - 1)
     downTransitionMarkers = torch.unsqueeze(downTransitionCandidates[torch.argmin(derrs)], 0)
-
-    print(zeroTransitionsUp)
-    print(zeroTransitionsDown)
 
     while downTransitionMarkers[-1] < global_consts.tripleBatchSize * global_consts.filterBSMult - pitch * global_consts.DIOLastWinTolerance:
         error = math.inf
@@ -137,8 +136,6 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
                 error = newError
         upTransitionMarkers = torch.cat((upTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
 
-        print(upTransitionMarkers, downTransitionMarkers, validTransitions)
-
         error = math.inf
         validTransitions = []
         transition = downTransitionMarkers[-1] + upTransitionMarkers[-1] - upTransitionMarkers[-2]
@@ -161,8 +158,6 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
                 transition = j.item()
                 error = newError
         downTransitionMarkers = torch.cat((downTransitionMarkers, torch.tensor([transition], dtype = torch.int16)), 0)
-
-        print(upTransitionMarkers, downTransitionMarkers, validTransitions)
 
     if downTransitionMarkers[-1] >= global_consts.tripleBatchSize * global_consts.filterBSMult:
         upTransitionMarkers = upTransitionMarkers[:-1]
@@ -205,7 +200,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
     return markers
 
 def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
-    """calculates pitch markers using the DIO algorithm, for later use in spectral processing"""
+    """separates the voiced and unvoiced parts of an AudioSample using DIO pitch markers of a sequence of windows, and phase and amplitude continuity functions."""
 
     wave = torch.cat((torch.zeros([global_consts.halfTripleBatchSize * global_consts.filterBSMult,]), audioSample.waveform, torch.zeros([global_consts.halfTripleBatchSize * global_consts.filterBSMult,])), 0)
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
@@ -249,9 +244,5 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         harmFunction = phaseShiftFourier(harmFunction, markers[0].item() / global_consts.nHarmonics, torch.device("cpu"))
         harmFunction = torch.cat((harmFunction.abs(), harmFunction.angle()), 0)
         audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
-        #audioSample.phases[counter] = audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1]
         counter += 1
-    torchaudio.save("test.wav", torch.istft(audioSample.excitation.transpose(0, 1), n_fft = global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = torch.hann_window(global_consts.tripleBatchSize)).unsqueeze(-1), global_consts.sampleRate, False, format = "wav")
-    plt.plot(torch.istft(audioSample.excitation.transpose(0, 1), n_fft = global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = torch.hann_window(global_consts.tripleBatchSize)))
-    plt.show()
     return audioSample

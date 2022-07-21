@@ -26,7 +26,7 @@ class UtauImportUi(tkinter.Frame):
         from UI.code.devkit.Main import loadedVB
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
-        self.phoneticsPath = os.path.join(readSettings()["dataDir"], "Devkit_Phoneticss")
+        self.phoneticsPath = os.path.join(readSettings()["dataDir"], "Devkit_Phonetics")
         self.createWidgets()
         self.master.wm_title(loc["utau_lbl"])
         if (sys.platform.startswith('win')): 
@@ -160,6 +160,16 @@ class UtauImportUi(tkinter.Frame):
         self.otoSettings.language.display["text"] = loc["phon_def"]
         self.otoSettings.language.display.pack(side = "right", fill = "x")
         self.otoSettings.language.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.otoSettings.forceJIS = tkinter.Frame(self.otoSettings)
+        self.otoSettings.forceJIS.variable = tkinter.BooleanVar(self.otoSettings.forceJIS, True)
+        self.otoSettings.forceJIS.entry = tkinter.Checkbutton(self.otoSettings.forceJIS)
+        self.otoSettings.forceJIS.entry["variable"] = self.otoSettings.forceJIS.variable
+        self.otoSettings.forceJIS.entry.pack(side = "right", fill = "x")
+        self.otoSettings.forceJIS.display = tkinter.Label(self.otoSettings.forceJIS)
+        self.otoSettings.forceJIS.display["text"] = loc["force_jis"]
+        self.otoSettings.forceJIS.display.pack(side = "right", fill = "x")
+        self.otoSettings.forceJIS.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
@@ -367,9 +377,9 @@ class UtauImportUi(tkinter.Frame):
         
         logging.info("oto.ini load button callback")
         global loadedVB
-        phonemePath = os.path.join(self.phoneticsPath, "Lists", self.otoSettings.language.variable)
-        if os.path.isfile(os.path.join(self.phoneticsPath, "UtauConversions", self.otoSettings.language.variable)):
-            conversionPath = os.path.join(self.phoneticsPath, "UtauConversions", self.otoSettings.language.variable)
+        phonemePath = os.path.join(self.phoneticsPath, "Lists", self.otoSettings.language.variable.get())
+        if os.path.isfile(os.path.join(self.phoneticsPath, "UtauConversions", self.otoSettings.language.variable.get())):
+            conversionPath = os.path.join(self.phoneticsPath, "UtauConversions", self.otoSettings.language.variable.get())
         else:
             conversionPath = None
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["oto.ini_desc"], ".ini"), (loc["all_files_desc"], "*")))
@@ -390,7 +400,7 @@ class UtauImportUi(tkinter.Frame):
                 properties = row[1].split(",")
                 occuredError = None
                 try:
-                    fetchedSamples = fetchSamples(filename, properties, otoPath, self.stripPrefix.variable.get(), self.stripPostfix.variable.get(), phonemePath, conversionPath)
+                    fetchedSamples = fetchSamples(filename, properties, otoPath, self.otoSettings.stripPrefix.variable.get(), self.otoSettings.stripPostfix.variable.get(), phonemePath, conversionPath, self.otoSettings.forceJIS.variable.get())
                     for sample in fetchedSamples:
                         if sample._type == 1:
                             self.sampleList.append(sample)

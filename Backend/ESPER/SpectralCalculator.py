@@ -12,13 +12,11 @@ def calculateSpectra(audioSample:AudioSample) -> None:
     Returns:
         None
             
-    This function separates voiced and unvoiced excitation, and calculates the spectral envelope for an AudioSample object.
-    The voiced/unvoiced separation is performed in an stft space with higher spectral, but lower time resolution that is used during synthesis.
-    It is based on three metrics:
-    -stft frequency amplitude compared to the surrounding frequencies
-    -resonance with f0 frequency
-    -phase continuity between stft bins
-    Based on these metrics, each frequency is flagged as either voiced or unvoiced. There are currently no partly voiced frequencies.
+    This function separates voiced and unvoiced excitation, and calculates the spectral envelope for the unvoiced part of an AudioSample object.
+    The voiced/unvoiced separation is performed by calculating per-utterance phase and amplitude continuity functions from the windowed input signal.
+    Based on these functions, the voiced signal is generated, and the unvoiced signal is calculated as the difference between the voiced signal and the input.
+    The result is an STFT sequence of the unvoiced signal, and a sequence harmonic spectra of the voiced signal.
+    Subsequently, the spectral envelope of the unvoiced signal is calculated, and the unvoiced excitation is obtained as the unvoiced signal divided by this spectral envelope.
     The spectral calculation uses two methods for low and high frequencies respectively:
     -an adaptation of the True Envelope Estimator
     -fourier space running mean smoothing
@@ -26,11 +24,6 @@ def calculateSpectra(audioSample:AudioSample) -> None:
     """
 
 
-    #signals, audioSample = calculateHighResSpectra(audioSample)
-    #resonanceFunction, audioSample = calculateResonance(audioSample)
-    #phaseContinuity = calculatePhaseContinuity(signals)
-    #audioSample = separateVoicedUnvoiced(audioSample, signals, resonanceFunction, phaseContinuity) !!!replace!!!
-    #signalsAbs, audioSample = transformHighRestoStdRes(audioSample)
     audioSample = separateVoicedUnvoiced(audioSample)
     signalsAbs = torch.sqrt(audioSample.excitation.abs())
     lowSpectra = lowRangeSmooth(audioSample, signalsAbs)

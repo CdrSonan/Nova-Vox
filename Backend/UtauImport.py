@@ -4,7 +4,7 @@ import csv
 from copy import copy
 from global_consts import controlPhonemes
 
-def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix:str, phonFile:str, convFile:str = None) -> list:
+def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix:str, phonFile:str, convFile:str = None, forceJIS:bool = True) -> list:
     """Function for fetching Nova-Vox samples based on a line from an oto.ini file and phoneme list.
 
     Parameters:
@@ -22,16 +22,21 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
 
         convFile: optional file used for mapping arbitrary parts of UTAU sample names to sequences of phonemes specified in the phonFile. Used for converting Hiragana to Romaji.
 
+        forceJIS: Boolean Flag indicating whether the oto.ini file should be decoded using the shift-JIS codec, instead of the system locale default codec.
+
     Returns:
         List of UtauSample objects, each representing a transition or phoneme sample from the .wav file
 
     This function always adds the Nova-Vox breath phonemes and reserved control phonemes to the list specified in phonFile. When parsing the oto.ini file, all samples containing
     a reserved control phoneme are discarded. (Unless they are remapped to a different key in the convFile)"""
 
-
+    if forceJIS:
+        encoding = "shift_jis"
+    else:
+        encoding = None
     phonemes = []
     types = []
-    reader = csv.reader(open(phonFile), delimiter = " ")
+    reader = csv.reader(open(phonFile, encoding = encoding), delimiter = " ")
     for row in reader:
         phonemes.append(row[0])
         types.append(row[1])
@@ -55,7 +60,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
         alias = path.splitext(path.split(filename)[1])[0]
     aliasCopy = copy(alias)
     if convFile != None:
-        reader = csv.reader(open(convFile), delimiter = ",")
+        reader = csv.reader(open(convFile, encoding = "utf_8"), delimiter = ",")
         for row in reader:
             aliasCopy = aliasCopy.replace(row[0], row[1])
     sequence = []

@@ -8,7 +8,6 @@ from torch.utils.data.dataloader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import global_consts
 from Backend.Resampler.PhaseShift import phaseInterp
-from MiddleLayer.IniParser import readSettings
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 
@@ -16,10 +15,22 @@ class SpecCrfAi(nn.Module):
     """class for generating crossfades between the spectra of different phonemes using AI.
     
     Attributes:
-        layerStart/End 1/2, ReLuStart/End 1/2: leading and trailing FC and Nonlinear layers of the NN.
+        convolution: leading 1-dimensional convolution layer of the NN. Used for spectral processing.
 
-        hiddenLayers: ordered dictionary containing all layers between the leading and trailing ones
+        harmConvolution: leading 1-dimensional convolution layer of the NN. Used for harmonic amplitudes processing.
+
+        layerStart/End 1/2, ReLuStart/End 1/2: leading and trailing FC and Nonlinear layers of the NN. Used for spectral processing.
+
+        harmLayerStart/End 1/2, harmReLuStart/End 1/2: leading and trailing FC and Nonlinear layers of the NN. Used for harmonic amplitudes processing.
+
+        hiddenLayers: torch.nn.Sequential object containing all layers between the leading and trailing ones
         
+        threshold: final threshold layer applied to the output spectrum, to prevent overshooting
+
+        device: the torch.device the AI is loaded on
+
+        hiddenLayerCount: integer indicating the number of hidden layers of the NN
+
         learningRate: Learning Rate of the NN
         
         optimizer: Optimization algorithm to use during training. Changes not advised.
@@ -27,8 +38,14 @@ class SpecCrfAi(nn.Module):
         criterion: Loss criterion to be used during AI training. Changes not advised.
         
         epoch: training epoch counter displayed in Metadata panels
+
+        sampleCount: integer indicating the number of samples the AI has been trained with.
         
-        loss: Torch.Loss object holding Loss data from AI training
+        loss: float accumulating and normalizing recent loss values during AI training.
+
+        pred: The AI's 'LSTM predictor'. SpecPredAi object used for temporal awareness.
+
+        currPrediction: the most recent prediction of pred. Used as input to the main NN.
         
     Methods:
         __init__: Constructor initialising NN layers and prerequisite properties
@@ -38,6 +55,12 @@ class SpecCrfAi(nn.Module):
         processData: forward NN pass with data pre-and postprocessing as expected by other classes
         
         train: NN training with forward and backward passes, Loss criterion and optimizer runs based on a dataset of spectral transition samples
+
+        test: performs a set of tests for performance evaluation, and saves the results to a TensorBoard file.
+
+        stepSpecPred: sends a specharm Tensor to the AI's LSTM predictor, and saves its updated prediction to currPrediction.
+
+        resetSpecPred: resets the hidden states and cell states of the AI's LSTM predictor.
         
         dataLoader: helper method for shuffled data loading from an arbitrary dataset
         
@@ -45,8 +68,12 @@ class SpecCrfAi(nn.Module):
         
     The structure of the NN is a forward-feed fully connected NN with ReLU nonlinear activation functions.
     It is designed to process non-negative data. Negative data can still be processed, but may negatively impact performance.
-    The size of the NN layers is set to match the batch size and tick rate of the rest of the engine.
-    Since performance deteriorates with skewed data, it internally passes the input through a square root function and squares the output."""
+    The size of the NN layers is set to process specharm Tensors, matching the format, batch size and tick rate used by the rest of the engine.
+    Internally, each specharm is decomposed into its spectral and harmonics parts, which are sent through separate NN layers. They are afterwards
+    combined with the current prediction of the AI's LSTM predictor, and sent through a set of shared layers. Afterwards, the spectral and harmonic
+    components are processed by separate sets of layers once again. The final output is then fed back into the AI's LSTM predictor, updating
+    its prediction for the next frame.
+    Since performance deteriorates with skewed data, the NN internally passes the input through a square root function and squares the output."""
         
         
     def __init__(self, device:torch.device = None, learningRate:float=5e-5, hiddenLayerCount:int = 3) -> None:
@@ -104,12 +131,13 @@ class SpecCrfAi(nn.Module):
         self.currPrediction = torch.zeros((1, 1, halfHarms + global_consts.halfTripleBatchSize + 1), device = device)
         
     def forward(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
-        """Forward NN pass with unprocessed in-and outputs.
+        """Forward NN pass with unprocessed in- and outputs.
         
         Arguments:
-            spectrum1, spectrum2: The two spectrum Tensors to perform the interpolation between
+            specharm1-4: The sets of two spectrum + harmonics Tensors to perform the interpolation between, preceding and following the transition that is to be calculated, respectively.
             
-            factor: Float between 0 and 1 determining the "position" in the interpolation. A value of 0 matches spectrum 1, a values of 1 matches spectrum 2.
+            factor: Float between 0 and 1 determining the "position" within the interpolation. When using a value of 0 the output will be extremely similar to specharm 1 and 2,
+            while a values of 1 will result in output extremely similar to specharm 3 and 4.
             
         Returns:
             Tensor object representing the NN output
@@ -194,10 +222,10 @@ class SpecCrfAi(nn.Module):
         return result
     
     def processData(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
-        """forward NN pass with data pre-and postprocessing as expected by other classes
+        """forward NN pass with data pre- and postprocessing as expected by other classes
         
         Arguments:
-            spectrum1, spectrum2: The two spectrum Tensors to perform the interpolation between
+            specharm1, specharm2: The two specharm Tensors to perform the interpolation between
             
             factor: Float between 0 and 1 determining the "position" in the interpolation. A value of 0 matches spectrum 1, a values of 1 matches spectrum 2.
             
@@ -205,7 +233,7 @@ class SpecCrfAi(nn.Module):
             Tensor object containing the interpolated audio spectrum
             
             
-        Other than when using forward() directly, this method sets the NN to evaluation mode and applies a square root function to the input and squares the output to
+        Other than when using forward() directly, this method sets the NN to evaluation mode, applies a square root function to the input and squares the output to
         improve overall performance, especially on the skewed datasets of vocal spectra."""
         
         
@@ -214,17 +242,17 @@ class SpecCrfAi(nn.Module):
         return output
     
     def train(self, indata, epochs:int=1, logging:bool = False) -> None:
-        """NN training with forward and backward passes, Loss criterion and optimizer runs based on a dataset of spectral transition samples.
+        """NN training with forward and backward passes, loss criterion and optimizer runs based on a dataset of spectral transition samples.
         
         Arguments:
-            indata: Tensor, List or other Iterable containing sets of stft-like spectra. Each element should represent a phoneme transition.
+            indata: Tensor, List or other Iterable containing sets of specharm data. Each element should represent a phoneme transition.
             
             epochs: number of epochs to use for training as Integer.
             
         Returns:
             None
             
-        Like processData(), train() also takes the square root of the input internally before using the data for inference."""
+        Like processData(), train() also takes the square root of the input internally before using the data."""
         
         if logging:
             writer = SummaryWriter(path.join(getenv("APPDATA"), "Nova-Vox", "Logs"))
@@ -282,17 +310,25 @@ class SpecCrfAi(nn.Module):
             metrics["acc. sample count"] = self.sampleCount
             metrics["wtd. main DNN train loss"] = self.loss
             writer.add_hparams(hparams, metrics)
+            self.test(writer)
         writer.close()
 
     def test(self, writer:SummaryWriter = None) -> None:
+        """Performs a set of tests to evaluate the performance of the AI, and adds the results to TensorBoard.
+        Called from train() after training completion."""
+
         pass
 
     def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
+        """sends a specharm to the AI's LSTM Predictor subnet, and returns its new unprocessed output."""
+
         self.pred.state[0].detach()
         self.pred.state[1].detach()
         return self.pred.processData(specharm).detach()
 
     def resetSpecPred(self) -> None:
+        """resets the hidden states and cell states of the AI's LSTM Predictor subnet."""
+
         self.pred.resetState()
         self.currPrediction = torch.zeros((1, 1, halfHarms + global_consts.halfTripleBatchSize + 1), device = self.currPrediction.device)
             
@@ -332,9 +368,29 @@ class LiteSpecCrfAi(nn.Module):
     """A stripped down version of SpecCrfAi only holding the data required for synthesis.
     
     Attributes:
-        layer1-4, ReLu1-4: FC and Nonlinear layers of the NN.
+        convolution: leading 1-dimensional convolution layer of the NN. Used for spectral processing.
+
+        harmConvolution: leading 1-dimensional convolution layer of the NN. Used for harmonic amplitudes processing.
+
+        layerStart/End 1/2, ReLuStart/End 1/2: leading and trailing FC and Nonlinear layers of the NN. Used for spectral processing.
+
+        harmLayerStart/End 1/2, harmReLuStart/End 1/2: leading and trailing FC and Nonlinear layers of the NN. Used for harmonic amplitudes processing.
+
+        hiddenLayers: torch.nn.Sequential object containing all layers between the leading and trailing ones
+        
+        threshold: final threshold layer applied to the output spectrum, to prevent overshooting
+
+        device: the torch.device the AI is loaded on
+
+        hiddenLayerCount: integer indicating the number of hidden layers of the NN
         
         epoch: training epoch counter displayed in Metadata panels
+
+        sampleCount: integer indicating the number of samples the AI has been trained with.
+
+        pred: The AI's 'LSTM predictor'. SpecPredAi object used for temporal awareness.
+
+        currPrediction: the most recent prediction of pred. Used as input to the main NN.
         
     Methods:
         __init__: Constructor initialising NN layers and prerequisite properties
@@ -342,10 +398,24 @@ class LiteSpecCrfAi(nn.Module):
         forward: Forward NN pass with unprocessed in-and outputs
         
         processData: forward NN pass with data pre-and postprocessing as expected by other classes
+
+        stepSpecPred: sends a specharm Tensor to the AI's LSTM predictor, and saves its updated prediction to currPrediction.
+
+        resetSpecPred: resets the hidden states and cell states of the AI's LSTM predictor.
         
-        getState: returns the state of the NN and its epoch attribute in a Dictionary
+        dataLoader: helper method for shuffled data loading from an arbitrary dataset
         
-    This version of the AI can only run data through the NN forward, backpropagation and, by extension, training, are not possible."""
+        getState: returns the state of the NN, its optimizer and their prerequisites in a Dictionary
+        
+    The structure of the NN is a forward-feed fully connected NN with ReLU nonlinear activation functions.
+    It is designed to process non-negative data. Negative data can still be processed, but may negatively impact performance.
+    The size of the NN layers is set to process specharm Tensors, matching the format, batch size and tick rate used by the rest of the engine.
+    Internally, each specharm is decomposed into its spectral and harmonics parts, which are sent through separate NN layers. They are afterwards
+    combined with the current prediction of the AI's LSTM predictor, and sent through a set of shared layers. Afterwards, the spectral and harmonic
+    components are processed by separate sets of layers once again. The final output is then fed back into the AI's LSTM predictor, updating
+    its prediction for the next frame.
+    Since performance deteriorates with skewed data, the NN internally passes the input through a square root function and squares the output.
+    This version of the AI can only run data through the NN in the forward direction. Backpropagation, and by extension, training, are not possible."""
 
     def __init__(self, specCrfAi:SpecCrfAi = None, device:torch.device = None) -> None:
         """Constructor initialising NN layers and other attributes based on SpecCrfAi base object.
@@ -392,6 +462,7 @@ class LiteSpecCrfAi(nn.Module):
         self.device = device
 
         self.pred = SpecPredAI(device)
+        self.currPrediction = torch.zeros((1, 1, halfHarms + global_consts.halfTripleBatchSize + 1), device = device)
 
         if specCrfAi == None:
             self.epoch = 0
@@ -404,12 +475,13 @@ class LiteSpecCrfAi(nn.Module):
             self.eval()
         
     def forward(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
-        """Forward NN pass with unprocessed in-and outputs.
+        """Forward NN pass with unprocessed in- and outputs.
         
         Arguments:
-            spectrum1, spectrum2: The two spectrum Tensors to perform the interpolation between
+            specharm1-4: The sets of two spectrum + harmonics Tensors to perform the interpolation between, preceding and following the transition that is to be calculated, respectively.
             
-            factor: Float between 0 and 1 determining the "position" in the interpolation. A value of 0 matches spectrum 1, a values of 1 matches spectrum 2.
+            factor: Float between 0 and 1 determining the "position" within the interpolation. When using a value of 0 the output will be extremely similar to specharm 1 and 2,
+            while a values of 1 will result in output extremely similar to specharm 3 and 4.
             
         Returns:
             Tensor object representing the NN output
@@ -492,10 +564,10 @@ class LiteSpecCrfAi(nn.Module):
         return result
     
     def processData(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
-        """forward NN pass with data pre-and postprocessing as expected by other classes
+        """forward NN pass with data pre- and postprocessing as expected by other classes
         
         Arguments:
-            spectrum1, spectrum2: The two spectrum Tensors to perform the interpolation between
+            specharm1, specharm2: The two specharm Tensors to perform the interpolation between
             
             factor: Float between 0 and 1 determining the "position" in the interpolation. A value of 0 matches spectrum 1, a values of 1 matches spectrum 2.
             
@@ -503,7 +575,7 @@ class LiteSpecCrfAi(nn.Module):
             Tensor object containing the interpolated audio spectrum
             
             
-        Other than when using forward() directly, this method sets the NN to evaluation mode and applies a square root function to the input and squares the output to
+        Other than when using forward() directly, this method sets the NN to evaluation mode, applies a square root function to the input and squares the output to
         improve overall performance, especially on the skewed datasets of vocal spectra."""
         
         
@@ -512,11 +584,15 @@ class LiteSpecCrfAi(nn.Module):
         return output
 
     def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
+        """sends a specharm to the AI's LSTM Predictor subnet, and returns its new unprocessed output."""
+
         self.pred.state[0].detach()
         self.pred.state[1].detach()
         return self.pred.processData(specharm).detach()
 
     def resetSpecPred(self) -> None:
+        """resets the hidden states and cell states of the AI's LSTM Predictor subnet."""
+
         self.pred.resetState()
         self.currPrediction = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = self.currPrediction.device)
     
@@ -580,7 +656,28 @@ class RelLoss(nn.Module):
         return out
 
 class SpecPredAI(nn.Module):
+    """Class for providing additional time awareness to a spectral crossfade Ai.
+    
+    Methods:
+        forward: processes a specharm tensor, updating the internal states and returning the predicted next spectrum
+        
+        processData: processes a specharm tensor, updating the internal states and returning the immediate LSTM output
+        
+        train: trains the AI using recorded sequences of specharms
+        
+        resetState: resets the hidden states and cell states of the internal LSTM layers
+        
+        dataLoader: utility function to assist with data loading for training
+        
+    The NN is trained on sequences of specharms, and always aims to predict the next specharm in the sequence using its internal LSTM layers.
+    When used with a SpecCrfAi, it instead returns the immediate output of the lowest LSTM layer, for use as input for the SpecCrfAi.
+    This is because the SpecCrfAi is using the data about already processed specharms in a more abstract way similar to representation
+    learning, rather than an estimated specharm."""
+
+
     def __init__(self, device:torch.device = None, learningRate:float=5e-5) -> None:
+        """basic constructor accepting the learning rate hyperparameter as input"""
+
         super().__init__()
         self.layer1Harm = torch.nn.Linear(halfHarms, halfHarms)
         self.layer1Spec = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
@@ -602,6 +699,8 @@ class SpecPredAI(nn.Module):
         self.threshold = torch.nn.Threshold(0.001, 0.001)
 
     def forward(self, specharm:torch.Tensor) -> torch.Tensor:
+        """forward pass through the entire NN, aiming to predict the next specharm in a sequence"""
+
         harmonics = specharm[:, :halfHarms]
         spectrum = specharm[:, halfHarms:]
         harmonics = self.layer1Harm(harmonics)
@@ -629,6 +728,8 @@ class SpecPredAI(nn.Module):
         return torch.cat((harmonics, spectrum), 1)
 
     def processData(self, specharm:torch.Tensor) -> torch.Tensor:
+        """forward pass through the preprocessing and LSTM layers of the NN, returning the immediate output of the lowest LSTM layer"""
+
         harmonics = specharm[:halfHarms]
         spectrum = specharm[2 * halfHarms:]
         harmonics = self.layer1Harm(harmonics)
@@ -642,6 +743,8 @@ class SpecPredAI(nn.Module):
         return x
 
     def train(self, indata, epochs:int=1, writer:SummaryWriter = None) -> None:
+        """trains the NN based on a dataset of specharm sequences"""
+
         if indata == False:
             return
         for epoch in range(epochs):
@@ -666,6 +769,8 @@ class SpecPredAI(nn.Module):
         writer.add_hparams(hparams, metrics)
 
     def resetState(self) -> None:
+        """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
+
         recSize =  halfHarms + global_consts.halfTripleBatchSize + 1
         self.state = (torch.zeros((2, 1, recSize), device = self.state[0].device), torch.zeros((2, 1, recSize), device = self.state[1].device))
 

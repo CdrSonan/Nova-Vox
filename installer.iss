@@ -16,8 +16,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{680531A2-5B3C-47B5-8380-CA6D7033BF13}
 AppName="Nova-Vox"
-AppVersion="Alpha 3.0"
-AppVerName="Nova-Vox Alpha 3.0"
+AppVersion="Alpha 6.0"
+AppVerName="Nova-Vox Alpha 6.0"
 AppPublisher="Nova-Vox development team"
 AppPublisherURL="https://nova-vox.org/"
 AppSupportURL="https://nova-vox.org/"
@@ -100,13 +100,13 @@ begin
 end;
 
 [Files]
-Source: "{SourcePath}\dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{SourcePath}\settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
-Source: "{SourcePath}\dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
-Source: "{SourcePath}\Voices\Adachi Rei.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Adachi_Rei; Flags: ignoreversion
-;Source: "{SourcePath}\Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion
-;Source: "{SourcePath}\Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{SourcePath}\Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
+Source: "dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
+Source: "Voices\Adachi Rei.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Adachi_Rei; Flags: ignoreversion
+;Source: "Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion
+;Source: "Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [INI]
 Filename: "{userappdata}\Nova-Vox\settings.ini"; Section: "Dirs"

@@ -23,8 +23,6 @@ class AudioSample():
         excitation: unvoiced excitation signal
         
         voicedExcitation: voiced excitation signal
-        
-        phases: phase of the waveform in radians for each stft batch
 
         isVoiced: flag indicating whether the sample is voiced (voicedExcitation is muted for unvoiced samples during ESPER processing)
 
@@ -73,7 +71,6 @@ class AudioSample():
         self.specharm = torch.tensor([[]], dtype = float)
         self.avgSpecharm = torch.tensor([], dtype = float)
         self.excitation = torch.tensor([], dtype = float)
-        self.phases = torch.tensor([], dtype = float)
         self.harmonics = torch.tensor([], dtype = float)
         self.isVoiced = True
         self.isPlosive = False
@@ -98,8 +95,6 @@ class LiteAudioSample():
         excitation: unvoiced excitation signal
         
         voicedExcitation: voiced excitation signal
-
-        phases: phase of the waveform in radians for each stft batch
         
     Methods:
         __init__: Constructor for initialising the class based on an AudioSample object, discarding all extraneous data."""
@@ -120,4 +115,3 @@ class LiteAudioSample():
         self.specharm = audioSample.specharm
         self.avgSpecharm = audioSample.avgSpecharm
         self.excitation = audioSample.excitation
-        self.phases = audioSample.phases
