@@ -98,7 +98,7 @@ class CrfaiUi(tkinter.Frame):
 
         self.sideBar.logging = tkinter.Frame(self.sideBar)
         self.sideBar.logging.variable = tkinter.BooleanVar(self.sideBar.logging, False)
-        self.sideBar.logging.entry = tkinter.Checkbox()
+        self.sideBar.logging.entry = tkinter.Checkbutton(self.sideBar.logging)
         self.sideBar.logging.entry["variable"] = self.sideBar.logging.variable
         self.sideBar.logging.entry.pack(side = "right", fill = "x")
         self.sideBar.logging.display = tkinter.Label(self.sideBar.logging)
@@ -127,8 +127,8 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
         self.sideBar.tensorBoardButton = tkinter.Button(self.sideBar)
-        self.sideBar.tensorBoardButton["text"] = loc["finalize"]
-        self.sideBar.tensorBoardButton["command"] = lambda : system("tensorboard.exe --" + path.join(readSettings()["dataDir"], "Nova-Vox", "Logs"))
+        self.sideBar.tensorBoardButton["text"] = loc["open_tb"]
+        self.sideBar.tensorBoardButton["command"] = lambda : system("start tensorboard.exe --logdir " + path.join(readSettings()["dataDir"], "Nova-Vox", "Logs"))
         self.sideBar.tensorBoardButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
         if loadedVB.crfAi.epoch == None:

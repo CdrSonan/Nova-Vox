@@ -188,6 +188,9 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
             bias = 1. - (global_consts.DIOBias * k / (workingWindow.size()[0] - 2))
             scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
         minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[-1], 0)), 0)
+    elif downTransitionMarkers.size()[0] == 1:
+        marker = downTransitionMarkers[-1] + 1
+        minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(marker, 0)), 0)
     else:
         marker = minimumMarkers[-1] + torch.mean(torch.tensor((upTransitionMarkers[-1] - upTransitionMarkers[-2], downTransitionMarkers[-1] - downTransitionMarkers[-2], maximumMarkers[-1] - maximumMarkers[-2]), dtype = torch.float32))
         minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(marker, 0)), 0)

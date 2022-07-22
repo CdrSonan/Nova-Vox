@@ -67,7 +67,7 @@ class AudioSample():
         del transform
         del sampleRate
         self.pitchDeltas = torch.tensor([], dtype = int)
-        self.pitch = torch.tensor([0], dtype = int)
+        self.pitch = torch.tensor([global_consts.defaultExpectedPitch], dtype = int)
         self.specharm = torch.tensor([[]], dtype = float)
         self.avgSpecharm = torch.tensor([], dtype = float)
         self.excitation = torch.tensor([], dtype = float)

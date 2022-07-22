@@ -46,9 +46,9 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
 
     delimiters = [" ", "_", "+"]
     alias = properties[0]
-    if alias.startswith(prefix):
+    if alias.startswith(prefix) and prefix != "":
         alias = alias[len(prefix):]
-    if alias.endswith(postfix):
+    if alias.endswith(postfix) and postfix != "":
         alias = alias[0:-len(postfix)]
     offset = max(float(properties[1]), 0)
     fixed = max(float(properties[2]), 0)

@@ -73,6 +73,7 @@ def getLocale():
         locale["ai_settings"] = "Sample preprocessing and AI training settings"
         locale["epochs"] = "AI training epochs:"
         locale["train"] = "train AI"
+        locale["open_tb"] = "launch TensorBoard"
         locale["time_lbl"] = "Time (ms)"
         locale["freq_lbl"] = "Frequency (Hz)"
         locale["amp_lbl"] = "Signal Amplitude"
