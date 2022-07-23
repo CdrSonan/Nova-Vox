@@ -298,7 +298,8 @@ class SpecCrfAi(nn.Module):
                         self.optimizer.zero_grad()
                         loss.backward()
                         self.optimizer.step()
-                        writer.add_scalar("Main DNN loss", loss.data)
+                        if writer != None:
+                            writer.add_scalar("Main DNN loss", loss.data)
                         print('Main DNN: epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
             self.sampleCount += len(indata)
             self.loss = (self.loss * 99 + loss.data) / 100
@@ -309,9 +310,11 @@ class SpecCrfAi(nn.Module):
             metrics = dict()
             metrics["acc. sample count"] = self.sampleCount
             metrics["wtd. main DNN train loss"] = self.loss
-            writer.add_hparams(hparams, metrics)
+            if writer != None:
+                writer.add_hparams(hparams, metrics)
             self.test(writer)
-        writer.close()
+        if writer != None:
+            writer.close()
 
     def test(self, writer:SummaryWriter = None) -> None:
         """Performs a set of tests to evaluate the performance of the AI, and adds the results to TensorBoard.
@@ -760,13 +763,15 @@ class SpecPredAI(nn.Module):
                 loss.backward()
                 self.optimizer.step()
                 self.loss = (self.loss * 99 + loss.data) / 100
-                writer.add_scalar("LSTM Predictor loss", loss.data)
+                if writer != None:
+                    writer.add_scalar("LSTM Predictor loss", loss.data)
                 print('LSTM Predictor: epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
         hparams = dict()
         hparams["LSTM Predictor epochs"] = epochs
         metrics = dict()
         metrics["wtd. LSTM Pred. train loss"] = self.loss
-        writer.add_hparams(hparams, metrics)
+        if writer != None:
+            writer.add_hparams(hparams, metrics)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""

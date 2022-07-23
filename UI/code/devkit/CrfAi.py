@@ -4,6 +4,7 @@ import torch
 import sys
 from os import path, system
 
+import global_consts
 from Locale.devkit_locale import getLocale
 from MiddleLayer.IniParser import readSettings
 loc = getLocale()
@@ -55,7 +56,7 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
         self.sideBar.expPitch = tkinter.Frame(self.sideBar)
-        self.sideBar.expPitch.variable = tkinter.DoubleVar(self.sideBar.expPitch)
+        self.sideBar.expPitch.variable = tkinter.DoubleVar(self.sideBar.expPitch, global_consts.defaultExpectedPitch)
         self.sideBar.expPitch.entry = tkinter.Entry(self.sideBar.expPitch)
         self.sideBar.expPitch.entry["textvariable"] = self.sideBar.expPitch.variable
         self.sideBar.expPitch.entry.pack(side = "right", fill = "x")
@@ -65,7 +66,7 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.expPitch.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.pSearchRange = tkinter.Frame(self.sideBar)
-        self.sideBar.pSearchRange.variable = tkinter.DoubleVar(self.sideBar.pSearchRange)
+        self.sideBar.pSearchRange.variable = tkinter.DoubleVar(self.sideBar.pSearchRange, global_consts.defaultSearchRange)
         self.sideBar.pSearchRange.entry = tkinter.Spinbox(self.sideBar.pSearchRange, from_ = 0.35, to = 0.95, increment = 0.05)
         self.sideBar.pSearchRange.entry["textvariable"] = self.sideBar.pSearchRange.variable
         self.sideBar.pSearchRange.entry.pack(side = "right", fill = "x")
@@ -75,7 +76,7 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
-        self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter)
+        self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter, global_consts.defaultUnvoicedIterations)
         self.sideBar.unvoicedIter.variable.set(20)
         self.sideBar.unvoicedIter.entry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 0, to = 100)
         self.sideBar.unvoicedIter.entry["textvariable"] = self.sideBar.unvoicedIter.variable

@@ -102,10 +102,24 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
         if (window[j-1] >= 0) and (window[j] < 0):
             zeroTransitionsDown = torch.cat([zeroTransitionsDown, torch.tensor([j])], 0)
 
-    upTransitionCandidates = zeroTransitionsUp[0:torch.searchsorted(zeroTransitionsUp, zeroTransitionsUp[0] + pitch)]
-    derrs = torch.index_select(window, 0, upTransitionCandidates) - torch.index_select(window, 0, upTransitionCandidates - 1)
-    upTransitionMarkers = torch.unsqueeze(upTransitionCandidates[torch.argmax(derrs)], 0)
-    downTransitionCandidates = zeroTransitionsDown[torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0]):torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0] + pitch)]
+    offset = 0
+    while True:
+        if offset == min(zeroTransitionsUp.size()[0], zeroTransitionsDown.size()[0]):
+            upTransitionMarkers = torch.unsqueeze(zeroTransitionsUp[0], 0)
+            downTransitionMarkers = torch.unsqueeze(zeroTransitionsDown[torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0])], 0)
+            if downTransitionMarkers.size()[0] == 0:
+                downTransitionMarkers = upTransitionMarkers + 1
+            break
+        upTransitionCandidates = zeroTransitionsUp[torch.searchsorted(zeroTransitionsUp, zeroTransitionsUp[offset]):torch.searchsorted(zeroTransitionsUp, min(zeroTransitionsUp[offset] + pitch, zeroTransitionsDown[-1]))]
+        if upTransitionCandidates.size()[0] == 0:
+            offset += 1
+            continue
+        derrs = torch.index_select(window, 0, upTransitionCandidates) - torch.index_select(window, 0, upTransitionCandidates - 1)
+        upTransitionMarkers = torch.unsqueeze(upTransitionCandidates[torch.argmax(derrs)], 0)
+        downTransitionCandidates = zeroTransitionsDown[torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0]):torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0] + pitch)]
+        if downTransitionCandidates.size()[0] > 0:
+            break
+        offset += 1
     derrs = torch.index_select(window, 0, downTransitionCandidates) - torch.index_select(window, 0, downTransitionCandidates - 1)
     downTransitionMarkers = torch.unsqueeze(downTransitionCandidates[torch.argmin(derrs)], 0)
 

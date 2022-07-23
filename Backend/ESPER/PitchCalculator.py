@@ -30,6 +30,8 @@ def calculatePitch(audioSample:AudioSample) -> None:
         print(getLocale()["pitch_calc_err"])
         print(e)
         calculatePitchFallback(audioSample)
+    if audioSample.pitchDeltas.size()[0] < 2:
+        calculatePitchFallback(audioSample)
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0]), audioSample.pitchDeltas, torch.linspace(0., 1., length))
@@ -75,8 +77,8 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
     #map sequence of pitchDeltas to sampling interval
     cursor = 0
     cursor2 = 0
-    pitchDeltas = torch.empty(math.ceil(audioSample.pitchDeltas.sum() / global_consts.batchSize))
-    for i in range(math.ceil(audioSample.pitchDeltas.sum() / global_consts.batchSize)):
+    pitchDeltas = torch.empty(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize))
+    for i in range(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize)):
         while cursor2 >= audioSample.pitchDeltas[cursor]:
             cursor += 1
             cursor2 -= audioSample.pitchDeltas[cursor]
