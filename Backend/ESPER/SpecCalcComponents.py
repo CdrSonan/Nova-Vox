@@ -34,6 +34,8 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor) -> torch.Tensor:
     amplitudeContinuity[:, 0] = amplitudeContinuity[:, 0] / 2.
     amplitudeContinuity[:, -1] = amplitudeContinuity[:, -1] / 2.
     amplitudeContinuity /= amplitudes
+    amplitudeContinuity = torch.nan_to_num(amplitudeContinuity, 0.)
+    amplitudeContinuity = torch.min(amplitudeContinuity, amplitudes)
     #amplitudeContinuity = torch.cos((torch.min(amplitudeContinuity / amplitudes, amplitudes / amplitudeContinuity) - 1) * math.pi / 2.)
     return amplitudeContinuity
 
@@ -83,8 +85,8 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
     for i in range(audioSample.specharm.size()[0]):
         audioSample.specharm[i, global_consts.nHarmonics + 2:] -= audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]
         audioSample.specharm[i, :int(global_consts.nHarmonics / 2) + 1] -= audioSample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1]
-
-    audioSample.excitation = audioSample.excitation / torch.square(audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[1], global_consts.nHarmonics + 2:])
+    audioSample.excitation = audioSample.excitation / torch.square(audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[0], global_consts.nHarmonics + 2:])
+    return audioSample
 
 def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -> list:
     "calculates DIO Pitch markers for a single window of an AudioSample. They can then be used for voiced/unvoiced signal separation."
@@ -223,7 +225,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     windows = torch.empty((length, global_consts.tripleBatchSize * global_consts.filterBSMult))
     audioSample.excitation = torch.empty((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
-    audioSample.specharm = torch.empty((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3))
+    audioSample.specharm = torch.full((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), 1234.)
     for i in range(length):
         windows[i] = wave[i * global_consts.batchSize:i * global_consts.batchSize + global_consts.tripleBatchSize * global_consts.filterBSMult]
     counter = 0
@@ -232,8 +234,19 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         markers = DIOPitchMarkers(audioSample, i, counter)
         length = len(markers)
         if length == 1:
-            #fallback
-            print("case")
+            harmFunction = torch.stft(i, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, center = False, return_complex = True)
+            amplitudes = harmFunction.abs()
+            amplitudeContinuity = calculateAmplitudeContinuity(amplitudes)
+            phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
+            amplitudes *= amplitudeContinuity * torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1)
+            harmFunction = torch.polar(amplitudes, harmFunction.angle())
+            harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = i.size()[0], center = False, onesided = True, return_complex = False)
+            offharm = (i - harmFunctionFull)
+            offharm = offharm[int(global_consts.tripleBatchSize * (global_consts.filterBSMult - 1) / 2):int(global_consts.tripleBatchSize * (global_consts.filterBSMult + 1) / 2)]
+            audioSample.excitation[counter] = torch.fft.rfft(offharm)
+            harmFunction = torch.cat((harmFunction.abs(), harmFunction.angle()), 0)
+            harmFunction = torch.mean(harmFunction, 1)
+            audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
             counter += 1
             continue
         interpolationPoints = interp(torch.linspace(0, len(markers) - 1, len(markers)), markers, torch.linspace(0, len(markers) - 1, (len(markers) - 1) * global_consts.nHarmonics + 1))

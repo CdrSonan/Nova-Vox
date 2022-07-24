@@ -144,6 +144,9 @@ class SpecCrfAi(nn.Module):
             
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
 
+        if factor.__class__ == torch.Tensor:
+            factor = factor.item()
+
         phase1 = specharm1[halfHarms:2 * halfHarms]
         phase2 = specharm2[halfHarms:2 * halfHarms]
         phase3 = specharm3[halfHarms:2 * halfHarms]
@@ -256,12 +259,12 @@ class SpecCrfAi(nn.Module):
         
         if logging:
             writer = SummaryWriter(path.join(getenv("APPDATA"), "Nova-Vox", "Logs"))
-            writer.add_graph(self, indata[0])
+            #writer.add_graph(self, (indata[0][0], indata[0][1], indata[0][-2], indata[0][-1], torch.tensor([0.5])))
         else:
             writer = None
 
-        self.pred.train(indata, epochs, writer)
-        if indata != False:
+        if indata != False and indata != True:
+            self.pred.train(indata, epochs, writer)
             if (self.epoch == 0) or self.epoch == epochs:
                 self.epoch = epochs
             else:
@@ -324,9 +327,6 @@ class SpecCrfAi(nn.Module):
 
     def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
         """sends a specharm to the AI's LSTM Predictor subnet, and returns its new unprocessed output."""
-
-        self.pred.state[0].detach()
-        self.pred.state[1].detach()
         return self.pred.processData(specharm).detach()
 
     def resetSpecPred(self) -> None:
@@ -703,7 +703,6 @@ class SpecPredAI(nn.Module):
 
     def forward(self, specharm:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next specharm in a sequence"""
-
         harmonics = specharm[:, :halfHarms]
         spectrum = specharm[:, halfHarms:]
         harmonics = self.layer1Harm(harmonics)
@@ -748,7 +747,7 @@ class SpecPredAI(nn.Module):
     def train(self, indata, epochs:int=1, writer:SummaryWriter = None) -> None:
         """trains the NN based on a dataset of specharm sequences"""
 
-        if indata == False:
+        if indata == False or indata == True:
             return
         for epoch in range(epochs):
             for data in self.dataLoader(indata):
