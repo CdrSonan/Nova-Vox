@@ -31,117 +31,117 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 processedSpectrumCache.append(DenseCache((length, 2 * global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1), device_rs))
                 excitationCache.append(DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64))
         elif change.type == "removeTrack":
-            del statusControl[change.data[1]]
-            del voicebankList[change.data[1]]
-            del aiParamStackList[change.data[1]]
-            del inputList[change.data[1]]
+            del statusControl[change.data[0]]
+            del voicebankList[change.data[0]]
+            del aiParamStackList[change.data[0]]
+            del inputList[change.data[0]]
             if settings["cachingMode"] == "best rendering speed":
-                del spectrumCache[change.data[1]]
-                del processedSpectrumCache[change.data[1]]
-                del excitationCache[change.data[1]]
+                del spectrumCache[change.data[0]]
+                del processedSpectrumCache[change.data[0]]
+                del excitationCache[change.data[0]]
             remoteConnection.put(StatusChange(None, None, None, None))
         elif change.type == "duplicateTrack":
-            statusControl.append(copy(statusControl[change.data[1]]))
-            voicebankList.append(copy(voicebankList[change.data[1]]))
-            aiParamStackList.append(copy(aiParamStackList[change.data[1]]))
-            inputList.append(copy(inputList[change.data[1]]))
+            statusControl.append(copy(statusControl[change.data[0]]))
+            voicebankList.append(copy(voicebankList[change.data[0]]))
+            aiParamStackList.append(copy(aiParamStackList[change.data[0]]))
+            inputList.append(copy(inputList[change.data[0]]))
             if settings["cachingMode"] == "best rendering speed":
-                spectrumCache.append(copy(spectrumCache[change.data[1]]))
-                processedSpectrumCache.append(copy(processedSpectrumCache[change.data[1]]))
-                excitationCache.append(copy(excitationCache[change.data[1]]))
+                spectrumCache.append(copy(spectrumCache[change.data[0]]))
+                processedSpectrumCache.append(copy(processedSpectrumCache[change.data[0]]))
+                excitationCache.append(copy(excitationCache[change.data[0]]))
         elif change.type == "changeVB":
-            del voicebankList[change.data[1]]
-            voicebankList.insert(change.data[1], LiteVoicebank(change.data[2]))
-            statusControl[change.data[1]].rs *= 0
-            statusControl[change.data[1]].ai *= 0
+            del voicebankList[change.data[0]]
+            voicebankList.insert(change.data[0], LiteVoicebank(change.data[1]))
+            statusControl[change.data[0]].rs *= 0
+            statusControl[change.data[0]].ai *= 0
         elif change.type == "addParam":
-            aiParamStackList[change.data[1]].addParam(change.data[2])
-            statusControl[change.data[1]].ai *= 0
+            aiParamStackList[change.data[0]].addParam(change.data[1])
+            statusControl[change.data[0]].ai *= 0
         elif change.type == "removeParam":
-            aiParamStackList[change.data[1]].removeParam(change.data[2])
-            statusControl[change.data[1]].ai *= 0
+            aiParamStackList[change.data[0]].removeParam(change.data[1])
+            statusControl[change.data[0]].ai *= 0
         elif change.type == "enableParam":
             if change.data[2] == "breathiness":
-                inputList[change.data[1]].useBreathiness = True
-                statusControl[change.data[1]].rs *= 0
+                inputList[change.data[0]].useBreathiness = True
+                statusControl[change.data[0]].rs *= 0
             elif change.data[2] == "steadiness":
-                inputList[change.data[1]].useSteadiness = True
-                statusControl[change.data[1]].rs *= 0
+                inputList[change.data[0]].useSteadiness = True
+                statusControl[change.data[0]].rs *= 0
             elif change.data[2] == "vibrato speed":
-                inputList[change.data[1]].useVibratoSpeed = True
-                statusControl[change.data[1]].rs *= 0
+                inputList[change.data[0]].useVibratoSpeed = True
+                statusControl[change.data[0]].rs *= 0
             elif change.data[2] == "vibrato strength":
-                inputList[change.data[1]].useVibratoStrength = True
-                statusControl[change.data[1]].rs *= 0
+                inputList[change.data[0]].useVibratoStrength = True
+                statusControl[change.data[0]].rs *= 0
             else:
                 aiParamStackList[change.data[1]].enableParam(change.data[2])
             statusControl[change.data[1]].ai *= 0
         elif change.type == "disableParam":
-            if change.data[2] == "breathiness":
-                inputList[change.data[1]].useBreathiness = False
-                statusControl[change.data[1]].rs *= 0
-            elif change.data[2] == "steadiness":
-                inputList[change.data[1]].useSteadiness = False
-                statusControl[change.data[1]].rs *= 0
-            elif change.data[2] == "vibrato speed":
-                inputList[change.data[1]].useVibratoSpeed = False
-                statusControl[change.data[1]].rs *= 0
-            elif change.data[2] == "vibrato strength":
-                inputList[change.data[1]].useVibratoStrength = False
-                statusControl[change.data[1]].rs *= 0
+            if change.data[1] == "breathiness":
+                inputList[change.data[0]].useBreathiness = False
+                statusControl[change.data[0]].rs *= 0
+            elif change.data[1] == "steadiness":
+                inputList[change.data[0]].useSteadiness = False
+                statusControl[change.data[0]].rs *= 0
+            elif change.data[1] == "vibrato speed":
+                inputList[change.data[0]].useVibratoSpeed = False
+                statusControl[change.data[0]].rs *= 0
+            elif change.data[1] == "vibrato strength":
+                inputList[change.data[0]].useVibratoStrength = False
+                statusControl[change.data[0]].rs *= 0
             else:
-                aiParamStackList[change.data[1]].disableParam(change.data[2])
-            statusControl[change.data[1]].ai *= 0
+                aiParamStackList[change.data[0]].disableParam(change.data[1])
+            statusControl[change.data[0]].ai *= 0
         elif change.type == "moveParam":
-            aiParamStackList[change.data[1]].insert(change.data[3], aiParamStackList[change.data[1]].pop(change.data[2]))
-            statusControl[change.data[1]].ai *= 0
+            aiParamStackList[change.data[0]].insert(change.data[2], aiParamStackList[change.data[0]].pop(change.data[1]))
+            statusControl[change.data[0]].ai *= 0
         elif change.type == "changeInput":
-            if change.data[2] in ["phonemes", "offsets", "repetititionSpacing"]:
-                if change.data[2] == "phonemes":
+            if change.data[1] in ["phonemes", "offsets", "repetititionSpacing"]:
+                if change.data[1] == "phonemes":
                     for j in range(len(change.data[4])):
-                        if inputList[change.data[1]].phonemes[change.data[3] + j] == "_autopause":
-                            inputList[change.data[1]].startCaps[change.data[3] + j] = False
-                            inputList[change.data[1]].endCaps[change.data[3] + j] = False
-                            if change.data[3] + j + 1 < len(inputList[change.data[1]].startCaps):
-                                inputList[change.data[1]].startCaps[change.data[3] + j + 1] = False
-                            if change.data[3] + j > 0:
-                                inputList[change.data[1]].endCaps[change.data[3] + j - 1] = False
-                eval("inputList[change.data[1]]." + change.data[2])[change.data[3]:change.data[3] + len(change.data[4])] = change.data[4]
-                statusControl[change.data[1]].rs[change.data[3]:change.data[3] + len(change.data[4])] *= 0
-                statusControl[change.data[1]].ai[change.data[3]:change.data[3] + len(change.data[4])] *= 0
-                if change.data[2] == "phonemes":
-                    for j in range(len(change.data[4])):
+                        if inputList[change.data[0]].phonemes[change.data[2] + j] == "_autopause":
+                            inputList[change.data[0]].startCaps[change.data[2] + j] = False
+                            inputList[change.data[0]].endCaps[change.data[2] + j] = False
+                            if change.data[2] + j + 1 < len(inputList[change.data[1]].startCaps):
+                                inputList[change.data[0]].startCaps[change.data[2] + j + 1] = False
+                            if change.data[2] + j > 0:
+                                inputList[change.data[0]].endCaps[change.data[2] + j - 1] = False
+                eval("inputList[change.data[0]]." + change.data[1])[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
+                statusControl[change.data[0]].rs[change.data[2]:change.data[2] + len(change.data[3])] *= 0
+                statusControl[change.data[0]].ai[change.data[2]:change.data[2] + len(change.data[3])] *= 0
+                if change.data[1] == "phonemes":
+                    for j in range(len(change.data[3])):
                         if change.data[4][j] == "_autopause":
-                            inputList[change.data[1]].startCaps[change.data[3] + j] = True
-                            inputList[change.data[1]].endCaps[change.data[3] + j] = True
-                            if change.data[3] + j + 1 < len(inputList[change.data[1]].startCaps):
-                                inputList[change.data[1]].startCaps[change.data[3] + j + 1] = True
-                            if change.data[3] + j > 0:
-                                inputList[change.data[1]].endCaps[change.data[3] + j - 1] = True
-                        if j + 1 == len(change.data[4]):
-                            inputList[change.data[1]].endCaps[change.data[3] + j] = True
-            elif change.data[2] == "borders":
-                start = inputList[change.data[1]].borders[change.data[3]] * global_consts.batchSize
-                end = inputList[change.data[1]].borders[change.data[3] + len(change.data[4]) - 1] * global_consts.batchSize
-                if lastZero == None or lastZero != [change.data[1], start, end - start]:
-                    lastZero = [change.data[1], start, end - start]
-                    remoteConnection.put(StatusChange(change.data[1], start, end - start, "zeroAudio"))
-                for i in range(len(change.data[4])):
-                    change.data[4][i] = int(change.data[4][i])
-                inputList[change.data[1]].borders[change.data[3]:change.data[3] + len(change.data[4])] = change.data[4]
-                statusControl[change.data[1]].rs[math.floor(change.data[3] / 3):math.floor((change.data[3] + len(change.data[4])) / 3)] *= 0
-                statusControl[change.data[1]].ai[math.floor(change.data[3] / 3):math.floor((change.data[3] + len(change.data[4])) / 3)] *= 0
-            elif change.data[2] in ["pitch", "steadiness", "breathiness"]:
-                eval("inputList[change.data[1]]." + change.data[2])[change.data[3]:change.data[3] + len(change.data[4])] = change.data[4]
-                positions = posToSegment(change.data[1], change.data[3], change.data[3] + len(change.data[4]), inputList)
-                statusControl[change.data[1]].rs[positions[0]:positions[1]] *= 0
-                statusControl[change.data[1]].ai[positions[0]:positions[1]] *= 0
+                            inputList[change.data[0]].startCaps[change.data[2] + j] = True
+                            inputList[change.data[0]].endCaps[change.data[2] + j] = True
+                            if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
+                                inputList[change.data[1]].startCaps[change.data[2] + j + 1] = True
+                            if change.data[2] + j > 0:
+                                inputList[change.data[1]].endCaps[change.data[2] + j - 1] = True
+                        if j + 1 == len(change.data[3]):
+                            inputList[change.data[0]].endCaps[change.data[2] + j] = True
+            elif change.data[1] == "borders":
+                start = inputList[change.data[0]].borders[change.data[2]] * global_consts.batchSize
+                end = inputList[change.data[0]].borders[change.data[2] + len(change.data[3]) - 1] * global_consts.batchSize
+                if lastZero == None or lastZero != [change.data[0], start, end - start]:
+                    lastZero = [change.data[0], start, end - start]
+                    remoteConnection.put(StatusChange(change.data[0], start, end - start, "zeroAudio"))
+                for i in range(len(change.data[3])):
+                    change.data[3][i] = int(change.data[3][i])
+                inputList[change.data[0]].borders[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
+                statusControl[change.data[0]].rs[math.floor(change.data[2] / 3):math.floor((change.data[2] + len(change.data[3])) / 3)] *= 0
+                statusControl[change.data[0]].ai[math.floor(change.data[2] / 3):math.floor((change.data[2] + len(change.data[3])) / 3)] *= 0
+            elif change.data[1] in ["pitch", "steadiness", "breathiness"]:
+                eval("inputList[change.data[0]]." + change.data[1])[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
+                positions = posToSegment(change.data[0], change.data[2], change.data[2] + len(change.data[3]), inputList)
+                statusControl[change.data[0]].rs[positions[0]:positions[1]] *= 0
+                statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
             else:
-                positions = posToSegment(change.data[1], change.data[3], change.data[3] + len(change.data[4]), inputList)
-                inputList[change.data[1]].aiParamInputs[change.data[2]][change.data[3]:change.data[3] + len(change.data[4])] = change.data[4]
-                statusControl[change.data[1]].ai[positions[0]:positions[1]] *= 0
+                positions = posToSegment(change.data[0], change.data[2], change.data[2] + len(change.data[3]), inputList)
+                inputList[change.data[0]].aiParamInputs[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
+                statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
-            inputList, internalStatusControl = trimSequence(change.data[1], change.data[2], change.data[3], inputList, internalStatusControl)
+            inputList, internalStatusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, internalStatusControl)
         if change.final == False:
             return updateFromMain(connection.get(), lastZero, inputList)
         else:
