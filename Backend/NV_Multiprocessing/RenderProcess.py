@@ -17,14 +17,14 @@ from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseShiftFourier
 
 def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection):
-    def updateFromMain(change, lastZero):
+    def updateFromMain(change, lastZero, inputList):
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
-            statusControl.append(SequenceStatusControl(change.data[2]))
-            voicebankList.append(LiteVoicebank(change.data[1]))
-            aiParamStackList.append(change.data[3])
-            inputList.append(change.data[2])
+            statusControl.append(SequenceStatusControl(change.data[1]))
+            voicebankList.append(LiteVoicebank(change.data[0]))
+            aiParamStackList.append(change.data[2])
+            inputList.append(change.data[1])
             if settings["cachingMode"] == "best rendering speed":
                 length = inputList[-1].pitch.size()[0]
                 spectrumCache.append(DenseCache((length, 2 * global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1), device_rs))
@@ -143,10 +143,10 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         elif change.type == "offset":
             inputList, internalStatusControl = trimSequence(change.data[1], change.data[2], change.data[3], inputList, internalStatusControl)
         if change.final == False:
-            return updateFromMain(connection.get(), lastZero)
+            return updateFromMain(connection.get(), lastZero, inputList)
         else:
             try:
-                return updateFromMain(connection.get_nowait(), lastZero)
+                return updateFromMain(connection.get_nowait(), lastZero, inputList)
             except:
                 return False
 
@@ -428,5 +428,5 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         except:
             c = None
         if c != None:
-            if updateFromMain(c, lastZero):
+            if updateFromMain(c, lastZero, inputList):
                 break

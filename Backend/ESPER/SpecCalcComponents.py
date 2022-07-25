@@ -236,9 +236,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         if length == 1:
             harmFunction = torch.stft(i, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, center = False, return_complex = True)
             amplitudes = harmFunction.abs()
-            amplitudeContinuity = calculateAmplitudeContinuity(amplitudes)
-            phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
-            amplitudes *= amplitudeContinuity * torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1)
+            amplitudes *= calculateAmplitudeContinuity(amplitudes)
             harmFunction = torch.polar(amplitudes, harmFunction.angle())
             harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = i.size()[0], center = False, onesided = True, return_complex = False)
             offharm = (i - harmFunctionFull)

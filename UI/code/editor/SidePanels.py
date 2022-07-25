@@ -127,6 +127,7 @@ class SingerSidePanel(ModalView):
         """adds a new vocal track using the selected Voicebank when the import button is pressed"""
 
         global middleLayer
+        from UI.code.editor.Main import middleLayer
         middleLayer.importVoicebank(path, name, image)
 
 class ParamSidePanel(ModalView):

@@ -766,7 +766,7 @@ class MiddleLayer(Widget):
         self.manager.sendChange("terminate", True)
 
     def submitAddTrack(self, track:dh.Track) -> None:
-        self.manager.sendChange("addTrack", True, track.vbPath, track.to_sequence(), self.aiParamStackList[-1])
+        self.manager.sendChange("addTrack", True, track.vbPath, track.toSequence(), self.aiParamStackList[-1])
 
     def submitRemoveTrack(self, index:int) -> None:
         self.manager.sendChange("removeTrack", True, index)

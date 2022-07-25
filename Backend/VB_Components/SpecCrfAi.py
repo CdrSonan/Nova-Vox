@@ -433,12 +433,12 @@ class LiteSpecCrfAi(nn.Module):
         super(LiteSpecCrfAi, self).__init__()
         
         if specCrfAi == None:
-            hiddenLayerCount = 3
+            self.hiddenLayerCount = 3
         else:
-            hiddenLayerCount = specCrfAi.hiddenLayerCount
+            self.hiddenLayerCount = specCrfAi.hiddenLayerCount
 
         self.convolution = nn.Conv1d(6, 6, 1, device = device)
-        self.layerStart1 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, 5 * global_consts.halfTripleBatchSize + 5, device = device)
+        self.layerStart1 = torch.nn.Linear(6 * global_consts.halfTripleBatchSize + 6, 5 * global_consts.halfTripleBatchSize + 5, device = device)
         self.ReLuStart1 = nn.ReLU()
         self.layerStart2 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, 4 * global_consts.halfTripleBatchSize, device = device)
         self.ReLuStart2 = nn.ReLU()
@@ -448,7 +448,7 @@ class LiteSpecCrfAi(nn.Module):
         self.harmLayerStart2 = torch.nn.Linear(5 * halfHarms, 4 * halfHarms, device = device)
         self.harmReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
-        for i in range(hiddenLayerCount):
+        for i in range(self.hiddenLayerCount):
             hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(4 * (global_consts.halfTripleBatchSize + halfHarms), 4 * (global_consts.halfTripleBatchSize + halfHarms), device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)

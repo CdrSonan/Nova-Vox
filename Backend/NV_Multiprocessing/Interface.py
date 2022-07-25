@@ -2,7 +2,7 @@ import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
 
 class SequenceStatusControl():
-    """Container for the control flags of a VocalSequence object. Used by the rendering process for tracking which segments of the VOcalSequence need to be re-rendered or loaded from cache."""
+    """Container for the control flags of a VocalSequence object. Used by the rendering process for tracking which segments of the VocalSequence need to be re-rendered or loaded from cache."""
 
     def __init__(self, sequence:VocalSequence = None) -> None:
         if sequence == None:
