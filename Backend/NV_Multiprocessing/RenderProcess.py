@@ -16,8 +16,19 @@ from MiddleLayer.IniParser import readSettings
 from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseShiftFourier
 
-def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection):
-    def updateFromMain(change, lastZero, inputList):
+def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputListIn, rerenderFlagIn, connectionIn, remoteConnectionIn):
+
+    global statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
+    statusControl = statusControlIn
+    voicebankList = voicebankListIn
+    aiParamStackList = aiParamStackListIn
+    inputList = inputListIn
+    rerenderFlag = rerenderFlagIn
+    connection = connectionIn
+    remoteConnection = remoteConnectionIn
+
+    def updateFromMain(change, lastZero):
+        global statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
@@ -27,8 +38,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
             inputList.append(change.data[1])
             if settings["cachingMode"] == "best rendering speed":
                 length = inputList[-1].pitch.size()[0]
-                spectrumCache.append(DenseCache((length, 2 * global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1), device_rs))
-                processedSpectrumCache.append(DenseCache((length, 2 * global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1), device_rs))
+                spectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
+                processedSpectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
                 excitationCache.append(DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64))
         elif change.type == "removeTrack":
             del statusControl[change.data[0]]
@@ -98,7 +109,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         elif change.type == "changeInput":
             if change.data[1] in ["phonemes", "offsets", "repetititionSpacing"]:
                 if change.data[1] == "phonemes":
-                    for j in range(len(change.data[4])):
+                    for j in range(len(change.data[3])):
                         if inputList[change.data[0]].phonemes[change.data[2] + j] == "_autopause":
                             inputList[change.data[0]].startCaps[change.data[2] + j] = False
                             inputList[change.data[0]].endCaps[change.data[2] + j] = False
@@ -111,7 +122,7 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 statusControl[change.data[0]].ai[change.data[2]:change.data[2] + len(change.data[3])] *= 0
                 if change.data[1] == "phonemes":
                     for j in range(len(change.data[3])):
-                        if change.data[4][j] == "_autopause":
+                        if change.data[3][j] == "_autopause":
                             inputList[change.data[0]].startCaps[change.data[2] + j] = True
                             inputList[change.data[0]].endCaps[change.data[2] + j] = True
                             if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
@@ -143,10 +154,10 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         elif change.type == "offset":
             inputList, internalStatusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, internalStatusControl)
         if change.final == False:
-            return updateFromMain(connection.get(), lastZero, inputList)
+            return updateFromMain(connection.get(), lastZero)
         else:
             try:
-                return updateFromMain(connection.get_nowait(), lastZero, inputList)
+                return updateFromMain(connection.get_nowait(), lastZero)
             except:
                 return False
 
@@ -181,7 +192,6 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         spectrumCache = []
         processedSpectrumCache = []
         excitationCache = []
-        voicedExcitationCache = []
         for i in range(len(statusControl)):
             length = inputList[i].pitch.size()[0]
             spectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
@@ -222,13 +232,13 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                 excitation = excitationCache[i]
                 indicator = -1
             elif settings["cachingMode"] == "save RAM":
-                spectrum = SparseCache((length, 2 * global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1), device_rs)
-                processedSpectrum = SparseCache((length, 2 * global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1), device_rs)
+                spectrum = SparseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs)
+                processedSpectrum = SparseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs)
                 excitation = SparseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64)
                 indicator = 0
             else:
-                spectrum = DenseCache((length, 2 * global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1), device_rs)
-                processedSpectrum = DenseCache((length, 2 * global_consts.nHarmonics + global_consts.halfTripleBatchSize + 1), device_rs)
+                spectrum = DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs)
+                processedSpectrum = DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs)
                 excitation = DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64)
                 indicator = 0
             firstPoint = None
@@ -288,15 +298,15 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                         logging.info("calling resamplers for sample " + str(j) + ", sequence " + str(i))
                         if (internalInputs.startCaps[j] == False) and (previousSpectrum == None):
                             section = VocalSegment(internalInputs, voicebank, j - 1, device_rs)
-                            previousSpectrum = rs.getSpectrum(section, device_rs)
+                            previousSpectrum = rs.getSpecharm(section, device_rs)
                             previousExcitation = rs.getExcitation(section, device_rs)
                         if currentSpectrum == None:
                             section = VocalSegment(internalInputs, voicebank, j, device_rs)
-                            currentSpectrum = rs.getSpectrum(section, device_rs)
+                            currentSpectrum = rs.getSpecharm(section, device_rs)
                             currentExcitation = rs.getExcitation(section, device_rs)
                         if (internalInputs.endCaps[j] == False) and (nextSpectrum == None):
                             section = VocalSegment(internalInputs, voicebank, j + 1, device_rs)
-                            nextSpectrum = rs.getSpectrum(section, device_rs)
+                            nextSpectrum = rs.getSpecharm(section, device_rs)
                             nextExcitation = rs.getExcitation(section, device_rs)
                         remoteConnection.put(StatusChange(i, j, 1))
 
@@ -359,10 +369,10 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                                 slope = torch.zeros(global_consts.halfTripleBatchSize + 1, device = device_rs)
                                 slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
                                 slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
-                                outputSpectrum = (slope * spectrum.read(k)[2 * global_consts.nHarmonics:]) + ((1 - slope) * shiftedSpectrum[2 * global_consts.nHarmonics:])
-                                adjustedHarm = global_consts.nHarmonics * internalInputs.pitch[k] / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch
-                                harmonics = interp(torch.linspace(0, global_consts.nHarmonics - 1, global_consts.nHarmonics), spectrum.read(k)[:global_consts.nHarmonics], torch.linspace(0, adjustedHarm - 1, adjustedHarm))
-                                phases = phaseShiftFourier(spectrum.read(k)[global_consts.nHarmonics:2 * global_consts.nHarmonics], (adjustedHarm % 1) * 2 * math.pi + previousShift, device_rs)
+                                outputSpectrum = (slope * spectrum.read(k)[global_consts.nHarmonics + 2:]) + ((1 - slope) * shiftedSpectrum[global_consts.nHarmonics + 2:])
+                                adjustedHarm = (global_consts.nHarmonics * internalInputs.pitch[k] / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch).item()
+                                harmonics = interp(torch.linspace(0, global_consts.nHarmonics - 1, global_consts.nHarmonics), spectrum.read(k)[:int(global_consts.nHarmonics / 2) + 1], torch.linspace(0, adjustedHarm - 1, adjustedHarm))
+                                phases = phaseShiftFourier(spectrum.read(k)[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], (adjustedHarm % 1) * 2 * math.pi + previousShift, device_rs)
                                 previousShift = (adjustedHarm % 1) * 2 * math.pi
                                 spectrum.write(torch.cat((harmonics, phases, outputSpectrum), 0), k)
                         
@@ -375,8 +385,8 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
                     logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
                     if aiActive:
                         startPoint = internalInputs.borders[3 * firstPoint]
-                        abs = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, :global_consts.nHarmonics]
-                        angle = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, global_consts.nHarmonics:2 * global_consts.nHarmonics]
+                        abs = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, :int(global_consts.nHarmonics / 2) + 1]
+                        angle = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
                         harms = torch.polar(abs, angle)
                         voicedSignal = torch.empty((internalInputs.borders[3 * (j - 1) + 5] - startPoint,global_consts.halfTripleBatchSize + 1))
                         for k in range(harms.size()[0]):
@@ -428,5 +438,5 @@ def renderProcess(statusControl, voicebankList, aiParamStackList, inputList, rer
         except:
             c = None
         if c != None:
-            if updateFromMain(c, lastZero, inputList):
+            if updateFromMain(c, lastZero):
                 break

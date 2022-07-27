@@ -43,7 +43,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     if vocalSegment.phonemeKey == "_autopause":
         offset = 0
     else:
-        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectra.size()[0] / 2)
+        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm.size()[0] / 2)
     if vocalSegment.startCap:
         windowStart = offset
     else:
@@ -54,10 +54,12 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + offset
     if vocalSegment.phonemeKey == "_autopause":
         return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
-    spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].spectrum.to(device = device)
+    spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].avgSpecharm.to(device = device)
     specharm = Loop.loopSamplerSpecharm(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
-    specharm[:, 2 * global_consts.nHarmonics:] *= torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2)
-    specharm[:, 2 * global_consts.nHarmonics:] += spectrum
+    specharm[:, :int(global_consts.nHarmonics / 2) + 1] *= torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2)
+    specharm[:, global_consts.nHarmonics + 2:] *= torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2)
+    specharm[:, :int(global_consts.nHarmonics / 2) + 1] += spectrum[:int(global_consts.nHarmonics / 2) + 1]
+    specharm[:, global_consts.nHarmonics + 2:] += spectrum[int(global_consts.nHarmonics / 2) + 1:]
 
     """requiredSize = math.ceil(torch.max(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize
     nativePitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].pitch.to(device = device)

@@ -19,9 +19,9 @@ def loopSamplerSpecharm(inputTensor:torch.Tensor, targetSize:int, repetititionSp
         Tensor of length requiredLength representing the looped voiced excitation signal. It is natively available on the device specified in the parameters.
         
     It is also suited for looping any kind of data that can be represented as a vector for each engine tick. """
-    phases = inputTensor[:, global_consts.nHarmonics:2 * global_consts.nHarmonics]
+    phases = inputTensor[:, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
     
-    inputTensor = torch.cat((inputTensor[:, :global_consts.nHarmonics], inputTensor[:, 2 * global_consts.nHarmonics:]), 1)
+    inputTensor = torch.cat((inputTensor[:, :int(global_consts.nHarmonics / 2) + 1], inputTensor[:, global_consts.nHarmonics + 2:]), 1)
     repetititionSpacing = math.ceil(repetititionSpacing * inputTensor.size()[0] / 2)
     requiredTensors = math.ceil((targetSize - repetititionSpacing) / (inputTensor.size()[0] - repetititionSpacing))
     if requiredTensors <= 1:
@@ -57,4 +57,4 @@ def loopSamplerSpecharm(inputTensor:torch.Tensor, targetSize:int, repetititionSp
         outputPhases[phases.size()[0] + (requiredTensors - 2) * workingPhases.size()[0]:] += workingPhases
         del workingTensor
 
-    return torch.cat((outputTensor[:, :global_consts.nHarmonics], outputPhases, outputTensor[:, 2 * global_consts.nHarmonics:]), 1)
+    return torch.cat((outputTensor[:, :int(global_consts.nHarmonics / 2) + 1], outputPhases, outputTensor[:, int(global_consts.nHarmonics / 2) + 1:]), 1)
