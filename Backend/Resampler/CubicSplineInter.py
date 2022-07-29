@@ -41,6 +41,10 @@ def extrap(x:torch.Tensor, y:torch.Tensor, xs:torch.Tensor) -> torch.Tensor:
     derr = y[1] - y[0]
     derr2 = y[2] - 2 * y[1] + y[0]
     smallY = y[0] - (derr + 0. * derr2) * (x[0] - torch.min(xs)) / (x[1] - x[0])
-    x = torch.cat((torch.unsqueeze(torch.min(xs), 0), x, torch.unsqueeze(torch.max(xs), 0)), 0)
-    y = torch.cat((torch.unsqueeze(smallY, 0), y, torch.unsqueeze(largeY, 0)), 0)
+    if torch.min(xs) < torch.min(x):
+        x = torch.cat((torch.unsqueeze(torch.min(xs), 0), x), 0)
+        y = torch.cat((torch.unsqueeze(smallY, 0), y), 0)
+    if torch.max(xs) > torch.max(x):
+        x = torch.cat((x, torch.unsqueeze(torch.max(xs), 0)), 0)
+        y = torch.cat((y, torch.unsqueeze(largeY, 0)), 0)
     return interp(x, y, xs)
