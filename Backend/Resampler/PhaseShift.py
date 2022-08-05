@@ -3,7 +3,7 @@ import global_consts
 import math
 
 def phaseShiftFourier(inputTensor:torch.Tensor, phase:float, device:torch.device) -> torch.Tensor:
-    """currently unused function for phase shifting an arbitrary signal in fourier space.
+    """function for phase shifting an arbitrary signal in fourier space.
     
     Arguments:
         inputTensor: complex tensor representing the input
@@ -23,22 +23,25 @@ def phaseShiftFourier(inputTensor:torch.Tensor, phase:float, device:torch.device
     phases += phaseOffsets
     return torch.polar(absolutes, phases)
 
-def phaseShift(inputTensor:torch.Tensor, pitch:torch.Tensor, phase:float) -> torch.Tensor:
-    """Function for phase shifting an arbitrary signal in time space.
+def phaseShift(inputTensor:torch.Tensor, phase:float, device:torch.device) -> torch.Tensor:
+    """function for shifting a tensor of only phases (in radians) by a configurable amount of time, relative to the lowest frequency.
     
     Arguments:
-        inputTensor: complex tensor representing the input
+        inputTensor: float tensor representing the input
         
-        pitch: the pitch of the f0 frequency, or other frequency the phase is to be taken from
+        phase: the amount the phase is to be shifted by, given relative to the lowest frequency (the first element) of the input
         
-        phase: the amount the phase is to be shifted by
+        device: the device to perform the calculations on
         
     Returns:
         tensor representing the phase shifted input. It is natively available on the device specified as argument"""
 
 
-    phaseOffset = (global_consts.tripleBatchSize * 0.5 / math.pi) * (phase / pitch)
-    return inputTensor[phaseOffset:]
+    phaseOffsets = torch.full(inputTensor.size(), phase, device = device)
+    phaseOffsets *= torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1)
+    outputTensor = inputTensor + phaseOffsets
+    outputTensor = torch.remainder(outputTensor, torch.tensor([2 * math.pi]))
+    return outputTensor
     
 def calculatePhaseDiff(batchRS:int, phases:torch.Tensor, pitch:torch.Tensor) -> int:
     """function for calculating the phase difference between the end of one and the beginning of another instance of the same sample. Used during voiced excitation looping.

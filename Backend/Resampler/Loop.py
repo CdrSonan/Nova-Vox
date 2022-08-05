@@ -33,7 +33,7 @@ def loopSamplerSpecharm(inputTensor:torch.Tensor, targetSize:int, repetititionSp
         workingTensor = inputTensor.to(device = device, copy = True)
         workingPhases = phases.to(device = device, copy = True)
         workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.unsqueeze(torch.linspace(1, 0, repetititionSpacing, device = device), 1)
-        workingPhases[-repetititionSpacing:] = phaseInterp(workingPhases[-repetititionSpacing:], workingPhases[:repetititionSpacing], torch.unsqueeze(torch.linspace(1, 0, repetititionSpacing, device = device), 1))
+        workingPhases[-repetititionSpacing:] = phaseInterp(workingPhases[-repetititionSpacing:], workingPhases[:repetititionSpacing], torch.unsqueeze(torch.linspace(0, 1, repetititionSpacing, device = device), 1))
         outputTensor[0:inputTensor.size()[0]] += workingTensor
         outputPhases[0:inputTensor.size()[0]] += workingPhases
         del workingTensor
@@ -43,8 +43,8 @@ def loopSamplerSpecharm(inputTensor:torch.Tensor, targetSize:int, repetititionSp
             workingPhases = phases.to(device = device, copy = True)
             workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.unsqueeze(torch.linspace(0, 1, repetititionSpacing, device = device), 1)
             workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.unsqueeze(torch.linspace(1, 0, repetititionSpacing, device = device), 1)
+            workingPhases[-repetititionSpacing:] = phaseInterp(workingPhases[-repetititionSpacing:], workingPhases[:repetititionSpacing], torch.unsqueeze(torch.linspace(0, 1, repetititionSpacing, device = device), 1))
             workingPhases = workingPhases[repetititionSpacing:]
-            workingPhases[-repetititionSpacing:] = phaseInterp(workingPhases[-repetititionSpacing:], workingPhases[:repetititionSpacing], torch.unsqueeze(torch.linspace(1, 0, repetititionSpacing, device = device), 1))
             outputTensor[i * (inputTensor.size()[0] - repetititionSpacing):i * (inputTensor.size()[0] - repetititionSpacing) + inputTensor.size()[0]] += workingTensor
             outputPhases[phases.size()[0] + (i - 1) * workingPhases.size()[0]:phases.size()[0] + i * workingPhases.size()[0]] += workingPhases
             del workingTensor

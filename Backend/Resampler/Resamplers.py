@@ -97,10 +97,10 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         factor = math.log(0.5, (vocalSegment.start2 - vocalSegment.start1) / (vocalSegment.start3 - vocalSegment.start1))
         slope = torch.linspace(0, 1, (vocalSegment.start3 - vocalSegment.start1), device = device)
         slope = torch.pow(slope, factor)
-        specharm[0:(vocalSegment.start3 - vocalSegment.start1), :global_consts.nHarmonics] *= slope
+        specharm[0:(vocalSegment.start3 - vocalSegment.start1), :global_consts.nHarmonics] *= torch.unsqueeze(slope, 1)
     if vocalSegment.endCap == False:
         factor = math.log(0.5, (vocalSegment.end3 - vocalSegment.end2) / (vocalSegment.end3 - vocalSegment.end1))
         slope = torch.linspace(1, 0, (vocalSegment.end3 - vocalSegment.end1), device = device)
         slope = torch.pow(slope, factor)
-        specharm[(vocalSegment.end1 - vocalSegment.start1):(vocalSegment.end3 - vocalSegment.start1), :global_consts.nHarmonics] *= slope
+        specharm[(vocalSegment.end1 - vocalSegment.start1):(vocalSegment.end3 - vocalSegment.start1), :global_consts.nHarmonics] *= torch.unsqueeze(slope, 1)
     return specharm
