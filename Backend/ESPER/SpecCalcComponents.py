@@ -1,7 +1,7 @@
 import torchaudio
 from Backend.DataHandler.AudioSample import AudioSample
 from Backend.Resampler.CubicSplineInter import interp, extrap
-from Backend.Resampler.PhaseShift import phaseShiftFourier
+from Backend.Resampler.PhaseShift import phaseShiftFourier, phaseShift
 import torch
 import global_consts
 import math
@@ -23,7 +23,7 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     return 1. - (diff / math.pi)
 
 def calculateAmplitudeContinuity(amplitudes:torch.Tensor) -> torch.Tensor:
-    """calculates amplitude continuity function  base on the absolute values of an stft sequence. Frequencies with a high amplitude continuity are more likely to be voiced."""
+    """calculates amplitude continuity function based on the absolute values of an stft sequence. Frequencies with a high amplitude continuity are more likely to be voiced."""
 
     if amplitudes.size()[1] == 1:
         return torch.ones_like(amplitudes)
@@ -33,10 +33,12 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor) -> torch.Tensor:
     amplitudeContinuity[:,1:-1] = amplitudeContinuity[:,1:-1] / 3.
     amplitudeContinuity[:, 0] = amplitudeContinuity[:, 0] / 2.
     amplitudeContinuity[:, -1] = amplitudeContinuity[:, -1] / 2.
+    amplitudeContinuity = abs(amplitudeContinuity - amplitudes)
     amplitudeContinuity /= amplitudes
     amplitudeContinuity = torch.nan_to_num(amplitudeContinuity, 0.)
-    amplitudeContinuity = torch.min(amplitudeContinuity, amplitudes)
-    #amplitudeContinuity = torch.cos((torch.min(amplitudeContinuity / amplitudes, amplitudes / amplitudeContinuity) - 1) * math.pi / 2.)
+    amplitudeContinuity = 1. - amplitudeContinuity
+    amplitudeContinuity *= torch.heaviside(amplitudeContinuity, torch.zeros((1,)))
+    amplitudeContinuity[:5] = 1.
     return amplitudeContinuity
 
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
@@ -245,6 +247,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             harmFunction = torch.cat((harmFunction.abs(), harmFunction.angle()), 0)
             harmFunction = torch.mean(harmFunction, 1)
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
+            audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2] = phaseShift(audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], -audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 2], torch.device("cpu"))
             counter += 1
             continue
         interpolationPoints = interp(torch.linspace(0, len(markers) - 1, len(markers)), markers, torch.linspace(0, len(markers) - 1, (len(markers) - 1) * global_consts.nHarmonics + 1))
@@ -259,7 +262,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         amplitudeContinuity = calculateAmplitudeContinuity(amplitudes)
         phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
         phaseContinuity = torch.pow(phaseContinuity, 2)
-        amplitudes *= amplitudeContinuity * torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1)
+        amplitudes *= torch.max(amplitudeContinuity, torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1))
         harmFunction = torch.polar(amplitudes, harmFunction.angle())
         harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (length - 1) * global_consts.nHarmonics, center = False, onesided = True, return_complex = False)
         harmFunction = harmFunction[:, math.floor((length - 1) / 2)]
@@ -272,5 +275,6 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         harmFunction = phaseShiftFourier(harmFunction, markers[0].item() / global_consts.nHarmonics, torch.device("cpu"))
         harmFunction = torch.cat((harmFunction.abs(), harmFunction.angle()), 0)
         audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
+        audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2] = phaseShift(audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], -audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 2], torch.device("cpu"))
         counter += 1
     return audioSample

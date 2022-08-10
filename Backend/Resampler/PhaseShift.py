@@ -88,5 +88,5 @@ def phaseInterp(phaseA: torch.Tensor, phaseB: torch.Tensor, factor: torch.Tensor
     diff = torch.remainder(diff, 2 * math.pi)
     diffB = diff - 2 * math.pi
     mask = torch.ge(diff.abs(), diffB.abs())
-    diff.masked_scatter(mask, diffB)
-    return phaseA + factor * diff
+    diff[mask] = diffB[mask]
+    return torch.remainder(phaseA + factor * diff, 2 * math.pi)

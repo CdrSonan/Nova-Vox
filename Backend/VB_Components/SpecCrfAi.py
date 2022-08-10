@@ -516,9 +516,9 @@ class LiteSpecCrfAi(nn.Module):
         limit = torch.max(spectra, dim = 1)[0]
         fac = torch.full((global_consts.halfTripleBatchSize + 1, 1), factor, device = self.device)
         facHarm = torch.full((halfHarms, 1), factor, device = self.device)
-        predSpectrum = self.currPrediction[halfHarms:]
+        predSpectrum = self.currPrediction[0, 0, halfHarms:]
         predSpectrum = torch.unsqueeze(predSpectrum, 1)
-        predHarm = self.currPrediction[:halfHarms]
+        predHarm = self.currPrediction[0, 0, :halfHarms]
         predHarm = torch.unsqueeze(predHarm, 1)
         x = torch.cat((spectra, fac, predSpectrum), dim = 1)
         x = x.float()
@@ -584,7 +584,7 @@ class LiteSpecCrfAi(nn.Module):
         
         self.eval()
         output = torch.square(torch.squeeze(self(torch.sqrt(specharm1), torch.sqrt(specharm2), torch.sqrt(specharm3), torch.sqrt(specharm4), factor)))
-        return output
+        return output.detach()
 
     def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
         """sends a specharm to the AI's LSTM Predictor subnet, and returns its new unprocessed output."""
@@ -597,7 +597,7 @@ class LiteSpecCrfAi(nn.Module):
         """resets the hidden states and cell states of the AI's LSTM Predictor subnet."""
 
         self.pred.resetState()
-        self.currPrediction = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = self.currPrediction.device)
+        self.currPrediction = torch.zeros((1, 1, halfHarms + global_consts.halfTripleBatchSize + 1), device = self.currPrediction.device)
     
     def getState(self) -> dict:
         """returns the state of the NN and its epoch attribute in a Dictionary.

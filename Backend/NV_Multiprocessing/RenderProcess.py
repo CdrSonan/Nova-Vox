@@ -280,9 +280,9 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                     if aiActive:
                         logging.info("applying AI params to spectrum of sample " + str(j - 1) + ", sequence " + str(i))
                         #execute AI code
-                        processedSpectrum.write(torch.square(spectrum.read(internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
+                        processedSpectrum.write(spectrum.read(internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3]), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
                         if internalInputs.endCaps[j - 1]:
-                            processedSpectrum.write(torch.square(spectrum.read(internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
+                            processedSpectrum.write(spectrum.read(internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5]), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
                         internalStatusControl.ai[j - 1] = 1
                         remoteConnection.put(StatusChange(i, j - 1, 4))
 
@@ -373,7 +373,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                 slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
                                 slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
                                 outputSpectrum = (slope * spectrum.read(k)[global_consts.nHarmonics + 2:]) + ((1 - slope) * shiftedSpectrum)
-                                phaseDifference = voicebank.phonemeDict[internalInputs.phonemes[j]].pitch.to(torch.float64) / internalInputs.pitch[k].to(torch.float64)
+                                phaseDifference = global_consts.tripleBatchSize / internalInputs.pitch[k].to(torch.float64)
                                 adjustedHarm = (global_consts.nHarmonics * phaseDifference).item() / 2
                                 harmonics = extrap(torch.linspace(0, global_consts.nHarmonics / 2, int(global_consts.nHarmonics / 2) + 1), spectrum.read(k)[:int(global_consts.nHarmonics / 2) + 1], torch.linspace(0, adjustedHarm, int(global_consts.nHarmonics / 2) + 1))
                                 harmonics = softplus(harmonics)
@@ -381,14 +381,9 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                 harmonics = spectrum.read(k)[:int(global_consts.nHarmonics / 2) + 1]
 
                                 phases = spectrum.read(k)[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
-                                phases = phaseShift(phases, -phases[1], device_rs)
-
-                                print(phaseDifference, previousShift)
-                                
                                 phases = phaseShift(phases, previousShift, device_rs)
-                                previousShift = phaseDifference * 2 * math.pi / 3
+                                previousShift += phaseDifference * 2 * math.pi / 3
                                 previousShift = previousShift % (2 * math.pi)
-                                
                                 spectrum.write(torch.cat((harmonics, phases, outputSpectrum), 0), k)
                         
                         internalStatusControl.ai[j] = 0
@@ -399,27 +394,15 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                 if ((j > 0) & interOutput) or (j == lastPoint):
                     logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
                     if aiActive:
-
-                        debug = spectrum.read(0, 1000)
-                        print("a")
-                        import matplotlib.pyplot as plt
-                        plt.imshow(debug[:, :global_consts.nHarmonics + 2])
-                        plt.show()
-                        plt.imshow(debug[:, global_consts.nHarmonics + 2:])
-                        plt.show()
-
                         startPoint = internalInputs.borders[3 * firstPoint]
                         abs = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, :int(global_consts.nHarmonics / 2) + 1]
                         angle = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
                         harms = torch.polar(abs, angle)
                         voicedSignal = torch.empty((internalInputs.borders[3 * (j - 1) + 5] - startPoint,global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
                         for k in range(harms.size()[0]):
-                            requiredSize = (voicebank.phonemeDict[internalInputs.phonemes[j - 1]].pitch / internalInputs.pitch[k + startPoint]).item()
+                            requiredSize = global_consts.tripleBatchSize / internalInputs.pitch[k + startPoint].item()
                             harmCurve = torch.tile(torch.fft.irfft(harms[k], global_consts.nHarmonics), (math.ceil(requiredSize),))[:int(requiredSize * global_consts.nHarmonics)]
                             voicedSignal[k] = torch.fft.rfft(interp(torch.linspace(0, 1, int(requiredSize * global_consts.nHarmonics)), harmCurve, torch.linspace(0, 1, global_consts.tripleBatchSize)) * window)
-                            import matplotlib.pyplot as plt
-                            plt.plot(torch.linspace(k * global_consts.batchSize, (k + 3) * global_consts.batchSize + 1, global_consts.tripleBatchSize), interp(torch.linspace(0, 1, int(requiredSize * global_consts.nHarmonics)), harmCurve, torch.linspace(0, 1, global_consts.tripleBatchSize)))
-                        plt.show()
                         if internalInputs.useBreathiness:
                             breathiness = internalInputs.breathiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
                         else:
@@ -435,7 +418,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
 
                         waveform = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize).to(device = torch.device("cpu"))
                         excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
-                        #waveform += excitationSignal.to(device = torch.device("cpu"))
+                        waveform += excitationSignal.to(device = torch.device("cpu"))
                         lastZero = None
                         remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
                         remoteConnection.put(StatusChange(i, j - 1, 5))

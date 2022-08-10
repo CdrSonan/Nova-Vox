@@ -41,9 +41,8 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the voiced excitation of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause":
-        offset = 0
-    else:
-        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm.size()[0] / 2)
+        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
+    offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm.size()[0] / 2)
     if vocalSegment.startCap:
         windowStart = offset
     else:
@@ -52,8 +51,6 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         windowEnd = vocalSegment.end3 - vocalSegment.start1 + offset
     else:
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + offset
-    if vocalSegment.phonemeKey == "_autopause":
-        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
     spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].avgSpecharm.to(device = device)
     specharm = Loop.loopSamplerSpecharm(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
     specharm[:, :int(global_consts.nHarmonics / 2) + 1] *= torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2)
@@ -93,14 +90,14 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     voicedExcitationFourier = voicedExcitationFourier.transpose(0, 1)
     voicedExcitation = torch.istft(voicedExcitationFourier, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided = True, length = (vocalSegment.end3 - vocalSegment.start1)*global_consts.batchSize)"""
 
-    if vocalSegment.startCap == False:
+    """if vocalSegment.startCap == False:
         factor = math.log(0.5, (vocalSegment.start2 - vocalSegment.start1) / (vocalSegment.start3 - vocalSegment.start1))
         slope = torch.linspace(0, 1, (vocalSegment.start3 - vocalSegment.start1), device = device)
         slope = torch.pow(slope, factor)
-        specharm[0:(vocalSegment.start3 - vocalSegment.start1), :global_consts.nHarmonics] *= torch.unsqueeze(slope, 1)
+        specharm[:(vocalSegment.start3 - vocalSegment.start1), :global_consts.nHarmonics] *= torch.unsqueeze(slope, 1)
     if vocalSegment.endCap == False:
         factor = math.log(0.5, (vocalSegment.end3 - vocalSegment.end2) / (vocalSegment.end3 - vocalSegment.end1))
         slope = torch.linspace(1, 0, (vocalSegment.end3 - vocalSegment.end1), device = device)
         slope = torch.pow(slope, factor)
-        specharm[(vocalSegment.end1 - vocalSegment.start1):(vocalSegment.end3 - vocalSegment.start1), :global_consts.nHarmonics] *= torch.unsqueeze(slope, 1)
+        specharm[(vocalSegment.end1 - vocalSegment.start1):(vocalSegment.end3 - vocalSegment.start1), :global_consts.nHarmonics] *= torch.unsqueeze(slope, 1)"""
     return specharm
