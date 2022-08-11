@@ -97,6 +97,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
     maximumMarkers = torch.tensor([], dtype = torch.int16)
     minimumMarkers = torch.tensor([], dtype = torch.int16)
 
+    #get full list of zero transitions
     zeroTransitionsUp = torch.tensor([], dtype = int)
     for j in range(2, window.size()[0]):
         if (window[j-1] < 0) and (window[j] >= 0):
@@ -106,24 +107,31 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
         if (window[j-1] >= 0) and (window[j] < 0):
             zeroTransitionsDown = torch.cat([zeroTransitionsDown, torch.tensor([j])], 0)
 
+    #determine first relevant transition
     offset = 0
     while True:
+        #fallback if no match is found using any offset
         if offset == min(zeroTransitionsUp.size()[0], zeroTransitionsDown.size()[0]):
             upTransitionMarkers = torch.unsqueeze(zeroTransitionsUp[0], 0)
             downTransitionMarkers = torch.unsqueeze(zeroTransitionsDown[torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0])], 0)
             if downTransitionMarkers.size()[0] == 0:
                 downTransitionMarkers = upTransitionMarkers + 1
             break
+        #increase offset until a valid list of upTransitionCandidates for the first upwards transition is obtained
         upTransitionCandidates = zeroTransitionsUp[torch.searchsorted(zeroTransitionsUp, zeroTransitionsUp[offset]):torch.searchsorted(zeroTransitionsUp, min(zeroTransitionsUp[offset] + pitch, zeroTransitionsDown[-1]))]
         if upTransitionCandidates.size()[0] == 0:
             offset += 1
             continue
+        #select upwards transition candidate with the highest derivative
         derrs = torch.index_select(window, 0, upTransitionCandidates) - torch.index_select(window, 0, upTransitionCandidates - 1)
         upTransitionMarkers = torch.unsqueeze(upTransitionCandidates[torch.argmax(derrs)], 0)
+        #construct list of downwards transition candidates
         downTransitionCandidates = zeroTransitionsDown[torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0]):torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0] + pitch)]
+        #abort and increase offset if no valid downwards transition candidates can be obtained
         if downTransitionCandidates.size()[0] > 0:
             break
         offset += 1
+    #select the downwards transition candidate with the lowest derivative
     derrs = torch.index_select(window, 0, downTransitionCandidates) - torch.index_select(window, 0, downTransitionCandidates - 1)
     downTransitionMarkers = torch.unsqueeze(downTransitionCandidates[torch.argmin(derrs)], 0)
 
@@ -148,7 +156,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
             else:
                 sample = window[upTransitionMarkers[-1]:upTransitionMarkers[-1] + pitch]
                 shiftedSample = window[j:j + pitch]
-            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * ((j - upTransitionMarkers[-1]) / pitch * global_consts.DIOBias + 1. - global_consts.DIOBias)
+            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * (torch.abs(j - upTransitionMarkers[-1] - pitch) / pitch + global_consts.DIOBias2)
             if error > newError:
                 transition = j.item()
                 error = newError
@@ -171,7 +179,7 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
             else:
                 sample = window[downTransitionMarkers[-1]:downTransitionMarkers[-1] + pitch]
                 shiftedSample = window[j:j + pitch]
-            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * ((j - downTransitionMarkers[-1]) / pitch * global_consts.DIOBias + 1. - global_consts.DIOBias)
+            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * (torch.abs(j - downTransitionMarkers[-1] - pitch) / pitch + global_consts.DIOBias2)
             if error > newError:
                 transition = j.item()
                 error = newError
@@ -266,6 +274,10 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         harmFunction = torch.polar(amplitudes, harmFunction.angle())
         harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (length - 1) * global_consts.nHarmonics, center = False, onesided = True, return_complex = False)
         harmFunction = harmFunction[:, math.floor((length - 1) / 2)]
+
+        if audioSample.isVoiced == False:
+            harmFunction *= 0.
+            harmFunctionFull *= 0.
 
         offharm = (interpolatedWave[:-1] - harmFunctionFull)
         offharm = extrap(interpolationPoints[:-1], offharm, torch.linspace(0, i.size()[0] - 1, i.size()[0]))
