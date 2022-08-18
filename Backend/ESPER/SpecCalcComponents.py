@@ -107,15 +107,18 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
         if (window[j-1] >= 0) and (window[j] < 0):
             zeroTransitionsDown = torch.cat([zeroTransitionsDown, torch.tensor([j])], 0)
 
+    if zeroTransitionsUp.size()[0] <= 1 or zeroTransitionsDown.size()[0] <= 1:
+        return torch.tensor([0, pitch], dtype = torch.float32)
+
     #determine first relevant transition
     offset = 0
+    skip = False
     while True:
         #fallback if no match is found using any offset
         if offset == min(zeroTransitionsUp.size()[0], zeroTransitionsDown.size()[0]):
             upTransitionMarkers = torch.unsqueeze(zeroTransitionsUp[0], 0)
-            downTransitionMarkers = torch.unsqueeze(zeroTransitionsDown[torch.searchsorted(zeroTransitionsDown, upTransitionMarkers[0])], 0)
-            if downTransitionMarkers.size()[0] == 0:
-                downTransitionMarkers = upTransitionMarkers + 1
+            downTransitionMarkers = torch.unsqueeze(zeroTransitionsUp[0] + int(pitch / 2), 0)
+            skip = True
             break
         #increase offset until a valid list of upTransitionCandidates for the first upwards transition is obtained
         upTransitionCandidates = zeroTransitionsUp[torch.searchsorted(zeroTransitionsUp, zeroTransitionsUp[offset]):torch.searchsorted(zeroTransitionsUp, min(zeroTransitionsUp[offset] + pitch, zeroTransitionsDown[-1]))]
@@ -131,9 +134,10 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
         if downTransitionCandidates.size()[0] > 0:
             break
         offset += 1
-    #select the downwards transition candidate with the lowest derivative
-    derrs = torch.index_select(window, 0, downTransitionCandidates) - torch.index_select(window, 0, downTransitionCandidates - 1)
-    downTransitionMarkers = torch.unsqueeze(downTransitionCandidates[torch.argmin(derrs)], 0)
+    if skip == False:
+        #select the downwards transition candidate with the lowest derivative
+        derrs = torch.index_select(window, 0, downTransitionCandidates) - torch.index_select(window, 0, downTransitionCandidates - 1)
+        downTransitionMarkers = torch.unsqueeze(downTransitionCandidates[torch.argmin(derrs)], 0)
 
     while downTransitionMarkers[-1] < global_consts.tripleBatchSize * global_consts.filterBSMult - pitch * global_consts.DIOLastWinTolerance:
         error = math.inf
@@ -189,6 +193,8 @@ def DIOPitchMarkers(audioSample:AudioSample, window:torch.Tensor, counter:int) -
         upTransitionMarkers = upTransitionMarkers[:-1]
         downTransitionMarkers = downTransitionMarkers[:-1]
     length = len(upTransitionMarkers)
+    if length <= 1:
+        return torch.tensor([0, pitch], dtype = torch.float32)
 
     for j in range(length):
         workingWindow = window[upTransitionMarkers[j] - 2:downTransitionMarkers[j] + 1]
