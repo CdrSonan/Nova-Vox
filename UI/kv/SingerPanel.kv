@@ -1,45 +1,67 @@
 #:kivy 2.0.0
 
 <SingerSettingsPanel>:
-    size_hint: (None, None)
-    size: (400, 400)
+    size_hint: (0.9, 0.9)
     title: "track settings"
-    GridLayout:
-        rows: 3
-        orientation: "lr-tb"
+    BoxLayout:
+        orientation: "horizontal"
         padding: 10
         spacing: 10
-        Label:
-            text: "main voice:"
-            size_hint_y: None
-            height: 30
-        Spinner:
-            sync_height: True
-            text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-            size_hint_y: None
-            height: 30
-            option_cls: Factory.get("BackdropOptn")
-        Label:
-            text: "mix-in voice:"
-            size_hint_y: None
-            height: 30
-        Spinner:
-            sync_height: True
-            text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-            size_hint_y: None
-            height: 30
-            option_cls: Factory.get("BackdropOptn")
-        Label:
-            text: "pause threshold:"
-            size_hint_y: None
-            height: 30
-        NumberInput:
-            size_hint_y: None
-            height: 30
+        NodeEditor:
+        BoxLayout:
+            size_hint: (None, 1)
+            width: 300
+            orientation: "vertical"
+            padding: 10
+            spacing: 10
+            GridLayout:
+                size_hint: (1, None)
+                height: self.minimum_height
+                rows: 3
+                orientation: "lr-tb"
+                padding: 10
+                spacing: 10
+                Label:
+                    text: "main voice:"
+                    size_hint_y: None
+                    height: 30
+                Spinner:
+                    sync_height: True
+                    text_autoupdate: True
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                    size_hint_y: None
+                    height: 30
+                    option_cls: Factory.get("BackdropOptn")
+                Label:
+                    text: "mix-in voice:"
+                    size_hint_y: None
+                    height: 30
+                Spinner:
+                    sync_height: True
+                    text_autoupdate: True
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                    size_hint_y: None
+                    height: 30
+                    option_cls: Factory.get("BackdropOptn")
+                Label:
+                    text: "pause threshold:"
+                    size_hint_y: None
+                    height: 30
+                NumberInput:
+                    size_hint_y: None
+                    height: 30
+            ScrollView:
+                do_scroll_x: False
+                do_scroll_y: True
+                TreeView:
+            Button:
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                size_hint_y: None
+                height: 30
+                text: "add node"
 
 <SingerPanel>:
     anchor_x: "center"

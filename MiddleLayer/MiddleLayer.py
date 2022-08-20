@@ -145,8 +145,9 @@ class MiddleLayer(Widget):
         self.trackList.pop(index)
         self.audioBuffer.pop(index)
         self.aiParamStackList.pop(index)
-        if index <= self.activeTrack and index > 0:
-            self.changeTrack(self.activeTrack - 1)
+        if self.activeTrack != None:
+            if index <= self.activeTrack and index > 0:
+                self.changeTrack(self.activeTrack - 1)
         for i in self.ids["singerList"].children:
             if i.index == index:
                 i.parent.remove_widget(i)

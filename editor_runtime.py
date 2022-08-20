@@ -98,6 +98,7 @@ if __name__ == '__main__':
     Builder.load_file("UI/kv/AdaptiveSpace.kv")
     Builder.load_file("UI/kv/SidePanels.kv")
     Builder.load_file("UI/kv/LicensePanel.kv")
+    Builder.load_file("UI/kv/NodeEditor.kv")
     Builder.load_file("UI/kv/NovaVox.kv")
 
     logging.info("starting render manager")

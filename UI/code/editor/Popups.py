@@ -27,11 +27,11 @@ class SingerSettingsPanel(Popup):
         else:
             self.mixinVB = self.voicebanks[self.filepaths.index(middleLayer.trackList[self.index].mixinVB)]
         self.mainVB = self.voicebanks[self.filepaths.index(middleLayer.trackList[self.index].vbPath)]
-        self.children[0].children[0].children[0].children[4].text = self.mainVB
-        self.children[0].children[0].children[0].children[4].values = self.voicebanks
-        self.children[0].children[0].children[0].children[2].text = self.mixinVB
-        self.children[0].children[0].children[0].children[2].values = self.modVoicebanks
-        self.children[0].children[0].children[0].children[0].text = str(self.pauseThreshold)
+        self.children[0].children[0].children[0].children[0].children[2].children[4].text = self.mainVB
+        self.children[0].children[0].children[0].children[0].children[2].children[4].values = self.voicebanks
+        self.children[0].children[0].children[0].children[0].children[2].children[2].text = self.mixinVB
+        self.children[0].children[0].children[0].children[0].children[2].children[2].values = self.modVoicebanks
+        self.children[0].children[0].children[0].children[0].children[2].children[0].text = str(self.pauseThreshold)
 
     def listVoicebanks(self) -> None:
         """creates a list of installed Voicebanks for switching the one used by the track"""
@@ -58,20 +58,20 @@ class SingerSettingsPanel(Popup):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        if self.children[0].children[0].children[0].children[2].text == "None":
+        if self.children[0].children[0].children[0].children[0].children[2].children[2].text == "None":
             middleLayer.trackList[self.index].mixinVB = None
         else:
-            middleLayer.trackList[self.index].mixinVB = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[2].text)]
-        if middleLayer.trackList[self.index].pauseThreshold != int(self.children[0].children[0].children[0].children[0].text):
-            middleLayer.trackList[self.index].pauseThreshold = int(self.children[0].children[0].children[0].children[0].text)
+            middleLayer.trackList[self.index].mixinVB = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[2].text)]
+        if middleLayer.trackList[self.index].pauseThreshold != int(self.children[0].children[0].children[0].children[0].children[2].children[0].text):
+            middleLayer.trackList[self.index].pauseThreshold = int(self.children[0].children[0].children[0].children[0].children[2].children[0].text)
             middleLayer.recalculatePauses(self.index)
-        if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[4].text)]:
-            middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[4].text)]
+        if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]:
+            middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
             middleLayer.submitChangeVB(self.index, middleLayer.trackList[self.index].vbPath)
             for i in range(len(middleLayer.ids["singerList"])):
                 if middleLayer.ids["singerList"][i].index == self.index:
-                    middleLayer.ids["singerList"][i].name = self.children[0].children[0].children[0].children[4].text
-                    middleLayer.ids["singerList"][i].image = self.vbData[self.voicebanks.index(self.children[0].children[0].children[0].children[4].text)].image
+                    middleLayer.ids["singerList"][i].name = self.children[0].children[0].children[0].children[0].children[2].children[4].text
+                    middleLayer.ids["singerList"][i].image = self.vbData[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)].image
                     break
         
 class LicensePanel(Popup):

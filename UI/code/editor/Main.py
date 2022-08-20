@@ -10,6 +10,7 @@ from UI.code.editor.Headers import *
 from UI.code.editor.PianoRoll import *
 from UI.code.editor.Popups import *
 from UI.code.editor.SidePanels import *
+from UI.code.editor.NodeEditor import *
 from UI.code.editor.Util import *
 
 class NovaVoxUI(Widget):
