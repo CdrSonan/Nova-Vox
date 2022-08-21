@@ -196,7 +196,7 @@ class PianoRoll(ScrollView):
         while t < self.length * self.scroll_x * (self.children[0].width - self.width):
             t += self.tempo
             i += 1
-        while t <= self.length * self.scroll_x * (self.children[0].width - self.width) + self.children[0].width:
+        while t <= self.length * self.scroll_x * (self.children[0].width - self.width) + self.width:
             modulo = i % self.measureSize
             self.children[0].children[-global_consts.octaves - 1].add_widget(TimingLabel(index = i, reference = self.children[0].children[-global_consts.octaves - 1], modulo = modulo))
             t += self.tempo
