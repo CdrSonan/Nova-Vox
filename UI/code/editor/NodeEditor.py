@@ -20,6 +20,7 @@ class NodeEditor(ScrollView):
     @mainthread
     def generateGrid(self):
         interval = self.scale * 100 / pow(5, ceil(log(self.scale, 5)))
+        self.children[0].size = (max(self.strictWidth * 2, self.width * 2) * self.scale, max(self.strictHeight * 2, self.height * 2) * self.scale)
         self.children[0].children[-1].canvas.clear()
         with self.children[0].children[-1].canvas:
             Color(0.4, 0.4, 0.4, 1.)
@@ -41,13 +42,22 @@ class NodeEditor(ScrollView):
                 Line(points = points)
                 t += interval
                 c += 1
-        self.children[0].size = (max(self.strictWidth * 2, self.width * 2) / self.scale, max(self.strictHeight * 2, self.height * 2) / self.scale)
     def on_touch_down(self, touch):
         if touch.is_mouse_scrolling:
+            position = self.to_local(*touch.pos)
+            x = position[0]
+            y = position[1]
+            screenx = x - self.scroll_x * (self.children[0].width - self.width)
+            screeny = y - self.scroll_y * (self.children[0].height - self.height)
+            print(x, y, screenx, screeny)
             if touch.button == 'scrolldown':
-                self.scale /= 1.1
-            elif touch.button == 'scrollup':
                 self.scale *= 1.1
+                x *= 1.1
+                y *= 1.1
+            elif touch.button == 'scrollup':
+                self.scale /= 1.1
+                x /= 1.1
+                y /= 1.1
             self.generateGrid()
             return True
         return super(NodeEditor, self).on_touch_down(touch)

@@ -1,25 +1,33 @@
-from kivy.uix.widget import Widget
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.textinput import TextInput
 from kivy.properties import ObjectProperty
+from kivy.graphics import Color
 from torch import Tensor
 
 #Node DType import hook
 
-class Node(Widget):
+class Node(BoxLayout):
     def __init__(self, inputs:dict, outputs:dict, func:object, timed = False, **kwargs) -> None:
         super().__init__(**kwargs)
         self.inputs = dict()
         self.outputs = dict()
         for i in inputs.keys():
             self.inputs[i] = Connector(False, self, inputs[i])
+            self.add_widget(self.inputs[i])
         for i in outputs.keys():
             self.outputs[i] = Connector(True, self, outputs[i])
+            self.add_widget(self.outputs[i])
         self.func = func
         self.timed = timed
         self.static = not self.timed
         self.isUpdated = False
         self.isUpdating = False
+        self.isPacked = True
 
     def calculate(self) -> None:
+        if self.isPacked:
+            self.unpack()
+            self.isPacked = False
         inputs = dict()
         for i in self.inputs.keys():
             inputs[i] = self.inputs[i].get()
@@ -41,16 +49,33 @@ class Node(Widget):
     def reset(self):
         pass
 
+    def pack(self):
+        pass
 
-class Connector(Widget):
+    def unpack(self):
+        pass
+
+
+class Connector(TextInput):
     def __init__(self, out:bool, node:Node, dtype:object, **kwargs) -> None:
         super().__init__(**kwargs)
+        self.multiline = False
         self.out = out
         self.dtype = dtype()
         self._value = self.dtype.defaultValue
         self.attachedTo = ObjectProperty()
         self.node = ObjectProperty()
         self.node = node
+        self.bind(focus = self.on_focus)
+        if self.out:
+            self.is_focusable = False
+        with self.canvas:
+            Color(self.dtype.UIColor)
+            #Circle...
+
+    def on_focus(self, focus):
+        if not focus:
+            self.set(self.text)
     
     def get(self):
         if self.out:
@@ -65,15 +90,13 @@ class Connector(Widget):
             return self.attachedTo.get()
     
     def set(self, value):
-        if self.out:
-            try:
-                value = self.dtype.convert(value)
-            except:
-                raise NodeTypeMismatchError(self.node)
-            else:
-                self._value = value
+        try:
+            value = self.dtype.convert(value)
+        except:
+            raise NodeTypeMismatchError(self.node)
         else:
-            raise NotImplementedError()
+            self._value = value
+            self.text = self._value
 
     def attach(self, target:object) -> None:
         if self.out == target.out:
@@ -87,6 +110,7 @@ class Connector(Widget):
         else:
             target.node.checkStatic()
             self.node.checkStatic()
+            self.is_focusable = False
         
 
     def detach(self) -> None:
@@ -99,6 +123,7 @@ class Connector(Widget):
         else:
             tmpNode.checkStatic()
             self.node.checkStatic()
+            self.is_focusable = True
 
 
 class NodeTypeMismatchError(Exception):
