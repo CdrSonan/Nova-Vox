@@ -42,22 +42,31 @@ class NodeEditor(ScrollView):
                 Line(points = points)
                 t += interval
                 c += 1
+        for i in self.children[0].children[:-1]:
+            i.scale = self.scale
+            
     def on_touch_down(self, touch):
         if touch.is_mouse_scrolling:
             position = self.to_local(*touch.pos)
-            x = position[0]
-            y = position[1]
-            screenx = x - self.scroll_x * (self.children[0].width - self.width)
-            screeny = y - self.scroll_y * (self.children[0].height - self.height)
-            print(x, y, screenx, screeny)
+            xPos = position[0]
+            yPos = position[1]
+            leftBorder = self.scroll_x * (self.children[0].width - self.width)
+            rightBorder = self.scroll_x * (self.children[0].width - self.width) + self.width
+            lowerBorder = self.scroll_y * (self.children[0].height - self.height)
+            upperBorder = self.scroll_y * (self.children[0].height - self.height) + self.height
             if touch.button == 'scrolldown':
                 self.scale *= 1.1
+                xPos *= 1.1
+                yPos *= 1.1
                 x *= 1.1
                 y *= 1.1
             elif touch.button == 'scrollup':
                 self.scale /= 1.1
+                xPos /= 1.1
+                yPos /= 1.1
                 x /= 1.1
                 y /= 1.1
+            
             self.generateGrid()
             return True
         return super(NodeEditor, self).on_touch_down(touch)

@@ -1,28 +1,35 @@
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.textinput import TextInput
+from kivy.uix.label import Label
+from UI.code.editor.Util import ImageToggleButton
 from kivy.properties import ObjectProperty
 from kivy.graphics import Color
 from torch import Tensor
 
 #Node DType import hook
 
-class Node(BoxLayout):
+class Node(ImageToggleButton):
     def __init__(self, inputs:dict, outputs:dict, func:object, timed = False, **kwargs) -> None:
         super().__init__(**kwargs)
         self.inputs = dict()
         self.outputs = dict()
+        self.add_widget(BoxLayout(orientation = "vertical"))
         for i in inputs.keys():
-            self.inputs[i] = Connector(False, self, inputs[i])
-            self.add_widget(self.inputs[i])
+            self.inputs[i] = Connector(False, self, inputs[i], i)
+            self.children[0].add_widget(self.inputs[i])
         for i in outputs.keys():
-            self.outputs[i] = Connector(True, self, outputs[i])
-            self.add_widget(self.outputs[i])
+            self.outputs[i] = Connector(True, self, outputs[i], i)
+            self.children[0].add_widget(self.outputs[i])
+        self.children[0].add_widget(Label(text = self.name()[-1]))
         self.func = func
         self.timed = timed
         self.static = not self.timed
         self.isUpdated = False
         self.isUpdating = False
         self.isPacked = True
+
+    @staticmethod
+    def name(self) -> list:
+        return ["",]
 
     def calculate(self) -> None:
         if self.isPacked:
@@ -56,19 +63,20 @@ class Node(BoxLayout):
         pass
 
 
-class Connector(TextInput):
-    def __init__(self, out:bool, node:Node, dtype:object, **kwargs) -> None:
+class Connector(BoxLayout):
+    def __init__(self, out:bool, node:Node, dtype:object, name:str, **kwargs) -> None:
         super().__init__(**kwargs)
         self.multiline = False
         self.out = out
         self.dtype = dtype()
+        self.name = name
         self._value = self.dtype.defaultValue
         self.attachedTo = ObjectProperty()
         self.node = ObjectProperty()
         self.node = node
-        self.bind(focus = self.on_focus)
-        if self.out:
-            self.is_focusable = False
+        #self.bind(focus = self.on_focus)
+        #if self.out:
+        #    self.is_focusable = False
         with self.canvas:
             Color(self.dtype.UIColor)
             #Circle...
@@ -96,7 +104,7 @@ class Connector(TextInput):
             raise NodeTypeMismatchError(self.node)
         else:
             self._value = value
-            self.text = self._value
+            self.children[0].text = self._value
 
     def attach(self, target:object) -> None:
         if self.out == target.out:
@@ -112,7 +120,6 @@ class Connector(TextInput):
             self.node.checkStatic()
             self.is_focusable = False
         
-
     def detach(self) -> None:
         tmpNode = self.attachedTo.node
         self.attachedTo.attachedTo = None

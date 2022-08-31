@@ -4,6 +4,7 @@ from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from kivy.uix.button import Button
 from kivy.uix.bubble import BubbleButton
 from kivy.uix.textinput import TextInput
+from kivy.uix.treeview import TreeViewNode
 
 class ImageButton(ButtonBehavior, Image):
     """Class for a button displaying an image instead of text"""
@@ -57,3 +58,8 @@ class ListElement(Button):
     """A button with an additional integer property representing its position in a list"""
 
     index = NumericProperty()
+
+class TreeViewButton(Button, TreeViewNode):
+    """basic class implementing a tree view node with button behavior"""
+
+    pass

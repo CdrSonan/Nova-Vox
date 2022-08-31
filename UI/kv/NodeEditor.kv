@@ -20,3 +20,19 @@
             x: self.parent.x
             y: self.parent.y
             size_hint: (1, 1)
+
+<Node>:
+    imageNormal: "UI/assets/TrackList/SingerBGGrey.png"
+    imagePressed: "UI/assets/TrackList/SingerBGPurple.png"
+    group: "nodes"
+    size_hint: (None, None)
+    size: (self.children[0].required_size()[0] * 2. * self.scale, self.children[0].required_size()[1] * 2. * self.scale)
+    #function: None
+
+<Connector>:
+    orientation: "horizontal"
+    Label:
+        text: self.name
+    TextInput:
+        on_focus: self.on_focus
+        is_focusable: not self.out

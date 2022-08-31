@@ -1,9 +1,12 @@
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.uix.treeview import TreeViewLabel
+from UI.code.editor.Util import TreeViewButton
 
 from copy import copy
 
 import os
+from Backend import NodeLib
 import torch
 
 from MiddleLayer.IniParser import readSettings
@@ -32,6 +35,7 @@ class SingerSettingsPanel(Popup):
         self.children[0].children[0].children[0].children[0].children[2].children[2].text = self.mixinVB
         self.children[0].children[0].children[0].children[0].children[2].children[2].values = self.modVoicebanks
         self.children[0].children[0].children[0].children[0].children[2].children[0].text = str(self.pauseThreshold)
+        self.makeNodeTree()
 
     def listVoicebanks(self) -> None:
         """creates a list of installed Voicebanks for switching the one used by the track"""
@@ -52,6 +56,21 @@ class SingerSettingsPanel(Popup):
                 self.filepaths.append(os.path.join(voicePath, file))
         self.modVoicebanks = copy(self.voicebanks)
         self.modVoicebanks.append("None")
+
+    def makeNodeTree(self):
+        def classesinmodule(module):
+            md = module.__dict__
+            return [
+                md[c] for c in md if (
+                    isinstance(md[c], type) and md[c].__module__ == module.__name__
+                )
+            ]
+        NodeClasses = classesinmodule(NodeLib)
+        for i in NodeClasses:
+            branch = i.name()
+            for j in branch[:-1]:
+                self.children[0].children[0].children[0].children[0].children[1].children[0].add_widget(TreeViewLabel(text = j))#fix parent
+            self.children[0].children[0].children[0].children[0].children[1].children[0].add_widget(TreeViewButton(text = branch[-1]))
 
     def on_pre_dismiss(self) -> None:
         """applies all changed settings before closing the popup"""
