@@ -1,5 +1,7 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.behaviors.drag import DragBehavior
 from UI.code.editor.Util import ImageToggleButton
 from kivy.properties import ObjectProperty
 from kivy.graphics import Color
@@ -7,18 +9,22 @@ from torch import Tensor
 
 #Node DType import hook
 
-class Node(ImageToggleButton):
+class Node(ImageToggleButton, DragBehavior):
     def __init__(self, inputs:dict, outputs:dict, func:object, timed = False, **kwargs) -> None:
         super().__init__(**kwargs)
         self.inputs = dict()
         self.outputs = dict()
         self.add_widget(BoxLayout(orientation = "vertical"))
         for i in inputs.keys():
-            self.inputs[i] = Connector(False, self, inputs[i], i)
-            self.children[0].add_widget(self.inputs[i])
+            conn = Connector(False, self, inputs[i], i)
+            self.children[0].add_widget(conn)
+            self.inputs[i] = ObjectProperty()
+            self.inputs[i] = self.children[0].children[0]
         for i in outputs.keys():
-            self.outputs[i] = Connector(True, self, outputs[i], i)
-            self.children[0].add_widget(self.outputs[i])
+            conn = Connector(True, self, outputs[i], i)
+            self.children[0].add_widget(conn)
+            self.outputs[i] = ObjectProperty()
+            self.outputs[i] = self.children[0].children[0]
         self.children[0].add_widget(Label(text = self.name()[-1]))
         self.func = func
         self.timed = timed
@@ -28,7 +34,7 @@ class Node(ImageToggleButton):
         self.isPacked = True
 
     @staticmethod
-    def name(self) -> list:
+    def name() -> list:
         return ["",]
 
     def calculate(self) -> None:
@@ -64,7 +70,7 @@ class Node(ImageToggleButton):
 
 
 class Connector(BoxLayout):
-    def __init__(self, out:bool, node:Node, dtype:object, name:str, **kwargs) -> None:
+    def __init__(self, out:bool, node:Node, dtype:object, name:str, hasinput:bool = True, **kwargs) -> None:
         super().__init__(**kwargs)
         self.multiline = False
         self.out = out
@@ -74,12 +80,12 @@ class Connector(BoxLayout):
         self.attachedTo = ObjectProperty()
         self.node = ObjectProperty()
         self.node = node
-        #self.bind(focus = self.on_focus)
-        #if self.out:
-        #    self.is_focusable = False
+        self.orientation = "horizontal"
+        self.add_widget(Label(text = self.name))
+        self.add_widget(TextInput(on_focus = self.on_focus, is_focusable = not self.out))
         with self.canvas:
             Color(self.dtype.UIColor)
-            #Circle...
+        
 
     def on_focus(self, focus):
         if not focus:
@@ -104,7 +110,7 @@ class Connector(BoxLayout):
             raise NodeTypeMismatchError(self.node)
         else:
             self._value = value
-            self.children[0].text = self._value
+            self.children[0].text = repr(self._value)
 
     def attach(self, target:object) -> None:
         if self.out == target.out:

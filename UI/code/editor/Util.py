@@ -61,5 +61,4 @@ class ListElement(Button):
 
 class TreeViewButton(Button, TreeViewNode):
     """basic class implementing a tree view node with button behavior"""
-
-    pass
+    node = ObjectProperty(None)

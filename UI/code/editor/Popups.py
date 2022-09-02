@@ -68,9 +68,18 @@ class SingerSettingsPanel(Popup):
         NodeClasses = classesinmodule(NodeLib)
         for i in NodeClasses:
             branch = i.name()
-            for j in branch[:-1]:
-                self.children[0].children[0].children[0].children[0].children[1].children[0].add_widget(TreeViewLabel(text = j))#fix parent
-            self.children[0].children[0].children[0].children[0].children[1].children[0].add_widget(TreeViewButton(text = branch[-1]))
+            parent = self.children[0].children[0].children[0].children[0].children[1].children[0].root
+            while len(branch) > 1:
+                for j in parent.nodes:
+                    if j.text == branch[0]:
+                        parent = j
+                        break
+                else:
+                    widget = TreeViewLabel(text = branch[0])
+                    self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(widget, parent)
+                    parent = widget
+                branch = branch[1:]
+            self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(TreeViewButton(text = branch[0], node = i, always_release = True), parent)
 
     def on_pre_dismiss(self) -> None:
         """applies all changed settings before closing the popup"""

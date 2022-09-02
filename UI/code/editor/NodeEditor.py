@@ -58,14 +58,14 @@ class NodeEditor(ScrollView):
                 self.scale *= 1.1
                 xPos *= 1.1
                 yPos *= 1.1
-                x *= 1.1
-                y *= 1.1
+                #x *= 1.1
+                #y *= 1.1
             elif touch.button == 'scrollup':
                 self.scale /= 1.1
                 xPos /= 1.1
                 yPos /= 1.1
-                x /= 1.1
-                y /= 1.1
+                #x /= 1.1
+                #y /= 1.1
             
             self.generateGrid()
             return True

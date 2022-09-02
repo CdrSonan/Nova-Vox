@@ -55,6 +55,8 @@
             ScrollView:
                 do_scroll_x: False
                 do_scroll_y: True
+                scroll_type: ["bars"]
+                bar_width: 10
                 TreeView:
             Button:
                 background_normal: "UI/assets/Toolbar/Adaptive09.png"
@@ -62,7 +64,7 @@
                 size_hint_y: None
                 height: 30
                 text: "close"
-                on_press: self.parent.parent.parent.close()
+                on_press: self.parent.parent.parent.parent.parent.dismiss()
 
 <SingerPanel>:
     anchor_x: "center"
