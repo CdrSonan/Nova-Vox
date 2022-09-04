@@ -58,7 +58,3 @@ class ListElement(Button):
     """A button with an additional integer property representing its position in a list"""
 
     index = NumericProperty()
-
-class TreeViewButton(Button, TreeViewNode):
-    """basic class implementing a tree view node with button behavior"""
-    node = ObjectProperty(None)

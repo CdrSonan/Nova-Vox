@@ -43,7 +43,7 @@ class NodeEditor(ScrollView):
                 t += interval
                 c += 1
         for i in self.children[0].children[:-1]:
-            i.scale = self.scale
+            i.recalculateSize()
             
     def on_touch_down(self, touch):
         if touch.is_mouse_scrolling:
@@ -69,4 +69,9 @@ class NodeEditor(ScrollView):
             
             self.generateGrid()
             return True
+        for i in self.children[0].children[:-1]:
+            if i.collide_point(*self.to_local(*touch.pos)):
+                print("collide")
+                i.on_touch_down(touch)
+                return False
         return super(NodeEditor, self).on_touch_down(touch)

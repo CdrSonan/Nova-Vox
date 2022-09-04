@@ -2,36 +2,70 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.behaviors.drag import DragBehavior
-from UI.code.editor.Util import ImageToggleButton
+from kivy.uix.image import Image
 from kivy.properties import ObjectProperty
 from kivy.graphics import Color
+from kivy.clock import Clock
 from torch import Tensor
 
 #Node DType import hook
 
-class Node(ImageToggleButton, DragBehavior):
+class Node(DragBehavior, BoxLayout):
     def __init__(self, inputs:dict, outputs:dict, func:object, timed = False, **kwargs) -> None:
         super().__init__(**kwargs)
         self.inputs = dict()
         self.outputs = dict()
-        self.add_widget(BoxLayout(orientation = "vertical"))
         for i in inputs.keys():
             conn = Connector(False, self, inputs[i], i)
-            self.children[0].add_widget(conn)
+            self.add_widget(conn)
             self.inputs[i] = ObjectProperty()
-            self.inputs[i] = self.children[0].children[0]
+            self.inputs[i] = self.children[0]
         for i in outputs.keys():
             conn = Connector(True, self, outputs[i], i)
-            self.children[0].add_widget(conn)
+            self.add_widget(conn)
             self.outputs[i] = ObjectProperty()
-            self.outputs[i] = self.children[0].children[0]
-        self.children[0].add_widget(Label(text = self.name()[-1]))
+            self.outputs[i] = self.children[0]
+        self.add_widget(Label(text = self.name()[-1]))
         self.func = func
         self.timed = timed
         self.static = not self.timed
         self.isUpdated = False
         self.isUpdating = False
         self.isPacked = True
+
+    def recalculateSize(self):
+        self.size = (250 * self.parent.parent.scale, (len(self.inputs) + len(self.outputs) + 1) * 30 * self.parent.parent.scale)
+        self.drag_rectangle = (*self.pos, *self.size)
+
+    def on_parent(self, instance, parent):
+        self.recalculateSize()
+
+    def on_touch_down(self, touch):
+        xx, yy, w, h = self.drag_rectangle
+        x, y = self.parent.parent.to_local(*touch.pos)
+        if not self.collide_point(x, y):
+            touch.ud[self._get_uid('svavoid')] = True
+            return super(DragBehavior, self).on_touch_down(touch)
+        if self._drag_touch or ('button' in touch.profile and
+                                touch.button.startswith('scroll')) or\
+                not ((xx < x <= xx + w) and (yy < y <= yy + h)):
+            return super(DragBehavior, self).on_touch_down(touch)
+
+        # no mouse scrolling, so the user is going to drag with this touch.
+        self._drag_touch = touch
+        uid = self._get_uid()
+        touch.grab(self)
+        touch.ud[uid] = {
+            'mode': 'unknown',
+            'dx': 0,
+            'dy': 0}
+        Clock.schedule_once(self._change_touch_mode,
+                            self.drag_timeout / 1000.)
+        return True
+
+    def on_touch_up(self, touch):
+        self.recalculateSize()
+        return super().on_touch_up(touch)
 
     @staticmethod
     def name() -> list:
@@ -82,14 +116,16 @@ class Connector(BoxLayout):
         self.node = node
         self.orientation = "horizontal"
         self.add_widget(Label(text = self.name))
-        self.add_widget(TextInput(on_focus = self.on_focus, is_focusable = not self.out))
+        self.add_widget(TextInput(is_focusable = not self.out))
+        self.children[0].bind(focus = self.on_focus)
         with self.canvas:
             Color(self.dtype.UIColor)
         
 
-    def on_focus(self, focus):
+    def on_focus(self, instance, focus):
+        print(self, instance, focus)
         if not focus:
-            self.set(self.text)
+            self.set(self.children[0].text)
     
     def get(self):
         if self.out:

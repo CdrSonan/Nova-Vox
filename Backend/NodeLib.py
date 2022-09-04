@@ -6,7 +6,7 @@ class addFloatNode(Node):
         outputs = {"Result": Float}
         def func(A, B):
             return {"Result": A + B}
-        super().__init__(inputs, outputs, func, False, "Add", kwargs)
+        super().__init__(inputs, outputs, func, False, **kwargs)
 
     @staticmethod
     def name() -> str:

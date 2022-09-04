@@ -1,7 +1,8 @@
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
-from kivy.uix.treeview import TreeViewLabel
-from UI.code.editor.Util import TreeViewButton
+from kivy.uix.button import Button
+from kivy.uix.treeview import TreeViewLabel, TreeViewNode
+from kivy.properties import ObjectProperty
 
 from copy import copy
 
@@ -10,6 +11,15 @@ from Backend import NodeLib
 import torch
 
 from MiddleLayer.IniParser import readSettings
+
+class TreeViewButton(Button, TreeViewNode):
+    """basic class implementing a tree view node with button behavior"""
+    node = ObjectProperty(None)
+    editor = ObjectProperty(None)
+
+    def on_press(self):
+        self.editor.add_widget(self.node())
+        return super().on_press()
 
 class SingerSettingsPanel(Popup):
     """Popup displaying per-track settings"""
@@ -79,7 +89,7 @@ class SingerSettingsPanel(Popup):
                     self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(widget, parent)
                     parent = widget
                 branch = branch[1:]
-            self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(TreeViewButton(text = branch[0], node = i, always_release = True), parent)
+            self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(TreeViewButton(text = branch[0], node = i, always_release = True, editor = self.children[0].children[0].children[0].children[1].children[0]), parent)
 
     def on_pre_dismiss(self) -> None:
         """applies all changed settings before closing the popup"""
