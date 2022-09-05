@@ -4,7 +4,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.behaviors.drag import DragBehavior
 from kivy.uix.image import Image
 from kivy.properties import ObjectProperty
-from kivy.graphics import Color
+from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.clock import Clock
 from torch import Tensor
 
@@ -13,8 +13,12 @@ from torch import Tensor
 class Node(DragBehavior, BoxLayout):
     def __init__(self, inputs:dict, outputs:dict, func:object, timed = False, **kwargs) -> None:
         super().__init__(**kwargs)
+        self.rectangle = ObjectProperty()
+        with self.canvas:
+            self.rectangle = Rectangle(pos = self.pos, size = self.size, source = "UI/assets/TrackList/SingerBGPurple.png")
         self.inputs = dict()
         self.outputs = dict()
+        self.add_widget(Label(text = self.name()[-1]))
         for i in inputs.keys():
             conn = Connector(False, self, inputs[i], i)
             self.add_widget(conn)
@@ -25,7 +29,6 @@ class Node(DragBehavior, BoxLayout):
             self.add_widget(conn)
             self.outputs[i] = ObjectProperty()
             self.outputs[i] = self.children[0]
-        self.add_widget(Label(text = self.name()[-1]))
         self.func = func
         self.timed = timed
         self.static = not self.timed
@@ -35,7 +38,13 @@ class Node(DragBehavior, BoxLayout):
 
     def recalculateSize(self):
         self.size = (250 * self.parent.parent.scale, (len(self.inputs) + len(self.outputs) + 1) * 30 * self.parent.parent.scale)
+        self.recalculateRectangle()
+
+    def recalculateRectangle(self):
         self.drag_rectangle = (*self.pos, *self.size)
+        with self.canvas:
+            self.rectangle.pos = self.pos
+            self.rectangle.size = self.size
 
     def on_parent(self, instance, parent):
         self.recalculateSize()
@@ -63,8 +72,12 @@ class Node(DragBehavior, BoxLayout):
                             self.drag_timeout / 1000.)
         return True
 
+    def on_touch_move(self, touch):
+        self.recalculateRectangle()
+        return super().on_touch_move(touch)
+
     def on_touch_up(self, touch):
-        self.recalculateSize()
+        self.recalculateRectangle()
         return super().on_touch_up(touch)
 
     @staticmethod
@@ -118,12 +131,29 @@ class Connector(BoxLayout):
         self.add_widget(Label(text = self.name))
         self.add_widget(TextInput(is_focusable = not self.out))
         self.children[0].bind(focus = self.on_focus)
+        self.ellipse = ObjectProperty()
         with self.canvas:
             Color(self.dtype.UIColor)
+            self.ellipse = Ellipse(segments = 16, pos = (self.x, self.y + self.height / 2), size = (10, 10))
+
+    def update(self):
+        if self.out:
+            self.ellipse.pos = (self.x + self.width, self.y + self.height / 2 - 5)
+        else:
+            self.ellipse.pos = (self.x, self.y + self.height / 2 - 5)
         
+    def on_parent(self, instance, parent):
+        self.update()
+
+    def on_pos(self, instance, pos):
+        self.update()
+
+    def on_size(self, instance, size):
+        self.update()
 
     def on_focus(self, instance, focus):
         print(self, instance, focus)
+        self.update()
         if not focus:
             self.set(self.children[0].text)
     
