@@ -1,6 +1,6 @@
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
-from kivy.uix.button import Button
+from kivy.uix.button import ButtonBehavior
 from kivy.uix.treeview import TreeViewLabel, TreeViewNode
 from kivy.properties import ObjectProperty
 
@@ -12,7 +12,7 @@ import torch
 
 from MiddleLayer.IniParser import readSettings
 
-class TreeViewButton(Button, TreeViewNode):
+class TreeViewButton(ButtonBehavior, TreeViewLabel):
     """basic class implementing a tree view node with button behavior"""
     node = ObjectProperty(None)
     editor = ObjectProperty(None)

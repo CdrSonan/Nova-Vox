@@ -4,7 +4,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.behaviors.drag import DragBehavior
 from kivy.uix.image import Image
 from kivy.properties import ObjectProperty
-from kivy.graphics import Color, Ellipse, Rectangle
+from kivy.graphics import Color, Ellipse, RoundedRectangle
 from kivy.clock import Clock
 from torch import Tensor
 
@@ -15,7 +15,8 @@ class Node(DragBehavior, BoxLayout):
         super().__init__(**kwargs)
         self.rectangle = ObjectProperty()
         with self.canvas:
-            self.rectangle = Rectangle(pos = self.pos, size = self.size, source = "UI/assets/TrackList/SingerBGPurple.png")
+            Color(0.322, 0.259, 0.463, 1.)
+            self.rectangle = RoundedRectangle(pos = self.pos, size = self.size)
         self.inputs = dict()
         self.outputs = dict()
         self.add_widget(Label(text = self.name()[-1]))
@@ -129,7 +130,7 @@ class Connector(BoxLayout):
         self.node = node
         self.orientation = "horizontal"
         self.add_widget(Label(text = self.name))
-        self.add_widget(TextInput(is_focusable = not self.out))
+        self.add_widget(TextInput(multiline = False, is_focusable = not self.out))
         self.children[0].bind(focus = self.on_focus)
         self.ellipse = ObjectProperty()
         with self.canvas:
@@ -138,9 +139,9 @@ class Connector(BoxLayout):
 
     def update(self):
         if self.out:
-            self.ellipse.pos = (self.x + self.width, self.y + self.height / 2 - 5)
+            self.ellipse.pos = (self.x + self.width + 5, self.y + self.height / 2 - 5)
         else:
-            self.ellipse.pos = (self.x, self.y + self.height / 2 - 5)
+            self.ellipse.pos = (self.x - 15, self.y + self.height / 2 - 5)
         
     def on_parent(self, instance, parent):
         self.update()
