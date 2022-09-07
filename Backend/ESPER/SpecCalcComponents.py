@@ -285,8 +285,10 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             harmFunction *= 0.
             harmFunctionFull *= 0.
 
-        offharm = (interpolatedWave[:-1] - harmFunctionFull)
-        offharm = extrap(interpolationPoints[:-1], offharm, torch.linspace(0, i.size()[0] - 1, i.size()[0]))
+        #offharm = (interpolatedWave[:-1] - harmFunctionFull)
+        #offharm = extrap(interpolationPoints[:-1], offharm, torch.linspace(0, i.size()[0] - 1, i.size()[0]))
+        harmFunctionFull = extrap(interpolationPoints[:-1], harmFunctionFull, torch.linspace(0, i.size()[0] - 1, i.size()[0]))
+        offharm = i - harmFunctionFull
         offharm = offharm[int(global_consts.tripleBatchSize * (global_consts.filterBSMult - 1) / 2):int(global_consts.tripleBatchSize * (global_consts.filterBSMult + 1) / 2)]
         offharm *= torch.hann_window(global_consts.tripleBatchSize)
         audioSample.excitation[counter] = torch.fft.rfft(offharm)

@@ -153,8 +153,7 @@ class Connector(BoxLayout):
         self.update()
 
     def on_focus(self, instance, focus):
-        print(self, instance, focus)
-        self.update()
+        #self.update()
         if not focus:
             self.set(self.children[0].text)
     
