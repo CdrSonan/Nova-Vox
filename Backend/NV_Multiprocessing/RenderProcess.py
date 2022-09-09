@@ -390,6 +390,8 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         internalStatusControl.rs[j] = 1
                         remoteConnection.put(StatusChange(i, j, 3))
 
+                import matplotlib.pyplot as plt
+
                 #final rendering and istft of pause-to-pause segment
                 if ((j > 0) & interOutput) or (j == lastPoint):
                     logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
@@ -400,27 +402,31 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         harms = torch.polar(abs, angle)
                         sines = harms.imag
                         cosines = harms.real
+                        newSines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
+                        newCosines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
                         voicedSignal = torch.empty((internalInputs.borders[3 * (j - 1) + 5] - startPoint,global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
                         for k in range(harms.size()[0]):
                             requiredSize = global_consts.tripleBatchSize / internalInputs.pitch[k + startPoint].item()
-                            #harmCurve = torch.tile(torch.fft.irfft(harms[k], global_consts.nHarmonics), (math.ceil(requiredSize),))[:int(requiredSize * global_consts.nHarmonics)]
-                            #voicedSignal[k] = torch.fft.rfft(interp(torch.linspace(0, 1, int(requiredSize * global_consts.nHarmonics)), harmCurve, torch.linspace(0, 1, global_consts.tripleBatchSize)) * window)
+                            harmCurve = torch.tile(torch.fft.irfft(harms[k], global_consts.nHarmonics), (math.ceil(requiredSize),))[:int(requiredSize * global_consts.nHarmonics)]
+                            voicedSignal[k] = torch.fft.rfft(interp(torch.linspace(0, 1, int(requiredSize * global_consts.nHarmonics)), harmCurve, torch.linspace(0, 1, global_consts.tripleBatchSize)) * window)
                             inputFreqs = torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1).unsqueeze(0).tile(global_consts.halfTripleBatchSize + 1, 1) * requiredSize
                             outputFreqs = torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1).unsqueeze(1).tile(1, int(global_consts.nHarmonics / 2) + 1)
-                            print(inputFreqs, outputFreqs)
-                            sineToSine = outputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2))
+                            sineToSine = outputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
                             sineToSine[0, 0] = 1.
-                            cosineToCosine = inputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2))
+                            cosineToCosine = inputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
                             cosineToCosine[0, 0] = 1.
-                            sineToCosine = (-inputFreqs * torch.cos(2 * math.pi * inputFreqs) + inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2))
+                            sineToCosine = (-inputFreqs * torch.cos(2 * math.pi * inputFreqs) + inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
                             sineToCosine[0, 0] = 1.
-                            cosineToSine = (outputFreqs * torch.cos(2 * math.pi * inputFreqs) - outputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2))
+                            cosineToSine = (outputFreqs * torch.cos(2 * math.pi * inputFreqs) - outputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
                             cosineToSine[0, 0] = 1.
-                            newSines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
-                            newCosines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
-                            newSines[i] = torch.matmul(sineToSine, sines[i]) + torch.matmul(cosineToSine, cosines[i])
-                            newCosines[i] = torch.matmul(cosineToCosine, cosines[i]) + torch.matmul(sineToCosine, sines[i])
+                            newSines[k] = torch.matmul(sineToSine, sines[k]) + torch.matmul(cosineToSine, cosines[k])
+                            newCosines[k] = torch.matmul(cosineToCosine, cosines[k]) + torch.matmul(sineToCosine, sines[k])
+                        
+                        plt.imshow(voicedSignal.abs())
+                        plt.show()
                         voicedSignal = torch.complex(newCosines, newSines)
+                        plt.imshow(voicedSignal.abs())
+                        plt.show()
                         if internalInputs.useBreathiness:
                             breathiness = internalInputs.breathiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
                         else:
