@@ -120,15 +120,9 @@ class SpecCrfAi(nn.Module):
         
         self.hiddenLayerCount = hiddenLayerCount
         self.learningRate = learningRate
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
-        self.criterion = nn.L1Loss()
         #self.criterion = RelLoss()
         self.epoch = 0
         self.sampleCount = 0
-        self.loss = 0
-
-        self.pred = SpecPredAI(device, learningRate)
-        self.currPrediction = torch.zeros((1, 1, halfHarms + global_consts.halfTripleBatchSize + 1), device = device)
         
     def forward(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, currPred:torch.Tensor, factor:float) -> torch.Tensor:
         """Forward NN pass with unprocessed in- and outputs.
@@ -222,55 +216,6 @@ class SpecCrfAi(nn.Module):
 
         result = torch.cat((y, phases, x), 0)
         return result
-    
-
-    def test(self, writer:SummaryWriter = None) -> None:
-        """Performs a set of tests to evaluate the performance of the AI, and adds the results to TensorBoard.
-        Called from train() after training completion."""
-
-        pass
-
-    def stepSpecPred(self, specharm:torch.Tensor) -> torch.Tensor:
-        """sends a specharm to the AI's LSTM Predictor subnet, and returns its new unprocessed output."""
-        return self.pred.processData(specharm).detach()
-
-    def resetSpecPred(self) -> None:
-        """resets the hidden states and cell states of the AI's LSTM Predictor subnet."""
-
-        self.pred.resetState()
-        self.currPrediction = torch.zeros((1, 1, halfHarms + global_consts.halfTripleBatchSize + 1), device = self.currPrediction.device)
-            
-    def dataLoader(self, data) -> DataLoader:
-        """helper method for shuffled data loading from an arbitrary dataset.
-        
-        Arguments:
-            data: Tensor, List or Iterable representing a dataset with several elements
-            
-        Returns:
-            Iterable representing the same dataset, with the order of its elements shuffled"""
-        
-        
-        return DataLoader(dataset=data, shuffle=True)
-    
-    def getState(self) -> dict:
-        """returns the state of the NN, its optimizer and their prerequisites as well as its epoch attribute in a Dictionary.
-        
-        Arguments:
-            None
-            
-        Returns:
-            Dictionary containing the NN's epoch attribute (epoch), weights (state dict), optimizer state (optimizer state dict) and loss object (loss)"""
-            
-            
-        AiState = {'epoch': self.epoch,
-                 'model_state_dict': self.state_dict(),
-                 'optimizer_state_dict': self.optimizer.state_dict(),
-                 'pred_model_state_dict': self.pred.state_dict(),
-                 'pred_optimizer_state_dict': self.pred.optimizer.state_dict(),
-                 'loss': self.loss,
-                 'sampleCount': self.sampleCount
-                 }
-        return AiState
 
 
 class RelLoss(nn.Module):
@@ -360,34 +305,6 @@ class SpecPredAI(nn.Module):
 
     def forward(self, specharm:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next specharm in a sequence"""
-        harmonics = specharm[:, :halfHarms]
-        spectrum = specharm[:, halfHarms:]
-        harmonics = self.layer1Harm(harmonics)
-        spectrum = self.layer1Spec(spectrum)
-        harmonics = self.ReLuHarm1(harmonics)
-        spectrum = self.ReLuSpec1(spectrum)
-        x = torch.cat((harmonics, spectrum), 1)
-        x = torch.unsqueeze(x, 0)
-        x, self.state = self.sharedRecurrency(x, self.state)
-        x = torch.squeeze(x)
-        harmonics = x[:, :halfHarms]
-        spectrum = x[:, halfHarms:]
-        harmonics = self.layer2Harm(harmonics)
-        spectrum = self.layer2Spec(spectrum)
-        harmonics = self.layer3Harm(harmonics)
-        spectrum = self.layer3Spec(spectrum)
-
-        spectralFilterWidth = 4 * global_consts.filterTEEMult
-        spectrum = torch.fft.rfft(spectrum, dim = 1)
-        cutoffWindow = torch.zeros_like(spectrum)
-        cutoffWindow[:, 0:int(spectralFilterWidth / 2)] = 1.
-        cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
-        spectrum = torch.fft.irfft(cutoffWindow * spectrum, dim = 1, n = global_consts.halfTripleBatchSize + 1)
-        spectrum = self.threshold(spectrum)
-        return torch.cat((harmonics, spectrum), 1)
-
-    def processData(self, specharm:torch.Tensor) -> torch.Tensor:
-        """forward pass through the preprocessing and LSTM layers of the NN, returning the immediate output of the lowest LSTM layer"""
 
         harmonics = specharm[:halfHarms]
         spectrum = specharm[2 * halfHarms:]
@@ -399,7 +316,7 @@ class SpecPredAI(nn.Module):
         x = torch.unsqueeze(x, 0)
         x = torch.unsqueeze(x, 0)
         x, self.state = self.sharedRecurrency(x, self.state)
-        result = x
+        encoded = x
         x = torch.squeeze(x)
         harmonics = x[:, :halfHarms]
         spectrum = x[:, halfHarms:]
@@ -415,35 +332,7 @@ class SpecPredAI(nn.Module):
         cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
         spectrum = torch.fft.irfft(cutoffWindow * spectrum, dim = 1, n = global_consts.halfTripleBatchSize + 1)
         spectrum = self.threshold(spectrum)
-        return result, torch.cat((harmonics, spectrum), 1)
-
-    def train(self, indata, epochs:int=1, writer:SummaryWriter = None) -> None:
-        """trains the NN based on a dataset of specharm sequences"""
-
-        if indata == False or indata == True:
-            return
-        for epoch in range(epochs):
-            for data in self.dataLoader(indata):
-                self.resetState()
-                input = torch.cat((data[:, :-1, :halfHarms], data[:, :-1, 2 * halfHarms:]), 2)
-                target = torch.cat((data[:, 1:, :halfHarms], data[:, 1:, 2 * halfHarms:]), 2)
-                input = torch.squeeze(input)
-                target = torch.squeeze(target)
-                output = self.forward(input)
-                loss = self.criterion(output, target)
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
-                self.loss = (self.loss * 99 + loss.data) / 100
-                if writer != None:
-                    writer.add_scalar("LSTM Predictor loss", loss.data)
-                print('LSTM Predictor: epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
-        hparams = dict()
-        hparams["LSTM Predictor epochs"] = epochs
-        metrics = dict()
-        metrics["wtd. LSTM Pred. train loss"] = self.loss
-        if writer != None:
-            writer.add_hparams(hparams, metrics)
+        return encoded, torch.cat((harmonics, spectrum), 1)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -451,7 +340,18 @@ class SpecPredAI(nn.Module):
         recSize =  halfHarms + global_consts.halfTripleBatchSize + 1
         self.state = (torch.zeros((2, 1, recSize), device = self.state[0].device), torch.zeros((2, 1, recSize), device = self.state[1].device))
 
-    def dataLoader(self, data) -> DataLoader:
+class AIWrapper():
+    def __init__(self, device = torch.device("cpu")) -> None:
+        self.crfAi = SpecCrfAi(device = device)
+        self.predAi = SpecPredAI(device = device)
+        self.currPred = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = device)
+        self.device = device
+        self.crfAiOptimizer = torch.optim.Adam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=0.)
+        self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=0.)
+        self.criterion = nn.L1Loss()
+    
+    @staticmethod
+    def dataLoader(data) -> DataLoader:
         """helper method for shuffled data loading from an arbitrary dataset.
         
         Arguments:
@@ -463,12 +363,44 @@ class SpecPredAI(nn.Module):
         
         return DataLoader(dataset=data, shuffle=True)
 
-class AIWrapper():
-    def __init__(self) -> None:
-        self.crfAi = SpecCrfAi()
-        self.predAi = SpecPredAI()
+    def getState(self) -> dict:
+        """returns the state of the NN, its optimizer and their prerequisites as well as its epoch attribute in a Dictionary.
+        
+        Arguments:
+            None
+            
+        Returns:
+            Dictionary containing the NN's epoch attribute (epoch), weights (state dict), optimizer state (optimizer state dict) and loss object (loss)"""
+            
+        if self.final:
+            AiState = {'crfAi_epoch': self.crfAi.epoch,
+                'crfAi_model_state_dict': self.crfAi.state_dict(),
+                'crfAi_sampleCount': self.crfAi.sampleCount,
+                'predAi_epoch': self.predAi.epoch,
+                'predAi_model_state_dict': self.predAi.state_dict(),
+                'predAi_sampleCount': self.predAi.sampleCount,
+                'final': True
+            }
+        else:
+            AiState = {'crfAi_epoch': self.crfAi.epoch,
+                'crfAi_model_state_dict': self.crfAi.state_dict(),
+                'crfAi_optimizer_state_dict': self.crfAiOptimizer.state_dict(),
+                'crfAi_sampleCount': self.crfAi.sampleCount,
+                'predAi_epoch': self.predAi.epoch,
+                'predAi_model_state_dict': self.predAi.state_dict(),
+                'predAi_optimizer_state_dict': self.predAiOptimizer.state_dict(),
+                'predAi_sampleCount': self.predAi.sampleCount,
+                'final': False
+            }
+        return AiState
 
-    def processData(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
+    def loadState(self, AiState:dict) -> None:
+        if AiState["final"]:
+            pass
+        else:
+            pass
+
+    def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
         """forward NN pass with data pre- and postprocessing as expected by other classes
         
         Arguments:
@@ -484,10 +416,25 @@ class AIWrapper():
         improve overall performance, especially on the skewed datasets of vocal spectra."""
         
         
-        self.eval()
-        output = torch.square(torch.squeeze(self.crfAi(torch.sqrt(specharm1), torch.sqrt(specharm2), torch.sqrt(specharm3), torch.sqrt(specharm4), factor)))
-        #step predAi
-        return output
+        self.crfAi.eval()
+        self.predAi.eval()
+        output = torch.square(torch.squeeze(self.crfAi(torch.sqrt(specharm1), torch.sqrt(specharm2), torch.sqrt(specharm3), torch.sqrt(specharm4), self.currPred, factor)))
+        self.currPred, prediction = self.predAi(output)
+        return output, prediction
+
+    def predict(self, specharm:torch.Tensor):
+        self.predAi.eval()
+        self.currPred, prediction = self.predAi(specharm)
+        return prediction
+
+    def reset(self) -> None:
+        """resets the hidden states and cell states of the AI's LSTM Predictor subnet."""
+
+        self.predAi.resetState()
+        self.currPred = torch.zeros((1, 1, halfHarms + global_consts.halfTripleBatchSize + 1), device = self.device)
+
+    def finalize(self):
+        self.final = True
 
     def trainCrf(self, indata, epochs:int=1, logging:bool = False) -> None:
         """NN training with forward and backward passes, loss criterion and optimizer runs based on a dataset of spectral transition samples.
@@ -508,58 +455,83 @@ class AIWrapper():
         else:
             writer = None
 
-        if indata != False and indata != True:
-            self.pred.train(indata, epochs, writer)
-            if (self.epoch == 0) or self.epoch == epochs:
-                self.epoch = epochs
-            else:
-                self.epoch = None
-            for epoch in range(epochs):
-                for data in self.dataLoader(indata):
-                    print('Main DNN: epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
-                    data = torch.sqrt(data.to(device = self.device))
-                    data = data.to(device = self.device)
-                    data = torch.squeeze(data)
-                    spectrum1 = data[0]
-                    spectrum2 = data[1]
-                    spectrum3 = data[-2]
-                    spectrum4 = data[-1]
+        if (self.epoch == 0) or self.epoch == epochs:
+            self.epoch = epochs
+        else:
+            self.epoch = None
+        reportedLoss = 0.
+        for epoch in range(epochs):
+            for data in self.dataLoader(indata):
+                print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
+                data = torch.sqrt(data.to(device = self.device))
+                data = data.to(device = self.device)
+                data = torch.squeeze(data)
+                spectrum1 = data[0]
+                spectrum2 = data[1]
+                spectrum3 = data[-2]
+                spectrum4 = data[-1]
                     
-                    length = data.size()[0]
-                    filterWidth = math.ceil(length / 5)
-                    threshold = torch.nn.Threshold(0.001, 0.001)
-                    data = torch.fft.rfft(data, dim = 0)
-                    cutoffWindow = torch.zeros(data.size()[0])
-                    cutoffWindow[0:filterWidth] = 1.
-                    cutoffWindow[filterWidth] = 0.5
-                    data = threshold(torch.fft.irfft(torch.unsqueeze(cutoffWindow, 1) * data, dim = 0, n = length))
-                    
-                    indexList = np.arange(0, data.size()[0], 1)
-                    self.resetSpecPred
-                    for i in indexList:
-                        factor = i / float(data.size()[0])
-                        spectrumTarget = data[i]
-                        output = torch.squeeze(self.forward(spectrum1, spectrum2, spectrum3, spectrum4, factor)[0])
-                        output = torch.cat((output[:halfHarms], output[2 * halfHarms:]), 0)
-                        spectrumTarget = torch.cat((spectrumTarget[:halfHarms], spectrumTarget[2 * halfHarms:]), 0)
-                        loss = self.criterion(output, spectrumTarget)
-                        self.optimizer.zero_grad()
-                        loss.backward()
-                        self.optimizer.step()
-                        if writer != None:
-                            writer.add_scalar("Main DNN loss", loss.data)
-                        print('Main DNN: epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
-            self.sampleCount += len(indata)
-            self.loss = (self.loss * 99 + loss.data) / 100
-            hparams = dict()
-            hparams["Main DNN epochs"] = epochs
-            hparams["learning rate"] = self.learningRate
-            hparams["hidden layer count"] = self.hiddenLayerCount
-            metrics = dict()
-            metrics["acc. sample count"] = self.sampleCount
-            metrics["wtd. main DNN train loss"] = self.loss
+                length = data.size()[0]
+                filterWidth = math.ceil(length / 5)
+                threshold = torch.nn.Threshold(0.001, 0.001)
+                data = torch.fft.rfft(data, dim = 0)
+                cutoffWindow = torch.zeros(data.size()[0])
+                cutoffWindow[0:filterWidth] = 1.
+                cutoffWindow[filterWidth] = 0.5
+                data = threshold(torch.fft.irfft(torch.unsqueeze(cutoffWindow, 1) * data, dim = 0, n = length))
+                
+                indexList = np.arange(0, data.size()[0], 1)
+                self.resetSpecPred
+                for i in indexList:
+                    factor = i / float(data.size()[0])
+                    spectrumTarget = data[i]
+                    output = torch.squeeze(self.forward(spectrum1, spectrum2, spectrum3, spectrum4, factor)[0])
+                    output = torch.cat((output[:halfHarms], output[2 * halfHarms:]), 0)
+                    spectrumTarget = torch.cat((spectrumTarget[:halfHarms], spectrumTarget[2 * halfHarms:]), 0)
+                    loss = self.criterion(output, spectrumTarget)
+                    self.crfAiOptimizer.zero_grad()
+                    loss.backward()
+                    self.crfAiOptimizer.step()
+                    print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
             if writer != None:
-                writer.add_hparams(hparams, metrics)
-            self.test(writer)
+                writer.add_scalar("loss", loss.data)
+            self.crfAi.sampleCount += len(indata)
+            reportedLoss = (reportedLoss * 99 + loss.data) / 100
+        hparams = dict()
+        hparams["epochs"] = epochs
+        hparams["learning rate"] = self.crfAi.learningRate
+        hparams["hidden layer count"] = self.crfAi.hiddenLayerCount
+        metrics = dict()
+        metrics["acc. sample count"] = self.crfAi.sampleCount
+        metrics["wtd. train loss"] = reportedLoss
         if writer != None:
+            writer.add_hparams(hparams, metrics)
+            writer.close()
+    
+    def trainPred(self, indata, epochs:int=1, writer:SummaryWriter = None) -> None:
+        """trains the NN based on a dataset of specharm sequences"""
+
+        reportedLoss = 0.
+        for epoch in range(epochs):
+            for data in self.dataLoader(indata):
+                self.reset()
+                input = torch.cat((data[:, :-1, :halfHarms], data[:, :-1, 2 * halfHarms:]), 2)
+                target = torch.cat((data[:, 1:, :halfHarms], data[:, 1:, 2 * halfHarms:]), 2)
+                input = torch.squeeze(input)
+                target = torch.squeeze(target)
+                output = self.predAi(input)
+                loss = self.criterion(output, target)
+                self.predAiOptimizer.zero_grad()
+                loss.backward()
+                self.predAiOptimizer.step()
+                reportedLoss = (reportedLoss * 99 + loss.data) / 100
+                print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
+            if writer != None:
+                writer.add_scalar("loss", loss.data)
+        hparams = dict()
+        hparams["epochs"] = epochs
+        metrics = dict()
+        metrics["wtd. train loss"] = self.loss
+        if writer != None:
+            writer.add_hparams(hparams, metrics)
             writer.close()
