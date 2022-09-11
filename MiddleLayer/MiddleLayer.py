@@ -119,6 +119,7 @@ class MiddleLayer(Widget):
         self.trackList[-1].basePitch = reference.basePitch.clone()
         self.trackList[-1].breathiness = reference.breathiness.clone()
         self.trackList[-1].steadiness = reference.steadiness.clone()
+        self.trackList[-1].aiBalance = reference.aiBalance.clone()
         self.trackList[-1].loopOverlap = reference.loopOverlap.clone()
         self.trackList[-1].loopOffset = reference.loopOffset.clone()
         self.trackList[-1].vibratoSpeed = reference.vibratoSpeed.clone()
@@ -126,6 +127,7 @@ class MiddleLayer(Widget):
         self.trackList[-1].usePitch = copy(reference.usePitch)
         self.trackList[-1].useBreathiness = copy(reference.useBreathiness)
         self.trackList[-1].useSteadiness = copy(reference.useSteadiness)
+        self.trackList[-1].useAIBalance = copy(reference.useAIBalance)
         self.trackList[-1].useVibratoSpeed = copy(reference.useVibratoSpeed)
         self.trackList[-1].useVibratoStrength = copy(reference.useVibratoStrength)
         self.trackList[-1].paramStack = []#replace once paramStack is fully implemented
@@ -186,11 +188,13 @@ class MiddleLayer(Widget):
         if index == -1:
             if name == "steadiness":
                 self.trackList[self.activeTrack].useSteadiness = True
-            if name == "breathiness":
+            elif name == "breathiness":
                 self.trackList[self.activeTrack].useBreathiness = True
-            if name == "vibrato speed":
+            elif name == "AI balance":
+                self.trackList[self.activeTrack].useAIBalance = True
+            elif name == "vibrato speed":
                 self.trackList[self.activeTrack].useVibratoSpeed = True
-            if name == "vibrato strength":
+            elif name == "vibrato strength":
                 self.trackList[self.activeTrack].useVibratoStrength = True
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = True
@@ -208,11 +212,13 @@ class MiddleLayer(Widget):
         if index == -1:
             if name == "steadiness":
                 self.trackList[self.activeTrack].useSteadiness = False
-            if name == "breathiness":
+            elif name == "breathiness":
                 self.trackList[self.activeTrack].useBreathiness = False
-            if name == "vibrato speed":
+            elif name == "AI balance":
+                self.trackList[self.activeTrack].useAIBalance = False
+            elif name == "vibrato speed":
                 self.trackList[self.activeTrack].useVibratoSpeed = False
-            if name == "vibrato strength":
+            elif name == "vibrato strength":
                 self.trackList[self.activeTrack].useVibratoStrength = False
         else:
             self.trackList[self.activeTrack].paramStack[index].enabled = False
@@ -246,6 +252,7 @@ class MiddleLayer(Widget):
         if self.mode == "notes":
             self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useSteadiness, state = "down"))
             self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useBreathiness))
+            self.ids["paramList"].add_widget(ParamPanel(name = "AI balance", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useAIBalance))
             self.ids["adaptiveSpace"].add_widget(ParamCurve())
             counter = 0
             for i in self.trackList[self.activeTrack].paramStack:
@@ -274,11 +281,13 @@ class MiddleLayer(Widget):
         if index == -1:
             if name == "steadiness":
                 self.activeParam = "steadiness"
-            if name == "breathiness":
+            elif name == "breathiness":
                 self.activeParam = "breathiness"
-            if name == "loop overlap" or name == "loop offset":
+            elif name == "AI balance":
+                self.activeParam = "AI balance"
+            elif name == "loop overlap" or name == "loop offset":
                 self.activeParam = "loop"
-            if name == "vibrato speed" or name == "vibrato strength":
+            elif name == "vibrato speed" or name == "vibrato strength":
                 self.activeParam = "vibrato"
         else:
             self.activeParam = index
@@ -293,6 +302,9 @@ class MiddleLayer(Widget):
         elif self.activeParam == "breathiness":
             self.trackList[self.activeTrack].breathiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
             self.submitNamedParamChange(True, "breathiness", start, torch.tensor(data, dtype = torch.half))
+        elif self.activeParam == "AI balance":
+            self.trackList[self.activeTrack].aiBalance[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+            self.submitNamedParamChange(True, "aiBalance", start, torch.tensor(data, dtype = torch.half))
         elif self.activeParam == "loop":
             if section:
                 self.trackList[self.activeTrack].loopOverlap[start:start + len(data)] = torch.tensor(data, dtype = torch.half)

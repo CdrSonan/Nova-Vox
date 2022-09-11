@@ -42,6 +42,7 @@ class Track():
         self.basePitch = torch.full((5000,), -1., dtype = torch.half)
         self.breathiness = torch.full((5000,), 0, dtype = torch.half)
         self.steadiness = torch.full((5000,), 0, dtype = torch.half)
+        self.aiBalance = torch.full((5000,), 0, dtype = torch.half)
         self.loopOverlap = torch.tensor([], dtype = torch.half)
         self.loopOffset = torch.tensor([], dtype = torch.half)
         self.vibratoSpeed = torch.full((5000,), 0, dtype = torch.half)
@@ -49,6 +50,7 @@ class Track():
         self.usePitch = True
         self.useBreathiness = True
         self.useSteadiness = True
+        self.useAIBalance = True
         self.useVibratoSpeed = True
         self.useVibratoStrength = True
         self.pauseThreshold = 100
@@ -79,7 +81,7 @@ class Track():
 
         caps = self.generateCaps()
         pitch = torch.full_like(self.pitch, global_consts.sampleRate) / (torch.pow(2, (self.pitch - torch.full_like(self.pitch, 69)) / torch.full_like(self.pitch, 12)) * 440)
-        return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useVibratoSpeed, self.useVibratoStrength)
+        return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength)
 
 class Note():
     """Container class for a note as handled by the main process. Contains a reference property pointing at its UI representation."""

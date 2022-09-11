@@ -74,17 +74,20 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
             aiParamStackList[change.data[0]].removeParam(change.data[1])
             statusControl[change.data[0]].ai *= 0
         elif change.type == "enableParam":
-            if change.data[2] == "breathiness":
+            if change.data[1] == "breathiness":
                 inputList[change.data[0]].useBreathiness = True
                 statusControl[change.data[0]].rs *= 0
-            elif change.data[2] == "steadiness":
+            elif change.data[1] == "steadiness":
                 inputList[change.data[0]].useSteadiness = True
                 statusControl[change.data[0]].rs *= 0
-            elif change.data[2] == "vibrato speed":
+            elif change.data[1] == "vibrato speed":
                 inputList[change.data[0]].useVibratoSpeed = True
                 statusControl[change.data[0]].rs *= 0
-            elif change.data[2] == "vibrato strength":
+            elif change.data[1] == "vibrato strength":
                 inputList[change.data[0]].useVibratoStrength = True
+                statusControl[change.data[0]].rs *= 0
+            elif change.data[1] == "AI balance":
+                inputList[change.data[0]].useAIBalance = True
                 statusControl[change.data[0]].rs *= 0
             else:
                 aiParamStackList[change.data[1]].enableParam(change.data[2])
@@ -101,6 +104,9 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                 statusControl[change.data[0]].rs *= 0
             elif change.data[1] == "vibrato strength":
                 inputList[change.data[0]].useVibratoStrength = False
+                statusControl[change.data[0]].rs *= 0
+            elif change.data[1] == "AI balance":
+                inputList[change.data[0]].useAIBalance = False
                 statusControl[change.data[0]].rs *= 0
             else:
                 aiParamStackList[change.data[0]].disableParam(change.data[1])
@@ -144,7 +150,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                 inputList[change.data[0]].borders[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].rs[math.floor(change.data[2] / 3):math.floor((change.data[2] + len(change.data[3])) / 3)] *= 0
                 statusControl[change.data[0]].ai[math.floor(change.data[2] / 3):math.floor((change.data[2] + len(change.data[3])) / 3)] *= 0
-            elif change.data[1] in ["pitch", "steadiness", "breathiness"]:
+            elif change.data[1] in ["pitch", "steadiness", "breathiness", "aiBalance"]:
                 print(change.data)
                 eval("inputList[change.data[0]]." + change.data[1])[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 positions = posToSegment(change.data[0], change.data[2], change.data[2] + len(change.data[3]), inputList)
@@ -269,6 +275,8 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                 if internalStatusControl.ai[len(internalStatusControl.ai) - k - 1] <= 0:
                     lastPoint = len(internalStatusControl.ai) - k - 1
                     break
+
+            voicebank.crfAi.resetSpecPred()
             #TODO: reset recurrent AI Tensors
             #iterate through segments in VocalSequence
             for j in range(len(internalStatusControl.ai) + 1):
@@ -331,8 +339,8 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                     specB = currentSpectrum[0]
                                 else:
                                     specB = currentSpectrum[1]
-                                spectrum.write(voicebank.crfAi.processData(specA.to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j])), k)
-                        
+                                aiSpec = voicebank.crfAi.processData(specA.to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]))
+                                spectrum.write(aiSpec[0], k)
                         if internalInputs.endCaps[j]:
                             windowEnd = internalInputs.borders[3 * j + 5]
                             windowEndEx = internalInputs.borders[3 * j + 5]
@@ -340,6 +348,13 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                             windowEnd = internalInputs.borders[3 * j + 3]
                             windowEndEx = internalInputs.borders[3 * j + 4]
                             excitation.write(nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx], windowEndEx, internalInputs.borders[3 * j + 5])
+                        #for k in range(windowStart, windowEnd):
+                            #aiSpec = voicebank.crfAi.stepSpecPred(currentSpectrum[k - windowStart])
+                            #currentSpectrum[k] = ...
+                        spectrum.write(currentSpectrum, windowStart, windowEnd)
+                        excitation.write(currentExcitation, windowStartEx, windowEndEx)
+
+                        if internalInputs.endCaps[j] == False:
                             for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
                                 if currentSpectrum.size()[0] == 1:
                                     specA = currentSpectrum[-1]
@@ -349,15 +364,15 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                     specB = nextSpectrum[0]
                                 else:
                                     specB = nextSpectrum[1]
-                                spectrum.write(voicebank.crfAi.processData(specA.to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3])), k)
+                                aiSpec = voicebank.crfAi.processData(specA.to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
+                                spectrum.write(aiSpec[0], k)
                         
                         #TODO: implement crfai skipping if transition was already calculated in the previous frame
                         
                         #istft of voiced excitation + pitch shift
 
                         #write remaining spectral data to cache
-                        spectrum.write(currentSpectrum, windowStart, windowEnd)
-                        excitation.write(currentExcitation, windowStartEx, windowEndEx)
+                        
 
                         remoteConnection.put(StatusChange(i, j, 2))
 
@@ -390,8 +405,6 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         internalStatusControl.rs[j] = 1
                         remoteConnection.put(StatusChange(i, j, 3))
 
-                import matplotlib.pyplot as plt
-
                 #final rendering and istft of pause-to-pause segment
                 if ((j > 0) & interOutput) or (j == lastPoint):
                     logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
@@ -400,33 +413,28 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         abs = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, :int(global_consts.nHarmonics / 2) + 1]
                         angle = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
                         harms = torch.polar(abs, angle)
-                        sines = harms.imag
-                        cosines = harms.real
-                        newSines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
-                        newCosines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
+                        #sines = harms.imag
+                        #cosines = harms.real
+                        #newSines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
+                        #newCosines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
                         voicedSignal = torch.empty((internalInputs.borders[3 * (j - 1) + 5] - startPoint,global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
                         for k in range(harms.size()[0]):
                             requiredSize = global_consts.tripleBatchSize / internalInputs.pitch[k + startPoint].item()
                             harmCurve = torch.tile(torch.fft.irfft(harms[k], global_consts.nHarmonics), (math.ceil(requiredSize),))[:int(requiredSize * global_consts.nHarmonics)]
                             voicedSignal[k] = torch.fft.rfft(interp(torch.linspace(0, 1, int(requiredSize * global_consts.nHarmonics)), harmCurve, torch.linspace(0, 1, global_consts.tripleBatchSize)) * window)
-                            inputFreqs = torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1).unsqueeze(0).tile(global_consts.halfTripleBatchSize + 1, 1) * requiredSize
-                            outputFreqs = torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1).unsqueeze(1).tile(1, int(global_consts.nHarmonics / 2) + 1)
-                            sineToSine = outputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
-                            sineToSine[0, 0] = 1.
-                            cosineToCosine = inputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
-                            cosineToCosine[0, 0] = 1.
-                            sineToCosine = (-inputFreqs * torch.cos(2 * math.pi * inputFreqs) + inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
-                            sineToCosine[0, 0] = 1.
-                            cosineToSine = (outputFreqs * torch.cos(2 * math.pi * inputFreqs) - outputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
-                            cosineToSine[0, 0] = 1.
-                            newSines[k] = torch.matmul(sineToSine, sines[k]) + torch.matmul(cosineToSine, cosines[k])
-                            newCosines[k] = torch.matmul(cosineToCosine, cosines[k]) + torch.matmul(sineToCosine, sines[k])
-                        
-                        plt.imshow(voicedSignal.abs())
-                        plt.show()
-                        voicedSignal = torch.complex(newCosines, newSines)
-                        plt.imshow(voicedSignal.abs())
-                        plt.show()
+                            #inputFreqs = torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1).unsqueeze(0).tile(global_consts.halfTripleBatchSize + 1, 1) * requiredSize
+                            #outputFreqs = torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1).unsqueeze(1).tile(1, int(global_consts.nHarmonics / 2) + 1)
+                            #sineToSine = outputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
+                            #sineToSine[0, 0] = 1.
+                            #cosineToCosine = inputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
+                            #cosineToCosine[0, 0] = 1.
+                            #sineToCosine = (-inputFreqs * torch.cos(2 * math.pi * inputFreqs) + inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
+                            #sineToCosine[0, 0] = 1.
+                            #cosineToSine = (outputFreqs * torch.cos(2 * math.pi * inputFreqs) - outputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
+                            #cosineToSine[0, 0] = 1.
+                            #newSines[k] = torch.matmul(sineToSine, sines[k]) + torch.matmul(cosineToSine, cosines[k])
+                            #newCosines[k] = torch.matmul(cosineToCosine, cosines[k]) + torch.matmul(sineToCosine, sines[k])
+                        #voicedSignal = torch.complex(newCosines, newSines)
                         if internalInputs.useBreathiness:
                             breathiness = internalInputs.breathiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
                         else:
