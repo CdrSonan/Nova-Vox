@@ -6,8 +6,7 @@ import logging
 import Backend.Resampler.Resamplers as rs
 from copy import copy
 from Backend.DataHandler.VocalSegment import VocalSegment
-from Backend.Param_Components.AiParams import AiParamStack
-from Backend.VB_Components.SpecCrfAi import LiteSpecCrfAi
+from Backend.VB_Components.SpecCrfAi import AIWrapper
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
 from Backend.NV_Multiprocessing.Caching import DenseCache, SparseCache
@@ -220,7 +219,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
             internalInputs = inputList[i]
 
             voicebank = voicebankList[i]
-            voicebank.crfAi = LiteSpecCrfAi(voicebank.crfAi, device_ai)
+            voicebank.ai.to(device_ai)
             aiParamStack = aiParamStackList[i]
 
             length = internalInputs.pitch.size()[0]
@@ -276,7 +275,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                     lastPoint = len(internalStatusControl.ai) - k - 1
                     break
 
-            voicebank.crfAi.resetSpecPred()
+            voicebank.ai.reset()
             #TODO: reset recurrent AI Tensors
             #iterate through segments in VocalSequence
             for j in range(len(internalStatusControl.ai) + 1):
@@ -339,7 +338,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                     specB = currentSpectrum[0]
                                 else:
                                     specB = currentSpectrum[1]
-                                aiSpec = voicebank.crfAi.processData(specA.to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]))
+                                aiSpec = voicebank.ai.interpolate(specA.to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]))
                                 spectrum.write(aiSpec[0], k)
                         if internalInputs.endCaps[j]:
                             windowEnd = internalInputs.borders[3 * j + 5]
@@ -348,10 +347,9 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                             windowEnd = internalInputs.borders[3 * j + 3]
                             windowEndEx = internalInputs.borders[3 * j + 4]
                             excitation.write(nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx], windowEndEx, internalInputs.borders[3 * j + 5])
-                        #for k in range(windowStart, windowEnd):
-                            #aiSpec = voicebank.crfAi.stepSpecPred(currentSpectrum[k - windowStart])
-                            #currentSpectrum[k] = ...
-                        spectrum.write(currentSpectrum, windowStart, windowEnd)
+                        for k in range(currentSpectrum.size()[0]):
+                            voicebank.ai.predict(currentSpectrum[k])
+                            spectrum.write(currentSpectrum[k], windowStart + k)
                         excitation.write(currentExcitation, windowStartEx, windowEndEx)
 
                         if internalInputs.endCaps[j] == False:
@@ -364,7 +362,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                     specB = nextSpectrum[0]
                                 else:
                                     specB = nextSpectrum[1]
-                                aiSpec = voicebank.crfAi.processData(specA.to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
+                                aiSpec = voicebank.ai.interpolate(specA.to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
                                 spectrum.write(aiSpec[0], k)
                         
                         #TODO: implement crfai skipping if transition was already calculated in the previous frame

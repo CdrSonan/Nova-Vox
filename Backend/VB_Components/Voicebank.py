@@ -2,7 +2,7 @@ import logging
 import torch
 
 from Backend.VB_Components.VbMetadata import VbMetadata
-from Backend.VB_Components.SpecCrfAi import SpecCrfAi, LiteSpecCrfAi
+from Backend.VB_Components.SpecCrfAi import AIWrapper, SpecCrfAi
 from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample
 from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import calculateSpectra
@@ -77,7 +77,7 @@ class Voicebank():
         self.metadata = VbMetadata()
         self.filepath = filepath
         self.phonemeDict = dict()
-        self.crfAi = SpecCrfAi(device)
+        self.ai = AIWrapper(device)
         self.parameters = []
         self.wordDict = dict()
         self.stagedTrainSamples = []
@@ -85,7 +85,7 @@ class Voicebank():
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
-            self.loadCrfWeights(self.filepath)
+            self.loadAIWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
         
@@ -94,7 +94,7 @@ class Voicebank():
 
         torch.save({
             "metadata":self.metadata,
-            "crfAiState":self.crfAi.getState(),
+            "aiState":self.ai.getState(),
             "phonemeDict":self.phonemeDict,
             "Parameters":self.parameters,
             "wordDict":self.wordDict
@@ -130,18 +130,8 @@ class Voicebank():
     def loadCrfWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
-        data = torch.load(filepath)
-        self.crfAi = SpecCrfAi(self.device)
-        self.crfAi.epoch = data["crfAiState"]['epoch']
-        self.crfAi.load_state_dict(data["crfAiState"]['model_state_dict'])
-        self.crfAi.pred.load_state_dict(data["crfAiState"]['pred_model_state_dict'])
-        if "loss" in data["crfAiState"].keys():
-            self.crfAi.optimizer.load_state_dict(data["crfAiState"]['optimizer_state_dict'])
-            self.crfAi.pred.optimizer.load_state_dict(data["crfAiState"]['pred_optimizer_state_dict'])
-            self.crfAi.loss = data["crfAiState"]['loss']
-        else:
-            self.crfAi = LiteSpecCrfAi(self.crfAi, self.device)
-        self.crfAi.eval()
+        aiState = torch.load(filepath)["aiState"]
+        self.ai.loadState(aiState)
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
@@ -239,7 +229,7 @@ class Voicebank():
             
             
         if additive == False:
-            self.crfAi = SpecCrfAi()
+            self.ai.crfAi = SpecCrfAi()
         print("sample preprocessing started")
         sampleCount = len(self.stagedTrainSamples)
         for i in range(sampleCount):
@@ -254,12 +244,12 @@ class Voicebank():
             self.stagedTrainSamples[i] = (avgSpecharm + self.stagedTrainSamples[i].specharm).to(device = self.device)
         print("sample preprocessing complete")
         print("AI training started")
-        self.crfAi.train(self.stagedTrainSamples, epochs = epochs, logging = logging)
+        self.ai.trainCrf(self.stagedTrainSamples, epochs = epochs, logging = logging)
         print("AI training complete")
         
     def finalizCrfAi(self) -> None:
         """finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
-        self.crfAi = LiteSpecCrfAi(self.crfAi, self.device)
+        self.ai.finalize()
 
 class LiteVoicebank():
     """Class for holding a Voicebank as handled by the devkit.
@@ -307,7 +297,7 @@ class LiteVoicebank():
         self.metadata = VbMetadata()
         self.filepath = filepath
         self.phonemeDict = dict()
-        self.crfAi = LiteSpecCrfAi()
+        self.crfAi = AIWrapper()
         self.parameters = []
         self.wordDict = dict()
         self.stagedTrainSamples = []
@@ -347,10 +337,9 @@ class LiteVoicebank():
     
     def loadCrfWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
-        data = torch.load(filepath)
-        self.crfAi.epoch = data["crfAiState"]['epoch']
-        self.crfAi.load_state_dict(data["crfAiState"]['model_state_dict'])
-        self.crfAi.eval()
+
+        aiState = torch.load(filepath)["aiState"]
+        self.ai.loadState(aiState)
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""

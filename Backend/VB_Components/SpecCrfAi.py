@@ -280,28 +280,38 @@ class SpecPredAI(nn.Module):
     learning, rather than an estimated specharm."""
 
 
-    def __init__(self, device:torch.device = None, learningRate:float=5e-5) -> None:
+    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1) -> None:
         """basic constructor accepting the learning rate hyperparameter as input"""
 
         super().__init__()
+        self.device = device
         self.layer1Harm = torch.nn.Linear(halfHarms, halfHarms)
         self.layer1Spec = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuHarm1 = nn.ReLU()
         self.ReLuSpec1 = nn.ReLU()
-        recSize =  halfHarms + global_consts.halfTripleBatchSize + 1
-        self.sharedRecurrency = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = 2, batch_first = True)
+        self.recSize = recSize
+        self.sharedRecurrency1 = nn.LSTMCell(halfHarms + global_consts.halfTripleBatchSize + 1, self.recSize, device = device)
+        self.dropout1 = torch.nn.Dropout(0.1)
+        self.sharedRecurrency2 = nn.LSTMCell(self.recSize, self.recSize, device = device)
+        self.dropout2 = torch.nn.Dropout(0.1)
+        self.sharedRecurrency3 = nn.LSTMCell(self.recSize, halfHarms + global_consts.halfTripleBatchSize + 1, device = device)
         self.layer2Harm = torch.nn.Linear(halfHarms, halfHarms)
         self.layer2Spec = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
         self.layer3Harm = torch.nn.Linear(halfHarms, halfHarms)
         self.layer3Spec = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, global_consts.halfTripleBatchSize + 1, device = device)
-
+        self.threshold = torch.nn.Threshold(0.001, 0.001)
         self.learningRate = learningRate
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learningRate, weight_decay=0.)
         self.criterion = nn.L1Loss()
         self.loss = 0
-        self.state = (torch.zeros((2, 1, recSize), device = device), torch.zeros((2, 1, recSize), device = device))
+        self.hiddenState1 = torch.zeros((self.recSize,), device = self.device)
+        self.cellState1 = torch.zeros((self.recSize,), device = self.device)
+        self.hiddenState2 = torch.zeros((self.recSize,), device = self.device)
+        self.cellState2 = torch.zeros((self.recSize,), device = self.device)
+        self.hiddenState3 = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = self.device)
+        self.cellState3 = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = self.device)
 
-        self.threshold = torch.nn.Threshold(0.001, 0.001)
+        
 
     def forward(self, specharm:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next specharm in a sequence"""
@@ -313,18 +323,18 @@ class SpecPredAI(nn.Module):
         harmonics = self.ReLuHarm1(harmonics)
         spectrum = self.ReLuSpec1(spectrum)
         x = torch.cat((harmonics, spectrum), 0)
-        x = torch.unsqueeze(x, 0)
-        x = torch.unsqueeze(x, 0)
-        x, self.state = self.sharedRecurrency(x, self.state)
-        encoded = x
-        x = torch.squeeze(x)
+        self.hiddenState1, self.cellState1 = self.sharedRecurrency1(x, self.hiddenState1, self.cellState1)
+        self.hiddenState1 = self.dropout1(self.hiddenState1)
+        self.hiddenState2, self.cellState2 = self.sharedRecurrency1(self.hiddenState1, self.hiddenState2, self.cellState2)
+        self.hiddenState2 = self.dropout2(self.hiddenState2)
+        self.hiddenState3, self.cellState3 = self.sharedRecurrency1(self.hiddenState2, self.hiddenState3, self.cellState3)
+        x = self.hiddenState3
         harmonics = x[:, :halfHarms]
         spectrum = x[:, halfHarms:]
         harmonics = self.layer2Harm(harmonics)
         spectrum = self.layer2Spec(spectrum)
         harmonics = self.layer3Harm(harmonics)
         spectrum = self.layer3Spec(spectrum)
-
         spectralFilterWidth = 4 * global_consts.filterTEEMult
         spectrum = torch.fft.rfft(spectrum, dim = 1)
         cutoffWindow = torch.zeros_like(spectrum)
@@ -332,13 +342,17 @@ class SpecPredAI(nn.Module):
         cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
         spectrum = torch.fft.irfft(cutoffWindow * spectrum, dim = 1, n = global_consts.halfTripleBatchSize + 1)
         spectrum = self.threshold(spectrum)
-        return encoded, torch.cat((harmonics, spectrum), 1)
+        return self.hiddenState3, torch.cat((harmonics, spectrum), 1)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        recSize =  halfHarms + global_consts.halfTripleBatchSize + 1
-        self.state = (torch.zeros((2, 1, recSize), device = self.state[0].device), torch.zeros((2, 1, recSize), device = self.state[1].device))
+        self.hiddenState1 = torch.zeros((self.recSize,), device = self.device)
+        self.cellState1 = torch.zeros((self.recSize,), device = self.device)
+        self.hiddenState2 = torch.zeros((self.recSize,), device = self.device)
+        self.cellState2 = torch.zeros((self.recSize,), device = self.device)
+        self.hiddenState3 = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = self.device)
+        self.cellState3 = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = self.device)
 
 class AIWrapper():
     def __init__(self, device = torch.device("cpu")) -> None:
@@ -346,6 +360,7 @@ class AIWrapper():
         self.predAi = SpecPredAI(device = device)
         self.currPred = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = device)
         self.device = device
+        self.final = False
         self.crfAiOptimizer = torch.optim.Adam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=0.)
         self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=0.)
         self.criterion = nn.L1Loss()
@@ -373,7 +388,7 @@ class AIWrapper():
             Dictionary containing the NN's epoch attribute (epoch), weights (state dict), optimizer state (optimizer state dict) and loss object (loss)"""
             
         if self.final:
-            AiState = {'crfAi_epoch': self.crfAi.epoch,
+            aiState = {'crfAi_epoch': self.crfAi.epoch,
                 'crfAi_model_state_dict': self.crfAi.state_dict(),
                 'crfAi_sampleCount': self.crfAi.sampleCount,
                 'predAi_epoch': self.predAi.epoch,
@@ -382,7 +397,7 @@ class AIWrapper():
                 'final': True
             }
         else:
-            AiState = {'crfAi_epoch': self.crfAi.epoch,
+            aiState = {'crfAi_epoch': self.crfAi.epoch,
                 'crfAi_model_state_dict': self.crfAi.state_dict(),
                 'crfAi_optimizer_state_dict': self.crfAiOptimizer.state_dict(),
                 'crfAi_sampleCount': self.crfAi.sampleCount,
@@ -392,13 +407,22 @@ class AIWrapper():
                 'predAi_sampleCount': self.predAi.sampleCount,
                 'final': False
             }
-        return AiState
+        return aiState
 
-    def loadState(self, AiState:dict) -> None:
-        if AiState["final"]:
+    def loadState(self, aiState:dict) -> None:
+        if aiState["final"]:
+            self.final = True
             pass
         else:
             pass
+
+        self.crfAi.epoch = aiState['epoch']
+        self.crfAi.load_state_dict(aiState['crfAi_model_state_dict'])
+        self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
+        self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
+        self.predAiOptimizer.load_state_dict(aiState['predAi_optimizer_state_dict'])
+        self.crfAi.eval()
+        self.predAi.eval()
 
     def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, factor:float) -> torch.Tensor:
         """forward NN pass with data pre- and postprocessing as expected by other classes
@@ -432,6 +456,11 @@ class AIWrapper():
 
         self.predAi.resetState()
         self.currPred = torch.zeros((1, 1, halfHarms + global_consts.halfTripleBatchSize + 1), device = self.device)
+
+    def prefetch(self, specharm:torch.Tensor) -> None:
+        harmonics = specharm[:halfHarms]
+        spectrum = specharm[2 * halfHarms:]
+        self.predAi.hiddenState3 = torch.cat((harmonics, spectrum), 0)
 
     def finalize(self):
         self.final = True
@@ -480,9 +509,9 @@ class AIWrapper():
                 cutoffWindow[filterWidth] = 0.5
                 data = threshold(torch.fft.irfft(torch.unsqueeze(cutoffWindow, 1) * data, dim = 0, n = length))
                 
-                indexList = np.arange(0, data.size()[0], 1)
-                self.resetSpecPred
-                for i in indexList:
+                self.reset()
+                self.prefetch(data[0])
+                for i in range(1, data.size()[0]):
                     factor = i / float(data.size()[0])
                     spectrumTarget = data[i]
                     output = torch.squeeze(self.forward(spectrum1, spectrum2, spectrum3, spectrum4, factor)[0])
@@ -508,15 +537,25 @@ class AIWrapper():
             writer.add_hparams(hparams, metrics)
             writer.close()
     
-    def trainPred(self, indata, epochs:int=1, writer:SummaryWriter = None) -> None:
+    def trainPred(self, indata, epochs:int=1, logging:bool = False) -> None:
         """trains the NN based on a dataset of specharm sequences"""
 
+        if logging:
+            writer = SummaryWriter(path.join(getenv("APPDATA"), "Nova-Vox", "Logs"))
+            #writer.add_graph(self, (indata[0][0], indata[0][1], indata[0][-2], indata[0][-1], torch.tensor([0.5])))
+        else:
+            writer = None
+        if (self.epoch == 0) or self.epoch == epochs:
+            self.epoch = epochs
+        else:
+            self.epoch = None
         reportedLoss = 0.
         for epoch in range(epochs):
             for data in self.dataLoader(indata):
                 self.reset()
-                input = torch.cat((data[:, :-1, :halfHarms], data[:, :-1, 2 * halfHarms:]), 2)
-                target = torch.cat((data[:, 1:, :halfHarms], data[:, 1:, 2 * halfHarms:]), 2)
+                self.prefetch(data[0])
+                input = torch.cat((data[:-1, :halfHarms], data[:-1, 2 * halfHarms:]), 1)
+                target = torch.cat((data[1:, :halfHarms], data[1:, 2 * halfHarms:]), 1)
                 input = torch.squeeze(input)
                 target = torch.squeeze(target)
                 output = self.predAi(input)
