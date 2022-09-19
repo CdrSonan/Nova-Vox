@@ -12,6 +12,7 @@ loc = getLocale()
 from UI.code.devkit.Metadata import MetadataUi
 from UI.code.devkit.PhonemeDict import PhonemedictUi
 from UI.code.devkit.CrfAi import CrfaiUi
+from UI.code.devkit.PredAi import PredaiUi
 from UI.code.devkit.UtauImport import UtauImportUi
 
 global loadedVB
@@ -71,8 +72,8 @@ class RootUi(tkinter.Frame):
         self.crfaiButton["state"] = "disabled"
         
         self.parameterButton = tkinter.Button(self)
-        self.parameterButton["text"] = loc["param_btn"]
-        self.parameterButton["command"] = self.onParameterPress
+        self.parameterButton["text"] = loc["predai_btn"]
+        self.parameterButton["command"] = self.onPredaiPress
         self.parameterButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.parameterButton["state"] = "disabled"
         
@@ -127,8 +128,12 @@ class RootUi(tkinter.Frame):
         self.crfaiUi = CrfaiUi(tkinter.Tk())
         self.crfaiUi.mainloop()
     
-    def onParameterPress(self) -> None:
-        logging.info("Parameter button callback")
+    def onPredaiPress(self) -> None:
+        """opens Spectral Prediction AI UI window when Spectral Prediction AI button in the main window is pressed"""
+        
+        logging.info("Predai button callback")
+        self.crfaiUi = PredaiUi(tkinter.Tk())
+        self.crfaiUi.mainloop()
     
     def onWorddictPress(self) -> None:
         logging.info("Worddict button callback")

@@ -363,8 +363,8 @@ class AIWrapper():
         self.currPred = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = device)
         self.device = device
         self.final = False
-        self.crfAiOptimizer = torch.optim.Adam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=0.)
-        self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=0.)
+        self.crfAiOptimizer = torch.optim.Adam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
+        self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
         self.criterion = nn.L1Loss()
     
     @staticmethod
@@ -411,18 +411,23 @@ class AIWrapper():
             }
         return aiState
 
-    def loadState(self, aiState:dict) -> None:
+    def loadState(self, aiState:dict, mode:str = None) -> None:
         if aiState["final"]:
             self.final = True
             pass
         else:
             pass
 
-        self.crfAi.epoch = aiState['epoch']
-        self.crfAi.load_state_dict(aiState['crfAi_model_state_dict'])
-        self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
-        self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
-        self.predAiOptimizer.load_state_dict(aiState['predAi_optimizer_state_dict'])
+        if (mode == None) or (mode == "crf"):
+            self.crfAi.epoch = aiState['crfAi_epoch']
+            self.crfAi.sampleCount = aiState["crfAi_sampleCount"]
+            self.crfAi.load_state_dict(aiState['crfAi_model_state_dict'])
+            self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
+        if (mode == None) or (mode == "pred"):
+            self.predAi.epoch = aiState["predAi_epoch"]
+            self.predAi.sampleCount = aiState["predAi_sampleCount"]
+            self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
+            self.predAiOptimizer.load_state_dict(aiState['predAi_optimizer_state_dict'])
         self.crfAi.eval()
         self.predAi.eval()
 

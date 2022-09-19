@@ -81,6 +81,8 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar._type.entry.button1.pack(side = "right", fill = "x")
         self.sideBar._type.entry.button2 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["smp_transition"], value = 1, variable = self.sideBar._type.variable, command = self.onTypeChange)
         self.sideBar._type.entry.button2.pack(side = "right", fill = "x")
+        self.sideBar._type.entry.button3 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["smp_sequence"], value = 2, variable = self.sideBar._type.variable, command = self.onTypeChange)
+        self.sideBar._type.entry.button3.pack(side = "right", fill = "x")
         self.sideBar._type.entry.pack(side = "right", fill = "x")
         self.sideBar._type.display = tkinter.Label(self.sideBar._type)
         self.sideBar._type.display["text"] = loc["smpl_type"]
@@ -325,7 +327,7 @@ class UtauImportUi(tkinter.Frame):
         if self.sampleList[index]._type == 0:
             loadedVB.addPhonemeUtau(self.sampleList[index])
         else:
-            loadedVB.addTrainSampleUtau(self.sampleList[index])
+            loadedVB.addCrfTrainSampleUtau(self.sampleList[index])
         self.sideBar._type.variable.set(0)
         self.sideBar.key.variable.set(None)
         self.sideBar.start.variable.set(None)
@@ -349,8 +351,10 @@ class UtauImportUi(tkinter.Frame):
             self.update()
             if self.sampleList[0]._type == 0:
                 loadedVB.addPhonemeUtau(self.sampleList[0])
+            elif self.sampleList[0]._type == 2:
+                loadedVB.addPredTrainSampleUtau(self.sampleList[0])
             else:
-                loadedVB.addTrainSampleUtau(self.sampleList[0])
+                loadedVB.addCrfTrainSampleUtau(self.sampleList[0])
             del self.sampleList[0]
             self.phonemeList.list.lb.delete(0)
         self.update()
@@ -402,7 +406,7 @@ class UtauImportUi(tkinter.Frame):
                 try:
                     fetchedSamples = fetchSamples(filename, properties, otoPath, self.otoSettings.stripPrefix.variable.get(), self.otoSettings.stripPostfix.variable.get(), phonemePath, conversionPath, self.otoSettings.forceJIS.variable.get())
                     for sample in fetchedSamples:
-                        if sample._type == 1:
+                        if sample._type == 1 or sample._type == 2:
                             self.sampleList.append(sample)
                             self.phonemeList.list.lb.insert("end", sample.handle)
                         else:

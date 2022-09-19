@@ -88,6 +88,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
 
     filepath = path.join(otoPath, filename)
     intermediate = max(-2 * (fixed - preuttr) + offset + fixed, (fixed / 2) + offset)
+    output.append(UtauSample(filepath, 2, None, 0, None, offset, fixed, blank, preuttr, overlap))
     if len(sequence) == 1:
         if typeSequence[0] == "V":
             sample = UtauSample(filepath, 0, sequence[0], offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False)

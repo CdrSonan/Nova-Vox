@@ -54,7 +54,7 @@ class UtauSample():
             self.key = None
         self.start = start
         if end == None:
-            if blank >= 0:
+            if blank >= 0 or self._type == 2:
                 self.end = self.audioSample.waveform.size()[0] * 1000 / sampleRate
             else:
                 self.end = offset

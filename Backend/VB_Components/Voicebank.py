@@ -2,7 +2,7 @@ import logging
 import torch
 
 from Backend.VB_Components.VbMetadata import VbMetadata
-from Backend.VB_Components.SpecCrfAi import AIWrapper, SpecCrfAi
+from Backend.VB_Components.SpecCrfAi import AIWrapper, SpecCrfAi, SpecPredAI
 from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample
 from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import calculateSpectra
@@ -80,12 +80,14 @@ class Voicebank():
         self.ai = AIWrapper(device)
         self.parameters = []
         self.wordDict = dict()
-        self.stagedTrainSamples = []
+        self.stagedCrfTrainSamples = []
+        self.stagedPredTrainSamples = []
         self.device = device
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
-            self.loadAIWeights(self.filepath)
+            self.loadCrfWeights(self.filepath)
+            self.loadPredWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
         
@@ -131,7 +133,13 @@ class Voicebank():
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
         aiState = torch.load(filepath)["aiState"]
-        self.ai.loadState(aiState)
+        self.ai.loadState(aiState, "crf")
+
+    def loadPredWeights(self, filepath:str) -> None:
+        """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
+
+        aiState = torch.load(filepath)["aiState"]
+        self.ai.loadState(aiState, "pred")
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
@@ -191,28 +199,51 @@ class Voicebank():
         self.phonemeDict[key] = LiteAudioSample(self.phonemeDict[key])
         print("staged phoneme " + key + " finalized")
     
-    def addTrainSample(self, filepath:str) -> None:
+    def addCrfTrainSample(self, filepath:str) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
 
-        self.stagedTrainSamples.append(AudioSample(filepath))
+        self.stagedCrfTrainSamples.append(AudioSample(filepath))
 
-    def addTrainSampleUtau(self, sample:UtauSample) -> None:
+    def addCrfTrainSampleUtau(self, sample:UtauSample) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
 
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
-            self.stagedTrainSamples.append(sample.convert())
+            self.stagedCrfTrainSamples.append(sample.convert())
         else:
             logging.warning("skipped one or several samples below the size threshold")
     
-    def delTrainSample(self, index:int) -> None:
+    def delCrfTrainSample(self, index:int) -> None:
         """removes an audio sample from the list of staged training phonemes"""
 
-        del self.stagedTrainSamples[index]
+        del self.stagedCrfTrainSamples[index]
     
-    def changeTrainSampleFile(self, index:int, filepath:str) -> None:
+    def changeCrfTrainSampleFile(self, index:int, filepath:str) -> None:
         """currently unused method that changes the file of a staged phoneme crossfade Ai training sample"""
 
-        self.stagedTrainSamples[index] = AudioSample(filepath)
+        self.stagedCrfTrainSamples[index] = AudioSample(filepath)
+
+    def addPredTrainSample(self, filepath:str) -> None:
+        """stages an audio sample the prediction Ai is to be trained with"""
+
+        self.stagedPredTrainSamples.append(AudioSample(filepath))
+
+    def addPredTrainSampleUtau(self, sample:UtauSample) -> None:
+        """stages an audio sample the prediction Ai is to be trained with"""
+
+        if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 4 * global_consts.tripleBatchSize:
+            self.stagedPredTrainSamples.append(sample.convert())
+        else:
+            logging.warning("skipped one or several samples below the size threshold")
+    
+    def delPredTrainSample(self, index:int) -> None:
+        """removes an audio sample from the list of staged training samples"""
+
+        del self.stagedPredTrainSamples[index]
+    
+    def changePredTrainSampleFile(self, index:int, filepath:str) -> None:
+        """currently unused method that changes the file of a staged prediction Ai training sample"""
+
+        self.stagedPredTrainSamples[index] = AudioSample(filepath)
     
     def trainCrfAi(self, epochs:int, additive:bool, unvoicedIterations:int, expPitch:float, pSearchRange:float, logging:bool = False) -> None:
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
@@ -231,25 +262,54 @@ class Voicebank():
         if additive == False:
             self.ai.crfAi = SpecCrfAi()
         print("sample preprocessing started")
-        sampleCount = len(self.stagedTrainSamples)
+        sampleCount = len(self.stagedCrfTrainSamples)
         for i in range(sampleCount):
             print("processing sample [", i + 1, "/", sampleCount, "]")
-            self.stagedTrainSamples[i].expectedPitch = expPitch
-            self.stagedTrainSamples[i].searchRange = pSearchRange
-            self.stagedTrainSamples[i].voicedFilter = 1
-            self.stagedTrainSamples[i].unvoicedIterations = unvoicedIterations
-            calculatePitch(self.stagedTrainSamples[i])
-            calculateSpectra(self.stagedTrainSamples[i])
-            avgSpecharm = torch.cat((self.stagedTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-            self.stagedTrainSamples[i] = (avgSpecharm + self.stagedTrainSamples[i].specharm).to(device = self.device)
+            self.stagedCrfTrainSamples[i].expectedPitch = expPitch
+            self.stagedCrfTrainSamples[i].searchRange = pSearchRange
+            self.stagedCrfTrainSamples[i].voicedFilter = 1
+            self.stagedCrfTrainSamples[i].unvoicedIterations = unvoicedIterations
+            calculatePitch(self.stagedCrfTrainSamples[i])
+            calculateSpectra(self.stagedCrfTrainSamples[i])
+            avgSpecharm = torch.cat((self.stagedCrfTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedCrfTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+            self.stagedCrfTrainSamples[i] = (avgSpecharm + self.stagedCrfTrainSamples[i].specharm).to(device = self.device)
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainCrf(self.stagedTrainSamples, epochs = epochs, logging = logging)
+        self.ai.trainCrf(self.stagedCrfTrainSamples, epochs = epochs, logging = logging)
         print("AI training complete")
+
+    def trainPredAi(self, epochs:int, additive:bool, unvoicedIterations:int, expPitch:float, pSearchRange:float, logging:bool = False) -> None:
+        """initiates the training of the Voicebank's prediction Ai using all staged training samples and the Ai's settings.
         
-    def finalizCrfAi(self) -> None:
-        """finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
-        self.ai.finalize()
+        Arguments:
+            epochs: Integer, the number of epochs the training is to be conducted with
+            
+            additive: Bool, whether the training should be conducted in addition to any existing training (True), or replaye it (False)
+            
+            filterWidth: Integer, the width of the spectral filter applied to the training samples
+            
+            voicedIterations, unvoicedIterations: Integer, the number of filtering iterations for the voiced and unvoiced voice components respectively.
+            In the context of this function, only the sum of both is relevant."""
+            
+            
+        if additive == False:
+            self.ai.predAi = SpecPredAI()
+        print("sample preprocessing started")
+        sampleCount = len(self.stagedPredTrainSamples)
+        for i in range(sampleCount):
+            print("processing sample [", i + 1, "/", sampleCount, "]")
+            self.stagedPredTrainSamples[i].expectedPitch = expPitch
+            self.stagedPredTrainSamples[i].searchRange = pSearchRange
+            self.stagedPredTrainSamples[i].voicedFilter = 1
+            self.stagedPredTrainSamples[i].unvoicedIterations = unvoicedIterations
+            calculatePitch(self.stagedPredTrainSamples[i])
+            calculateSpectra(self.stagedPredTrainSamples[i])
+            avgSpecharm = torch.cat((self.stagedPredTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedPredTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+            self.stagedPredTrainSamples[i] = (avgSpecharm + self.stagedPredTrainSamples[i].specharm).to(device = self.device)
+        print("sample preprocessing complete")
+        print("AI training started")
+        self.ai.trainCrf(self.stagedPredTrainSamples, epochs = epochs, logging = logging)
+        print("AI training complete")
 
 class LiteVoicebank():
     """Class for holding a Voicebank as handled by the devkit.
@@ -300,7 +360,8 @@ class LiteVoicebank():
         self.crfAi = AIWrapper()
         self.parameters = []
         self.wordDict = dict()
-        self.stagedTrainSamples = []
+        self.stagedCrfTrainSamples = []
+        self.stagedPredTrainSamples = []
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)

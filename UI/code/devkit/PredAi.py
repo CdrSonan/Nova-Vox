@@ -9,17 +9,17 @@ from Locale.devkit_locale import getLocale
 from MiddleLayer.IniParser import readSettings
 loc = getLocale()
 
-class CrfaiUi(tkinter.Frame):
-    """Class of the Spectral Crossfade AI UI window"""
+class PredaiUi(tkinter.Frame):
+    """Class of the Spectral Prediction AI UI window"""
 
     def __init__(self, master=None) -> None:
-        logging.info("Initializing Crfai UI")
+        logging.info("Initializing Predai UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
-        self.master.wm_title(loc["crfai_lbl"])
+        self.master.wm_title(loc["predai_lbl"])
         if (sys.platform.startswith('win')): 
             self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
@@ -176,7 +176,7 @@ class CrfaiUi(tkinter.Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")), multiple = True)
         if filepath != ():
             for i in filepath:
-                loadedVB.addCrfTrainSample(i)
+                loadedVB.addPredTrainSample(i)
                 self.phonemeList.list.lb.insert("end", i)
         
     def onRemovePress(self) -> None:
@@ -186,7 +186,7 @@ class CrfaiUi(tkinter.Frame):
         global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
-            loadedVB.delCrfTrainSample(index)
+            loadedVB.delPredTrainSample(index)
             self.phonemeList.list.lb.delete(index)
             if index == self.phonemeList.list.lb.size():
                 self.phonemeList.list.lb.selection_set(index - 1)
@@ -199,7 +199,7 @@ class CrfaiUi(tkinter.Frame):
         logging.info("Crfai dataset export callback")
         global loadedVB
         filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".dat", filetypes = ((".dat", ".dat"), (loc["all_files_desc"], "*")))
-        torch.save(loadedVB.stagedCrfTrainSamples, filepath)
+        torch.save(loadedVB.stagedPredTrainSamples, filepath)
 
     def onImportPress(self) -> None:
         """UI Frontend function for importing a previously saved AI training dataset. Overwrites any previously staged training samples."""
@@ -207,7 +207,7 @@ class CrfaiUi(tkinter.Frame):
         logging.info("Crfai dataset export callback")
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
-        loadedVB.stagedCrfTrainSamples = torch.load(filepath)
+        loadedVB.stagedPredTrainSamples = torch.load(filepath)
                 
     def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""
@@ -216,10 +216,10 @@ class CrfaiUi(tkinter.Frame):
         global loadedVB
         self.statusVar.set("training Ai...")
         self.update()
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get(), self.sideBar.expPitch.variable.get(), self.sideBar.pSearchRange.variable.get(), self.sideBar.logging.variable.get())
+        loadedVB.trainPredAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get(), self.sideBar.expPitch.variable.get(), self.sideBar.pSearchRange.variable.get(), self.sideBar.logging.variable.get())
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
-            loadedVB.delCrfTrainSample(0)
+            loadedVB.delPredTrainSample(0)
             self.phonemeList.list.lb.delete(0)
         self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])
         logging.info("Crfai train button callback completed")
@@ -262,5 +262,5 @@ class CrfaiUi(tkinter.Frame):
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
-            loadedVB.loadCrfWeights(filepath)
+            loadedVB.loadPredWeights(filepath)
             self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])
