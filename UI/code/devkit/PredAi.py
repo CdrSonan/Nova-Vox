@@ -40,7 +40,7 @@ class PredaiUi(tkinter.Frame):
         self.phonemeList.list.lb.bind("<FocusOut>", self.onListFocusOut)
         self.phonemeList.list.sb["command"] = self.phonemeList.list.lb.yview
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
-        for i in loadedVB.stagedCrfTrainSamples:
+        for i in loadedVB.stagedPredTrainSamples:
             self.phonemeList.list.lb.insert("end", i.filepath)
         self.phonemeList.removeButton = tkinter.Button(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]

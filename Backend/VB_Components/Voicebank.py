@@ -302,7 +302,7 @@ class Voicebank():
             self.stagedPredTrainSamples[i].searchRange = pSearchRange
             self.stagedPredTrainSamples[i].voicedFilter = 1
             self.stagedPredTrainSamples[i].unvoicedIterations = unvoicedIterations
-            calculatePitch(self.stagedPredTrainSamples[i])
+            calculatePitch(self.stagedPredTrainSamples[i], limiter = False)
             calculateSpectra(self.stagedPredTrainSamples[i])
             avgSpecharm = torch.cat((self.stagedPredTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedPredTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
             self.stagedPredTrainSamples[i] = (avgSpecharm + self.stagedPredTrainSamples[i].specharm).to(device = self.device)

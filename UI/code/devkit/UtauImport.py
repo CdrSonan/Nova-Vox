@@ -395,7 +395,7 @@ class UtauImportUi(tkinter.Frame):
 
             reader = csv.reader(open(filepath, encoding = "Shift_JIS"), delimiter = "=")
             otoPath = os.path.split(filepath)[0]
-
+            samplePaths = []
             for row in reader:
                 print("processing " + str(row))
                 i += 1
@@ -406,7 +406,11 @@ class UtauImportUi(tkinter.Frame):
                 try:
                     fetchedSamples = fetchSamples(filename, properties, otoPath, self.otoSettings.stripPrefix.variable.get(), self.otoSettings.stripPostfix.variable.get(), phonemePath, conversionPath, self.otoSettings.forceJIS.variable.get())
                     for sample in fetchedSamples:
-                        if sample._type == 1 or sample._type == 2:
+                        if sample._type == 1:
+                            self.sampleList.append(sample)
+                            self.phonemeList.list.lb.insert("end", sample.handle)
+                        elif sample._type == 2 and sample.audioSample.filepath not in samplePaths:
+                            samplePaths.append(sample.audioSample.filepath)
                             self.sampleList.append(sample)
                             self.phonemeList.list.lb.insert("end", sample.handle)
                         else:

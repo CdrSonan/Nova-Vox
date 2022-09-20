@@ -2,11 +2,10 @@ import math
 import torch
 from torchaudio.functional import detect_pitch_frequency
 from Backend.DataHandler.AudioSample import AudioSample
-from Locale.devkit_locale import getLocale
 import global_consts
 from Backend.Resampler.CubicSplineInter import interp
 
-def calculatePitch(audioSample:AudioSample) -> None:
+def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
     """current method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.
     
     Arguments:
@@ -22,12 +21,13 @@ def calculatePitch(audioSample:AudioSample) -> None:
     print(audioSample.expectedPitch, audioSample.searchRange)
     try:
         audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
-        mul1 = torch.maximum(torch.floor(audioSample.pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate), torch.ones([1,]))
-        mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / audioSample.pitchDeltas), torch.ones([1,]))
-        audioSample.pitchDeltas /= mul1
-        audioSample.pitchDeltas *= mul2
+        if limiter:
+            mul1 = torch.maximum(torch.floor(audioSample.pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate), torch.ones([1,]))
+            mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / audioSample.pitchDeltas), torch.ones([1,]))
+            audioSample.pitchDeltas /= mul1
+            audioSample.pitchDeltas *= mul2
     except Exception as e:
-        print(getLocale()["pitch_calc_err"])
+        print("nonfatal_pitch_calc_err")
         print(e)
         calculatePitchFallback(audioSample)
     if audioSample.pitchDeltas.size()[0] < 2:
@@ -79,7 +79,8 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
     pitchDeltas = torch.empty(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize))
     for i in range(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize)):
         while cursor2 >= audioSample.pitchDeltas[cursor]:
-            cursor += 1
+            if cursor < audioSample.pitchDeltas.size()[0] - 1:
+                cursor += 1
             cursor2 -= audioSample.pitchDeltas[cursor]
         cursor2 += global_consts.batchSize
         pitchDeltas[i] = audioSample.pitchDeltas[cursor]
