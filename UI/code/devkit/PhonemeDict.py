@@ -259,8 +259,8 @@ class PhonemedictUi(tkinter.Frame):
             filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
             if filepath != "":
                 loadedVB.addPhoneme(key, filepath)
-                calculatePitch(loadedVB.phonemeDict[key])
-                calculateSpectra(loadedVB.phonemeDict[key])
+                calculatePitch(loadedVB.phonemeDict[key], True)
+                calculateSpectra(loadedVB.phonemeDict[key], True)
                 self.phonemeList.list.lb.insert("end", key)
         
     def onRemovePress(self) -> None:
@@ -339,8 +339,8 @@ class PhonemedictUi(tkinter.Frame):
                 if (j.expectedPitch != pitch) or (j.searchRange != pitchRange):
                     j.expectedPitch = pitch
                     j.searchRange = pitchRange
-                    calculatePitch(j)
-                    calculateSpectra(j)
+                    calculatePitch(j, True)
+                    calculateSpectra(j, True)
 
     def onSpecBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the spectral filtering & analysis settings of the currently selected sample to all samples"""
@@ -353,7 +353,7 @@ class PhonemedictUi(tkinter.Frame):
                 if (j.voicedFilter != voicedFilter) or (j.unvoicedIterations != unvoicedIter):
                     j.voicedFilter = voicedFilter
                     j.unvoicedIterations = unvoicedIter
-                    calculateSpectra(j)
+                    calculateSpectra(j, True)
         self.onSliderMove(self.diagram.timeSlider.get())
         
     def onPitchUpdateTrigger(self, event) -> None:
@@ -367,8 +367,8 @@ class PhonemedictUi(tkinter.Frame):
             if (loadedVB.phonemeDict[key].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key].searchRange != self.sideBar.pSearchRange.variable.get()):
                 loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
                 loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
-                calculatePitch(loadedVB.phonemeDict[key])
-                calculateSpectra(loadedVB.phonemeDict[key])
+                calculatePitch(loadedVB.phonemeDict[key], True)
+                calculateSpectra(loadedVB.phonemeDict[key], True)
     
     def onVoicedUpdateTrigger(self) -> None:
         """UI Frontend function for updating the "Voiced" flag of a phoneme"""
@@ -380,7 +380,7 @@ class PhonemedictUi(tkinter.Frame):
         if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
             if loadedVB.phonemeDict[key].isVoiced != self.sideBar.isVoiced.variable.get():
                 loadedVB.phonemeDict[key].isVoiced = self.sideBar.isVoiced.variable.get()
-                calculateSpectra(loadedVB.phonemeDict[key])
+                calculateSpectra(loadedVB.phonemeDict[key], True)
                 self.onSliderMove(self.diagram.timeSlider.get())
 
     def onPlosiveUpdateTrigger(self) -> None:
@@ -393,7 +393,7 @@ class PhonemedictUi(tkinter.Frame):
         if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
             if loadedVB.phonemeDict[key].isPlosive != self.sideBar.isPlosive.variable.get():
                 loadedVB.phonemeDict[key].isPlosive = self.sideBar.isPlosive.variable.get()
-                calculateSpectra(loadedVB.phonemeDict[key])
+                calculateSpectra(loadedVB.phonemeDict[key], True)
                 self.onSliderMove(self.diagram.timeSlider.get())
         
     def onSpectralUpdateTrigger(self, event) -> None:
@@ -407,7 +407,7 @@ class PhonemedictUi(tkinter.Frame):
             if (loadedVB.phonemeDict[key].voicedFilter != self.sideBar.voicedFilter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
                 loadedVB.phonemeDict[key].voicedFilter = self.sideBar.voicedFilter.variable.get()
                 loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
-                calculateSpectra(loadedVB.phonemeDict[key])
+                calculateSpectra(loadedVB.phonemeDict[key], True)
                 self.onSliderMove(self.diagram.timeSlider.get())
         
     def onFilechangePress(self, event) -> None:
@@ -420,8 +420,8 @@ class PhonemedictUi(tkinter.Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.changePhonemeFile(key, filepath)
-            calculatePitch(loadedVB.phonemeDict[key])
-            calculateSpectra(loadedVB.phonemeDict[key])
+            calculatePitch(loadedVB.phonemeDict[key], True)
+            calculateSpectra(loadedVB.phonemeDict[key], True)
             self.phonemeList.list.lb.delete(index)
             self.phonemeList.list.lb.insert(index, key)
             

@@ -72,7 +72,7 @@ def highRangeSmooth(audioSample:AudioSample, signalsAbs:torch.Tensor) -> torch.T
     spectra = spectra[:, 0:global_consts.halfTripleBatchSize + 1]
     return spectra
 
-def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectra:torch.Tensor) -> AudioSample:
+def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectra:torch.Tensor, useVariance:bool = True) -> AudioSample:
     """calculates final spectra of an AudioSample object based on low frequency range and high frequency range spectra"""
 
     threshold = torch.nn.Threshold(0.001, 0.001)
@@ -84,9 +84,20 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
     audioSample.specharm[:, global_consts.nHarmonics + 2:] = slope * lowSpectra + ((1. - slope) * highSpectra)
 
     audioSample.avgSpecharm = torch.mean(torch.cat((audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1], audioSample.specharm[:, global_consts.nHarmonics + 2:]), 1), 0)
-    for i in range(audioSample.specharm.size()[0]):
-        audioSample.specharm[i, global_consts.nHarmonics + 2:] -= audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]
-        audioSample.specharm[i, :int(global_consts.nHarmonics / 2) + 1] -= audioSample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1]
+    if useVariance:
+        variance = 0.
+        variances = torch.zeros(audioSample.specharm.size()[0])
+        for i in range(audioSample.specharm.size()[0]):
+            audioSample.specharm[i, global_consts.nHarmonics + 2:] -= audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]
+            audioSample.specharm[i, :int(global_consts.nHarmonics / 2) + 1] -= audioSample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1]
+            variances[i] = torch.sum(torch.pow(audioSample.specharm[i, global_consts.nHarmonics + 2:], 2))
+            variances[i] += torch.sum(torch.pow(audioSample.specharm[i, :int(global_consts.nHarmonics / 2) + 1], 2))
+        variances = torch.sqrt(variances)
+        variance = torch.sum(variances)
+        variance /= audioSample.specharm.size()[0]
+        limiter = torch.max(variances / variance - 1., torch.ones([1,])).unsqueeze(1)
+        audioSample.specharm[:, global_consts.nHarmonics + 2:] /= limiter
+        audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1] /= limiter
     audioSample.excitation = audioSample.excitation / torch.square(audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[0], global_consts.nHarmonics + 2:])
     return audioSample
 
@@ -156,7 +167,7 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
             transition = math.ceil(lastDown * 1.5 - downTransitionMarkers[-2] * 0.5)
         start = torch.searchsorted(zeroTransitionsUp, torch.tensor([max(lastDown, lastUp + (1 - global_consts.DIOTolerance) * lastPitch),])).item()
         while start < zeroTransitionsUp.size()[0] and zeroTransitionsUp[start] <= min(lastUp + (1 + global_consts.DIOTolerance) * lastPitch, wave.size()[0]):
-            validTransitions.append(zeroTransitionsUp[start])
+            validTransitions.append(zeroTransitionsUp[start].item())
             start += 1
         for j in validTransitions:
             localPitch = pitch(j)
@@ -183,7 +194,7 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
             transition = math.ceil(lastUp * 1.5 - upTransitionMarkers[-2] * 0.5)
         start = torch.searchsorted(zeroTransitionsDown, torch.tensor([max(lastUp, lastDown + (1 - global_consts.DIOTolerance) * lastPitch),])).item()
         while start < zeroTransitionsDown.size()[0] and zeroTransitionsDown[start] <= min(lastDown + (1 + global_consts.DIOTolerance) * lastPitch, wave.size()[0]):
-            validTransitions.append(zeroTransitionsDown[start])
+            validTransitions.append(zeroTransitionsDown[start].item())
             start += 1
         for j in validTransitions:
             localPitch = pitch(j)
@@ -212,7 +223,7 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
         return torch.tensor([0, audioSample.pitch], dtype = torch.float32)
 
     for j in range(length):
-        print("2", j, "/", length, upTransitionMarkers[j] - 2, downTransitionMarkers[j] + 1)
+        print("2", j, "/", length)
         workingWindow = wave[upTransitionMarkers[j] - 2:downTransitionMarkers[j] + 1]
         convKernel = torch.tensor([1., 1.1, 1.])
         scores = torch.tensor([])
@@ -265,10 +276,16 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         window = wave[i * global_consts.batchSize:i * global_consts.batchSize + global_consts.tripleBatchSize * global_consts.filterBSMult]
         localMarkers = markers[torch.searchsorted(markers, i * global_consts.batchSize, right = True):torch.searchsorted(markers, i * global_consts.batchSize + global_consts.tripleBatchSize * global_consts.filterBSMult - 1, right = False)] - i * global_consts.batchSize
         markerLength = len(localMarkers)
-        if markerLength == 1:
+        if markerLength <= 1:
             harmFunction = torch.stft(window, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, center = False, return_complex = True)
             amplitudes = harmFunction.abs()
-            amplitudes *= calculateAmplitudeContinuity(amplitudes)
+            #amplitudes *= calculateAmplitudeContinuity(amplitudes)
+
+            amplitudeContinuity = calculateAmplitudeContinuity(amplitudes)
+            phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
+            phaseContinuity = torch.pow(phaseContinuity, 2)
+            amplitudes *= torch.max(amplitudeContinuity, torch.unsqueeze(torch.max(phaseContinuity, dim = 1)[0], -1))
+            
             harmFunction = torch.polar(amplitudes, harmFunction.angle())
             harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = global_consts.tripleBatchSize * global_consts.filterBSMult, center = False, onesided = True, return_complex = False)
             offharm = (window - harmFunctionFull)

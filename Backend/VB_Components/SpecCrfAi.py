@@ -493,7 +493,7 @@ class AIWrapper():
         else:
             writer = None
 
-        if (self.crfAi.epoch == 0) or self.epoch == epochs:
+        if (self.crfAi.epoch == 0) or self.crfAi.epoch == epochs:
             self.crfAi.epoch = epochs
         else:
             self.crfAi.epoch = None

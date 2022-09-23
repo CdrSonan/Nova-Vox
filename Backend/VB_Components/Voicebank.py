@@ -269,8 +269,8 @@ class Voicebank():
             self.stagedCrfTrainSamples[i].searchRange = pSearchRange
             self.stagedCrfTrainSamples[i].voicedFilter = 1
             self.stagedCrfTrainSamples[i].unvoicedIterations = unvoicedIterations
-            calculatePitch(self.stagedCrfTrainSamples[i])
-            calculateSpectra(self.stagedCrfTrainSamples[i])
+            calculatePitch(self.stagedCrfTrainSamples[i], True)
+            calculateSpectra(self.stagedCrfTrainSamples[i], False)
             avgSpecharm = torch.cat((self.stagedCrfTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedCrfTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
             self.stagedCrfTrainSamples[i] = (avgSpecharm + self.stagedCrfTrainSamples[i].specharm).to(device = self.device)
         print("sample preprocessing complete")
@@ -302,8 +302,8 @@ class Voicebank():
             self.stagedPredTrainSamples[i].searchRange = pSearchRange
             self.stagedPredTrainSamples[i].voicedFilter = 1
             self.stagedPredTrainSamples[i].unvoicedIterations = unvoicedIterations
-            calculatePitch(self.stagedPredTrainSamples[i], limiter = False)
-            calculateSpectra(self.stagedPredTrainSamples[i])
+            calculatePitch(self.stagedPredTrainSamples[i], False)
+            calculateSpectra(self.stagedPredTrainSamples[i], False)
             avgSpecharm = torch.cat((self.stagedPredTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedPredTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
             self.stagedPredTrainSamples[i] = (avgSpecharm + self.stagedPredTrainSamples[i].specharm).to(device = self.device)
         print("sample preprocessing complete")
