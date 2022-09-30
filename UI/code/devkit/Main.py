@@ -14,6 +14,7 @@ from UI.code.devkit.PhonemeDict import PhonemedictUi
 from UI.code.devkit.CrfAi import CrfaiUi
 from UI.code.devkit.PredAi import PredaiUi
 from UI.code.devkit.UtauImport import UtauImportUi
+from UI.code.devkit.AdvSettings import AdvSettingsUi
 
 global loadedVB
 loadedVB = None
@@ -88,6 +89,12 @@ class RootUi(tkinter.Frame):
         self.utauimportButton["command"] = self.onUtauimportPress
         self.utauimportButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.utauimportButton["state"] = "disabled"
+
+        self.advSettingsButton = tkinter.Button(self)
+        self.advSettingsButton["text"] = loc["advsettings"]
+        self.advSettingsButton["command"] = self.onAdvSettingsPress
+        self.advSettingsButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
+        self.advSettingsButton["state"] = "disabled"
         
         self.saveButton = tkinter.Button(self)
         self.saveButton["text"] = loc["save_as"]
@@ -144,6 +151,13 @@ class RootUi(tkinter.Frame):
         logging.info("UTAU import button callback")
         self.utauImportUi = UtauImportUi(tkinter.Tk())
         self.utauImportUi.mainloop()
+
+    def onUtauimportPress(self) -> None:
+        """opens the UTAU import tool when the UTAU import tool button in the main window is pressed"""
+
+        logging.info("UTAU import button callback")
+        self.advSettingsUi = AdvSettingsUi(tkinter.Tk())
+        self.advSettingsUi.mainloop()
 
     def onDestroy(self, event) -> None:
         logging.info("Root UI destroyed")

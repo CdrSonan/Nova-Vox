@@ -357,9 +357,20 @@ class SpecPredAI(nn.Module):
         self.cellState3 = torch.zeros((1, halfHarms + global_consts.halfTripleBatchSize + 1), device = self.device)
 
 class AIWrapper():
-    def __init__(self, device = torch.device("cpu")) -> None:
-        self.crfAi = SpecCrfAi(device = device)
-        self.predAi = SpecPredAI(device = device)
+    def __init__(self, device = torch.device("cpu"), hparams:dict = None) -> None:
+        self.hparams = {
+            "crf_lr": 0.001,
+            "crf_reg": 0.0001,
+            "crf_hlc": 5,
+            "crf_hls": 512,
+            "pred_lr": 0.01,
+            "pred_reg": 0.001,
+            "pred_rs": 512
+        }
+        for i in hparams.keys():
+            self.hparams[i] = hparams[i]
+        self.crfAi = SpecCrfAi(device = device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
+        self.predAi = SpecPredAI(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["rs"])
         self.currPred = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = device)
         self.device = device
         self.final = False
@@ -411,7 +422,7 @@ class AIWrapper():
             }
         return aiState
 
-    def loadState(self, aiState:dict, mode:str = None) -> None:
+    def loadState(self, aiState:dict, mode:str = None, reset:bool=False) -> None:
         if aiState["final"]:
             self.final = True
             pass
@@ -419,11 +430,17 @@ class AIWrapper():
             pass
 
         if (mode == None) or (mode == "crf"):
+            if reset:
+                self.crfAi = SpecCrfAi(device = self.device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
+                self.crfAiOptimizer = torch.optim.Adam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
             self.crfAi.epoch = aiState['crfAi_epoch']
             self.crfAi.sampleCount = aiState["crfAi_sampleCount"]
             self.crfAi.load_state_dict(aiState['crfAi_model_state_dict'])
             self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
         if (mode == None) or (mode == "pred"):
+            if reset:
+                self.predAi = SpecPredAI(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["rs"])
+                self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
             self.predAi.epoch = aiState["predAi_epoch"]
             self.predAi.sampleCount = aiState["predAi_sampleCount"]
             self.predAi.load_state_dict(aiState['predAi_model_state_dict'])

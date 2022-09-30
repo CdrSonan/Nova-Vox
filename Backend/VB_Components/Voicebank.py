@@ -97,6 +97,7 @@ class Voicebank():
         torch.save({
             "metadata":self.metadata,
             "aiState":self.ai.getState(),
+            "hparams":self.ai.hparams,
             "phonemeDict":self.phonemeDict,
             "Parameters":self.parameters,
             "wordDict":self.wordDict
@@ -133,13 +134,22 @@ class Voicebank():
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
         aiState = torch.load(filepath)["aiState"]
-        self.ai.loadState(aiState, "crf")
+        hparams = torch.load(filepath)["hparams"]
+        self.ai.hparams["crf_lr"] = hparams["crf_lr"]
+        self.ai.hparams["crf_reg"] = hparams["crf_reg"]
+        self.ai.hparams["crf_hls"] = hparams["crf_hls"]
+        self.ai.hparams["crf_hlc"] = hparams["crf_hlc"]
+        self.ai.loadState(aiState, "crf", True)
 
     def loadPredWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
         aiState = torch.load(filepath)["aiState"]
-        self.ai.loadState(aiState, "pred")
+        hparams = torch.load(filepath)["hparams"]
+        self.ai.hparams["pred_lr"] = hparams["pred_lr"]
+        self.ai.hparams["pred_reg"] = hparams["pred_reg"]
+        self.ai.hparams["pred_rs"] = hparams["pred_rs"]
+        self.ai.loadState(aiState, "pred", True)
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
@@ -402,13 +412,18 @@ class LiteVoicebank():
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
         aiState = torch.load(filepath)["aiState"]
-        self.ai.loadState(aiState, "crf")
+        hparams = torch.load(filepath)["hparams"]
+        self.ai.hparams["crf_hls"] = hparams["crf_hls"]
+        self.ai.hparams["crf_hlc"] = hparams["crf_hlc"]
+        self.ai.loadState(aiState, "crf", True)
 
     def loadPredWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
         aiState = torch.load(filepath)["aiState"]
-        self.ai.loadState(aiState, "pred")
+        hparams = torch.load(filepath)["hparams"]
+        self.ai.hparams["pred_rs"] = hparams["pred_rs"]
+        self.ai.loadState(aiState, "pred", True)
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""

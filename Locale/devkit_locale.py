@@ -123,5 +123,17 @@ def getLocale():
         locale["ai_smp_export"] = "export samples as AI dataset file"
         locale["ai_smp_import"] = "import samples as AI dataset file"
         locale["pitch_calc_err"] = "error during pitch detection; using fallback method"
+        locale["advsettings"] = "advanced AI settings"
+        locale["hparams"] = "AI Hyperparameters"
+        locale["advResamp"] = "AI-Resampler integration"
+        locale["crf_lr"] = "crossfade learning rate"
+        locale["crf_reg"] = "crossfade L2 regularization"
+        locale["crf_hlc"] = "crossfade mid-layer count"
+        locale["crf_hls"] = "crossfade mid-layer size"
+        locale["pred_lr"] = "predictor learning rate"
+        locale["pred_reg"] = "predictor L2 regularization"
+        locale["pred_rs"] = "predictor recurrent layer size"
+        locale["crf_warn"] = "changing the crossfade Hyperparameters is going to reset the crossfade AI to an untrained state. Continue?"
+        locale["pred_warn"] = "changing the predictor Hyperparameters is going to reset the predictor AI to an untrained state. Continue?"
         
     return locale
