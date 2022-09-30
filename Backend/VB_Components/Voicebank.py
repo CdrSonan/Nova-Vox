@@ -343,7 +343,7 @@ class LiteVoicebank():
         loadWordDict: currently placeholder"""
         
         
-    def __init__(self, filepath:str) -> None:
+    def __init__(self, filepath:str, device:torch.device = None) -> None:
         """ Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank.
         
         Arguments:
@@ -357,15 +357,17 @@ class LiteVoicebank():
         self.metadata = VbMetadata()
         self.filepath = filepath
         self.phonemeDict = dict()
-        self.crfAi = AIWrapper()
+        self.ai = AIWrapper(device)
         self.parameters = []
         self.wordDict = dict()
         self.stagedCrfTrainSamples = []
         self.stagedPredTrainSamples = []
+        self.device = device
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
             self.loadCrfWeights(self.filepath)
+            self.loadPredWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
         
@@ -400,10 +402,17 @@ class LiteVoicebank():
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
         aiState = torch.load(filepath)["aiState"]
-        self.ai.loadState(aiState)
+        self.ai.loadState(aiState, "crf")
+
+    def loadPredWeights(self, filepath:str) -> None:
+        """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
+
+        aiState = torch.load(filepath)["aiState"]
+        self.ai.loadState(aiState, "pred")
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
+
         if additive:
             pass
         else:
@@ -411,6 +420,7 @@ class LiteVoicebank():
         
     def loadWordDict(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
+
         if additive:
             pass
         else:

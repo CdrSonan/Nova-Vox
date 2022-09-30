@@ -9,6 +9,8 @@ from kivy.uix.bubble import Bubble
 
 from kivy.clock import mainthread
 
+from math import floor
+
 import global_consts
 
 class NoteProperties(Bubble):
@@ -189,18 +191,22 @@ class PianoRoll(ScrollView):
 
     @mainthread
     def generateTimingMarkers(self) -> None:
+        self.updateTimingMarkers()
+
+    def updateTimingMarkers(self) -> None:
         """plots all timing markers that are currently in view"""
 
-        t = 0
-        i = 0
-        while t < self.length * self.scroll_x * (self.children[0].width - self.width):
-            t += self.tempo
-            i += 1
-        while t <= self.length * self.scroll_x * (self.children[0].width - self.width) + self.width:
+        self.children[0].children[-global_consts.octaves - 1].clear_widgets()
+        i = floor(self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width / self.tempo)
+        t = i * self.tempo
+        while t <= self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width + self.width * self.xScale:
             modulo = i % self.measureSize
             self.children[0].children[-global_consts.octaves - 1].add_widget(TimingLabel(index = i, reference = self.children[0].children[-global_consts.octaves - 1], modulo = modulo))
             t += self.tempo
             i += 1
+
+    def on_scroll_x(self, instance, scroll_x:float) -> None:
+        self.updateTimingMarkers()
 
     def changePlaybackPos(self, playbackPos:float) -> None:
         """changes the position of the playback head"""

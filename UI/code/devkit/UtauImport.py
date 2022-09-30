@@ -4,9 +4,12 @@ import torch
 import sys
 import os
 import csv
+import sounddevice
 
 import matplotlib
 matplotlib.use('TkAgg')
+matplotlib.rcParams['path.simplify'] = True
+matplotlib.rcParams['path.simplify_threshold'] = 1.
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
@@ -31,15 +34,15 @@ class UtauImportUi(tkinter.Frame):
         self.master.wm_title(loc["utau_lbl"])
         if (sys.platform.startswith('win')): 
             self.master.iconbitmap("icon/nova-vox-logo-black.ico")
-        
         self.sampleList = []
+        self.playing = False
         
     def createWidgets(self) -> None:
         """Initializes all widgets of the UTAU import UI window."""
 
         global loadedVB
 
-        self.diagram = tkinter.LabelFrame(self, text = loc["utau_diag_lbl"], width = 600)
+        self.diagram = tkinter.LabelFrame(self, text = loc["utau_diag_lbl"])
         self.diagram.fig = Figure(figsize=(4, 4))
         self.diagram.ax = self.diagram.fig.add_axes([0.1, 0.1, 0.8, 0.8])
         self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
@@ -124,6 +127,11 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.end.display["text"] = loc["end"]
         self.sideBar.end.display.pack(side = "right", fill = "x")
         self.sideBar.end.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.importButton = tkinter.Button(self.sideBar)
+        self.sideBar.importButton["text"] = loc["play"]
+        self.sideBar.importButton["command"] = self.play
+        self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.sideBar.importButton = tkinter.Button(self.sideBar)
         self.sideBar.importButton["text"] = loc["smp_import"]
@@ -172,6 +180,30 @@ class UtauImportUi(tkinter.Frame):
         self.otoSettings.forceJIS.display["text"] = loc["force_jis"]
         self.otoSettings.forceJIS.display.pack(side = "right", fill = "x")
         self.otoSettings.forceJIS.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.otoSettings.typeSelector = tkinter.Frame(self.otoSettings)
+        self.otoSettings.typeSelector.variablePhon = tkinter.BooleanVar(self.otoSettings.typeSelector, True)
+        self.otoSettings.typeSelector.entryPhon = tkinter.Checkbutton(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.entryPhon["variable"] = self.otoSettings.typeSelector.variablePhon
+        self.otoSettings.typeSelector.entryPhon.pack(side = "right", fill = "x")
+        self.otoSettings.typeSelector.displayPhon = tkinter.Label(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.displayPhon["text"] = loc["sample_phoneme"]
+        self.otoSettings.typeSelector.displayPhon.pack(side = "right", fill = "x")
+        self.otoSettings.typeSelector.variableTrans = tkinter.BooleanVar(self.otoSettings.typeSelector, True)
+        self.otoSettings.typeSelector.entryTrans = tkinter.Checkbutton(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.entryTrans["variable"] = self.otoSettings.typeSelector.variableTrans
+        self.otoSettings.typeSelector.entryTrans.pack(side = "right", fill = "x")
+        self.otoSettings.typeSelector.displayTrans = tkinter.Label(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.displayTrans["text"] = loc["sample_transition"]
+        self.otoSettings.typeSelector.displayTrans.pack(side = "right", fill = "x")
+        self.otoSettings.typeSelector.variableSeq = tkinter.BooleanVar(self.otoSettings.typeSelector, True)
+        self.otoSettings.typeSelector.entrySeq = tkinter.Checkbutton(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.entrySeq["variable"] = self.otoSettings.typeSelector.variableSeq
+        self.otoSettings.typeSelector.entrySeq.pack(side = "right", fill = "x")
+        self.otoSettings.typeSelector.displaySeq = tkinter.Label(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.displaySeq["text"] = loc["sample_sequence"]
+        self.otoSettings.typeSelector.displaySeq.pack(side = "right", fill = "x")
+        self.otoSettings.typeSelector.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
@@ -189,6 +221,13 @@ class UtauImportUi(tkinter.Frame):
         self.importButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
         self.phonemeList.list.lastFocusedIndex = None
+
+    def play(self) -> None:
+        """starts or stops audio playback.
+        If state is true, starts playback, if state is false, stops playback. If state is None or not given, starts playback if it is not already in progress, and stops playback if it is."""
+        sample = self.sampleList[self.phonemeList.list.lastFocusedIndex]
+        wave = sample.audioSample.waveform[int(sample.start * global_consts.sampleRate / 1000):int(sample.end * global_consts.sampleRate / 1000)]
+        sounddevice.play(wave, samplerate=global_consts.sampleRate)
         
     def onSelectionChange(self, event) -> None:
         """Adjusts the per-sample part of the UI to display the correct values when the selected sample in the SampleList list changes"""
@@ -280,7 +319,7 @@ class UtauImportUi(tkinter.Frame):
         else:
             endpoint = sample.offset - sample.blank
         xScale = torch.linspace(0, timesize, waveform.size()[0])
-        self.diagram.ax.plot(xScale, waveform, label = loc["waveform"], color = (0., 0.5, 1.), alpha = 0.75)
+        self.diagram.ax.plot(xScale, waveform, label = loc["waveform"], color = (0., 0.5, 1.), alpha = 0.75, solid_joinstyle = "bevel", markevery=100)
         self.diagram.ax.axvspan(0, sample.offset, ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=1., label = loc["offset/blank"])
         self.diagram.ax.axvspan(endpoint, timesize, ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=1.)
         self.diagram.ax.axvspan(sample.offset, sample.offset + sample.fixed, ymin = 0.5, facecolor=(1., 0.75, 1.), alpha=1., label = loc["fixed"])
@@ -406,14 +445,14 @@ class UtauImportUi(tkinter.Frame):
                 try:
                     fetchedSamples = fetchSamples(filename, properties, otoPath, self.otoSettings.stripPrefix.variable.get(), self.otoSettings.stripPostfix.variable.get(), phonemePath, conversionPath, self.otoSettings.forceJIS.variable.get())
                     for sample in fetchedSamples:
-                        if sample._type == 1:
+                        if sample._type == 1 and self.otoSettings.typeSelector.variableTrans.get():
                             self.sampleList.append(sample)
                             self.phonemeList.list.lb.insert("end", sample.handle)
-                        elif sample._type == 2 and sample.audioSample.filepath not in samplePaths:
+                        elif sample._type == 2 and sample.audioSample.filepath not in samplePaths and self.otoSettings.typeSelector.variableSeq.get():
                             samplePaths.append(sample.audioSample.filepath)
                             self.sampleList.append(sample)
                             self.phonemeList.list.lb.insert("end", sample.handle)
-                        else:
+                        elif self.otoSettings.typeSelector.variablePhon.get():
                             for i in range(len(self.sampleList)):
                                 if self.sampleList[i].key == sample.key:
                                     if sample.end - sample.start > self.sampleList[i].end - self.sampleList[i].start:
