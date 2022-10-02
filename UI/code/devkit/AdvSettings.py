@@ -138,7 +138,7 @@ class AdvSettingsUi(tkinter.Frame):
         resetPred = False
         if (loadedVB.ai.hparams["crf_lr"] != hparams["crf_lr"]) or (loadedVB.ai.hparams["crf_reg"] != hparams["crf_reg"]) or (loadedVB.ai.hparams["crf_hlc"] != hparams["crf_hlc"]) or (loadedVB.ai.hparams["crf_hls"] != hparams["crf_hls"]):
             resetCrf = True
-        if (loadedVB.ai.hparams["pred_lr"] != hparams["pred_lr"]) or (loadedVB.ai.hparams["pred_reg"] != hparams["pred_reg"]) or (loadedVB.ai.hparams["pred_hs"] != hparams["pred_hs"]):
+        if (loadedVB.ai.hparams["pred_lr"] != hparams["pred_lr"]) or (loadedVB.ai.hparams["pred_reg"] != hparams["pred_reg"]) or (loadedVB.ai.hparams["pred_rs"] != hparams["pred_rs"]):
             resetPred = True
         loadedVB.ai.hparams = hparams
         if resetCrf:

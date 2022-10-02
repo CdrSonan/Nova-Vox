@@ -367,10 +367,11 @@ class AIWrapper():
             "pred_reg": 0.001,
             "pred_rs": 512
         }
-        for i in hparams.keys():
-            self.hparams[i] = hparams[i]
+        if hparams:
+            for i in hparams.keys():
+                self.hparams[i] = hparams[i]
         self.crfAi = SpecCrfAi(device = device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
-        self.predAi = SpecPredAI(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["rs"])
+        self.predAi = SpecPredAI(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
         self.currPred = torch.zeros((halfHarms + global_consts.halfTripleBatchSize + 1,), device = device)
         self.device = device
         self.final = False

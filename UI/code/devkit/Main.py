@@ -152,7 +152,7 @@ class RootUi(tkinter.Frame):
         self.utauImportUi = UtauImportUi(tkinter.Tk())
         self.utauImportUi.mainloop()
 
-    def onUtauimportPress(self) -> None:
+    def onAdvSettingsPress(self) -> None:
         """opens the UTAU import tool when the UTAU import tool button in the main window is pressed"""
 
         logging.info("UTAU import button callback")
@@ -199,6 +199,7 @@ class RootUi(tkinter.Frame):
                 self.parameterButton["state"] = "active"
                 self.worddictButton["state"] = "active"
                 self.utauimportButton["state"] = "active"
+                self.advSettingsButton["state"] = "active"
                 self.saveButton["state"] = "active"
                 self.master.wm_title(loadedVBPath)
     
@@ -215,5 +216,6 @@ class RootUi(tkinter.Frame):
             self.parameterButton["state"] = "active"
             self.worddictButton["state"] = "active"
             self.utauimportButton["state"] = "active"
+            self.advSettingsButton["state"] = "active"
             self.saveButton["state"] = "active"
             self.master.wm_title(loc["unsaved_vb"])
