@@ -22,8 +22,8 @@ def getLocale():
         locale["phon_lbl"] = "Phoneme Editor"
         locale["crfai_btn"] = "edit Phoneme Crossfade Ai"
         locale["crfai_lbl"] = "Phoneme Crossfade Ai Editor"
-        locale["predai_btn"] = "edit Spectral Prediction AI"
-        locale["predai_lbl"] = "Ai-driven Parameter Editor"
+        locale["predai_btn"] = "edit Spectral Prediction Ai"
+        locale["predai_lbl"] = "Spectral Prediction Ai Editor"
         locale["dict_btn"] = "edit Dictionary"
         locale["dict_lbl"] = "Dictionary Editor"
         locale["utau_btn"] = "UTAU import tool"
@@ -133,7 +133,9 @@ def getLocale():
         locale["pred_lr"] = "predictor learning rate"
         locale["pred_reg"] = "predictor L2 regularization"
         locale["pred_rs"] = "predictor recurrent layer size"
-        locale["crf_warn"] = "changing the crossfade Hyperparameters is going to reset the crossfade AI to an untrained state. Continue?"
-        locale["pred_warn"] = "changing the predictor Hyperparameters is going to reset the predictor AI to an untrained state. Continue?"
+        locale["crf_warn"] = "changing crossfade Hyperparameters is going to reset the phoneme crossfade AI to an untrained state. Continue?"
+        locale["pred_warn"] = "changing predictor Hyperparameters is going to reset the spectral predictor AI to an untrained state. Continue?"
+        locale["crf_optim_warn"] = "changing crossfade optimizer Hyperparameters is going to reset the phoneme crossfade AI optimizer, possibly reducing future training performance. Continue?"
+        locale["pred_optim_warn"] = "changing the predictor optimizer Hyperparameters is going to reset the spectral predictor AI optimizer, possibly reducing future training performance. Continue?"
         
     return locale

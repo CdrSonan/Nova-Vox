@@ -50,6 +50,11 @@ class UtauImportUi(tkinter.Frame):
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
         self.diagram.canvas = FigureCanvasTkAgg(self.diagram.fig, self.diagram)
         self.diagram.canvas.get_tk_widget().pack(side = "top", fill = "both", expand = True)
+        self.diagram.playButton = tkinter.Button(self.diagram)
+        self.diagram.playButton["text"] = loc["play"]
+        self.diagram.playButton["command"] = self.play
+        self.diagram.playButton.config(width = 20)
+        self.diagram.playButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         self.diagram.pack(side = "right", fill = "y", padx = 5, pady = 2)
         
         self.phonemeList = tkinter.LabelFrame(self, text = loc["smp_list"])
@@ -127,11 +132,6 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.end.display["text"] = loc["end"]
         self.sideBar.end.display.pack(side = "right", fill = "x")
         self.sideBar.end.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.sideBar.importButton = tkinter.Button(self.sideBar)
-        self.sideBar.importButton["text"] = loc["play"]
-        self.sideBar.importButton["command"] = self.play
-        self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.sideBar.importButton = tkinter.Button(self.sideBar)
         self.sideBar.importButton["text"] = loc["smp_import"]

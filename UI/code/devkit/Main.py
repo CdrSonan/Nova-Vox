@@ -72,11 +72,11 @@ class RootUi(tkinter.Frame):
         self.crfaiButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.crfaiButton["state"] = "disabled"
         
-        self.parameterButton = tkinter.Button(self)
-        self.parameterButton["text"] = loc["predai_btn"]
-        self.parameterButton["command"] = self.onPredaiPress
-        self.parameterButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
-        self.parameterButton["state"] = "disabled"
+        self.predaiButton = tkinter.Button(self)
+        self.predaiButton["text"] = loc["predai_btn"]
+        self.predaiButton["command"] = self.onPredaiPress
+        self.predaiButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
+        self.predaiButton["state"] = "disabled"
         
         self.worddictButton = tkinter.Button(self)
         self.worddictButton["text"] = loc["dict_btn"]
@@ -196,7 +196,7 @@ class RootUi(tkinter.Frame):
                 self.metadataButton["state"] = "active"
                 self.phonemedictButton["state"] = "active"
                 self.crfaiButton["state"] = "active"
-                self.parameterButton["state"] = "active"
+                self.predaiButton["state"] = "active"
                 self.worddictButton["state"] = "active"
                 self.utauimportButton["state"] = "active"
                 self.advSettingsButton["state"] = "active"
@@ -213,7 +213,7 @@ class RootUi(tkinter.Frame):
             self.metadataButton["state"] = "active"
             self.phonemedictButton["state"] = "active"
             self.crfaiButton["state"] = "active"
-            self.parameterButton["state"] = "active"
+            self.predaiButton["state"] = "active"
             self.worddictButton["state"] = "active"
             self.utauimportButton["state"] = "active"
             self.advSettingsButton["state"] = "active"

@@ -1,5 +1,5 @@
 import tkinter
-import tkinter.simpledialog
+import tkinter.messagebox
 import logging
 import sys
 
@@ -12,18 +12,18 @@ loc = getLocale()
 class AdvSettingsUi(tkinter.Frame):
 
     def __init__(self, master=None) -> None:
-        logging.info("Initializing Metadata UI")
+        logging.info("Initializing adv. AI settings UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
         tkinter.Frame.__init__(self, master)
         self.pack(ipadx = 20)
         self.createWidgets()
-        self.master.wm_title(loc["metadat_lbl"])
+        self.master.wm_title(loc["advsettings"])
         if (sys.platform.startswith('win')): 
             self.master.iconbitmap("icon/nova-vox-logo-black.ico")
         
     def createWidgets(self) -> None:
-        """initializes all widgets of the Metadata window. Called once during initialization"""
+        """initializes all widgets of the adv. AI settings window. Called once during initialization"""
 
         global loadedVB
 
@@ -136,16 +136,32 @@ class AdvSettingsUi(tkinter.Frame):
         }
         resetCrf = False
         resetPred = False
-        if (loadedVB.ai.hparams["crf_lr"] != hparams["crf_lr"]) or (loadedVB.ai.hparams["crf_reg"] != hparams["crf_reg"]) or (loadedVB.ai.hparams["crf_hlc"] != hparams["crf_hlc"]) or (loadedVB.ai.hparams["crf_hls"] != hparams["crf_hls"]):
-            resetCrf = True
-        if (loadedVB.ai.hparams["pred_lr"] != hparams["pred_lr"]) or (loadedVB.ai.hparams["pred_reg"] != hparams["pred_reg"]) or (loadedVB.ai.hparams["pred_rs"] != hparams["pred_rs"]):
-            resetPred = True
-        loadedVB.ai.hparams = hparams
+        if (loadedVB.ai.hparams["crf_hlc"] != hparams["crf_hlc"]) or (loadedVB.ai.hparams["crf_hls"] != hparams["crf_hls"]):
+            resetCrf = tkinter.messagebox.askokcancel(loc["warning"], loc["crf_warn"])
+        if loadedVB.ai.hparams["pred_rs"] != hparams["pred_rs"]:
+            resetPred = tkinter.messagebox.askokcancel(loc["warning"], loc["pred_warn"])
+        if ((loadedVB.ai.hparams["crf_lr"] != hparams["crf_lr"]) or (loadedVB.ai.hparams["crf_reg"] != hparams["crf_reg"])) and (resetCrf == False):
+            resetCrfOptim = tkinter.messagebox.askokcancel(loc["warning"], loc["crf_optim_warn"])
+        else:
+            resetCrfOptim = True
+        if ((loadedVB.ai.hparams["pred_lr"] != hparams["pred_lr"]) or (loadedVB.ai.hparams["pred_reg"] != hparams["pred_reg"])) and (resetPred == False):
+            resetPredOptim = tkinter.messagebox.askokcancel(loc["warning"], loc["pred_optim_warn"])
+        else:
+            resetPredOptim = True
         if resetCrf:
+            loadedVB.ai.hparams["crf_hlc"] = hparams["crf_hlc"]
+            loadedVB.ai.hparams["crf_hls"] = hparams["crf_hls"]
             loadedVB.ai.crfAi = SpecCrfAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["crf_lr"], regularization=loadedVB.ai.hparams["crf_reg"], hiddenLayerCount=loadedVB.ai.hparams["crf_hlc"], hiddenLayerSize=loadedVB.ai.hparams["crf_hls"])
-            loadedVB.ai.crfAiOptimizer = torch.optim.Adam(loadedVB.ai.crfAi.parameters(), lr=loadedVB.ai.crfAi.learningRate, weight_decay=loadedVB.ai.crfAi.regularization)
         if resetPred:
+            loadedVB.ai.hparams["pred_rs"] = hparams["pred_rs"]
             loadedVB.ai.predAi = SpecPredAI(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["pred_lr"], regularization=loadedVB.ai.hparams["pred_reg"], recSize=loadedVB.ai.hparams["rs"])
+        if resetCrfOptim:
+            loadedVB.ai.hparams["crf_lr"] = hparams["crf_lr"]
+            loadedVB.ai.hparams["crf_reg"] = hparams["crf_reg"]
+            loadedVB.ai.crfAiOptimizer = torch.optim.Adam(loadedVB.ai.crfAi.parameters(), lr=loadedVB.ai.crfAi.learningRate, weight_decay=loadedVB.ai.crfAi.regularization)
+        if resetPredOptim:
+            loadedVB.ai.hparams["pred_lr"] = hparams["pred_lr"]
+            loadedVB.ai.hparams["pred_reg"] = hparams["pred_reg"]
             loadedVB.ai.predAiOptimizer = torch.optim.Adam(loadedVB.ai.predAi.parameters(), lr=loadedVB.ai.predAi.learningRate, weight_decay=loadedVB.ai.predAi.regularization)
 
     def applyResampSettings(self) -> None:

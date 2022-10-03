@@ -1,4 +1,4 @@
-from os import getenv, mkdir, path as osPath
+from os import getenv, mkdir, makedirs, path as osPath
 from shutil import copyfile
 
 def readSettings(path:str = None) -> dict:
@@ -14,11 +14,14 @@ def readSettings(path:str = None) -> dict:
     and their own custom files. Currently, this functionality is not fully implemented."""
 
 
-    if path == None:
-        path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
+    #if path == None:
+    #    path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
     settings = {}
-    if osPath.isfile(path) == False:
-        copyfile("settings.ini", path)
+    #if osPath.exists(osPath.split(path)[0]) == False:
+    #    makedirs(osPath.split(path)[0])
+    #if osPath.isfile(path) == False:
+    #    copyfile("settings.ini", path)
+    path = "settings.ini"
     with open(path, 'r') as f:
         for line in f:
             line = line.strip()
