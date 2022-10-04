@@ -327,9 +327,9 @@ class SpecPredAI(nn.Module):
         x = torch.unsqueeze(torch.cat((harmonics, spectrum), 0), 0)
         self.hiddenState1, self.cellState1 = self.sharedRecurrency1(x, (self.hiddenState1, self.cellState1))
         self.hiddenState1 = self.dropout1(self.hiddenState1)
-        self.hiddenState2, self.cellState2 = self.sharedRecurrency1(self.hiddenState1, (self.hiddenState2, self.cellState2))
+        self.hiddenState2, self.cellState2 = self.sharedRecurrency2(self.hiddenState1, (self.hiddenState2, self.cellState2))
         self.hiddenState2 = self.dropout2(self.hiddenState2)
-        self.hiddenState3, self.cellState3 = self.sharedRecurrency1(self.hiddenState2, (self.hiddenState3, self.cellState3))
+        self.hiddenState3, self.cellState3 = self.sharedRecurrency3(self.hiddenState2, (self.hiddenState3, self.cellState3))
         x = self.hiddenState3
         harmonics = x[:, :halfHarms]
         spectrum = x[:, halfHarms:]
