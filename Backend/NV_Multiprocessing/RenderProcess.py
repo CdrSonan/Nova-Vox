@@ -380,18 +380,19 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                             previousShift = 0.
                             for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
                                 pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
-                                fourierPitchShift = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch) - pitchBorder
-                                shiftedSpectrum = torch.roll(spectrum.read(k)[global_consts.nHarmonics + 2:], fourierPitchShift)
+                                nativePitch = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch)
+                                fourierPitchShift = nativePitch - pitchBorder
+                                shiftedSpectrum = torch.roll(spectrum.read(k)[global_consts.nHarmonics + 2:], fourierPitchShift)#TODO: Check math
                                 slope = torch.zeros(global_consts.halfTripleBatchSize + 1, device = device_rs)
                                 slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
                                 slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
                                 outputSpectrum = (slope * spectrum.read(k)[global_consts.nHarmonics + 2:]) + ((1 - slope) * shiftedSpectrum)
                                 phaseDifference = global_consts.tripleBatchSize / internalInputs.pitch[k].to(torch.float64)
-                                adjustedHarm = (global_consts.nHarmonics * phaseDifference).item() / 2
-                                harmonics = extrap(torch.linspace(0, global_consts.nHarmonics / 2, int(global_consts.nHarmonics / 2) + 1), spectrum.read(k)[:int(global_consts.nHarmonics / 2) + 1], torch.linspace(0, adjustedHarm, int(global_consts.nHarmonics / 2) + 1))
-                                #harmonics = softplus(harmonics)
 
                                 harmonics = spectrum.read(k)[:int(global_consts.nHarmonics / 2) + 1]
+                                harmonics /= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), outputSpectrum, torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1))
+                                harmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), outputSpectrum, torch.linspace(pitchBorder, int(global_consts.nHarmonics / 2) * pitchBorder, int(global_consts.nHarmonics / 2) + 1))
+                                #harmonics = softplus(harmonics)
 
                                 phases = spectrum.read(k)[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
                                 phases = phaseShift(phases, previousShift, device_rs)

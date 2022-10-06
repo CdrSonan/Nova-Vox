@@ -1,5 +1,6 @@
 import torch
 
+import global_consts
 from Backend.DataHandler.AudioSample import AudioSample
 from Backend.ESPER.SpecCalcComponents import finalizeSpectra, separateVoicedUnvoiced, lowRangeSmooth, highRangeSmooth
 
@@ -25,7 +26,8 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
 
 
     audioSample = separateVoicedUnvoiced(audioSample)
-    signalsAbs = torch.sqrt(audioSample.excitation.abs())
+    signalsAbs = torch.stft(audioSample.waveform, global_consts.batchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), return_complex = True)
+    signalsAbs = torch.sqrt(signalsAbs.abs())
     lowSpectra = lowRangeSmooth(audioSample, signalsAbs)
     highSpectra = highRangeSmooth(audioSample, signalsAbs)
     audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra, useVariance)
