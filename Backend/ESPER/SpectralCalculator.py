@@ -26,8 +26,8 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
 
 
     audioSample = separateVoicedUnvoiced(audioSample)
-    signalsAbs = torch.stft(audioSample.waveform, global_consts.batchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), return_complex = True)
-    signalsAbs = torch.sqrt(signalsAbs.abs())
+    signalsAbs = torch.stft(audioSample.waveform, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), return_complex = True)
+    signalsAbs = torch.sqrt(signalsAbs.transpose(0, 1)[:audioSample.excitation.size()[0]].abs())
     lowSpectra = lowRangeSmooth(audioSample, signalsAbs)
     highSpectra = highRangeSmooth(audioSample, signalsAbs)
     audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra, useVariance)

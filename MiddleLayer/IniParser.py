@@ -14,14 +14,13 @@ def readSettings(path:str = None) -> dict:
     and their own custom files. Currently, this functionality is not fully implemented."""
 
 
-    #if path == None:
-    #    path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
+    if path == None:
+        path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
     settings = {}
-    #if osPath.exists(osPath.split(path)[0]) == False:
-    #    makedirs(osPath.split(path)[0])
-    #if osPath.isfile(path) == False:
-    #    copyfile("settings.ini", path)
-    path = "settings.ini"
+    if osPath.exists(osPath.split(path)[0]) == False:
+        makedirs(osPath.split(path)[0])
+    if osPath.isfile(path) == False:
+        copyfile("settings.ini", path)
     with open(path, 'r') as f:
         for line in f:
             line = line.strip()
