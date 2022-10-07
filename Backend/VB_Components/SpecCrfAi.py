@@ -440,7 +440,7 @@ class AIWrapper():
             self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
         if (mode == None) or (mode == "pred"):
             if reset:
-                self.predAi = SpecPredAI(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["rs"])
+                self.predAi = SpecPredAI(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
                 self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
             self.predAi.epoch = aiState["predAi_epoch"]
             self.predAi.sampleCount = aiState["predAi_sampleCount"]
