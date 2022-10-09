@@ -64,7 +64,7 @@ def highRangeSmooth(audioSample:AudioSample, signalsAbs:torch.Tensor) -> torch.T
     workingSpectra = torch.cat((workingSpectra, torch.tile(torch.unsqueeze(workingSpectra[:, -1], 1), (1, audioSample.unvoicedIterations))), 1)
     spectra = workingSpectra.clone()
     for j in range(audioSample.unvoicedIterations):
-        for i in range(spectralFilterWidth):
+        for i in range(1, spectralFilterWidth + 1):
             spectra = torch.roll(workingSpectra, -i, dims = 1) + spectra + torch.roll(workingSpectra, i, dims = 1)
         spectra = spectra / (2 * spectralFilterWidth + 1)
         workingSpectra = torch.max(workingSpectra, spectra)
