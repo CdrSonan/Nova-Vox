@@ -105,7 +105,7 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
     "calculates DIO Pitch markers for a single window of an AudioSample. They can then be used for voiced/unvoiced signal separation."
 
     def pitch(pos:int) -> float:
-        return audioSample.pitchDeltas[max(int(pos / global_consts.batchSize) - global_consts.halfTripleBatchSize * global_consts.filterBSMult, 0)].to(torch.int64)
+        return audioSample.pitchDeltas[min(int((pos - global_consts.halfTripleBatchSize * global_consts.filterBSMult) / global_consts.batchSize), audioSample.pitchDeltas.size()[0] - 1)].to(torch.int64)
     
     maximumMarkers = torch.tensor([], dtype = torch.int16)
     minimumMarkers = torch.tensor([], dtype = torch.int16)
@@ -152,9 +152,9 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
         derrs = torch.index_select(wave, 0, downTransitionCandidates) - torch.index_select(wave, 0, downTransitionCandidates - 1)
         downTransitionMarkers = deque([downTransitionCandidates[torch.argmin(derrs)].item(),])
 
-    lastPitch = pitch(upTransitionMarkers[-1])
     while downTransitionMarkers[-1] < wave.size()[0] - audioSample.pitchDeltas[-1] * global_consts.DIOLastWinTolerance:
         print("1", downTransitionMarkers[-1], "/", (wave.size()[0] - audioSample.pitchDeltas[-1] * global_consts.DIOLastWinTolerance).item())
+        lastPitch = pitch(upTransitionMarkers[-1])
         lastDown = downTransitionMarkers[-1]
         lastUp = upTransitionMarkers[-1]
         error = math.inf

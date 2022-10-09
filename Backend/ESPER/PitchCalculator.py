@@ -32,10 +32,13 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
         calculatePitchFallback(audioSample)
     if audioSample.pitchDeltas.size()[0] < 2:
         calculatePitchFallback(audioSample)
+    calculatePitchFallback(audioSample)
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0]), audioSample.pitchDeltas, torch.linspace(0., 1., length))
     audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
+    print(audioSample.pitchDeltas)
+    pass
 
 def calculatePitchFallback(audioSample:AudioSample) -> None:
     """Fallback method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.
