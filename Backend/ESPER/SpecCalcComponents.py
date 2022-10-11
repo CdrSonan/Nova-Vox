@@ -20,6 +20,7 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     mask = torch.ge(diff.abs(), diffB.abs())
     diff -= mask.to(torch.float) * 2 * math.pi
     diff = torch.abs(diff)
+    diff *= 0
     return 1. - (diff / math.pi)
 
 def calculateAmplitudeContinuity(amplitudes:torch.Tensor) -> torch.Tensor:
@@ -40,6 +41,8 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor) -> torch.Tensor:
     amplitudeContinuity *= torch.heaviside(amplitudeContinuity, torch.zeros((1,)))
     amplitudeContinuity[:5] = 1.
     return amplitudeContinuity
+
+
 
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
     """calculates a spectrum based on an adaptation of the True Envelope Estimator algorithm. Used for low-frequency area, as it can produce artifacting in high-frequency area"""
@@ -98,7 +101,7 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
         limiter = torch.max(variances / variance - 1., torch.ones([1,])).unsqueeze(1)
         audioSample.specharm[:, global_consts.nHarmonics + 2:] /= limiter
         audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1] /= limiter
-    audioSample.excitation = audioSample.excitation / torch.square(audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[0], global_consts.nHarmonics + 2:])
+    audioSample.excitation = audioSample.excitation / (audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[0], global_consts.nHarmonics + 2:])
     return audioSample
 
 def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
@@ -265,7 +268,11 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
 def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
     """separates the voiced and unvoiced parts of an AudioSample using DIO pitch markers of a sequence of windows, and phase and amplitude continuity functions."""
 
-    wave = torch.cat((torch.zeros([global_consts.halfTripleBatchSize * global_consts.filterBSMult,]), audioSample.waveform, torch.zeros([global_consts.halfTripleBatchSize * global_consts.filterBSMult,])), 0)
+    padLength = global_consts.halfTripleBatchSize * global_consts.filterBSMult
+    wave = torch.cat((torch.flip(audioSample.waveform[:padLength], (0,)), audioSample.waveform, torch.flip(audioSample.waveform[-padLength:], (0,))), 0)
+    import matplotlib.pyplot as plt
+    plt.plot(wave)
+    plt.show()
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     audioSample.excitation = torch.empty((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
     highResExcitation = torch.empty((length, global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1), dtype = torch.complex64)

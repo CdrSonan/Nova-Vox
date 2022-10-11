@@ -18,7 +18,6 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
     introducing the risk of the pitch being detected as a whole multiple or fraction of its real value. For this reason, the pitch is multiplied or divided by a compensation factor if it is too far off the expected value.
     In case the pitch detection fails in spite of the correctly set search range, it uses a fallback. Afterwards, it calls calculatePhases(), since phase information only needs to be updated when the pitch changes."""
 
-    print(audioSample.expectedPitch, audioSample.searchRange)
     try:
         audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
         if limiter:
@@ -32,13 +31,13 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
         calculatePitchFallback(audioSample)
     if audioSample.pitchDeltas.size()[0] < 2:
         calculatePitchFallback(audioSample)
+    print("std", audioSample.pitchDeltas)
     calculatePitchFallback(audioSample)
+    print("fbc", audioSample.pitchDeltas)
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0]), audioSample.pitchDeltas, torch.linspace(0., 1., length))
     audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
-    print(audioSample.pitchDeltas)
-    pass
 
 def calculatePitchFallback(audioSample:AudioSample) -> None:
     """Fallback method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.

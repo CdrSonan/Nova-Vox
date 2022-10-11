@@ -219,7 +219,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
             internalInputs = inputList[i]
 
             voicebank = voicebankList[i]
-            voicebank.ai.to(device_ai)
+            voicebank.ai.device = device_ai
             aiParamStack = aiParamStackList[i]
 
             length = internalInputs.pitch.size()[0]

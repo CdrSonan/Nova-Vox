@@ -294,7 +294,7 @@ class PhonemedictUi(tkinter.Frame):
         xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
         harmScale = torch.linspace(0, global_consts.nHarmonics / 2 * global_consts.sampleRate / loadedVB.phonemeDict[key].pitchDeltas[value], int(global_consts.nHarmonics / 2) + 1)
         self.diagram.ax.plot(xScale, excitation, label = loc["excitation"], color = "red")
-        self.diagram.ax.vlines(harmScale, 0., harmonics, label = loc["vExcitation"], color = "blue")
+        self.diagram.ax.vlines(harmScale, 0., torch.sqrt(harmonics), label = loc["vExcitation"], color = "blue")
         self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"], color = "orange")
         self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
         self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
