@@ -20,20 +20,17 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
 
     try:
         audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
-        if limiter:
-            mul1 = torch.maximum(torch.floor(audioSample.pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate), torch.ones([1,]))
-            mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / audioSample.pitchDeltas), torch.ones([1,]))
-            audioSample.pitchDeltas /= mul1
-            audioSample.pitchDeltas *= mul2
     except Exception as e:
         print("nonfatal_pitch_calc_err")
         print(e)
         calculatePitchFallback(audioSample)
     if audioSample.pitchDeltas.size()[0] < 2:
         calculatePitchFallback(audioSample)
-    print("std", audioSample.pitchDeltas)
-    calculatePitchFallback(audioSample)
-    print("fbc", audioSample.pitchDeltas)
+    if limiter:
+        mul1 = torch.maximum(torch.floor(audioSample.pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate + 0.5), torch.ones([1,]))
+        mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / audioSample.pitchDeltas + 0.5), torch.ones([1,]))
+        audioSample.pitchDeltas /= mul1
+        audioSample.pitchDeltas *= mul2
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0]), audioSample.pitchDeltas, torch.linspace(0., 1., length))
@@ -57,7 +54,7 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
     batchSize = math.floor((1. + audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
     lowerSearchLimit = math.floor((1. - audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
     batchStart = 0
-    while batchStart + batchSize <= audioSample.waveform.size()[0] - batchSize:
+    while batchStart + batchSize <= audioSample.waveform.size()[0] - batchSize:#TODO: check for end batchSize compensation possibly being doubled
         sample = torch.index_select(audioSample.waveform, 0, torch.linspace(batchStart, batchStart + batchSize, batchSize, dtype = int))
         zeroTransitions = torch.tensor([], dtype = int)
         for i in range(lowerSearchLimit, batchSize):
@@ -67,7 +64,8 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
         delta = math.floor(global_consts.sampleRate / audioSample.expectedPitch)
         for i in zeroTransitions:
             shiftedSample = torch.index_select(audioSample.waveform, 0, torch.linspace(batchStart + i.item(), batchStart + batchSize + i.item(), batchSize, dtype = int))
-            newError = torch.sum(torch.pow(sample - shiftedSample, 2))
+            bias = torch.abs(i - math.floor(global_consts.sampleRate / audioSample.expectedPitch))
+            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * bias + 1
             if error > newError:
                 delta = i.item()
                 error = newError
@@ -75,7 +73,7 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
         batchStart += delta
     audioSample.pitch = torch.mean(audioSample.pitchDeltas.float()).int()
 
-    #map sequence of pitchDeltas to sampling interval
+    #map sequence of pitchDeltas to sampling interval TODO: check for error causing double wavelength to be locked on
     cursor = 0
     cursor2 = 0
     pitchDeltas = torch.empty(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize))
