@@ -390,9 +390,10 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                 phaseDifference = global_consts.tripleBatchSize / internalInputs.pitch[k].to(torch.float64)
 
                                 harmonics = spectrum.read(k)[:int(global_consts.nHarmonics / 2) + 1]
-                                harmonics /= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), outputSpectrum, torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1))
-                                harmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), outputSpectrum, torch.linspace(pitchBorder, int(global_consts.nHarmonics / 2) * pitchBorder, int(global_consts.nHarmonics / 2) + 1))
-                                #harmonics = softplus(harmonics)
+                                originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
+                                harmonics /= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), outputSpectrum, originSpace)
+                                targetSpace = torch.min(torch.linspace(pitchBorder, int(global_consts.nHarmonics / 2) * pitchBorder, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
+                                harmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), outputSpectrum, targetSpace)
 
                                 phases = spectrum.read(k)[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
                                 phases = phaseShift(phases, previousShift, device_rs)
