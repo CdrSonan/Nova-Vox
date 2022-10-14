@@ -1,8 +1,9 @@
 import torch
+from math import floor
 
 import global_consts
 from Backend.DataHandler.AudioSample import AudioSample
-from Backend.ESPER.SpecCalcComponents import finalizeSpectra, separateVoicedUnvoiced, lowRangeSmooth, highRangeSmooth
+from Backend.ESPER.SpecCalcComponents import finalizeSpectra, separateVoicedUnvoiced, lowRangeSmooth, highRangeSmooth, averageSpectra
 
 def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     """Method for calculating spectral data based on the previously set attributes filterWidth, voicedFilter and unvoicedIterations.
@@ -25,9 +26,13 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     """
 
 
-    audioSample = separateVoicedUnvoiced(audioSample)
+    length = floor(audioSample.waveform.size()[0] / global_consts.batchSize)
+    audioSample.excitation = torch.empty((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
+    audioSample.specharm = torch.full((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), 1234.)#TODO: Debugging tool; remove
     signalsAbs = torch.stft(audioSample.waveform, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), return_complex = True)
     signalsAbs = torch.sqrt(signalsAbs.transpose(0, 1)[:audioSample.excitation.size()[0]].abs())
     lowSpectra = lowRangeSmooth(audioSample, signalsAbs)
     highSpectra = highRangeSmooth(audioSample, signalsAbs)
-    audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra, useVariance)
+    audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)
+    audioSample = separateVoicedUnvoiced(audioSample)
+    audioSample = averageSpectra(audioSample, useVariance)
