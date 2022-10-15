@@ -303,7 +303,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2] = phaseShift(audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], -audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 2], torch.device("cpu"))
             counter += 1
             continue
-        interpolationPoints = interp(torch.linspace(0, markerLength - 1, markerLength), localMarkers, torch.linspace(0, markerLength - 1, (markerLength - 1) * global_consts.nHarmonics + 1))
+        interpolationPoints = interp(torch.linspace(0, markerLength - 1, markerLength), localMarkers, torch.linspace(0, markerLength - 1, (markerLength - 1) * global_consts.nHarmonics))
         interpolatedWave = interp(torch.linspace(0, global_consts.tripleBatchSize * global_consts.filterBSMult - 1, global_consts.tripleBatchSize * global_consts.filterBSMult), window, interpolationPoints)
 
         harmFunction = torch.empty((int(global_consts.nHarmonics / 2) + 1, 0))
@@ -314,22 +314,27 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         amplitudes = harmFunction.abs()
         phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
         phaseContinuity = torch.pow(phaseContinuity, 2)
-        #amplitudes *= phaseContinuity
+        amplitudes *= phaseContinuity
         amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:])
         harmFunction = torch.polar(amplitudes, harmFunction.angle())
-        harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (markerLength - 1) * global_consts.nHarmonics + 1, center = False, onesided = True, return_complex = False)
+        harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (markerLength - 1) * global_consts.nHarmonics, center = False, onesided = True, return_complex = False)
         harmFunction = harmFunction[:, math.floor((markerLength - 1) / 2)]#TODO: switch to average instead of mid sample
 
         if audioSample.isVoiced == False:
             harmFunction *= 0.
             harmFunctionFull *= 0.
 
+        requiredPrepend = math.ceil(interpolationPoints[0] / abs(interpolationPoints[1] - interpolationPoints[0]))
+        requiredAppend = math.ceil((global_consts.tripleBatchSize * global_consts.filterBSMult - interpolationPoints[-1]) / abs(interpolationPoints[-1] - interpolationPoints[-2]))
+        prepend = torch.linspace(interpolationPoints[0] - requiredPrepend * (interpolationPoints[1] - interpolationPoints[0]), 2 * interpolationPoints[0] - interpolationPoints[1], requiredPrepend)
+        append = torch.linspace(2 * interpolationPoints[-1] - interpolationPoints[-2], interpolationPoints[-1] + requiredAppend * (interpolationPoints[-1] - interpolationPoints[-2]), requiredAppend)
+        interpolationPoints = torch.cat((prepend, interpolationPoints, append), 0)
+        harmPrepend = torch.tile(harmFunctionFull[:global_consts.nHarmonics], (math.ceil(requiredPrepend / global_consts.nHarmonics),))[-requiredPrepend:]
+        harmAppend = torch.tile(harmFunctionFull[-global_consts.nHarmonics:], (math.ceil(requiredAppend / global_consts.nHarmonics),))[:requiredAppend]
+        harmFunctionFull = torch.cat((harmPrepend, harmFunctionFull, harmAppend), 0)
         offharm = extrap(interpolationPoints, harmFunctionFull, torch.linspace(0, global_consts.tripleBatchSize * global_consts.filterBSMult - 1, global_consts.tripleBatchSize * global_consts.filterBSMult))
-        #offharm = (window - harmFunctionFull)
-        #offharm = offharm[int(global_consts.tripleBatchSize * (global_consts.filterBSMult - 1) / 2):int(global_consts.tripleBatchSize * (global_consts.filterBSMult + 1) / 2)]
         offharm *= hannWindow
         highResExcitation[counter] = torch.fft.rfft(offharm)
-        #audioSample.excitation[counter] = torch.fft.rfft(offharm)
         harmFunction = phaseShiftFourier(harmFunction, localMarkers[0].item() / global_consts.nHarmonics, torch.device("cpu"))
         harmFunction = torch.cat((harmFunction.abs(), harmFunction.angle()), 0)
         audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
@@ -338,6 +343,9 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
     highResExcitation = highResExcitation.transpose(0, 1)
     highResExcitation = torch.istft(highResExcitation, global_consts.tripleBatchSize * global_consts.filterBSMult, global_consts.batchSize, global_consts.tripleBatchSize * global_consts.filterBSMult, hannWindow, length = audioSample.waveform.size()[0], onesided = True)
     highResExcitation = audioSample.waveform - highResExcitation
+    import matplotlib.pyplot as plt
+    plt.plot(highResExcitation)
+    plt.show()
     audioSample.excitation = torch.stft(highResExcitation, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), onesided = True, return_complex = True)
     audioSample.excitation = audioSample.excitation.transpose(0, 1)[:length]#TODO: remove length flooring for whole function
     audioSample.excitation = audioSample.excitation / (audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[0], global_consts.nHarmonics + 2:])
