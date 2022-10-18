@@ -1,96 +1,98 @@
 #:kivy 2.0.0
 #:import Factory kivy.factory.Factory
+#:import uiScale UI.code.editor.uiScale
+#:import mainColor UI.code.editor.mainColor
+#:import accColor UI.code.editor.accColor
+#:import bgColor UI.code.editor.bgColor
 <NovaVoxUI>:
     FloatLayout:
         size: (root.width, root.height)
         canvas:
             Color:
-                rgba: (0.137, 0.125, 0.173, 1)
+                rgba: bgColor
             Rectangle:
-                pos: (root.width - 65, 0)
-                size:(65, root.height)
-            Color:
-                rgba: (0.322, 0.259, 0.463, 1)
+                pos: (root.width - 50 * uiScale, 0)
+                size:(50 * uiScale, root.height)
             Rectangle:
-                pos: (0, root.height - 60)
-                size:(root.width, 60)
+                pos: (0, root.height - 50 * uiScale)
+                size:(root.width, 50 * uiScale)
         ImageButton:
-            pos: (4, root.height - 58)
-            size_hint: (56 / root.width, 56 / root.height)
+            pos: (4 * uiScale, root.height - 49 * uiScale)
+            size_hint: (None, None)
+            size: (48 * uiScale, 48 * uiScale)
             imageNormal: "UI/assets/TopBar/logo.gif"
-            imagePressed: "UI/assets/TopBar/logo.gif"
             on_press: Factory.LicensePanel().open()
         ImageButton:
-            pos: (80, root.height - 45)
-            size_hint: (42 / root.width, 30 / root.height)
+            pos: (80 * uiScale, root.height - 40 * uiScale)
+            size_hint: (None, None)
+            size: (42 * uiScale, 30 * uiScale)
             imageNormal: "UI/assets/TopBar/Top01.png"
-            imagePressed: "UI/assets/TopBar/Top01_clicked.png"
             on_press: root.spoolBack()
         ImageToggleButton:
-            pos: (138, root.height - 50)
-            size_hint: (38 / root.width, 40 / root.height)
+            pos: (142 * uiScale, root.height - 45 * uiScale)
+            size_hint: (None, None)
+            size: (28 * uiScale, 40 * uiScale)
             imageNormal: "UI/assets/TopBar/Top02.png"
-            imagePressed: "UI/assets/TopBar/Top02_clicked.png"
             id: playButton
             on_state: root.play(self.state)
         ImageButton:
-            pos: (190, root.height - 45)
-            size_hint: (42 / root.width, 30 / root.height)
+            pos: (190 * uiScale, root.height - 40 * uiScale)
+            size_hint: (None, None)
+            size: (42 * uiScale, 30 * uiScale)
             imageNormal: "UI/assets/TopBar/Top03.png"
-            imagePressed: "UI/assets/TopBar/Top03_clicked.png"
             on_press: root.spoolForward()
         ImageButton:
-            pos: (250, root.height - 52)
-            size_hint: (44 / root.width, 44 / root.height)
+            pos: (260 * uiScale, root.height - 45 * uiScale)
+            size_hint: (None, None)
+            size: (40 * uiScale, 40 * uiScale)
             imageNormal: "UI/assets/TopBar/Top04.png"
-            imagePressed: "UI/assets/TopBar/Top04_clicked.png"
             on_press: root.undo
         ImageButton:
-            pos: (310, root.height - 52)
-            size_hint: (44 / root.width, 44 / root.height)
+            pos: (314 * uiScale, root.height - 45 * uiScale)
+            size_hint: (None, None)
+            size: (40 * uiScale, 40 * uiScale)
             imageNormal: "UI/assets/TopBar/Top05.png"
-            imagePressed: "UI/assets/TopBar/Top05_clicked.png"
             on_press: root.redo
         ImageButton:
-            pos: (root.width - 60, root.height - 120)
-            size_hint: (55 / root.width, 55 / root.height)
-            imageNormal: "UI/assets/SideBar/Side01.png"
-            imagePressed: "UI/assets/SideBar/Side01_clicked.png"
+            pos: (root.width - 50 * uiScale, root.height - 100 * uiScale)
+            size_hint: (None, None)
+            size: (50 * uiScale, 50 * uiScale)
+            imageNormal: "UI/assets/SideBar/Side01new.png"
             on_press: Factory.FileSidePanel().open()
         ImageButton:
-            pos: (root.width - 60, root.height - 185)
-            size_hint: (55 / root.width, 55 / root.height)
-            imageNormal: "UI/assets/SideBar/Side02.png"
-            imagePressed: "UI/assets/SideBar/Side02_clicked.png"
+            pos: (root.width - 50 * uiScale, root.height - 160 * uiScale)
+            size_hint: (None, None)
+            size: (50 * uiScale, 50 * uiScale)
+            imageNormal: "UI/assets/SideBar/Side02new.png"
             on_press: Factory.SingerSidePanel().open()
         ImageButton:
-            pos: (root.width - 60, root.height - 250)
-            size_hint: (55 / root.width, 55 / root.height)
-            imageNormal: "UI/assets/SideBar/Side03.png"
-            imagePressed: "UI/assets/SideBar/Side03_clicked.png"
+            pos: (root.width - 50 * uiScale, root.height - 220 * uiScale)
+            size_hint: (None, None)
+            size: (50 * uiScale, 50 * uiScale)
+            imageNormal: "UI/assets/SideBar/Side03new.png"
             on_press: Factory.ParamSidePanel().open()
         ImageButton:
-            pos: (root.width - 60, root.height - 315)
-            size_hint: (55 / root.width, 55 / root.height)
-            imageNormal: "UI/assets/SideBar/Side04.png"
-            imagePressed: "UI/assets/SideBar/Side04_clicked.png"
+            pos: (root.width - 50 * uiScale, root.height - 280 * uiScale)
+            size_hint: (None, None)
+            size: (50 * uiScale, 50 * uiScale)
+            imageNormal: "UI/assets/SideBar/Side04new.png"
             on_press: Factory.ScriptingSidePanel().open()
         ImageButton:
-            pos: (root.width - 60, root.height - 380)
-            size_hint: (55 / root.width, 55 / root.height)
-            imageNormal: "UI/assets/SideBar/Side05.png"
-            imagePressed: "UI/assets/SideBar/Side05_clicked.png"
+            pos: (root.width - 50 * uiScale, root.height - 340 * uiScale)
+            size_hint: (None, None)
+            size: (50 * uiScale, 50 * uiScale)
+            imageNormal: "UI/assets/SideBar/Side05new.png"
             on_press: Factory.SettingsSidePanel().open()
         ImageButton:
-            pos: (root.width - 60, root.height - 445)
-            size_hint: (55 / root.width, 55 / root.height)
-            imageNormal: "UI/assets/SideBar/Side06.png"
-            imagePressed: "UI/assets/SideBar/Side06_clicked.png"
+            pos: (root.width - 50 * uiScale, root.height - 400 * uiScale)
+            size_hint: (None, None)
+            size: (50 * uiScale, 50 * uiScale)
+            imageNormal: "UI/assets/SideBar/Side06new.png"
         BoxLayout:
             orientation: "horizontal"
             pos: (0, 0)
             size_hint: (None, None)
-            size: root.width - 65, root.height - 60
+            size: root.width - 50 * uiScale, root.height - 50 * uiScale
             Splitter:
                 size_hint: (0.25, 1)
                 sizable_from: "right"
@@ -109,15 +111,13 @@
                         Widget:
                             canvas:
                                 Color:
-                                    rgba: (0.137, 0.125, 0.173, 1)
+                                    rgba: bgColor
                                 Rectangle:
                                     pos: self.parent.pos
-                                    size:(self.width, self.height)
+                                    size:(self.width, self.parent.height)
                             ScrollView:
                                 pos: self.parent.pos
-                                #size_hint: (1, 1)
                                 size:(self.parent.width, self.parent.height)
-                                #size: (180, 400)
                                 do_scroll: (False, True)
                                 scroll_type: ["bars"]
                                 bar_width: 10
@@ -125,13 +125,13 @@
                                     id: singerList
                                     size_hint: (None, None)
                                     orientation: "vertical"
-                                    width: self.parent.width - 12
+                                    width: self.parent.width - 10
                                     height: self.minimum_height
                     Widget:
                         size_hint: (1, 0.25)
                         canvas:
                             Color:
-                                rgba: (0.204, 0.204, 0.294, 1)
+                                rgba: bgColor
                             Rectangle:
                                 pos: self.parent.pos
                                 size:(self.width, self.height)
@@ -160,37 +160,34 @@
                         Widget:
                             pos: self.parent.pos
                             size_hint: (1, None)
-                            height: 40
+                            height: 40 * uiScale
                             canvas:
                                 Color:
-                                    rgba: (0.322, 0.259, 0.463, 1)
+                                    rgba: bgColor
                                 Rectangle:
                                     pos: self.parent.pos
-                                    size:(self.width, 40)
+                                    size:(self.width, 40 * uiScale)
                             BoxLayout:
                                 pos: self.parent.pos
                                 orientation: "horizontal"
                                 padding: (2, 2)
                                 ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (40, 36)
-                                    imageNormal: "UI/assets/Toolbar/Adaptive04.png"
-                                    imagePressed: "UI/assets/Toolbar/Adaptive04_clicked.png"
+                                    size: (40 * uiScale, 36 * uiScale)
+                                    imageNormal: "UI/assets/Toolbar/Adaptive04new.png"
                                     group: "DisplayModes"
                                     on_press: root.setMode("notes")
                                     state: "down"
                                 ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (40, 36)
-                                    imageNormal: "UI/assets/Toolbar/Adaptive05.png"
-                                    imagePressed: "UI/assets/Toolbar/Adaptive05_clicked.png"
+                                    size: (40 * uiScale, 36 * uiScale)
+                                    imageNormal: "UI/assets/Toolbar/Adaptive05new.png"
                                     group: "DisplayModes"
                                     on_press: root.setMode("timing")
                                 ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (40, 36)
-                                    imageNormal: "UI/assets/Toolbar/Adaptive06.png"
-                                    imagePressed: "UI/assets/Toolbar/Adaptive06_clicked.png"
+                                    size: (40 * uiScale, 36 * uiScale)
+                                    imageNormal: "UI/assets/Toolbar/Adaptive06new.png"
                                     group: "DisplayModes"
                                     on_press: root.setMode("pitch")
                                 AnchorLayout:
