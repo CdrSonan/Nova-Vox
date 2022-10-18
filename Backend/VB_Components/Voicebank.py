@@ -318,7 +318,7 @@ class Voicebank():
             self.stagedPredTrainSamples[i] = (avgSpecharm + self.stagedPredTrainSamples[i].specharm).to(device = self.device)
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainCrf(self.stagedPredTrainSamples, epochs = epochs, logging = logging)
+        self.ai.trainPred(self.stagedPredTrainSamples, epochs = epochs, logging = logging)
         print("AI training complete")
 
 class LiteVoicebank():

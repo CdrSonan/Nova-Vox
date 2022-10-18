@@ -103,6 +103,7 @@ def averageSpectra(audioSample:AudioSample, useVariance:bool = True) -> AudioSam
         limiter = torch.max(variances / variance - 1., torch.ones([1,])).unsqueeze(1)
         audioSample.specharm[:, global_consts.nHarmonics + 2:] /= limiter
         audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1] /= limiter
+    audioSample.excitation = audioSample.excitation / (audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[0], global_consts.nHarmonics + 2:])
     return audioSample
 
 def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
@@ -271,9 +272,6 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
 
     padLength = global_consts.halfTripleBatchSize * global_consts.filterBSMult
     wave = torch.cat((torch.flip(audioSample.waveform[:padLength], (0,)), audioSample.waveform, torch.flip(audioSample.waveform[-padLength:], (0,))), 0)
-    import matplotlib.pyplot as plt
-    plt.plot(wave)
-    plt.show()
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     highResExcitation = torch.empty((length, global_consts.halfTripleBatchSize * global_consts.filterBSMult + 1), dtype = torch.complex64)
     counter = 0
@@ -289,8 +287,8 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             amplitudes = harmFunction.abs()
             phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
             phaseContinuity = torch.pow(phaseContinuity, 2)
-            amplitudes *= phaseContinuity
-            amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:])
+            #amplitudes *= phaseContinuity
+            #amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:])
             
             harmFunction = torch.polar(amplitudes, harmFunction.angle())
             harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = global_consts.tripleBatchSize * global_consts.filterBSMult, center = False, onesided = True, return_complex = False)
@@ -314,8 +312,8 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         amplitudes = harmFunction.abs()
         phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
         phaseContinuity = torch.pow(phaseContinuity, 2)
-        amplitudes *= phaseContinuity
-        amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:])
+        #amplitudes *= phaseContinuity
+        #amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:])
         harmFunction = torch.polar(amplitudes, harmFunction.angle())
         harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (markerLength - 1) * global_consts.nHarmonics, center = False, onesided = True, return_complex = False)
         harmFunction = harmFunction[:, math.floor((markerLength - 1) / 2)]#TODO: switch to average instead of mid sample
@@ -343,10 +341,6 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
     highResExcitation = highResExcitation.transpose(0, 1)
     highResExcitation = torch.istft(highResExcitation, global_consts.tripleBatchSize * global_consts.filterBSMult, global_consts.batchSize, global_consts.tripleBatchSize * global_consts.filterBSMult, hannWindow, length = audioSample.waveform.size()[0], onesided = True)
     highResExcitation = audioSample.waveform - highResExcitation
-    import matplotlib.pyplot as plt
-    plt.plot(highResExcitation)
-    plt.show()
     audioSample.excitation = torch.stft(highResExcitation, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), onesided = True, return_complex = True)
     audioSample.excitation = audioSample.excitation.transpose(0, 1)[:length]#TODO: remove length flooring for whole function
-    audioSample.excitation = audioSample.excitation / (audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + audioSample.specharm[0:audioSample.excitation.size()[0], global_consts.nHarmonics + 2:])
     return audioSample

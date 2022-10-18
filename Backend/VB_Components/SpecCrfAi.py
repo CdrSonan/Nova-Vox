@@ -467,7 +467,7 @@ class AIWrapper():
         
         self.crfAi.eval()
         self.predAi.eval()
-        output = torch.square(torch.squeeze(self.crfAi(torch.sqrt(specharm1), torch.sqrt(specharm2), torch.sqrt(specharm3), torch.sqrt(specharm4), self.currPred, factor)))
+        output = torch.squeeze(self.crfAi(specharm1, specharm2, specharm3, specharm4, self.currPred, factor))
         self.currPred, prediction = self.predAi(output)
         return output, prediction
 
@@ -486,6 +486,7 @@ class AIWrapper():
         harmonics = specharm[:halfHarms]
         spectrum = specharm[2 * halfHarms:]
         self.predAi.hiddenState3 = torch.unsqueeze(torch.cat((harmonics, spectrum), 0), 0)
+        self.currPred = torch.unsqueeze(torch.cat((harmonics, spectrum), 0), 0)
 
     def finalize(self):
         self.final = True
