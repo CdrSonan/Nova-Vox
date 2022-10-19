@@ -30,7 +30,7 @@ def readSettings(path:str = None) -> dict:
             settings[line[0].strip()] = line[1].strip()
     return settings
     
-def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDevice, loglevel, dataDir, uiScale, mainColor, accColor, bgColor):
+def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDevice, loglevel, dataDir, uiScale, toolColor, accColor, bgColor):
     """function for writing a set of settings to the Nova-Vox settings file. Not intended to be used by addons; use writeCustomSettings instead."""
 
     if path == None:
@@ -57,7 +57,7 @@ def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDe
         f.write("\n")
         f.write("[ui]" + "\n")
         f.write("uiScale = " + uiScale + "\n")
-        f.write("mainColor = " + mainColor + "\n")
+        f.write("toolColor = " + toolColor + "\n")
         f.write("accColor = " + accColor + "\n")
         f.write("bgColor = " + bgColor + "\n")
     if dataDir == "None":

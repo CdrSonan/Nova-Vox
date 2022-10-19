@@ -4,28 +4,24 @@ from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from kivy.uix.button import Button
 from kivy.uix.bubble import BubbleButton
 from kivy.uix.textinput import TextInput
-from kivy.uix.treeview import TreeViewNode
+from . import accColor
 
 class ImageButton(ButtonBehavior, Image):
     """Class for a button displaying an image instead of text"""
 
-    imageNormal = StringProperty()
-    imagePressed = StringProperty()
     function = ObjectProperty(None)
 
     def on_press(self) -> None:
-        self.source = self.imagePressed
+        self.color = accColor
         if self.function != None:
             self.function()
 
     def on_release(self) -> None:
-        self.source = self.imageNormal
+        self.color = (1., 1., 1., 1.)
 
 class ImageToggleButton(ToggleButtonBehavior, Image):
     """Class for a toggle button displaying an image instead of text"""
 
-    imageNormal = StringProperty()
-    imagePressed = StringProperty()
     function = ObjectProperty(None)
 
     def on_press(self) -> None:
@@ -37,9 +33,9 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
 
     def on_state(self, widget, value) -> None:
         if value == 'down':
-            self.source = self.imagePressed
+            self.color = accColor
         else:
-            self.source = self.imageNormal
+            self.color = (1., 1., 1., 1.)
 
 class NumberInput(TextInput):
     """A modified text input field that sanitizes the input, ensuring it is always an integer number"""

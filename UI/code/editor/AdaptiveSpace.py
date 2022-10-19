@@ -44,6 +44,8 @@ class ParamCurve(ScrollView):
             data = middleLayer.trackList[middleLayer.activeTrack].steadiness
         elif middleLayer.activeParam == "breathiness":
             data = middleLayer.trackList[middleLayer.activeTrack].breathiness
+        elif middleLayer.activeParam == "AI balance":
+            data = middleLayer.trackList[middleLayer.activeTrack].aiBalance
         else:
             data = middleLayer.trackList[middleLayer.activeTrack].paramStack[middleLayer.activeParam].curve
         points = []

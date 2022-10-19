@@ -1,7 +1,7 @@
 #:kivy 2.0.0
 #:import Factory kivy.factory.Factory
 #:import uiScale UI.code.editor.uiScale
-#:import mainColor UI.code.editor.mainColor
+#:import toolColor UI.code.editor.toolColor
 #:import accColor UI.code.editor.accColor
 #:import bgColor UI.code.editor.bgColor
 <NovaVoxUI>:
@@ -9,7 +9,7 @@
         size: (root.width, root.height)
         canvas:
             Color:
-                rgba: bgColor
+                rgba: toolColor
             Rectangle:
                 pos: (root.width - 50 * uiScale, 0)
                 size:(50 * uiScale, root.height)
@@ -20,74 +20,74 @@
             pos: (4 * uiScale, root.height - 49 * uiScale)
             size_hint: (None, None)
             size: (48 * uiScale, 48 * uiScale)
-            imageNormal: "UI/assets/TopBar/logo.gif"
+            source: "UI/assets/TopBar/logo.gif"
             on_press: Factory.LicensePanel().open()
         ImageButton:
             pos: (80 * uiScale, root.height - 40 * uiScale)
             size_hint: (None, None)
             size: (42 * uiScale, 30 * uiScale)
-            imageNormal: "UI/assets/TopBar/Top01.png"
+            source: "UI/assets/TopBar/Top01.png"
             on_press: root.spoolBack()
         ImageToggleButton:
             pos: (142 * uiScale, root.height - 45 * uiScale)
             size_hint: (None, None)
             size: (28 * uiScale, 40 * uiScale)
-            imageNormal: "UI/assets/TopBar/Top02.png"
+            source: "UI/assets/TopBar/Top02.png"
             id: playButton
             on_state: root.play(self.state)
         ImageButton:
             pos: (190 * uiScale, root.height - 40 * uiScale)
             size_hint: (None, None)
             size: (42 * uiScale, 30 * uiScale)
-            imageNormal: "UI/assets/TopBar/Top03.png"
+            source: "UI/assets/TopBar/Top03.png"
             on_press: root.spoolForward()
         ImageButton:
             pos: (260 * uiScale, root.height - 45 * uiScale)
             size_hint: (None, None)
             size: (40 * uiScale, 40 * uiScale)
-            imageNormal: "UI/assets/TopBar/Top04.png"
+            source: "UI/assets/TopBar/Top04.png"
             on_press: root.undo
         ImageButton:
             pos: (314 * uiScale, root.height - 45 * uiScale)
             size_hint: (None, None)
             size: (40 * uiScale, 40 * uiScale)
-            imageNormal: "UI/assets/TopBar/Top05.png"
+            source: "UI/assets/TopBar/Top05.png"
             on_press: root.redo
         ImageButton:
             pos: (root.width - 50 * uiScale, root.height - 100 * uiScale)
             size_hint: (None, None)
             size: (50 * uiScale, 50 * uiScale)
-            imageNormal: "UI/assets/SideBar/Side01new.png"
+            source: "UI/assets/SideBar/Side01new.png"
             on_press: Factory.FileSidePanel().open()
         ImageButton:
             pos: (root.width - 50 * uiScale, root.height - 160 * uiScale)
             size_hint: (None, None)
             size: (50 * uiScale, 50 * uiScale)
-            imageNormal: "UI/assets/SideBar/Side02new.png"
+            source: "UI/assets/SideBar/Side02new.png"
             on_press: Factory.SingerSidePanel().open()
         ImageButton:
             pos: (root.width - 50 * uiScale, root.height - 220 * uiScale)
             size_hint: (None, None)
             size: (50 * uiScale, 50 * uiScale)
-            imageNormal: "UI/assets/SideBar/Side03new.png"
+            source: "UI/assets/SideBar/Side03new.png"
             on_press: Factory.ParamSidePanel().open()
         ImageButton:
             pos: (root.width - 50 * uiScale, root.height - 280 * uiScale)
             size_hint: (None, None)
             size: (50 * uiScale, 50 * uiScale)
-            imageNormal: "UI/assets/SideBar/Side04new.png"
+            source: "UI/assets/SideBar/Side04new.png"
             on_press: Factory.ScriptingSidePanel().open()
         ImageButton:
             pos: (root.width - 50 * uiScale, root.height - 340 * uiScale)
             size_hint: (None, None)
             size: (50 * uiScale, 50 * uiScale)
-            imageNormal: "UI/assets/SideBar/Side05new.png"
+            source: "UI/assets/SideBar/Side05new.png"
             on_press: Factory.SettingsSidePanel().open()
         ImageButton:
             pos: (root.width - 50 * uiScale, root.height - 400 * uiScale)
             size_hint: (None, None)
             size: (50 * uiScale, 50 * uiScale)
-            imageNormal: "UI/assets/SideBar/Side06new.png"
+            source: "UI/assets/SideBar/Side06new.png"
         BoxLayout:
             orientation: "horizontal"
             pos: (0, 0)
@@ -163,108 +163,79 @@
                             height: 40 * uiScale
                             canvas:
                                 Color:
-                                    rgba: bgColor
+                                    rgba: toolColor
                                 Rectangle:
                                     pos: self.parent.pos
                                     size:(self.width, 40 * uiScale)
                             BoxLayout:
                                 pos: self.parent.pos
                                 orientation: "horizontal"
-                                padding: (2, 2)
+                                padding: (2, 0)
                                 ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (40 * uiScale, 36 * uiScale)
-                                    imageNormal: "UI/assets/Toolbar/Adaptive04new.png"
+                                    size: (40 * uiScale, 40 * uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive04new.png"
                                     group: "DisplayModes"
                                     on_press: root.setMode("notes")
                                     state: "down"
                                 ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (40 * uiScale, 36 * uiScale)
-                                    imageNormal: "UI/assets/Toolbar/Adaptive05new.png"
+                                    size: (40 * uiScale, 40 * uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive05new.png"
                                     group: "DisplayModes"
                                     on_press: root.setMode("timing")
                                 ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (40 * uiScale, 36 * uiScale)
-                                    imageNormal: "UI/assets/Toolbar/Adaptive06new.png"
+                                    size: (40 * uiScale, 40 * uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive06new.png"
                                     group: "DisplayModes"
                                     on_press: root.setMode("pitch")
-                                AnchorLayout:
-                                    anchor_x: "center"
-                                    anchor_y: "center"
+                                ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (74, 36)
-                                    ToggleButton:
-                                        size_hint: (None, None)
-                                        size: (70, 36)
-                                        text: "draw"
-                                        background_normal: "UI/assets/Toolbar/Adaptive08.png"
-                                        background_down: "UI/assets/Toolbar/Adaptive07.png"
-                                        group: "ToolButtons"
-                                        on_press: root.setTool("draw")
-                                        state: "down"
-                                AnchorLayout:
-                                    anchor_x: "center"
-                                    anchor_y: "center"
+                                    size: (40 * uiScale, 40 * uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive04new.png"
+                                    group: "ToolModes"
+                                    on_press: root.setTool("draw")
+                                    state: "down"
+                                ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (74, 36)
-                                    ToggleButton:
-                                        size_hint: (None, None)
-                                        size: (70, 36)
-                                        text: "line"
-                                        background_normal: "UI/assets/Toolbar/Adaptive08.png"
-                                        background_down: "UI/assets/Toolbar/Adaptive07.png"
-                                        group: "ToolButtons"
-                                        on_press: root.setTool("line")
-                                AnchorLayout:
-                                    anchor_x: "center"
-                                    anchor_y: "center"
+                                    size: (40 * uiScale, 40 * uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive05new.png"
+                                    group: "ToolModes"
+                                    on_press: root.setTool("line")
+                                ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (74, 36)
-                                    ToggleButton:
-                                        size_hint: (None, None)
-                                        size: (70, 36)
-                                        text: "arch"
-                                        background_normal: "UI/assets/Toolbar/Adaptive08.png"
-                                        background_down: "UI/assets/Toolbar/Adaptive07.png"
-                                        group: "ToolButtons"
-                                        on_press: root.setTool("arch")
-                                AnchorLayout:
-                                    anchor_x: "center"
-                                    anchor_y: "center"
+                                    size: (40 * uiScale, 40 * uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive06new.png"
+                                    group: "ToolModes"
+                                    on_press: root.setTool("arch")
+                                ImageToggleButton:
                                     size_hint: (None, None)
-                                    size: (74, 36)
-                                    ToggleButton:
-                                        size_hint: (None, None)
-                                        size: (70, 36)
-                                        text: "reset"
-                                        background_normal: "UI/assets/Toolbar/Adaptive08.png"
-                                        background_down: "UI/assets/Toolbar/Adaptive07.png"
-                                        group: "ToolButtons"
-                                        on_press: root.setTool("reset")
+                                    size: (40 * uiScale, 40 * uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive06new.png"
+                                    group: "ToolModes"
+                                    on_press: root.setTool("reset")
                             Spinner:
                                 sync_height: True
-                                background_normal: "UI/assets/Toolbar/Adaptive09.png"
-                                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-                                pos: (self.parent.x + self.parent.width - 122, self.parent.y + 2)
+                                background_normal: "UI/assets/Toolbar/Adaptive07new.png"
+                                pos: (self.parent.x + self.parent.width - 120 * uiScale, self.parent.y)
                                 size_hint: (None, None)
-                                size: (120, 36)
+                                size: (120 * uiScale, 40 * uiScale)
                                 option_cls: Factory.get("BackdropOptn")
                                 text: "backdrop"
                                 values: ["param1", "param2", "param3", "param4", "param5"]
                         PianoRoll:
                             x: self.parent.x
-                            y: self.parent.y + 40
+                            y: self.parent.y + 40 * uiScale
                             size_hint: (1, None)
-                            height: self.parent.height - 40
+                            height: self.parent.height - 40 * uiScale
                             id: pianoRoll
                 Widget:
                     pos: self.parent.pos
                     size_hint: (1, 0.25)
                     canvas:
                         Color:
-                            rgba: (0.184, 0.184, 0.267, 1)
+                            rgba: bgColor
                         Rectangle:
                             pos: self.pos
                             size:(self.width, self.height)
