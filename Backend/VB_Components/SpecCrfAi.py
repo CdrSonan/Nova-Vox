@@ -318,6 +318,13 @@ class SpecPredAI(nn.Module):
     def forward(self, specharm:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next specharm in a sequence"""
 
+        self.hiddenState1 = self.hiddenState1.detach()
+        self.cellState1 = self.cellState1.detach()
+        self.hiddenState2 = self.hiddenState2.detach()
+        self.cellState2 = self.cellState2.detach()
+        self.hiddenState3 = self.hiddenState3.detach()
+        self.cellState3 = self.cellState3.detach()
+        
         harmonics = specharm[:halfHarms]
         spectrum = specharm[2 * halfHarms:]
         harmonics = self.layer1Harm(harmonics)
@@ -581,19 +588,21 @@ class AIWrapper():
         reportedLoss = 0.
         for epoch in range(epochs):
             for data in self.dataLoader(indata):
+                data = torch.squeeze(data)
                 self.reset()
                 self.prefetch(data[0])
-                input = torch.cat((data[:-1, :halfHarms], data[:-1, 2 * halfHarms:]), 1)
+                input = data[:-1]
                 target = torch.cat((data[1:, :halfHarms], data[1:, 2 * halfHarms:]), 1)
                 input = torch.squeeze(input)
                 target = torch.squeeze(target)
-                self.currPred, output = self.predAi(input)
-                loss = self.criterion(output, target)
-                self.predAiOptimizer.zero_grad()
-                loss.backward()
-                self.predAiOptimizer.step()
-                reportedLoss = (reportedLoss * 99 + loss.data) / 100
-                print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
+                for i in range(input.size()[0]):
+                    self.currPred, output = self.predAi(input[i])
+                    loss = self.criterion(output.squeeze(), target[i])
+                    self.predAiOptimizer.zero_grad()
+                    loss.backward()
+                    self.predAiOptimizer.step()
+                    reportedLoss = (reportedLoss * 99 + loss.data) / 100
+                    print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
             if writer != None:
                 writer.add_scalar("loss", loss.data)
         hparams = dict()
