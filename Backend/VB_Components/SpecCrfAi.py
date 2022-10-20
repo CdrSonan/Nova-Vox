@@ -608,7 +608,7 @@ class AIWrapper():
         hparams = dict()
         hparams["epochs"] = epochs
         metrics = dict()
-        metrics["wtd. train loss"] = self.loss
+        metrics["wtd. train loss"] = reportedLoss
         if writer != None:
             writer.add_hparams(hparams, metrics)
             writer.close()
