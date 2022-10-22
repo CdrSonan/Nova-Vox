@@ -71,11 +71,11 @@
     anchor_y: "center"
     size_hint: (1, None)
     height: 200
-    ToggleButton:
+    ManagedToggleButton:
         size_hint: (None, None)
         size: (self.parent.width - 20, self.parent.height - 20)
-        background_normal: "UI/assets/TrackList/SingerBGGrey.png"
-        background_down: "UI/assets/TrackList/SingerBGPurple.png"
+        background_normal: "UI/assets/TrackList/SingerBGNew.png"
+        background_down: "UI/assets/TrackList/SingerBGNew.png"
         group: "SingerPanels"
         on_state: if self.state == 'down': self.parent.changeTrack()
         Label:

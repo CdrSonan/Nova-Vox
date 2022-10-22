@@ -476,12 +476,12 @@ class AIWrapper():
         self.predAi.eval()
         output = torch.squeeze(self.crfAi(specharm1, specharm2, specharm3, specharm4, self.currPred, factor))
         self.currPred, prediction = self.predAi(output)
-        return output, prediction
+        return output, torch.squeeze(prediction)
 
     def predict(self, specharm:torch.Tensor):
         self.predAi.eval()
         self.currPred, prediction = self.predAi(specharm)
-        return prediction
+        return torch.squeeze(prediction)
 
     def reset(self) -> None:
         """resets the hidden states and cell states of the AI's LSTM Predictor subnet."""
@@ -493,7 +493,7 @@ class AIWrapper():
         harmonics = specharm[:halfHarms]
         spectrum = specharm[2 * halfHarms:]
         self.predAi.hiddenState3 = torch.unsqueeze(torch.cat((harmonics, spectrum), 0), 0)
-        self.currPred = torch.unsqueeze(torch.cat((harmonics, spectrum), 0), 0)
+        self.currPred = torch.cat((harmonics, spectrum), 0)
 
     def finalize(self):
         self.final = True

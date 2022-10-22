@@ -215,15 +215,15 @@
                                     source: "UI/assets/Toolbar/Adaptive06new.png"
                                     group: "ToolModes"
                                     on_press: root.setTool("reset")
-                            #Spinner:
-                            #    sync_height: True
-                            #    background_normal: "UI/assets/Toolbar/Adaptive07new.png"
-                            #    pos: (self.parent.x + self.parent.width - 120 * uiScale, self.parent.y)
-                            #    size_hint: (None, None)
-                            #    size: (120 * uiScale, 40 * uiScale)
-                            #    option_cls: Factory.get("BackdropOptn")
-                            #    text: "backdrop"
-                            #    values: ["param1", "param2", "param3", "param4", "param5"]
+                            Spinner:
+                                sync_height: True
+                                background_normal: "UI/assets/Toolbar/Adaptive07new.png"
+                                pos: (self.parent.x + self.parent.width - 120 * uiScale, self.parent.y)
+                                size_hint: (None, None)
+                                size: (120 * uiScale, 40 * uiScale)
+                                option_cls: Factory.get("BackdropOptn")
+                                text: "backdrop"
+                                values: ["param1", "param2", "param3", "param4", "param5"]
                         PianoRoll:
                             x: self.parent.x
                             y: self.parent.y + 40 * uiScale

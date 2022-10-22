@@ -5,8 +5,6 @@
 <ListElement>:
     size_hint_y: None
     height: 30
-    background_normal: "UI/assets/Toolbar/Adaptive09.png"
-    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
     on_press: self.parent.parent.parent.parent.detailElement(self.index)
 
 <FileSidePanel>:
@@ -18,36 +16,26 @@
         padding: 10
         spacing: 10
         orientation: "vertical"
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "save"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "load"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "import"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "export"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "render"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
             on_press: self.parent.parent.openRenderPopup()
 
 <FileRenderPopup>:
@@ -114,12 +102,10 @@
                 values: ["44100", "48000", "96000", "192000"]
                 text: "48000"
                 on_text: self.parent.parent.parent.parent.parent.sampleRate = self.text
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "render"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
             on_press: self.parent.parent.parent.parent.finalisingClose()
 
 <SingerSidePanel>:
@@ -207,12 +193,10 @@
                 id: singer_license
                 background_normal: "UI/assets/Toolbar/Adaptive09.png"
                 background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "import"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
             on_press: root.importVoicebank(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.voicebanks[self.parent.parent.selectedIndex].name, self.parent.parent.voicebanks[self.parent.parent.selectedIndex].image) if (self.parent.parent.selectedIndex != None) else None
         
 
@@ -314,12 +298,10 @@
                 id: param_license
                 background_normal: "UI/assets/Toolbar/Adaptive09.png"
                 background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "import"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
             on_press: root.importParam(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.parameters[self.parent.parent.selectedIndex].name)
 
 <ScriptingSidePanel>:
@@ -335,19 +317,15 @@
         spacing: 10
         CodeInput:
             id: scripting_editor
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "run"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
             on_press: self.parent.parent.runScript()
-        Button:
+        ManagedButton:
             size_hint_y: None
             height: 30
             text: "open Devkit"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
             on_press: self.parent.parent.openDevkit()
 
 <SettingsSidePanel>:
@@ -497,11 +475,9 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: ["debug", "info", "warning", "error", "critical"]
-        Button:
+        ManagedButton:
             id: settings_datadir
             sync_height: True
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
             size_hint_y: None
             height: 30
             text: ""

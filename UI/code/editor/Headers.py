@@ -1,11 +1,10 @@
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, NumericProperty
 from kivy.uix.anchorlayout import AnchorLayout
-from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.label import Label
 
 from kivy.clock import mainthread
 
-from UI.code.editor.Util import ImageButton, ImageToggleButton
+from UI.code.editor.Util import ImageButton, ImageToggleButton, ManagedToggleButton
 from UI.code.editor.Popups import SingerSettingsPanel
 
 class SingerPanel(AnchorLayout):
@@ -48,7 +47,7 @@ class SingerPanel(AnchorLayout):
         from UI.code.editor.Main import middleLayer
         middleLayer.updateVolume(self.index, volume)
 
-class ParamPanel(ToggleButton):
+class ParamPanel(ManagedToggleButton):
     """Header widget for a resampler parameter, or tuning curve used for audio processing"""
 
     def __init__(self, name:str, switchable:bool, sortable:bool, deletable:bool, index:int, switchState:bool = True, **kwargs) -> None:
