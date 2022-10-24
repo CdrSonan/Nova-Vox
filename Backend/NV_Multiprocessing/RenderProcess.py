@@ -339,7 +339,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                 else:
                                     specB = currentSpectrum[1]
                                 aiSpec = voicebank.ai.interpolate(specA.to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j]) / (internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]))
-                                aiSpec = internalInputs.aiBalance[k] * aiSpec[0] + (1. - internalInputs.aiBalance[k]) * torch.cat((aiSpec[1][:int(global_consts.nHarmonics / 2) + 1], aiSpec[0][int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], aiSpec[1][int(global_consts.nHarmonics / 2) + 1:]), 0)
+                                aiSpec = (0.5 - 0.5 * internalInputs.aiBalance[k]) * aiSpec[0] + (0.5 + 0.5 * internalInputs.aiBalance[k]) * torch.cat((aiSpec[1][:int(global_consts.nHarmonics / 2) + 1], aiSpec[0][int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], aiSpec[1][int(global_consts.nHarmonics / 2) + 1:]), 0)
                                 spectrum.write(aiSpec, k)
                         if internalInputs.endCaps[j]:
                             windowEnd = internalInputs.borders[3 * j + 5]
@@ -350,7 +350,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                             excitation.write(nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx], windowEndEx, internalInputs.borders[3 * j + 5])
                         for k in range(currentSpectrum.size()[0]):
                             aiSpec = torch.squeeze(voicebank.ai.predict(currentSpectrum[max(k - 1, 0)]))
-                            aiSpec = internalInputs.aiBalance[windowStart + k] * currentSpectrum[k] + (1. - internalInputs.aiBalance[windowStart + k]) * torch.cat((aiSpec[:int(global_consts.nHarmonics / 2) + 1], currentSpectrum[k, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], aiSpec[int(global_consts.nHarmonics / 2) + 1:]), 0)
+                            aiSpec = (0.5 - 0.5 * internalInputs.aiBalance[windowStart + k]) * currentSpectrum[k] + (0.5 + 0.5 * internalInputs.aiBalance[windowStart + k]) * torch.cat((aiSpec[:int(global_consts.nHarmonics / 2) + 1], currentSpectrum[k, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], aiSpec[int(global_consts.nHarmonics / 2) + 1:]), 0)
                             spectrum.write(aiSpec, windowStart + k)
                         excitation.write(currentExcitation, windowStartEx, windowEndEx)
 
@@ -365,7 +365,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                 else:
                                     specB = nextSpectrum[1]
                                 aiSpec = voicebank.ai.interpolate(specA.to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), specB.to(device = device_ai), (k - internalInputs.borders[3 * j + 3]) / (internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]))
-                                aiSpec = internalInputs.aiBalance[k] * aiSpec[0] + (1. - internalInputs.aiBalance[k]) * torch.cat((aiSpec[1][:int(global_consts.nHarmonics / 2) + 1], aiSpec[0][int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], aiSpec[1][int(global_consts.nHarmonics / 2) + 1:]), 0)
+                                aiSpec = (0.5 - 0.5 * internalInputs.aiBalance[k]) * aiSpec[0] + (0.5 + 0.5 * internalInputs.aiBalance[k]) * torch.cat((aiSpec[1][:int(global_consts.nHarmonics / 2) + 1], aiSpec[0][int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], aiSpec[1][int(global_consts.nHarmonics / 2) + 1:]), 0)
                                 spectrum.write(aiSpec, k)
                         
                         #TODO: implement crfai skipping if transition was already calculated in the previous frame
@@ -374,7 +374,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
 
                         #write remaining spectral data to cache
                         import matplotlib.pyplot as plt
-                        plt.imshow(spectrum.tensor.detach()) #TODO: remove gradient tracking in cache
+                        plt.imshow(spectrum.read(0, 1000).detach()) #TODO: remove gradient tracking in cache
                         plt.show()
 
                         remoteConnection.put(StatusChange(i, j, 2))
@@ -383,7 +383,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         logging.info("applying partial pitch shift to spectrum of sample " + str(j) + ", sequence " + str(i))
                         if internalInputs.phonemes[j] != "_autopause":
                             previousShift = 0.
-                            for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 5]):
+                            for k in range(windowStartEx, windowEndEx):
                                 pitchBorder = math.ceil(global_consts.tripleBatchSize / internalInputs.pitch[k])
                                 nativePitch = math.ceil(global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch)
                                 fourierPitchShift = nativePitch - pitchBorder
@@ -405,7 +405,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                                 phases = phaseShift(phases, previousShift, device_rs)
                                 previousShift += phaseDifference * 2 * math.pi / 3
                                 previousShift = previousShift % (2 * math.pi)
-                                spectrum.write(torch.cat((harmonics, phases, outputSpectrum), 0), k)
+                                spectrum.write(torch.cat((harmonics, phases, torch.square(outputSpectrum)), 0), k)
                         
                         internalStatusControl.ai[j] = 0
                         internalStatusControl.rs[j] = 1
@@ -446,7 +446,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         else:
                             breathiness = torch.zeros([internalInputs.borders[3 * (j - 1) + 5] - startPoint,], device = device_rs)
 
-                        excitationSignal = torch.transpose(excitation.read(startPoint, internalInputs.borders[3 * (j - 1) + 5]) * torch.pow(processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, global_consts.nHarmonics + 2:], 2), 0, 1)
+                        excitationSignal = torch.transpose(excitation.read(startPoint, internalInputs.borders[3 * (j - 1) + 5]) * processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, global_consts.nHarmonics + 2:], 0, 1)
                         breathinessCompensation = torch.sum(torch.abs(voicedSignal), 1) / torch.maximum(torch.sum(torch.abs(excitation.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])), 1), torch.tensor([0.0001], device = device_rs)) * global_consts.breCompPremul
                         breathinessUnvoiced = 1. + breathiness * breathinessCompensation * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                         breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
