@@ -221,7 +221,7 @@ class PredaiUi(tkinter.Frame):
         for i in range(numIter):
             loadedVB.delPredTrainSample(0)
             self.phonemeList.list.lb.delete(0)
-        self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])
+        self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.predAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.predAi.sampleCount) + loc["AI_stat_3"])
         logging.info("Crfai train button callback completed")
         
     def onFinalizePress(self) -> None:

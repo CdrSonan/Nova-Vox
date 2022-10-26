@@ -336,62 +336,14 @@
     on_open: self.readSettings()
     on_pre_dismiss: self.writeSettings()
     GridLayout:
-        rows: 9
-        orientation: "tb-lr"
+        cols: 2
+        orientation: "lr-tb"
         padding: 10
         spacing: 10
         Label:
             size_hint_y: None
             height: 30
             text: "Language:"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Label:
-            size_hint_y: None
-            height: 30
-            text: "Accelerator:"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Label:
-            size_hint_y: None
-            height: 30
-            text: "Tensor Cores:"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Label:
-            size_hint_y: None
-            height: 30
-            text: "low-spec mode:"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Label:
-            size_hint_y: None
-            height: 30
-            text: "caching mode:"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Label:
-            size_hint_y: None
-            height: 30
-            text: "audio API:"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Label:
-            size_hint_y: None
-            height: 30
-            text: "audio device:"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Label:
-            size_hint_y: None
-            height: 30
-            text: "Logging level:"
-            background_normal: "UI/assets/Toolbar/Adaptive09.png"
-            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
-        Label:
-            size_hint_y: None
-            height: 30
-            text: "Data directory:"
             background_normal: "UI/assets/Toolbar/Adaptive09.png"
             background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Spinner:
@@ -404,6 +356,12 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: ["en", "jp"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "Accelerator:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Spinner:
             id: settings_accel
             sync_height: True
@@ -414,6 +372,12 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: ["CPU", "GPU", "Hybrid"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "Tensor Cores:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Spinner:
             id: settings_tcores
             sync_height: True
@@ -424,6 +388,12 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: ["disabled", "enabled"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "low-spec mode:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Spinner:
             id: settings_lowSpecMode
             sync_height: True
@@ -434,6 +404,12 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: ["disabled", "enabled"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "caching mode:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Spinner:
             id: settings_cachingMode
             sync_height: True
@@ -444,6 +420,12 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: ["save RAM", "default", "best rendering speed"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "audio API:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Spinner:
             id: settings_audioApi
             sync_height: True
@@ -455,6 +437,12 @@
             option_cls: Factory.get("BackdropOptn")
             values: self.parent.parent.audioApiNames
             on_text: self.parent.parent.refreshAudioDevices(self.text)
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "audio device:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Spinner:
             id: settings_audioDevice
             sync_height: True
@@ -465,6 +453,12 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: self.parent.parent.audioDeviceNames
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "Logging level:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         Spinner:
             id: settings_loglevel
             sync_height: True
@@ -475,6 +469,12 @@
             height: 30
             option_cls: Factory.get("BackdropOptn")
             values: ["debug", "info", "warning", "error", "critical"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "Data directory:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
         ManagedButton:
             id: settings_datadir
             sync_height: True
@@ -482,3 +482,53 @@
             height: 30
             text: ""
             on_press: self.parent.parent.changeDataDir()
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "UI Scale:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Slider:
+            id: settings_uiScale
+            size_hint_y: None
+            height: 30
+            min: 0.25
+            max: 4.
+            step: 0.05
+            orientation: 'horizontal'
+        Label:
+            size_hint_y: None
+            height: 200
+            valign: "middle"
+            text: "Toolbar Color:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ColorWheel:
+            id: settings_toolColor
+            size_hint_y: None
+            height: 200
+            on_color: self.parent.parent.applyColors()
+        Label:
+            size_hint_y: None
+            height: 200
+            valign: "middle"
+            text: "Accent Color:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ColorWheel:
+            id: settings_accColor
+            size_hint_y: None
+            height: 200
+            on_color: self.parent.parent.applyColors()
+        Label:
+            size_hint_y: None
+            height: 200
+            valign: "middle"
+            text: "Background Color:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ColorWheel:
+            id: settings_bgColor
+            size_hint_y: None
+            height: 200
+            on_color: self.parent.parent.applyColors()

@@ -180,7 +180,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
             slope[pitchBorder:pitchBorder + global_consts.pitchShiftSpectralRolloff] = torch.linspace(0, 1, global_consts.pitchShiftSpectralRolloff)
             slope[pitchBorder + global_consts.pitchShiftSpectralRolloff:] = 1
             outputSpectrum = (slope * inputSpectrum) + ((1 - slope) * shiftedSpectrum)
-            phaseDifference = global_consts.tripleBatchSize / internalInputs.pitch[k].to(torch.float64)
+            phaseDifference = global_consts.batchSize / internalInputs.pitch[k].to(torch.float64)
 
             harmonics = spectrumInput[:int(global_consts.nHarmonics / 2) + 1]
             originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * global_consts.tripleBatchSize / voicebank.phonemeDict[internalInputs.phonemes[j]].pitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
@@ -190,7 +190,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
 
             phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
             phases = phaseShift(phases, previousShift, device_rs)
-            previousShift += phaseDifference * 2 * math.pi / 3
+            previousShift += phaseDifference * 2 * math.pi
             previousShift = previousShift % (2 * math.pi)
         return torch.cat((harmonics, phases, torch.square(outputSpectrum)), 0), previousShift
 

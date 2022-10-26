@@ -56,10 +56,10 @@ def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDe
         f.write("dataDir = " + dataDir + "\n")
         f.write("\n")
         f.write("[ui]" + "\n")
-        f.write("uiScale = " + uiScale + "\n")
-        f.write("toolColor = " + toolColor + "\n")
-        f.write("accColor = " + accColor + "\n")
-        f.write("bgColor = " + bgColor + "\n")
+        f.write("uiScale = " + str(uiScale) + "\n")
+        f.write("toolColor = " + str(toolColor) + "\n")
+        f.write("accColor = " + str(accColor) + "\n")
+        f.write("bgColor = " + str(bgColor) + "\n")
     if dataDir == "None":
         return
     voicePath = osPath.join(dataDir, "Voices")

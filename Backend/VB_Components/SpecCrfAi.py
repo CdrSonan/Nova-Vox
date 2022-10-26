@@ -91,12 +91,12 @@ class SpecCrfAi(nn.Module):
             
             
         super(SpecCrfAi, self).__init__()
-        self.convolution = nn.Conv1d(6, 6, 1, device = device)
+        self.convolution = nn.Conv1d(5, 6, 1, device = device)
         self.layerStart1 = torch.nn.Linear(6 * global_consts.halfTripleBatchSize + 6, int(3 * global_consts.halfTripleBatchSize + 3 + hiddenLayerSize / 4), device = device)
         self.ReLuStart1 = nn.ReLU()
         self.layerStart2 = torch.nn.Linear(int(3 * global_consts.halfTripleBatchSize + 3 + hiddenLayerSize / 4), math.ceil(hiddenLayerSize / 2), device = device)
         self.ReLuStart2 = nn.ReLU()
-        self.harmConvolution = nn.Conv1d(6, 6, 1, device = device)
+        self.harmConvolution = nn.Conv1d(5, 6, 1, device = device)
         self.harmLayerStart1 = torch.nn.Linear(6 * halfHarms, int(3 * halfHarms + hiddenLayerSize / 4), device = device)
         self.harmReLuStart1 = nn.ReLU()
         self.harmLayerStart2 = torch.nn.Linear(int(3 * halfHarms + hiddenLayerSize / 4), math.floor(hiddenLayerSize / 2), device = device)
@@ -166,12 +166,7 @@ class SpecCrfAi(nn.Module):
         limit = torch.max(spectra, dim = 1)[0]
         fac = torch.full((global_consts.halfTripleBatchSize + 1, 1), factor, device = self.device)
         facHarm = torch.full((halfHarms, 1), factor, device = self.device)
-        currPred = currPred.detach()
-        predSpectrum = currPred[halfHarms:]
-        predSpectrum = torch.unsqueeze(predSpectrum, 1)
-        predHarm = currPred[:halfHarms]
-        predHarm = torch.unsqueeze(predHarm, 1)
-        x = torch.cat((spectra, fac, predSpectrum), dim = 1)
+        x = torch.cat((spectra, fac), dim = 1)
         x = x.float()
         x = torch.unsqueeze(torch.transpose(x, 0, 1), 0)
         x = self.convolution(x)
@@ -180,7 +175,7 @@ class SpecCrfAi(nn.Module):
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
         x = self.ReLuStart2(x)
-        y = torch.cat((harms, facHarm, predHarm), dim = 1)
+        y = torch.cat((harms, facHarm), dim = 1)
         y = y.float()
         y = torch.unsqueeze(torch.transpose(y, 0, 1), 0)
         y = self.harmConvolution(y)
@@ -534,6 +529,8 @@ class AIWrapper():
                 spectrum2 = data[1]
                 spectrum3 = data[-2]
                 spectrum4 = data[-1]
+
+                debugOut = torch.cat((spectrum1.unsqueeze(1), spectrum2.unsqueeze(1)), 1)
                     
                 length = data.size()[0]
                 filterWidth = math.ceil(length / 5)
@@ -557,7 +554,14 @@ class AIWrapper():
                     self.crfAiOptimizer.zero_grad()
                     loss.backward()
                     self.crfAiOptimizer.step()
+
+                    debugOut = torch.cat((debugOut, torch.cat((output[:int(global_consts.nHarmonics / 2 + 1)], torch.zeros(int(global_consts.nHarmonics / 2 + 1)), output[int(global_consts.nHarmonics / 2 + 1):]), 0).unsqueeze(1)), 1)
+
                     print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
+                debugOut = torch.cat((debugOut, spectrum3.unsqueeze(1), spectrum4.unsqueeze(1)), 1)
+                import matplotlib.pyplot as plt
+                plt.imshow(debugOut.detach())
+                plt.show()
             if writer != None:
                 writer.add_scalar("loss", loss.data)
             self.crfAi.sampleCount += len(indata)
@@ -581,7 +585,7 @@ class AIWrapper():
             #writer.add_graph(self, (indata[0][0], indata[0][1], indata[0][-2], indata[0][-1], torch.tensor([0.5])))
         else:
             writer = None
-        if (self.predAi.epoch == 0) or self.epoch == epochs:
+        if (self.predAi.epoch == 0) or self.predAi.epoch == epochs:
             self.predAi.epoch = epochs
         else:
             self.predAi.epoch = None

@@ -20,6 +20,7 @@ import global_consts
 from MiddleLayer.IniParser import readSettings, writeSettings
 
 from UI.code.editor.Util import ListElement
+from UI.code.editor import toolColor, accColor, bgColor
 
 
 class FileSidePanel(ModalView):
@@ -252,6 +253,12 @@ class SettingsSidePanel(ModalView):
             self.ids["settings_datadir"].text = newDir
         tkui.destroy()
 
+    def applyColors(self) -> None:
+        toolColor = self.ids["settings_toolColor"].color
+        accColor = self.ids["settings_accColor"].color
+        bgColor = self.ids["settings_bgColor"].color
+
+
     def readSettings(self) -> None:
         """reads the settings from the settings file"""
 
@@ -266,6 +273,10 @@ class SettingsSidePanel(ModalView):
         self.ids["settings_audioDevice"].text = settings["audioDevice"]
         self.ids["settings_loglevel"].text = settings["loglevel"]
         self.ids["settings_datadir"].text = settings["dataDir"]
+        self.ids["settings_uiScale"].value = settings["uiScale"]
+        self.ids["settings_toolColor"].color = eval(settings["toolColor"])
+        self.ids["settings_accColor"].color = eval(settings["accColor"])
+        self.ids["settings_bgColor"].color = eval(settings["bgColor"])
 
     def writeSettings(self) -> None:
         """writes the settings to the settings file"""
@@ -274,5 +285,5 @@ class SettingsSidePanel(ModalView):
             audioDevice = self.ids["settings_audioDevice"].text
         else:
             audioDevice = self.audioDeviceNames[0]
-        writeSettings(None, self.ids["settings_lang"].text, self.ids["settings_accel"].text, self.ids["settings_tcores"].text, self.ids["settings_lowSpecMode"].text, self.ids["settings_cachingMode"].text, self.ids["settings_audioApi"].text, audioDevice, self.ids["settings_loglevel"].text, self.ids["settings_datadir"].text)
+        writeSettings(None, self.ids["settings_lang"].text, self.ids["settings_accel"].text, self.ids["settings_tcores"].text, self.ids["settings_lowSpecMode"].text, self.ids["settings_cachingMode"].text, self.ids["settings_audioApi"].text, audioDevice, self.ids["settings_loglevel"].text, self.ids["settings_datadir"].text, self.ids["settings_uiScale"].value, self.ids["settings_toolColor"].color, self.ids["settings_accColor"].color, self.ids["settings_bgColor"].color)
         self.restartAudioStream()
