@@ -25,7 +25,7 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
     diff[1:-1] /= 2
     return 1. - (diff / math.pi)
 
-def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor) -> torch.Tensor:
+def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor, pitch:int) -> torch.Tensor:
     """calculates amplitude continuity function based on the absolute values of an stft sequence. Frequencies with a high amplitude continuity are more likely to be voiced."""
 
     if amplitudes.size()[1] == 1:
@@ -42,7 +42,18 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor)
     amplitudeContinuity = 1. - amplitudeContinuity
     amplitudeContinuity *= torch.heaviside(amplitudeContinuity, torch.zeros((1,)))
     amplitudeContinuity *= amplitudes
-    return amplitudeContinuity
+
+    effectiveSpectrum = torch.linspace(0, global_consts.nHarmonics / 2 * (global_consts.halfTripleBatchSize + 1) / pitch, int(global_consts.nHarmonics / 2) + 1)
+    effectiveSpectrum = torch.min(effectiveSpectrum, torch.full_like(effectiveSpectrum, global_consts.halfTripleBatchSize + 1))
+    effectiveSpectrum = spectrum[effectiveSpectrum.to(torch.long)]
+    amplitudes = torch.sqrt(amplitudes)
+    amplitudeDelta = amplitudes / effectiveSpectrum.unsqueeze(1)
+    amplitudeDelta = torch.minimum(amplitudeDelta, torch.tensor([1,]))
+    amplitudeDelta = torch.sqrt(amplitudeDelta)
+    print(amplitudeDelta)
+    amplitudeDelta *= amplitudes
+    amplitudeContinuity = torch.maximum(amplitudeContinuity, amplitudeDelta)
+    return amplitudeDelta
 
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
     """calculates a spectrum based on an adaptation of the True Envelope Estimator algorithm. Used for low-frequency area, as it can produce artifacting in high-frequency area"""
@@ -288,7 +299,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
             phaseContinuity = torch.pow(phaseContinuity, 2)
             #amplitudes *= phaseContinuity
-            #amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:])
+            amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
             
             harmFunction = torch.polar(amplitudes, harmFunction.angle())
             harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = global_consts.tripleBatchSize * global_consts.filterBSMult, center = False, onesided = True, return_complex = False)
@@ -313,7 +324,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
         phaseContinuity = torch.pow(phaseContinuity, 2)
         #amplitudes *= phaseContinuity
-        #amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:])
+        amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
         harmFunction = torch.polar(amplitudes, harmFunction.angle())
         harmFunctionFull = torch.istft(harmFunction, global_consts.nHarmonics, global_consts.nHarmonics, global_consts.nHarmonics, length = (markerLength - 1) * global_consts.nHarmonics, center = False, onesided = True, return_complex = False)
         harmFunction = harmFunction[:, math.floor((markerLength - 1) / 2)]#TODO: switch to average instead of mid sample

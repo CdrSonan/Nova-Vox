@@ -559,9 +559,9 @@ class AIWrapper():
 
                     print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
                 debugOut = torch.cat((debugOut, spectrum3.unsqueeze(1), spectrum4.unsqueeze(1)), 1)
-                import matplotlib.pyplot as plt
-                plt.imshow(debugOut.detach())
-                plt.show()
+                #import matplotlib.pyplot as plt
+                #plt.imshow(debugOut.detach())
+                #plt.show()
             if writer != None:
                 writer.add_scalar("loss", loss.data)
             self.crfAi.sampleCount += len(indata)
