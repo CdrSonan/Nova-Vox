@@ -46,14 +46,19 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor,
     effectiveSpectrum = torch.linspace(0, global_consts.nHarmonics / 2 * (global_consts.halfTripleBatchSize + 1) / pitch, int(global_consts.nHarmonics / 2) + 1)
     effectiveSpectrum = torch.min(effectiveSpectrum, torch.full_like(effectiveSpectrum, global_consts.halfTripleBatchSize + 1))
     effectiveSpectrum = spectrum[effectiveSpectrum.to(torch.long)]
-    amplitudes = torch.sqrt(amplitudes)
-    amplitudeDelta = amplitudes / effectiveSpectrum.unsqueeze(1)
+    amplitudeDelta = torch.sqrt(amplitudes)
+    amplitudeDelta /= effectiveSpectrum.unsqueeze(1)
+    
     amplitudeDelta = torch.minimum(amplitudeDelta, torch.tensor([1,]))
-    amplitudeDelta = torch.sqrt(amplitudeDelta)
-    print(amplitudeDelta)
     amplitudeDelta *= amplitudes
-    amplitudeContinuity = torch.maximum(amplitudeContinuity, amplitudeDelta)
-    return amplitudeDelta
+    amplitudeMax = torch.maximum(amplitudeContinuity, amplitudeDelta)
+    amplitudeMin = torch.minimum(amplitudeContinuity, amplitudeDelta)
+    slope = torch.zeros_like(amplitudeContinuity)
+    slope[40:] = 1.
+    slope[20:40] = torch.linspace(0, 1, 20).unsqueeze(1)
+    amplitudeContinuity = amplitudeMin * slope
+    amplitudeContinuity += (1. - slope) * amplitudeMax
+    return amplitudeContinuity
 
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
     """calculates a spectrum based on an adaptation of the True Envelope Estimator algorithm. Used for low-frequency area, as it can produce artifacting in high-frequency area"""
