@@ -1,5 +1,5 @@
 #:kivy 2.0.0
-#:import uiScale UI.code.editor.uiScale
+
 <PianoRollOctaveBackground>:
     size_hint: (None, 0.25)
     width : 100
@@ -132,7 +132,7 @@
 
 <PlaybackHead>:
     x: self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale - self.width / 2
-    y: self.parent.y + self.parent.height - 30 * uiScale
+    y: self.parent.y + self.parent.height - 30 * app.uiScale
     size_hint: (None, None)
     width: 20
     height: 20
@@ -162,9 +162,9 @@
 <TimingBar>:
     orientation: "horizontal"
     x: self.parent.x
-    y: self.parent.y + self.parent.parent.height - 30 * uiScale + self.parent.parent.scroll_y * (self.parent.height - self.parent.parent.height)
+    y: self.parent.y + self.parent.parent.height - 30 * app.uiScale + self.parent.parent.scroll_y * (self.parent.height - self.parent.parent.height)
     size_hint: (None, None)
-    size: (self.parent.parent.length * self.parent.parent.xScale, 30 * uiScale)
+    size: (self.parent.parent.length * self.parent.parent.xScale, 30 * app.uiScale)
     canvas:
         Color:
             rgba: (0, 0, 0, 0.5)

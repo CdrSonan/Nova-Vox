@@ -78,6 +78,12 @@ if __name__ == '__main__':
         updateInterval = 0.25
     from UI.code.editor.Main import NovaVoxUI
     class NovaVoxApp(App):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.uiScale = float(settings["uiScale"])
+            self.toolColor = eval(settings["toolColor"])
+            self.accColor = eval(settings["accColor"])
+            self.bgColor = eval(settings["bgColor"])
         def build(self):
             self.icon = path.join("icon", "nova-vox-logo-2-color.png")
             ui = NovaVoxUI()

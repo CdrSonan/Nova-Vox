@@ -1,5 +1,5 @@
 from kivy.uix.widget import Widget
-from kivy.properties import ObjectProperty, BooleanProperty, NumericProperty, ListProperty, OptionProperty
+from kivy.properties import ObjectProperty, BooleanProperty, NumericProperty, ListProperty
 from kivy.graphics import Color, Line
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout

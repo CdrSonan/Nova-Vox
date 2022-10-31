@@ -1,5 +1,5 @@
 #:kivy 2.0.0
-#:import uiScale UI.code.editor.uiScale
+
 <ParamCurve>:
     on_scroll_x: self.parent.triggerScroll()
     do_scroll: (True, False)
@@ -8,9 +8,9 @@
     on_height: self.redraw()
     Widget:
         size_hint: (None, None)
-        y: self.parent.y + 10 * uiScale
+        y: self.parent.y + 10 * app.uiScale
         width: int(self.parent.xScale * self.parent.seqLength)
-        height: self.parent.height - 10 * uiScale
+        height: self.parent.height - 10 * app.uiScale
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)
@@ -28,9 +28,9 @@
     on_height: self.redraw()
     Widget:
         size_hint: (None, None)
-        y: self.parent.y + 10 * uiScale
+        y: self.parent.y + 10 * app.uiScale
         width: int(self.parent.xScale * self.parent.seqLength)
-        height: self.parent.height - 10 * uiScale
+        height: self.parent.height - 10 * app.uiScale
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)
@@ -52,9 +52,9 @@
     on_height: self.redraw()
     Widget:
         size_hint: (None, None)
-        y: self.parent.y + 10 * uiScale
+        y: self.parent.y + 10 * app.uiScale
         width: int(self.parent.xScale * self.parent.seqLength)
-        height: self.parent.height - 10 * uiScale
+        height: self.parent.height - 10 * app.uiScale
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)

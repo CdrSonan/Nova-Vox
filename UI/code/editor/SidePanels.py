@@ -3,6 +3,7 @@ from kivy.core.image import Image as CoreImage
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.app import App
 
 from tkinter import Tk, filedialog
 
@@ -20,7 +21,6 @@ import global_consts
 from MiddleLayer.IniParser import readSettings, writeSettings
 
 from UI.code.editor.Util import ListElement
-from UI.code.editor import toolColor, accColor, bgColor
 
 
 class FileSidePanel(ModalView):
@@ -254,9 +254,10 @@ class SettingsSidePanel(ModalView):
         tkui.destroy()
 
     def applyColors(self) -> None:
-        toolColor = self.ids["settings_toolColor"].color
-        accColor = self.ids["settings_accColor"].color
-        bgColor = self.ids["settings_bgColor"].color
+        app = App.get_running_app()
+        app.toolColor = self.ids["settings_toolColor"].color
+        app.accColor = self.ids["settings_accColor"].color
+        app.bgColor = self.ids["settings_bgColor"].color
 
 
     def readSettings(self) -> None:

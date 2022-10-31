@@ -1,7 +1,7 @@
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.button import ButtonBehavior
-from kivy.uix.treeview import TreeViewLabel, TreeViewNode
+from kivy.uix.treeview import TreeViewLabel
 from kivy.properties import ObjectProperty
 
 from copy import copy
