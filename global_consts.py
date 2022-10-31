@@ -28,7 +28,7 @@ ampContThreshold = 10
 spectralRolloff1 = 144
 spectralRolloff2 = 192
 pitchShiftSpectralRolloff = 10
-breCompPremul = 0.4
+breCompPremul = 0.6
 
 #audio pipeline
 audioBufferSize = 2048

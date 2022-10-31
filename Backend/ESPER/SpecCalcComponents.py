@@ -37,6 +37,7 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor,
     amplitudeContinuity[:, 0] = amplitudeContinuity[:, 0] / 2.
     amplitudeContinuity[:, -1] = amplitudeContinuity[:, -1] / 2.
     amplitudeContinuity = abs(amplitudeContinuity - amplitudes)
+    amplitudeContinuity *= 1.5
     amplitudeContinuity /= amplitudes
     amplitudeContinuity = torch.nan_to_num(amplitudeContinuity, 0.)
     amplitudeContinuity = 1. - amplitudeContinuity
@@ -48,14 +49,14 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor,
     effectiveSpectrum = spectrum[effectiveSpectrum.to(torch.long)]
     amplitudeDelta = torch.sqrt(amplitudes)
     amplitudeDelta /= effectiveSpectrum.unsqueeze(1)
-    
-    amplitudeDelta = torch.minimum(amplitudeDelta, torch.tensor([1,]))
+    amplitudeDelta = torch.minimum(amplitudeDelta * 1.5, torch.tensor([1,]))
     amplitudeDelta *= amplitudes
+
     amplitudeMax = torch.maximum(amplitudeContinuity, amplitudeDelta)
     amplitudeMin = torch.minimum(amplitudeContinuity, amplitudeDelta)
     slope = torch.zeros_like(amplitudeContinuity)
-    slope[40:] = 1.
-    slope[20:40] = torch.linspace(0, 1, 20).unsqueeze(1)
+    slope[20:] = 1.
+    slope[10:20] = torch.linspace(0, 1, 10).unsqueeze(1)
     amplitudeContinuity = amplitudeMin * slope
     amplitudeContinuity += (1. - slope) * amplitudeMax
     return amplitudeContinuity
