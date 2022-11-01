@@ -2,8 +2,10 @@ import torch
 
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
+from kivy.properties import NumericProperty, ColorProperty
 
 from MiddleLayer.MiddleLayer import MiddleLayer
+from MiddleLayer.IniParser import readSettings
 
 from UI.code.editor.AdaptiveSpace import *
 from UI.code.editor.Headers import *
@@ -14,6 +16,13 @@ from UI.code.editor.NodeEditor import *
 from UI.code.editor.Util import *
 
 class NovaVoxUI(Widget):
+
+    settings = readSettings()
+    uiScale = NumericProperty(float(settings["uiScale"]))
+    toolColor = ColorProperty(eval(settings["toolColor"]))
+    accColor = ColorProperty(eval(settings["accColor"]))
+    bgColor = ColorProperty(eval(settings["bgColor"]))
+    
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         global middleLayer

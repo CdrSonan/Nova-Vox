@@ -255,9 +255,10 @@ class SettingsSidePanel(ModalView):
 
     def applyColors(self) -> None:
         app = App.get_running_app()
-        app.toolColor = self.ids["settings_toolColor"].color
-        app.accColor = self.ids["settings_accColor"].color
-        app.bgColor = self.ids["settings_bgColor"].color
+        app.root.uiScale = self.ids["settings_uiScale"].value
+        app.root.toolColor = self.ids["settings_toolColor"].color
+        app.root.accColor = self.ids["settings_accColor"].color
+        app.root.bgColor = self.ids["settings_bgColor"].color
 
 
     def readSettings(self) -> None:

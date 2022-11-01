@@ -8,6 +8,12 @@ from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
 from kivy.app import App
 
+def fullRoot(widget):
+    root = widget
+    while root.parent != None and root.parent != root.parent.parent:
+        root = root.parent
+    return root
+
 class ImageButton(ButtonBehavior, Image):
     """Class for a button displaying an image instead of text"""
 
@@ -24,7 +30,7 @@ class ImageButton(ButtonBehavior, Image):
             self.color = (1., 1., 1., 1.)
 
     def on_press(self) -> None:
-        self.color = App.get_running_app().accColor
+        self.color = fullRoot(self).accColor
         if self.function != None:
             self.function()
 
@@ -42,7 +48,7 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
 
     def on_mouseover(self, window, pos):
         if self.state == 'down':
-            self.color = App.get_running_app().accColor
+            self.color = fullRoot(self).accColor
         elif self.collide_point(*pos):
             self.color = (0.5, 0.5, 0.5, 1.)
         else:
@@ -70,7 +76,7 @@ class ManagedButton(Button):
             self.background_color = (1., 1., 1., 1.)
 
     def on_press(self) -> None:
-        self.background_color = App.get_running_app().accColor
+        self.background_color = fullRoot(self).accColor
         if self.function != None:
             self.function()
 
@@ -87,7 +93,7 @@ class ManagedToggleButton(ToggleButton):
 
     def on_mouseover(self, window, pos):
         if self.state == 'down':
-            self.background_color = App.get_running_app().accColor
+            self.background_color = fullRoot(self).accColor
         elif self.collide_point(*pos):
             self.background_color = (0.5, 0.5, 0.5, 1.)
         else:
