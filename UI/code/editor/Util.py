@@ -76,7 +76,7 @@ class ManagedButton(Button):
             self.background_color = (1., 1., 1., 1.)
 
     def on_press(self) -> None:
-        self.background_color = fullRoot(self).accColor
+        #self.background_color = fullRoot(self).accColor
         if self.function != None:
             self.function()
 
@@ -93,7 +93,8 @@ class ManagedToggleButton(ToggleButton):
 
     def on_mouseover(self, window, pos):
         if self.state == 'down':
-            self.background_color = fullRoot(self).accColor
+            pass
+            #self.background_color = fullRoot(self).accColor
         elif self.collide_point(*pos):
             self.background_color = (0.5, 0.5, 0.5, 1.)
         else:

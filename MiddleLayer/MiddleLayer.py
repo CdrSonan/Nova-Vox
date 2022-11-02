@@ -875,7 +875,7 @@ class MiddleLayer(Widget):
 
         if self.playing:
             newBufferPos = self.mainAudioBufferPos + global_consts.audioBufferSize
-            mainAudioBuffer = torch.zeros([newBufferPos - self.mainAudioBufferPos],)
+            mainAudioBuffer = torch.zeros((int(newBufferPos - self.mainAudioBufferPos),))
             volumes = []
             for i in range(len(self.audioBuffer)):
                 buffer = self.audioBuffer[i][self.mainAudioBufferPos:newBufferPos] * self.trackList[i].volume

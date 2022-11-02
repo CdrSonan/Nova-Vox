@@ -141,6 +141,8 @@ class SpecCrfAi(nn.Module):
         if factor.__class__ == torch.Tensor:
             factor = factor.item()
 
+        print(specharm1)
+
         phase1 = specharm1[halfHarms:2 * halfHarms]
         phase2 = specharm2[halfHarms:2 * halfHarms]
         phase3 = specharm3[halfHarms:2 * halfHarms]
@@ -469,13 +471,17 @@ class AIWrapper():
         
         self.crfAi.eval()
         self.predAi.eval()
-        output = torch.squeeze(self.crfAi(specharm1, specharm2, specharm3, specharm4, self.currPred, factor))
+        output = torch.squeeze(self.crfAi(torch.sqrt(specharm1), torch.sqrt(specharm2), torch.sqrt(specharm3), torch.sqrt(specharm4), torch.sqrt(self.currPred), factor))
         self.currPred, prediction = self.predAi(output)
-        return output, torch.squeeze(prediction)
+        self.currPred = torch.square(self.currPred)
+        prediction = torch.square(prediction)
+        return torch.square(output), torch.squeeze(prediction)
 
     def predict(self, specharm:torch.Tensor):
         self.predAi.eval()
-        self.currPred, prediction = self.predAi(specharm)
+        self.currPred, prediction = self.predAi(torch.sqrt(specharm))
+        self.currPred = torch.square(self.currPred)
+        prediction = torch.square(prediction)
         return torch.squeeze(prediction)
 
     def reset(self) -> None:
@@ -523,7 +529,6 @@ class AIWrapper():
             for data in self.dataLoader(indata):
                 print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
                 data = torch.sqrt(data.to(device = self.device))
-                data = data.to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[0]
                 spectrum2 = data[1]
@@ -558,10 +563,10 @@ class AIWrapper():
                     debugOut = torch.cat((debugOut, torch.cat((output[:int(global_consts.nHarmonics / 2 + 1)], torch.zeros(int(global_consts.nHarmonics / 2 + 1)), output[int(global_consts.nHarmonics / 2 + 1):]), 0).unsqueeze(1)), 1)
 
                     print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))
-                debugOut = torch.cat((debugOut, spectrum3.unsqueeze(1), spectrum4.unsqueeze(1)), 1)
-                #import matplotlib.pyplot as plt
-                #plt.imshow(debugOut.detach())
-                #plt.show()
+                debugOut = torch.cat((debugOut, spectrum3.unsqueeze(1), spectrum4.unsqueeze(1), data.transpose(0, 1)), 1)
+                import matplotlib.pyplot as plt
+                plt.imshow(debugOut.detach())
+                plt.show()
             if writer != None:
                 writer.add_scalar("loss", loss.data)
             self.crfAi.sampleCount += len(indata)
@@ -592,7 +597,7 @@ class AIWrapper():
         reportedLoss = 0.
         for epoch in range(epochs):
             for data in self.dataLoader(indata):
-                data = torch.squeeze(data)
+                data = torch.sqrt(torch.squeeze(data))
                 self.reset()
                 self.prefetch(data[0])
                 input = data[:-1]
