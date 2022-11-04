@@ -378,7 +378,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         for k in range(currentSpectrum.size()[0]):
                             aiSpec = torch.squeeze(voicebank.ai.predict(currentSpectrum[max(k - 1, 0)]))
                             aiSpec = (0.5 - 0.5 * internalInputs.aiBalance[windowStart + k]) * currentSpectrum[k] + (0.5 + 0.5 * internalInputs.aiBalance[windowStart + k]) * torch.cat((aiSpec[:int(global_consts.nHarmonics / 2) + 1], currentSpectrum[k, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], aiSpec[int(global_consts.nHarmonics / 2) + 1:]), 0)
-                            aiSpec, previousShift = pitchAdjust(aiSpec, j,  windowStart + k, internalInputs, voicebank, previousShift)
+                            #aiSpec, previousShift = pitchAdjust(aiSpec, j,  windowStart + k, internalInputs, voicebank, previousShift)
                             spectrum.write(aiSpec, windowStart + k)
                         excitation.write(currentExcitation, windowStartEx, windowEndEx)
 
