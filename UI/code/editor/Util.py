@@ -30,7 +30,9 @@ class ImageButton(ButtonBehavior, Image):
             self.color = (1., 1., 1., 1.)
 
     def on_press(self) -> None:
-        self.color = fullRoot(self).accColor
+        root = fullRoot(self)
+        if "accColor" in root.__dict__.keys():
+            self.color = root.accColor
         if self.function != None:
             self.function()
 
@@ -48,7 +50,9 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
 
     def on_mouseover(self, window, pos):
         if self.state == 'down':
-            self.color = fullRoot(self).accColor
+            root = fullRoot(self)
+            if "accColor" in root.__dict__.keys():
+                self.color = root.accColor
         elif self.collide_point(*pos):
             self.color = (0.5, 0.5, 0.5, 1.)
         else:
