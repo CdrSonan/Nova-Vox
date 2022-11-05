@@ -105,6 +105,11 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
     return audioSample
 
 def averageSpectra(audioSample:AudioSample, useVariance:bool = True) -> AudioSample:
+    nativePitch = math.ceil(global_consts.tripleBatchSize / audioSample.pitch)
+    inputSpectrum = audioSample.specharm[:, global_consts.nHarmonics + 2:]
+    originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * global_consts.tripleBatchSize / audioSample.pitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
+    audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1] /= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), torch.square(inputSpectrum), originSpace)
+    
     audioSample.avgSpecharm = torch.mean(torch.cat((audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1], audioSample.specharm[:, global_consts.nHarmonics + 2:]), 1), 0)
     audioSample.specharm[:, global_consts.nHarmonics + 2:] -= audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]
     audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1] -= audioSample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1]

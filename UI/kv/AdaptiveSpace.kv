@@ -9,9 +9,9 @@
     on_height: self.redraw()
     Widget:
         size_hint: (None, None)
-        y: self.parent.y + 10# * fullRoot(root).uiScale
+        y: self.parent.y + 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.y + 10
         width: int(self.parent.xScale * self.parent.seqLength)
-        height: self.parent.height - 10# * fullRoot(root).uiScale
+        height: self.parent.height - 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.height - 10
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)
