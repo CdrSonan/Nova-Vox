@@ -137,8 +137,8 @@ class SpecCrfAi(nn.Module):
         spectrum4 = torch.unsqueeze(spectrum4, 1)
         spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
         limit = torch.max(spectra, dim = 1)[0]
-        x = torch.cat((torch.tile(spectra.flatten(), (1, outputSize)), factor), dim = 0)
-        x = x.float()
+        x = torch.cat((torch.tile(spectra.flatten().unsqueeze(1), (1, outputSize)), factor), dim = 0)
+        x = x.float().transpose(0, 1)
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
@@ -151,12 +151,12 @@ class SpecCrfAi(nn.Module):
         x = torch.minimum(x, limit)
 
         spectralFilterWidth = 4 * global_consts.filterTEEMult
-        x = torch.fft.rfft(x, dim = 0)
+        x = torch.fft.rfft(x, dim = 1)
         cutoffWindow = torch.zeros_like(x)
         cutoffWindow[0:int(spectralFilterWidth / 2)] = 1.
-        cutoffWindow[int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
-        x = torch.fft.irfft(cutoffWindow * x, dim = 0, n = global_consts.halfTripleBatchSize + 1)
-        x = self.threshold(x)
+        cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
+        x = torch.fft.irfft(cutoffWindow * x, dim = 1, n = global_consts.halfTripleBatchSize + 1)
+        x = self.threshold(x).transpose(0, 1)
         
         return x
 
@@ -186,15 +186,15 @@ class HarmCrfAi(nn.Module):
         self.sampleCount = 0
 
     def forward(self, harm1:torch.Tensor, harm2:torch.Tensor, harm3:torch.Tensor, harm4:torch.Tensor, outputSize:float) -> torch.Tensor:
-        factor = torch.tile(torch.unsqueeze(torch.linspace(0, 1, outputSize), 0), (global_consts.halfTripleBatchSize + 1, 1))
+        factor = torch.tile(torch.unsqueeze(torch.linspace(0, 1, outputSize), 0), (halfHarms, 1))
         harm1 = torch.unsqueeze(harm1, 1)
         harm2 = torch.unsqueeze(harm2, 1)
         harm3 = torch.unsqueeze(harm3, 1)
         harm4 = torch.unsqueeze(harm4, 1)
         harms = torch.cat((harm1, harm2, harm3, harm4), dim = 1)
 
-        x = torch.cat((torch.tile(harms.flatten(), (1, outputSize)), factor), dim = 0)
-        x = x.float()
+        x = torch.cat((torch.tile(harms.flatten().unsqueeze(1), (1, outputSize)), factor), dim = 0)
+        x = x.float().transpose(0, 1)
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
@@ -205,7 +205,7 @@ class HarmCrfAi(nn.Module):
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
 
-        return x
+        return x.transpose(0, 1)
 
 class RelLoss(nn.Module):
     """function for calculating relative loss values between target and actual Tensor objects. Designed to be used with AI optimizers. Currently unused.
@@ -537,10 +537,14 @@ class AIWrapper():
                 print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
                 data = data.to(device = self.device)
                 data = torch.squeeze(data)
-                spectrum1 = data[2]#0]
-                spectrum2 = data[3]#1]
-                spectrum3 = data[-2]
-                spectrum4 = data[-1]
+                spectrum1 = data[2, 2 * halfHarms:]
+                spectrum2 = data[3, 2 * halfHarms:]
+                spectrum3 = data[-2, 2 * halfHarms:]
+                spectrum4 = data[-1, 2 * halfHarms:]
+                harm1 = data[-2, :halfHarms]
+                harm2 = data[-3, :halfHarms]
+                harm3 = data[-2, :halfHarms]
+                harm4 = data[-1, :halfHarms]
 
                 debugOut = torch.cat((spectrum1.unsqueeze(1), spectrum2.unsqueeze(1)), 1)
                 
@@ -564,31 +568,18 @@ class AIWrapper():
 
                     print('epoch [{}/{}], sub-sample index {}, loss:{:.4f}'.format(epoch + 1, epochs, i, loss.data))"""
                 outputSize = data.size()[0] - 2
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize)
+                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize).transpose(0, 1)
                 target = data[2:, 2 * halfHarms:]
                 loss = self.criterion(nn.functional.log_softmax(output), target)
                 self.crfAiOptimizer.zero_grad()
                 loss.backward()
                 self.crfAiOptimizer.step()
-                harmOutput = self.crfAiHarm(spectrum1, spectrum2, spectrum3, spectrum4, outputSize)
-                target = data[2:, 2 * halfHarms:]
+                harmOutput = self.crfAiHarm(harm1, harm2, harm3, harm4, outputSize).transpose(0, 1)
+                target = data[2:, :halfHarms]
                 loss = self.criterion(nn.functional.log_softmax(harmOutput), target)
                 self.crfAiHarmOptimizer.zero_grad()
                 loss.backward()
                 self.crfAiHarmOptimizer.step()
-                debugOut = torch.cat((spectrum1.unsqueeze(1),
-                    spectrum2.unsqueeze(1),
-                    torch.cat((harmOutput, torch.zeros(int(global_consts.nHarmonics / 2 + 1)), output), 0).unsqueeze(1),
-                    spectrum3.unsqueeze(1),
-                    spectrum4.unsqueeze(1),
-                    spectrum1.unsqueeze(1),
-                    spectrum2.unsqueeze(1),
-                    data[2:].transpose(0, 1),
-                    spectrum3.unsqueeze(1),
-                    spectrum4.unsqueeze(1)), 1)
-                import matplotlib.pyplot as plt
-                plt.imshow(debugOut.detach())
-                plt.show()
             if writer != None:
                 writer.add_scalar("loss", loss.data)
             self.crfAi.sampleCount += len(indata)
