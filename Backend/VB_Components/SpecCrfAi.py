@@ -249,7 +249,7 @@ class RelLoss(nn.Module):
         out = (differences / refs).sum() / inputs.size()[0]
         return out
 
-class SpecPredAI(nn.Module):
+class SpecPredAi(nn.Module):
     """Class for providing additional time awareness to a spectral crossfade Ai.
     
     Methods:
@@ -274,14 +274,14 @@ class SpecPredAI(nn.Module):
 
         super().__init__()
         
-        self.layerStart1 = torch.nn.Linear(halfHarms, int(halfHarms / 2 + recSize / 2), device = device)
+        self.layerStart1 = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device)
         self.ReLuStart1 = nn.ReLU()
-        self.layerStart2 = torch.nn.Linear(int(halfHarms / 2 + recSize / 2), recSize, device = device)
+        self.layerStart2 = torch.nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device)
         self.ReLuStart2 = nn.ReLU()
         self.recurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05)
-        self.layerEnd1 = torch.nn.Linear(recSize, int(recSize / 2 + halfHarms / 2), device = device)
+        self.layerEnd1 = torch.nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device)
         self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(int(recSize / 2 + halfHarms / 2), halfHarms, device = device)
+        self.layerEnd2 = torch.nn.Linear(int(recSize / 2 + global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device)
         self.ReLuEnd2 = nn.ReLU()
 
         self.threshold = torch.nn.Threshold(0.001, 0.001)
@@ -294,19 +294,19 @@ class SpecPredAI(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
 
-        self.hiddenState = torch.zeros(recLayerCount, recSize)
-        self.cellState = torch.zeros(recLayerCount, recSize)
+        self.state = (torch.zeros(1, recLayerCount, recSize), torch.zeros(1, recLayerCount, recSize))
         
 
     def forward(self, spectrum:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next specharm in a sequence"""
 
-        x = spectrum.float().transpose(0, 1)
+        x = spectrum.float()
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
         x = self.ReLuStart2(x)
-        x = self.recurrentLayers(x.unsqueeze(0)).squeeze()
+        x, self.state = self.recurrentLayers(x.unsqueeze(0), self.state)
+        x = x.squeeze()
         x = self.layerEnd1(x)
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
@@ -318,15 +318,14 @@ class SpecPredAI(nn.Module):
         cutoffWindow[:, 0:int(spectralFilterWidth / 2)] = 1.
         cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
         x = torch.fft.irfft(cutoffWindow * x, dim = 1, n = global_consts.halfTripleBatchSize + 1)
-        x = self.threshold(x).transpose(0, 1)
+        x = self.threshold(x)
 
         return x
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        self.hiddenState = torch.zeros(self.recLayerCount, self.recSize)
-        self.cellState = torch.zeros(self.recLayerCount, self.recSize)
+        self.state = (torch.zeros(1, self.recLayerCount, self.recSize), torch.zeros(1, self.recLayerCount, self.recSize))
 
 
 class HarmPredAi(nn.Module):
@@ -351,28 +350,27 @@ class HarmPredAi(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
 
-        self.hiddenState = torch.zeros(recLayerCount, recSize)
-        self.cellState = torch.zeros(recLayerCount, recSize)
+        self.state = (torch.zeros(1, recLayerCount, recSize), torch.zeros(1, recLayerCount, recSize))
 
     def forward(self, harm:torch.Tensor) -> torch.Tensor:
-        x = harm.float().transpose(0, 1)
+        x = harm.float()
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
         x = self.ReLuStart2(x)
-        x = self.recurrentLayers(x.unsqueeze(0)).squeeze()
+        x, self.state = self.recurrentLayers(x.unsqueeze(0), self.state)
+        x = x.squeeze()
         x = self.layerEnd1(x)
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
 
-        return x.transpose(0, 1)
+        return x
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        self.hiddenState = torch.zeros(self.recLayerCount, self.recSize)
-        self.cellState = torch.zeros(self.recLayerCount, self.recSize)
+        self.state = (torch.zeros(1, self.recLayerCount, self.recSize), torch.zeros(1, self.recLayerCount, self.recSize))
 
 
 class AIWrapper():
@@ -391,8 +389,8 @@ class AIWrapper():
                 self.hparams[i] = hparams[i]
         self.crfAi = SpecCrfAi(device = device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
         self.crfAiHarm = HarmCrfAi(device = device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
-        self.predAi = SpecPredAI(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
-        self.predAiHarm = SpecPredAI(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
+        self.predAi = SpecPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
+        self.predAiHarm = HarmPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
         self.device = device
         self.final = False
         self.crfAiOptimizer = torch.optim.Adam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
@@ -473,8 +471,8 @@ class AIWrapper():
                 self.crfAiHarmOptimizer.load_state_dict(aiState['crfAiHarm_optimizer_state_dict'])
         if (mode == None) or (mode == "pred"):
             if reset:
-                self.predAi = SpecPredAI(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
-                self.predAiHarm = SpecPredAI(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
+                self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
+                self.predAiHarm = HarmPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
                 if self.final:
                     self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
                     self.predAiHarmOptimizer = torch.optim.Adam(self.predAiHarm.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)

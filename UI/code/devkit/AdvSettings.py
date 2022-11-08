@@ -5,7 +5,7 @@ import sys
 
 import torch
 
-from Backend.VB_Components.SpecCrfAi import SpecCrfAi, SpecPredAI
+from Backend.VB_Components.SpecCrfAi import SpecCrfAi, SpecPredAi
 from Locale.devkit_locale import getLocale
 loc = getLocale()
 
@@ -154,7 +154,7 @@ class AdvSettingsUi(tkinter.Frame):
             loadedVB.ai.crfAi = SpecCrfAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["crf_lr"], regularization=loadedVB.ai.hparams["crf_reg"], hiddenLayerCount=loadedVB.ai.hparams["crf_hlc"], hiddenLayerSize=loadedVB.ai.hparams["crf_hls"])
         if resetPred:
             loadedVB.ai.hparams["pred_rs"] = hparams["pred_rs"]
-            loadedVB.ai.predAi = SpecPredAI(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["pred_lr"], regularization=loadedVB.ai.hparams["pred_reg"], recSize=loadedVB.ai.hparams["rs"])
+            loadedVB.ai.predAi = SpecPredAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["pred_lr"], regularization=loadedVB.ai.hparams["pred_reg"], recSize=loadedVB.ai.hparams["rs"])
         if resetCrfOptim:
             loadedVB.ai.hparams["crf_lr"] = hparams["crf_lr"]
             loadedVB.ai.hparams["crf_reg"] = hparams["crf_reg"]
