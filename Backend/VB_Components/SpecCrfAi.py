@@ -269,7 +269,7 @@ class SpecPredAi(nn.Module):
     learning, rather than an estimated specharm."""
 
 
-    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=1, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
+    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
         """basic constructor accepting the learning rate hyperparameter as input"""
 
         super().__init__()
@@ -294,7 +294,7 @@ class SpecPredAi(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
 
-        self.state = (torch.zeros(1, recLayerCount, recSize), torch.zeros(1, recLayerCount, recSize))
+        self.state = (torch.zeros(recLayerCount, 1, recSize), torch.zeros(recLayerCount, 1, recSize))
         
 
     def forward(self, spectrum:torch.Tensor) -> torch.Tensor:
@@ -325,11 +325,11 @@ class SpecPredAi(nn.Module):
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        self.state = (torch.zeros(1, self.recLayerCount, self.recSize), torch.zeros(1, self.recLayerCount, self.recSize))
+        self.state = (torch.zeros(self.recLayerCount, 1, self.recSize), torch.zeros(self.recLayerCount, 1, self.recSize))
 
 
 class HarmPredAi(nn.Module):
-    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=1, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
+    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
         super().__init__()
 
         self.layerStart1 = torch.nn.Linear(halfHarms, int(halfHarms / 2 + recSize / 2), device = device)
@@ -620,10 +620,10 @@ class AIWrapper():
                 self.crfAiHarmOptimizer.zero_grad()
                 loss.backward()
                 self.crfAiHarmOptimizer.step()
-                debugOut = torch.cat((torch.cat((output, target), 0), torch.cat((harmOutput, harmTarget), 0)), 1)
-                import matplotlib.pyplot as plt
-                plt.imshow(debugOut.detach())
-                plt.show()
+                #debugOut = torch.cat((torch.cat((output, target), 0), torch.cat((harmOutput, harmTarget), 0)), 1)
+                #import matplotlib.pyplot as plt
+                #plt.imshow(debugOut.detach())
+                #plt.show()
             if writer != None:
                 writer.add_scalar("loss", loss.data)
             self.crfAi.sampleCount += len(indata)
