@@ -150,7 +150,7 @@ class SpecCrfAi(nn.Module):
         x = self.ReLuEnd2(x)
         x = torch.minimum(x, limit)
 
-        spectralFilterWidth = 2 * global_consts.filterTEEMult
+        spectralFilterWidth = 3 * global_consts.filterTEEMult
         x = torch.fft.rfft(x, dim = 1)
         cutoffWindow = torch.zeros_like(x)
         cutoffWindow[:, 0:int(spectralFilterWidth / 2)] = 1.
@@ -350,7 +350,7 @@ class HarmPredAi(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
 
-        self.state = (torch.zeros(1, recLayerCount, recSize), torch.zeros(1, recLayerCount, recSize))
+        self.state = (torch.zeros(recLayerCount, 1, recSize), torch.zeros(recLayerCount, 1, recSize))
 
     def forward(self, harm:torch.Tensor) -> torch.Tensor:
         x = harm.float()
@@ -370,16 +370,16 @@ class HarmPredAi(nn.Module):
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        self.state = (torch.zeros(1, self.recLayerCount, self.recSize), torch.zeros(1, self.recLayerCount, self.recSize))
+        self.state = (torch.zeros(self.recLayerCount, 1, self.recSize), torch.zeros(self.recLayerCount, 1, self.recSize))
 
 
 class AIWrapper():
     def __init__(self, device = torch.device("cpu"), hparams:dict = None) -> None:
         self.hparams = {
             "crf_lr": 0.00005,
-            "crf_reg": 0.,
+            "crf_reg": 0.001,
             "crf_hlc": 3,
-            "crf_hls": 512,
+            "crf_hls": 256,
             "pred_lr": 0.001,
             "pred_reg": 0.,
             "pred_rs": 512
@@ -479,7 +479,7 @@ class AIWrapper():
             self.predAi.epoch = aiState["predAi_epoch"]
             self.predAi.sampleCount = aiState["predAi_sampleCount"]
             self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
-            self.predAiHarm.load_state_dict(aiState['predAi_model_state_dict'])
+            self.predAiHarm.load_state_dict(aiState['predAiHarm_model_state_dict'])
             if self.final:
                 self.predAiOptimizer.load_state_dict(aiState['predAi_optimizer_state_dict'])
                 self.predAiHarmOptimizer.load_state_dict(aiState['predAiHarm_optimizer_state_dict'])
@@ -516,11 +516,11 @@ class AIWrapper():
         harm2 = specharm2[:halfHarms]
         harm3 = specharm3[:halfHarms]
         harm4 = specharm4[:halfHarms]
-        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize))
+        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize)).transpose(0, 1)
         phases = torch.empty(outputSize, phase1.size()[0])
         for i in range(outputSize):
             phases[i] = phaseInterp(phaseInterp(phase1, phase2, 0.5), phaseInterp(phase3, phase4, 0.5), i / (outputSize - 1))
-        harms = torch.squeeze(self.crfAiHarm(harm1, harm2, harm3, harm4, outputSize))
+        harms = torch.squeeze(self.crfAiHarm(harm1, harm2, harm3, harm4, outputSize)).transpose(0, 1)
         output = torch.cat((harms, phases, spectrum), 1)
         predSpectrum = self.predAi(spectrum)
         predHarms = self.predAiHarm(harms)
@@ -529,6 +529,8 @@ class AIWrapper():
 
     def predict(self, specharm:torch.Tensor):
         self.predAi.eval()
+        if specharm.dim() == 1:
+            specharm = specharm.unsqueeze(0)
         phases = specharm[:, halfHarms:2 * halfHarms]
         spectrum = specharm[:, 2 * halfHarms:]
         harms = specharm[:, :halfHarms]
@@ -574,7 +576,6 @@ class AIWrapper():
         reportedLoss = 0.
         for epoch in range(epochs):
             for data in self.dataLoader(indata):
-                print('epoch [{}/{}], switching to next sample'.format(epoch + 1, epochs))
                 data = data.to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
@@ -585,8 +586,6 @@ class AIWrapper():
                 harm2 = data[-3, :halfHarms]
                 harm3 = data[-2, :halfHarms]
                 harm4 = data[-1, :halfHarms]
-
-                debugOut = torch.cat((spectrum1.unsqueeze(1), spectrum2.unsqueeze(1)), 1)
                 
                 #self.reset()
                 #self.prefetch(data[0])
@@ -620,10 +619,11 @@ class AIWrapper():
                 self.crfAiHarmOptimizer.zero_grad()
                 loss.backward()
                 self.crfAiHarmOptimizer.step()
-                #debugOut = torch.cat((torch.cat((output, target), 0), torch.cat((harmOutput, harmTarget), 0)), 1)
-                #import matplotlib.pyplot as plt
-                #plt.imshow(debugOut.detach())
-                #plt.show()
+                debugOut = torch.cat((torch.cat((output, target), 0), torch.cat((harmOutput, harmTarget), 0)), 1)
+                import matplotlib.pyplot as plt
+                plt.imshow(debugOut.detach())
+                plt.show()
+                print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
             if writer != None:
                 writer.add_scalar("loss", loss.data)
             self.crfAi.sampleCount += len(indata)

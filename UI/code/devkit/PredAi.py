@@ -132,11 +132,11 @@ class PredaiUi(tkinter.Frame):
         self.sideBar.tensorBoardButton["command"] = lambda : system("start tensorboard.exe --logdir " + path.join(readSettings()["dataDir"], "Nova-Vox", "Logs"))
         self.sideBar.tensorBoardButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        if loadedVB.ai.crfAi.epoch == None:
+        if loadedVB.ai.predAi.epoch == None:
             epoch = loc["varying"]
         else:
-            epoch = str(loadedVB.ai.crfAi.epoch)
-        self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])
+            epoch = str(loadedVB.ai.predAi.epoch)
+        self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.predAi.sampleCount) + loc["AI_stat_3"])
         self.statusLabel = tkinter.Label(self, textvariable = self.statusVar)
         self.statusLabel.pack(side = "top", fill = "x", expand = True, padx = 5)
 
@@ -263,4 +263,4 @@ class PredaiUi(tkinter.Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.loadPredWeights(filepath)
-            self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])
+            self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.predAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.predAi.sampleCount) + loc["AI_stat_3"])
