@@ -24,14 +24,14 @@ class ImageButton(ButtonBehavior, Image):
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
-        if self.collide_point(*pos):
+        if self.collide_point(*self.to_widget(*pos)):
             self.color = (0.5, 0.5, 0.5, 1.)
         else:
             self.color = (1., 1., 1., 1.)
 
     def on_press(self) -> None:
         root = fullRoot(self)
-        if "accColor" in root.__dict__.keys():
+        if "accColor" in dir(root):
             self.color = root.accColor
         if self.function != None:
             self.function()
@@ -51,9 +51,9 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
     def on_mouseover(self, window, pos):
         if self.state == 'down':
             root = fullRoot(self)
-            if "accColor" in root.__dict__.keys():
+            if "accColor" in dir(root):
                 self.color = root.accColor
-        elif self.collide_point(*pos):
+        elif self.collide_point(*self.to_widget(*pos)):
             self.color = (0.5, 0.5, 0.5, 1.)
         else:
             self.color = (1., 1., 1., 1.)
@@ -74,14 +74,14 @@ class ManagedButton(Button):
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
-        if self.collide_point(*pos):
+        if self.collide_point(*self.to_widget(*pos)):
             self.background_color = (0.5, 0.5, 0.5, 1.)
         else:
             self.background_color = (1., 1., 1., 1.)
 
     def on_press(self) -> None:
         root = fullRoot(self)
-        if "accColor" in root.__dict__.keys():
+        if "accColor" in dir(root):
             self.background_color = root.accColor
         if self.function != None:
             self.function()
@@ -100,9 +100,9 @@ class ManagedToggleButton(ToggleButton):
     def on_mouseover(self, window, pos):
         if self.state == 'down':
             root = fullRoot(self)
-            if "accColor" in root.__dict__.keys():
+            if "accColor" in dir(root):
                 self.background_color = root.accColor
-        elif self.collide_point(*pos):
+        elif self.collide_point(*self.to_widget(*pos)):
             self.background_color = (0.5, 0.5, 0.5, 1.)
         else:
             self.background_color = (1., 1., 1., 1.)
