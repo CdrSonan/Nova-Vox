@@ -228,14 +228,25 @@
                                 option_cls: Factory.get("ManagedSpinnerOptn")
                                 text: "4/4"
                                 values: ["4/4", "3/4", "2/4", "6/8", "1/1"]
-                                on_text: root.ids["pianoRoll"].updateTempo(self.text, root.ids["tempoSelector"].text)
+                                on_text: root.ids["pianoRoll"].updateTempo(self.text, root.ids["tempoSelector"].text, root.ids["quantSelector"].text)
                             NumberInput:
                                 id: tempoSelector
                                 pos: (self.parent.x + self.parent.width - 240 * root.uiScale, self.parent.y)
                                 size_hint: (None, None)
                                 size: (120 * root.uiScale, 40 * root.uiScale)
                                 text: "120"
-                                on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, self.text)
+                                on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, self.text, root.ids["quantSelector"].text)
+                            Spinner:
+                                id: quantSelector
+                                sync_height: True
+                                background_normal: "UI/assets/Toolbar/Adaptive07new.png"
+                                pos: (self.parent.x + self.parent.width - 360 * root.uiScale, self.parent.y)
+                                size_hint: (None, None)
+                                size: (120 * root.uiScale, 40 * root.uiScale)
+                                option_cls: Factory.get("ManagedSpinnerOptn")
+                                text: "Q: off"
+                                values: ["Q: 1/1", "Q: 1/2", "Q: 1/4", "Q: 1/8", "Q: 1/16", "Q: 1/32", "Q: off"]
+                                on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, root.ids["tempoSelector"].text, self.text)
                         PianoRoll:
                             x: self.parent.x
                             y: self.parent.y + 40 * root.uiScale
