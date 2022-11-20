@@ -50,7 +50,7 @@ class Note(ToggleButton):
         if self.parent.parent.quantization == None:
             xOut = x
         else:
-            xOut = int(x / self.parent.parent.xScale / self.parent.parent.quantization + 0.5) * self.xScale
+            xOut = int(x / self.parent.parent.xScale / self.parent.parent.quantization + 0.5) * self.parent.parent.xScale
         if y == None:
             return xOut
         return (xOut, y)
@@ -248,7 +248,7 @@ class PianoRoll(ScrollView):
         if self.quantization == None:
             xOut = x
         else:
-            xOut = int(x / self.xScale / self.quantization + 0.5) * self.xScale * self.quantization
+            xOut = int(int(x / self.xScale / self.quantization + 0.5) * self.xScale * self.quantization)
         print("quantize", x, xOut, self.tempo, self.quantization)
         if y == None:
             return xOut
