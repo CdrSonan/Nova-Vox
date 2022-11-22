@@ -92,9 +92,12 @@ class SpecCrfAi(nn.Module):
             
             
         super(SpecCrfAi, self).__init__()
-        self.layerStart1 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, int(3 * global_consts.halfTripleBatchSize + 3 + hiddenLayerSize / 2), device = device)
+        self.layerStart1a = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, nonlinearity = "relu", batch_first = True, device = device)
+        self.layerStart1b = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, nonlinearity = "relu", batch_first = True, device = device)
         self.ReLuStart1 = nn.ReLU()
-        self.layerStart2 = torch.nn.Linear(int(3 * global_consts.halfTripleBatchSize + 3 + hiddenLayerSize / 2), hiddenLayerSize, device = device)
+        #self.layerStart2 = nn.Conv1d(5, 5, 1)#torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, int(3 * global_consts.halfTripleBatchSize + 3 + hiddenLayerSize / 2), device = device)
+        #self.layerStart2 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, hiddenLayerSize, device = device)
+        self.layerStart2 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 4, hiddenLayerSize, device = device, bias = False)
         self.ReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
@@ -130,21 +133,30 @@ class SpecCrfAi(nn.Module):
             
         When performing forward NN runs, it is strongly recommended to use processData() instead of this method."""
 
-        factor = torch.tile(torch.unsqueeze(torch.linspace(0, 1, outputSize, device = self.device), 0), (global_consts.halfTripleBatchSize + 1, 1))
-        spectrum1 = torch.unsqueeze(spectrum1.to(self.device), 1)
-        spectrum2 = torch.unsqueeze(spectrum2.to(self.device), 1)
-        spectrum3 = torch.unsqueeze(spectrum3.to(self.device), 1)
-        spectrum4 = torch.unsqueeze(spectrum4.to(self.device), 1)
-        spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 1)
-        limit = torch.max(spectra, dim = 1)[0]
-        spectrum1 = torch.tile(spectrum1, (1, outputSize)) * (1. - factor)
-        spectrum2 = torch.tile(spectrum2, (1, outputSize)) * (1. - factor)
-        spectrum3 = torch.tile(spectrum3, (1, outputSize)) * factor
-        spectrum4 = torch.tile(spectrum4, (1, outputSize)) * factor
-        #x = torch.cat((torch.tile(spectra.flatten().unsqueeze(1), (1, outputSize)), factor), dim = 0)
-        x = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4, factor), dim = 0)
-        x = x.float().transpose(0, 1)
-        x = self.layerStart1(x)
+        factor = torch.tile(torch.linspace(0, 1, outputSize, device = self.device).unsqueeze(-1).unsqueeze(-1), (1, 1, global_consts.halfTripleBatchSize + 1))
+        spectrum1 = torch.unsqueeze(spectrum1.to(self.device), 0)
+        spectrum2 = torch.unsqueeze(spectrum2.to(self.device), 0)
+        spectrum3 = torch.unsqueeze(spectrum3.to(self.device), 0)
+        spectrum4 = torch.unsqueeze(spectrum4.to(self.device), 0)
+        spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 0)
+        limit = torch.max(spectra, dim = 0)[0]
+        spectrum1tile = torch.tile(spectrum1.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
+        spectrum2tile = torch.tile(spectrum2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
+        spectrum3tile = torch.tile(spectrum3.unsqueeze(0), (outputSize, 1, 1)) * factor
+        spectrum4tile = torch.tile(spectrum4.unsqueeze(0), (outputSize, 1, 1)) * factor#outputSize, 5, hTBS
+        x = torch.cat((spectrum3tile, spectrum4tile, factor), dim = 1)
+        x = x.float()
+        x = torch.flatten(x, 1)
+        x = x.unsqueeze(0)
+        state = torch.flatten(torch.cat((spectrum1, spectrum2), 1), 1).unsqueeze(0)
+        x, state = self.layerStart1a(x, state)
+        y = torch.cat((spectrum1tile, spectrum2tile, 1. - factor), dim = 1)
+        y = y.float()
+        y = torch.flatten(y, 1)
+        y = y.unsqueeze(0)
+        state = torch.flatten(torch.cat((spectrum3, spectrum4), 1), 1).unsqueeze(0)
+        y, state = self.layerStart1b(y, state)
+        x = torch.squeeze(torch.cat((x, y), 2))
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
         x = self.ReLuStart2(x)
@@ -155,12 +167,12 @@ class SpecCrfAi(nn.Module):
         x = self.ReLuEnd2(x)
         x = torch.minimum(x, limit)
 
-        spectralFilterWidth = 4 * global_consts.filterTEEMult
+        """spectralFilterWidth = 3 * global_consts.filterTEEMult
         x = torch.fft.rfft(x, dim = 1)
         cutoffWindow = torch.zeros_like(x)
         cutoffWindow[:, 0:int(spectralFilterWidth / 2)] = 1.
         cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
-        x = torch.fft.irfft(cutoffWindow * x, dim = 1, n = global_consts.halfTripleBatchSize + 1)
+        x = torch.fft.irfft(cutoffWindow * x, dim = 1, n = global_consts.halfTripleBatchSize + 1)"""
         x = self.threshold(x).transpose(0, 1)
         
         return x
@@ -250,8 +262,8 @@ class RelLoss(nn.Module):
             Relative error value calculated from the difference between input and target Tensor as Float"""
         
         differences = torch.abs(inputs - targets)
-        refs = torch.abs(targets)
-        out = (differences / refs).sum() / inputs.size()[0]
+        correctors = targets / (inputs + 0.01) - 1
+        out = torch.mean(torch.max(differences, correctors))
         return out
 
 class SpecPredAi(nn.Module):
@@ -411,7 +423,7 @@ class AIWrapper():
         self.crfAiHarmOptimizer = torch.optim.Adam(self.crfAiHarm.parameters(), lr=self.crfAiHarm.learningRate, weight_decay=self.crfAiHarm.regularization)
         self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
         self.predAiHarmOptimizer = torch.optim.Adam(self.predAiHarm.parameters(), lr=self.predAiHarm.learningRate, weight_decay=self.predAiHarm.regularization)
-        self.criterion = nn.L1Loss()
+        self.criterion = RelLoss()#nn.L1Loss()
     
     @staticmethod
     def dataLoader(data) -> DataLoader:
