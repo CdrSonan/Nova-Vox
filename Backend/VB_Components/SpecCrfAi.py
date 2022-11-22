@@ -180,9 +180,11 @@ class SpecCrfAi(nn.Module):
 class HarmCrfAi(nn.Module):
     def __init__(self, device:torch.device = None, learningRate:float=5e-5, hiddenLayerCount:int = 3, hiddenLayerSize:int = 4 * (global_consts.halfTripleBatchSize + halfHarms), regularization:float=1e-5) -> None:
         super().__init__()
-        self.layerStart1 = torch.nn.Linear(5 * halfHarms, int(3 * halfHarms + hiddenLayerSize / 2), device = device)
+        #self.layerStart1 = torch.nn.Linear(5 * halfHarms, int(3 * halfHarms + hiddenLayerSize / 2), device = device)
+        self.layerStart1a = nn.RNN(input_size = 3 * halfHarms, hidden_size = 2 * halfHarms, num_layers = 1, nonlinearity = "relu", batch_first = True, device = device)
+        self.layerStart1b = nn.RNN(input_size = 3 * halfHarms, hidden_size = 2 * halfHarms, num_layers = 1, nonlinearity = "relu", batch_first = True, device = device)
         self.ReLuStart1 = nn.ReLU()
-        self.layerStart2 = torch.nn.Linear(int(3 * halfHarms + hiddenLayerSize / 2), hiddenLayerSize, device = device)
+        self.layerStart2 = torch.nn.Linear(4 * halfHarms, hiddenLayerSize, device = device, bias = False)
         self.ReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
@@ -203,16 +205,30 @@ class HarmCrfAi(nn.Module):
         self.sampleCount = 0
 
     def forward(self, harm1:torch.Tensor, harm2:torch.Tensor, harm3:torch.Tensor, harm4:torch.Tensor, outputSize:float) -> torch.Tensor:
-        factor = torch.tile(torch.unsqueeze(torch.linspace(0, 1, outputSize, device = self.device), 0), (halfHarms, 1))
-        harm1 = torch.unsqueeze(harm1.to(self.device), 1)
-        harm2 = torch.unsqueeze(harm2.to(self.device), 1)
-        harm3 = torch.unsqueeze(harm3.to(self.device), 1)
-        harm4 = torch.unsqueeze(harm4.to(self.device), 1)
-        harms = torch.cat((harm1, harm2, harm3, harm4), dim = 1)
-
-        x = torch.cat((torch.tile(harms.flatten().unsqueeze(1), (1, outputSize)), factor), dim = 0)
-        x = x.float().transpose(0, 1)
-        x = self.layerStart1(x)
+        factor = torch.tile(torch.linspace(0, 1, outputSize, device = self.device).unsqueeze(-1).unsqueeze(-1), (1, 1, halfHarms))
+        harm1 = torch.unsqueeze(harm1.to(self.device), 0)
+        harm2 = torch.unsqueeze(harm2.to(self.device), 0)
+        harm3 = torch.unsqueeze(harm3.to(self.device), 0)
+        harm4 = torch.unsqueeze(harm4.to(self.device), 0)
+        harms = torch.cat((harm1, harm2, harm3, harm4), dim = 0)
+        limit = torch.max(harms, dim = 0)[0]
+        harm1tile = torch.tile(harm1.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
+        harm2tile = torch.tile(harm2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
+        harm3tile = torch.tile(harm3.unsqueeze(0), (outputSize, 1, 1)) * factor
+        harm4tile = torch.tile(harm4.unsqueeze(0), (outputSize, 1, 1)) * factor#outputSize, 5, hTBS
+        x = torch.cat((harm3tile, harm4tile, factor), dim = 1)
+        x = x.float()
+        x = torch.flatten(x, 1)
+        x = x.unsqueeze(0)
+        state = torch.flatten(torch.cat((harm1, harm2), 1), 1).unsqueeze(0)
+        x, state = self.layerStart1a(x, state)
+        y = torch.cat((harm1tile, harm2tile, 1. - factor), dim = 1)
+        y = y.float()
+        y = torch.flatten(y, 1)
+        y = y.unsqueeze(0)
+        state = torch.flatten(torch.cat((harm3, harm4), 1), 1).unsqueeze(0)
+        y, state = self.layerStart1b(y, state)
+        x = torch.squeeze(torch.cat((x, y), 2))
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
         x = self.ReLuStart2(x)
@@ -221,7 +237,7 @@ class HarmCrfAi(nn.Module):
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
-
+        x = torch.minimum(x, limit)
         return x.transpose(0, 1)
 
 class RelLoss(nn.Module):
@@ -396,7 +412,7 @@ class AIWrapper():
             "crf_lr": 0.000055,
             "crf_reg": 0.,
             "crf_hlc": 1,
-            "crf_hls": 4000,
+            "crf_hls": 3000,
             "crfh_lr": 0.0001,
             "crfh_reg": 0.,
             "crfh_hlc": 2,
@@ -405,7 +421,7 @@ class AIWrapper():
             "pred_reg": 0.,
             "pred_rlc": 3,
             "pred_rs": 512,
-            "predh_lr": 0.001,
+            "predh_lr": 0.0005,
             "predh_reg": 0.,
             "predh_rlc": 3,
             "predh_rs": 512
