@@ -9,6 +9,7 @@ from torch.utils.data.dataloader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import global_consts
 from Backend.Resampler.PhaseShift import phaseInterp
+from Backend.Resampler.CubicSplineInter import interp
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 
@@ -528,7 +529,7 @@ class AIWrapper():
         self.crfAi.eval()
         self.predAi.eval()
 
-    def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, outputSize:int) -> torch.Tensor:
+    def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor) -> torch.Tensor:
         """forward NN pass with data pre- and postprocessing as expected by other classes
         
         Arguments:
@@ -542,7 +543,6 @@ class AIWrapper():
             
         Other than when using forward() directly, this method sets the NN to evaluation mode, applies a square root function to the input and squares the output to
         improve overall performance, especially on the skewed datasets of vocal spectra."""
-        
         
         self.crfAi.eval()
         self.predAi.eval()
@@ -559,13 +559,34 @@ class AIWrapper():
         harm3 = specharm3[:halfHarms]
         harm4 = specharm4[:halfHarms]
         spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize)).transpose(0, 1)
+        borderRange = torch.zeros((outputSize,), device = self.device)
+        borderLimit = min(global_consts.crfBorderAbs, outputSize * global_consts.crfBorderRel)
+        borderRange[:borderLimit] = torch.linspace(1, 0, borderLimit)
+        spectrum *= (1. - borderRange)
+        spectrum += torch.matmul(borderRange.unsqueeze(1), ((spectrum1 + spectrum2) / 2).unsqueeze(0))
+        borderRange = torch.flip(borderRange, (0,))
+        spectrum *= (1. - borderRange)
+        spectrum += torch.matmul(borderRange.unsqueeze(1), ((spectrum3 + spectrum4) / 2).unsqueeze(0))
         import matplotlib.pyplot as plt
         plt.imshow(torch.cat((spectrum1.unsqueeze(0), spectrum2.unsqueeze(0), spectrum, spectrum3.unsqueeze(0), spectrum4.unsqueeze(0)), 0).detach())
         plt.show()
         phases = torch.empty(outputSize, phase1.size()[0])
+        nativePitch = math.ceil(global_consts.tripleBatchSize / pitchCurve[0])
+        originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
+        factors = interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), (spectrum1 + spectrum2) / 2, originSpace)
+        harmsStart = (harm1 + harm2) * 0.5 / factors
+        nativePitch = math.ceil(global_consts.tripleBatchSize / pitchCurve[-1])
+        originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
+        factors = interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), (spectrum3 + spectrum4) / 2, originSpace)
+        harmsEnd = (harm3 + harm4) * 0.5 / factors
+        harms = torch.empty((outputSize, halfHarms), device = self.device)
         for i in range(outputSize):
             phases[i] = phaseInterp(phaseInterp(phase1, phase2, 0.5), phaseInterp(phase3, phase4, 0.5), i / (outputSize - 1))
-        harms = torch.squeeze(self.crfAiHarm(harm1, harm2, harm3, harm4, outputSize)).transpose(0, 1)
+            nativePitch = math.ceil(global_consts.tripleBatchSize / pitchCurve[-1])
+            originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
+            factors = interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), spectrum[i] / 2, originSpace)
+            harms[i] = ((1. - (i + 1) / (outputSize + 1)) * harmsStart + (i + 1) / (outputSize + 1) * harmsEnd) * factors
+        #harms = torch.squeeze(self.crfAiHarm(harm1, harm2, harm3, harm4, outputSize)).transpose(0, 1)
         output = torch.cat((harms, phases, spectrum), 1)
         predSpectrum = self.predAi(spectrum)
         predHarms = self.predAiHarm(harms)

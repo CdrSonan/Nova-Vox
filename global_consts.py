@@ -29,6 +29,8 @@ spectralRolloff1 = 144
 spectralRolloff2 = 192
 pitchShiftSpectralRolloff = 10
 breCompPremul = 0.6
+crfBorderAbs = 7
+crfBorderRel = 0.1
 
 #audio pipeline
 audioBufferSize = 2048
