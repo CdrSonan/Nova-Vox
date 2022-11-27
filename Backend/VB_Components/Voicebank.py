@@ -2,7 +2,7 @@ import logging
 import torch
 
 from Backend.VB_Components.VbMetadata import VbMetadata
-from Backend.VB_Components.SpecCrfAi import AIWrapper, SpecCrfAi, HarmCrfAi, SpecPredAi, HarmPredAi
+from Backend.VB_Components.SpecCrfAi import AIWrapper, SpecCrfAi, SpecPredAi, HarmPredAi
 from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample
 from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import calculateSpectra
@@ -271,7 +271,6 @@ class Voicebank():
             
         if additive == False:
             self.ai.crfAi = SpecCrfAi()
-            self.ai.crfAiHarm = HarmCrfAi()
         print("sample preprocessing started")
         sampleCount = len(self.stagedCrfTrainSamples)
         for i in range(sampleCount):
