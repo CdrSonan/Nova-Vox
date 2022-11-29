@@ -93,8 +93,8 @@ class SpecCrfAi(nn.Module):
             
             
         super(SpecCrfAi, self).__init__()
-        self.layerStart1a = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, nonlinearity = "relu", batch_first = True, device = device)
-        self.layerStart1b = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, nonlinearity = "relu", batch_first = True, device = device)
+        self.layerStart1a = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, batch_first = True, device = device)
+        self.layerStart1b = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, batch_first = True, device = device)
         self.ReLuStart1 = nn.ReLU()
         #self.layerStart2 = nn.Conv1d(5, 5, 1)#torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, int(3 * global_consts.halfTripleBatchSize + 3 + hiddenLayerSize / 2), device = device)
         #self.layerStart2 = torch.nn.Linear(5 * global_consts.halfTripleBatchSize + 5, hiddenLayerSize, device = device)
@@ -593,21 +593,22 @@ class AIWrapper():
             reportedLoss = (reportedLoss * 99 + loss.data) / 100
         criterion = torch.zeros((global_consts.halfTripleBatchSize + 1,), device = self.device)
         criterionSteps = 0
-        for data in self.dataLoader(indata):
-            data = data.to(device = self.device)
-            data = torch.squeeze(data)
-            spectrum1 = data[2, 2 * halfHarms:]
-            spectrum2 = data[3, 2 * halfHarms:]
-            spectrum3 = data[-2, 2 * halfHarms:]
-            spectrum4 = data[-1, 2 * halfHarms:]
-            outputSize = data.size()[0] - 2
-            output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize).transpose(0, 1)
-            criterionA = torch.cat((torch.ones((outputSize, 1), device = self.device), output[:, 1:] / output[:, :-1]), 1)
-            criterionB = torch.cat((output[:, :-1] / output[:, 1:], torch.ones((outputSize, 1), device = self.device)), 1)
-            criterion += torch.mean(criterionA + criterionB, dim = 0)
-            criterionSteps += 1
-        criterion /= criterionSteps
-        criterion = torch.less(criterion, torch.tensor([self.hparams["crf_def_thrh"],], device = self.device))
+        with torch.no_grad():
+            for data in self.dataLoader(indata):
+                data = data.to(device = self.device)
+                data = torch.squeeze(data)
+                spectrum1 = data[2, 2 * halfHarms:]
+                spectrum2 = data[3, 2 * halfHarms:]
+                spectrum3 = data[-2, 2 * halfHarms:]
+                spectrum4 = data[-1, 2 * halfHarms:]
+                outputSize = data.size()[0] - 2
+                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize).transpose(0, 1)
+                criterionA = torch.cat((torch.ones((outputSize, 1), device = self.device), output[:, 1:] / output[:, :-1]), 1)
+                criterionB = torch.cat((output[:, :-1] / output[:, 1:], torch.ones((outputSize, 1), device = self.device)), 1)
+                criterion += torch.mean(criterionA + criterionB, dim = 0)
+                criterionSteps += 1
+            criterion /= criterionSteps
+            criterion = torch.less(criterion, torch.tensor([self.hparams["crf_def_thrh"],], device = self.device))
         self.defectiveCrfBins = criterion.to_sparse().coalesce().indices()
         print("defective Crf frequency bins:", self.defectiveCrfBins)
         hparams = dict()

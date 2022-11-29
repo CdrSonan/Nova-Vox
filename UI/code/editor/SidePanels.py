@@ -35,7 +35,7 @@ class FileSidePanel(ModalView):
     def openRenderPopup(self) -> None:
         """opens a popup containing the settings for rendering files"""
 
-        FileRenderPopup(uiScale = self.uiScale, toolColor = self.toolCOlor, accColor = self.accColor, bgColor = self.bgColor).open()
+        FileRenderPopup(uiScale = self.uiScale, toolColor = self.toolColor, accColor = self.accColor, bgColor = self.bgColor).open()
 
 class FileRenderPopup(Popup):
     """Popup triggered from the file side panel, containing settings specific to rendering files"""

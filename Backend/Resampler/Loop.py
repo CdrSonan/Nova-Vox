@@ -58,3 +58,25 @@ def loopSamplerSpecharm(inputTensor:torch.Tensor, targetSize:int, repetititionSp
         del workingTensor
 
     return torch.cat((outputTensor[:, :int(global_consts.nHarmonics / 2) + 1], outputPhases, outputTensor[:, int(global_consts.nHarmonics / 2) + 1:]), 1)
+
+def loopSamplerPitch(inputTensor:torch.Tensor, targetSize:int, repetititionSpacing:float, device:torch.device) -> torch.Tensor:
+    repetititionSpacing = math.ceil(repetititionSpacing * inputTensor.size()[0] / 2)
+    requiredTensors = math.ceil((targetSize - repetititionSpacing) / (inputTensor.size()[0] - repetititionSpacing))
+    if requiredTensors <= 1:
+        outputTensor = inputTensor.to(device = device, copy = True)
+    else:
+        outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[0] - repetititionSpacing) + repetititionSpacing, device = device)
+        workingTensor = inputTensor.to(device = device, copy = True)
+        workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.unsqueeze(torch.linspace(1, 0, repetititionSpacing, device = device), 1)
+        outputTensor[0:inputTensor.size()[0]] += workingTensor
+
+        for i in range(1, requiredTensors - 1):
+            workingTensor = inputTensor.to(device = device, copy = True)
+            workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.unsqueeze(torch.linspace(0, 1, repetititionSpacing, device = device), 1)
+            workingTensor[-repetititionSpacing:] = workingTensor[-repetititionSpacing:] * torch.unsqueeze(torch.linspace(1, 0, repetititionSpacing, device = device), 1)
+            outputTensor[i * (inputTensor.size()[0] - repetititionSpacing):i * (inputTensor.size()[0] - repetititionSpacing) + inputTensor.size()[0]] += workingTensor
+
+        workingTensor = inputTensor.to(device = device, copy = True)
+        workingTensor[0:repetititionSpacing] = workingTensor[0:repetititionSpacing] * torch.unsqueeze(torch.linspace(0, 1, repetititionSpacing, device = device), 1)
+        outputTensor[(requiredTensors - 1) * (inputTensor.size()[0] - repetititionSpacing):] += workingTensor
+    return outputTensor
