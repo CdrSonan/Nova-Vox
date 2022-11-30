@@ -64,29 +64,27 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor,
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
     """calculates a spectrum based on an adaptation of the True Envelope Estimator algorithm. Used for low-frequency area, as it can produce artifacting in high-frequency area"""
 
+    specWidth = int(global_consts.tripleBatchSize / (audioSample.specWidth + 3))
     spectra = signalsAbs.clone()
-    spectralFilterWidth = torch.max(torch.floor(global_consts.tripleBatchSize * global_consts.filterTEEMult / audioSample.pitch), torch.Tensor([1])).int().item()
-    spectralFilterWidth = min(spectralFilterWidth, math.floor(spectra.size()[1] / 2))
-    for j in range(audioSample.unvoicedIterations):
+    for i in range(audioSample.specDepth):
         spectra = torch.maximum(spectra, signalsAbs)
         spectra = torch.fft.rfft(spectra, dim = 1)
         cutoffWindow = torch.zeros(spectra.size()[1])
-        cutoffWindow[0:int(spectralFilterWidth / 2)] = 1.
-        cutoffWindow[int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
+        cutoffWindow[0:int(specWidth / 2)] = 1.
+        cutoffWindow[int(specWidth / 2):specWidth] = torch.linspace(1, 0, specWidth - int(specWidth / 2))
         spectra = torch.fft.irfft(cutoffWindow * spectra, dim = 1, n = global_consts.halfTripleBatchSize + 1)
     return spectra
 
 def highRangeSmooth(audioSample:AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
     """calculates a spectrum based on fourier space running mean smoothing. Used for high-frequency area, as it can produce oversmoothing in low-frequency area"""
 
-    spectralFilterWidth = torch.max(torch.floor(audioSample.pitch / global_consts.tripleBatchSize * global_consts.filterHRSSMult), torch.Tensor([1])).int()
     workingSpectra = signalsAbs.clone()
-    workingSpectra = torch.cat((workingSpectra, torch.tile(torch.unsqueeze(workingSpectra[:, -1], 1), (1, audioSample.unvoicedIterations))), 1)
+    workingSpectra = torch.cat((workingSpectra, torch.tile(torch.unsqueeze(workingSpectra[:, -1], 1), (1, audioSample.specDepth))), 1)
     spectra = workingSpectra.clone()
-    for j in range(audioSample.unvoicedIterations):
-        for i in range(1, spectralFilterWidth + 1):
-            spectra = torch.roll(workingSpectra, -i, dims = 1) + spectra + torch.roll(workingSpectra, i, dims = 1)
-        spectra = spectra / (2 * spectralFilterWidth + 1)
+    for i in range(audioSample.specDepth):
+        for j in range(1, audioSample.specWidth + 1):
+            spectra = torch.roll(workingSpectra, -j, dims = 1) + spectra + torch.roll(workingSpectra, j, dims = 1)
+        spectra = spectra / (2 * audioSample.specWidth + 1)
         workingSpectra = torch.max(workingSpectra, spectra)
         spectra = workingSpectra
     spectra = spectra[:, 0:global_consts.halfTripleBatchSize + 1]
@@ -101,16 +99,22 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
     slope[:, global_consts.spectralRolloff1:global_consts.spectralRolloff2] = torch.linspace(1, 0, global_consts.spectralRolloff2 - global_consts.spectralRolloff1)
     lowSpectra = threshold(lowSpectra)
     highSpectra = threshold(highSpectra)
-    audioSample.specharm[:, global_consts.nHarmonics + 2:] = slope * lowSpectra + ((1. - slope) * highSpectra)
+    workingSpectra = slope * lowSpectra + ((1. - slope) * highSpectra)
+    workingSpectra = torch.cat((torch.tile(torch.unsqueeze(workingSpectra[0], 0), (audioSample.tempDepth, 1)), workingSpectra, torch.tile(torch.unsqueeze(workingSpectra[-1], 0), (audioSample.tempDepth, 1))), 0)
+    spectra = workingSpectra.clone()
+    for i in range(audioSample.tempDepth):
+        for j in range(1, audioSample.tempWidth + 1):
+            spectra = torch.roll(workingSpectra, -j, dims = 0) + spectra + torch.roll(workingSpectra, j, dims = 0)
+        spectra = spectra / (2 * audioSample.tempWidth + 1)
+        workingSpectra = torch.max(workingSpectra, spectra)
+        spectra = workingSpectra
+    spectra = spectra[audioSample.tempDepth:-audioSample.tempDepth]
+    spectra = threshold(spectra)
+    audioSample.specharm[:, global_consts.nHarmonics + 2:] = spectra
     return audioSample
 
 def averageSpectra(audioSample:AudioSample, useVariance:bool = True) -> AudioSample:
     audioSample.avgSpecharm = torch.mean(torch.cat((audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1], audioSample.specharm[:, global_consts.nHarmonics + 2:]), 1), 0)
-
-    #nativePitch = math.ceil(global_consts.tripleBatchSize / audioSample.pitch)
-    #originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * global_consts.tripleBatchSize / audioSample.pitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
-    #audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1] /= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), torch.square(audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), originSpace)
-    
     audioSample.specharm[:, global_consts.nHarmonics + 2:] -= audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]
     audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1] -= audioSample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1]
     if useVariance:
