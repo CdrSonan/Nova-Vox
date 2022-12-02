@@ -271,7 +271,7 @@ class SpecPredAi(nn.Module):
     def forward(self, spectrum:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next specharm in a sequence"""
 
-        x = spectrum.float()
+        x = spectrum.float().to(self.device)
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
@@ -324,7 +324,7 @@ class HarmPredAi(nn.Module):
         self.state = (torch.zeros(recLayerCount, 1, recSize, device = self.device), torch.zeros(recLayerCount, 1, recSize, device = self.device))
 
     def forward(self, harm:torch.Tensor) -> torch.Tensor:
-        x = harm.float()
+        x = harm.float().to(self.device)
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)

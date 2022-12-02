@@ -306,7 +306,7 @@ class Voicebank():
             
         if additive == False:
             self.ai.predAi = SpecPredAi()
-            self.ai.predAiHarm = HarmPredAi
+            self.ai.predAiHarm = HarmPredAi()
         print("sample preprocessing started")
         sampleCount = len(self.stagedPredTrainSamples)
         for i in range(sampleCount):
@@ -314,10 +314,10 @@ class Voicebank():
             self.stagedPredTrainSamples[i].expectedPitch = expPitch
             self.stagedPredTrainSamples[i].searchRange = pSearchRange
             self.stagedPredTrainSamples[i].voicedThrh = voicedThrh
-            self.stagedCrfTrainSamples[i].specWidth = specWidth
-            self.stagedCrfTrainSamples[i].specDepth = specDepth
-            self.stagedCrfTrainSamples[i].tempWidth = tempWidth
-            self.stagedCrfTrainSamples[i].tempDepth = tempDepth
+            self.stagedPredTrainSamples[i].specWidth = specWidth
+            self.stagedPredTrainSamples[i].specDepth = specDepth
+            self.stagedPredTrainSamples[i].tempWidth = tempWidth
+            self.stagedPredTrainSamples[i].tempDepth = tempDepth
             calculatePitch(self.stagedPredTrainSamples[i], False)
             calculateSpectra(self.stagedPredTrainSamples[i], False)
             avgSpecharm = torch.cat((self.stagedPredTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedPredTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
