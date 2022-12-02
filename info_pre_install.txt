@@ -1,0 +1,7 @@
+pre-installation info
+
+-Do not process someone else's vocal data without their consent
+
+-Do not violate the licenses of Nova-Vox Voicebanks or other content
+
+-Do not port Voicebanks from other engines to Nova-Vox if doing so violates their respective licenses or ToS

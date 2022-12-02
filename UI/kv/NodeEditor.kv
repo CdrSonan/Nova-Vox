@@ -1,0 +1,28 @@
+#:kivy 2.0.0
+<NodeEditor>:
+    do_scroll: (True, True)
+    scroll_type: ["bars", "content"]
+    bar_width: 10
+    on_scroll_x: self.generateGrid()
+    on_scroll_y: self.generateGrid()
+    canvas:
+        Color:
+            rgba: (0, 0, 0, 0.5)
+        Rectangle:
+            pos: (self.x, self.y)
+            size:(self.width, self.height)
+    FloatLayout:
+        x: self.parent.x
+        y: self.parent.y
+        size_hint: (None, None)
+        size: (max(self.parent.strictWidth * 2, self.parent.width * 2) / self.parent.scale, max(self.parent.strictHeight * 2, self.parent.height * 2) / self.parent.scale)
+        Widget:
+            x: self.parent.x
+            y: self.parent.y
+            size_hint: (1, 1)
+
+<Node>:
+    padding: 10
+    spacing: 10
+    orientation: "vertical"
+    size_hint: (None, None)

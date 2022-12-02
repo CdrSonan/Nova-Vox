@@ -1,0 +1,253 @@
+#:kivy 2.0.0
+#:import Factory kivy.factory.Factory
+#:import settings MiddleLayer.IniParser.readSettings
+
+<NovaVoxUI>:
+    uiScale: float(settings()["uiScale"])
+    toolColor: eval(settings()["toolColor"])
+    accColor: eval(settings()["accColor"])
+    bgColor: eval(settings()["bgColor"])
+    id: ROOT
+    FloatLayout:
+        size: (root.width, root.height)
+        canvas:
+            Color:
+                rgba: root.toolColor
+            Rectangle:
+                pos: (root.width - 50 * root.uiScale, 0)
+                size:(50 * root.uiScale, root.height)
+            Rectangle:
+                pos: (0, root.height - 50 * root.uiScale)
+                size:(root.width, 50 * root.uiScale)
+        ImageButton:
+            pos: (4 * root.uiScale, root.height - 49 * root.uiScale)
+            size_hint: (None, None)
+            size: (48 * root.uiScale, 48 * root.uiScale)
+            source: "UI/assets/TopBar/logo.gif"
+            on_press: Factory.LicensePanel().open()
+        ImageButton:
+            pos: (80 * root.uiScale, root.height - 40 * root.uiScale)
+            size_hint: (None, None)
+            size: (42 * root.uiScale, 30 * root.uiScale)
+            source: "UI/assets/TopBar/Top01.png"
+            on_press: root.spoolBack()
+        ImageToggleButton:
+            pos: (142 * root.uiScale, root.height - 45 * root.uiScale)
+            size_hint: (None, None)
+            size: (28 * root.uiScale, 40 * root.uiScale)
+            source: "UI/assets/TopBar/Top02.png"
+            id: playButton
+            on_state: root.play(self.state)
+        ImageButton:
+            pos: (190 * root.uiScale, root.height - 40 * root.uiScale)
+            size_hint: (None, None)
+            size: (42 * root.uiScale, 30 * root.uiScale)
+            source: "UI/assets/TopBar/Top03.png"
+            on_press: root.spoolForward()
+        ImageButton:
+            pos: (260 * root.uiScale, root.height - 45 * root.uiScale)
+            size_hint: (None, None)
+            size: (40 * root.uiScale, 40 * root.uiScale)
+            source: "UI/assets/TopBar/Top04.png"
+            on_press: root.undo
+        ImageButton:
+            pos: (314 * root.uiScale, root.height - 45 * root.uiScale)
+            size_hint: (None, None)
+            size: (40 * root.uiScale, 40 * root.uiScale)
+            source: "UI/assets/TopBar/Top05.png"
+            on_press: root.redo
+        ImageButton:
+            pos: (root.width - 50 * root.uiScale, root.height - 100 * root.uiScale)
+            size_hint: (None, None)
+            size: (50 * root.uiScale, 50 * root.uiScale)
+            source: "UI/assets/SideBar/Side01new.png"
+            on_press: Factory.FileSidePanel().open()
+        ImageButton:
+            pos: (root.width - 50 * root.uiScale, root.height - 160 * root.uiScale)
+            size_hint: (None, None)
+            size: (50 * root.uiScale, 50 * root.uiScale)
+            source: "UI/assets/SideBar/Side02new.png"
+            on_press: Factory.SingerSidePanel().open()
+        ImageButton:
+            pos: (root.width - 50 * root.uiScale, root.height - 220 * root.uiScale)
+            size_hint: (None, None)
+            size: (50 * root.uiScale, 50 * root.uiScale)
+            source: "UI/assets/SideBar/Side03new.png"
+            on_press: Factory.ParamSidePanel().open()
+        ImageButton:
+            pos: (root.width - 50 * root.uiScale, root.height - 280 * root.uiScale)
+            size_hint: (None, None)
+            size: (50 * root.uiScale, 50 * root.uiScale)
+            source: "UI/assets/SideBar/Side04new.png"
+            on_press: Factory.ScriptingSidePanel().open()
+        ImageButton:
+            pos: (root.width - 50 * root.uiScale, root.height - 340 * root.uiScale)
+            size_hint: (None, None)
+            size: (50 * root.uiScale, 50 * root.uiScale)
+            source: "UI/assets/SideBar/Side05new.png"
+            on_press: Factory.SettingsSidePanel().open()
+        ImageButton:
+            pos: (root.width - 50 * root.uiScale, root.height - 400 * root.uiScale)
+            size_hint: (None, None)
+            size: (50 * root.uiScale, 50 * root.uiScale)
+            source: "UI/assets/SideBar/Side06new.png"
+        BoxLayout:
+            orientation: "horizontal"
+            pos: (0, 0)
+            size_hint: (None, None)
+            size: root.width - 50 * root.uiScale, root.height - 50 * root.uiScale
+            Splitter:
+                size_hint: (0.25, 1)
+                sizable_from: "right"
+                rescale_with_parent: True
+                min_size: 100
+                max_size: self.parent.width - 100
+                strip_size: 5
+                BoxLayout:
+                    orientation: "vertical"
+                    Splitter:
+                        size_hint: (1, 0.75)
+                        sizable_from: "bottom"
+                        rescale_with_parent: True
+                        max_size: self.parent.height - 100
+                        strip_size: 5
+                        Widget:
+                            canvas:
+                                Color:
+                                    rgba: root.bgColor
+                                Rectangle:
+                                    pos: self.parent.pos
+                                    size:(self.width, self.parent.height)
+                            ScrollView:
+                                pos: self.parent.pos
+                                size:(self.parent.width, self.parent.height)
+                                do_scroll: (False, True)
+                                scroll_type: ["bars"]
+                                bar_width: 10
+                                BoxLayout:
+                                    id: singerList
+                                    size_hint: (None, None)
+                                    orientation: "vertical"
+                                    width: self.parent.width - 10
+                                    height: self.minimum_height
+                    Widget:
+                        size_hint: (1, 0.25)
+                        canvas:
+                            Color:
+                                rgba: root.bgColor
+                            Rectangle:
+                                pos: self.parent.pos
+                                size:(self.width, self.height)
+                        ScrollView:
+                            pos: self.parent.pos
+                            size:(self.parent.width, self.parent.height)
+                            do_scroll: (False, True)
+                            scroll_type: ["bars"]
+                            bar_width: 10
+                            BoxLayout:
+                                id: paramList
+                                size_hint: (None, None)
+                                orientation: "vertical"
+                                width: self.parent.width - 10
+                                height: self.minimum_height
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: (0.75, 1)
+                Splitter:
+                    size_hint: (1, 0.75)
+                    sizable_from: "bottom"
+                    rescale_with_parent: True
+                    max_size: self.parent.height - 100
+                    strip_size: 5
+                    FloatLayout:
+                        Widget:
+                            pos: self.parent.pos
+                            size_hint: (1, None)
+                            height: 40 * root.uiScale
+                            canvas:
+                                Color:
+                                    rgba: root.toolColor
+                                Rectangle:
+                                    pos: self.parent.pos
+                                    size:(self.width, 40 * root.uiScale)
+                            BoxLayout:
+                                pos: self.parent.pos
+                                orientation: "horizontal"
+                                padding: (2, 0)
+                                ImageToggleButton:
+                                    size_hint: (None, None)
+                                    size: (40 * root.uiScale, 40 * root.uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive04new.png"
+                                    group: "DisplayModes"
+                                    on_press: root.setMode("notes")
+                                    state: "down"
+                                ImageToggleButton:
+                                    size_hint: (None, None)
+                                    size: (40 * root.uiScale, 40 * root.uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive05new.png"
+                                    group: "DisplayModes"
+                                    on_press: root.setMode("timing")
+                                ImageToggleButton:
+                                    size_hint: (None, None)
+                                    size: (40 * root.uiScale, 40 * root.uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive06new.png"
+                                    group: "DisplayModes"
+                                    on_press: root.setMode("pitch")
+                                ImageToggleButton:
+                                    size_hint: (None, None)
+                                    size: (40 * root.uiScale, 40 * root.uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive04new.png"
+                                    group: "ToolModes"
+                                    on_press: root.setTool("draw")
+                                    state: "down"
+                                ImageToggleButton:
+                                    size_hint: (None, None)
+                                    size: (40 * root.uiScale, 40 * root.uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive05new.png"
+                                    group: "ToolModes"
+                                    on_press: root.setTool("line")
+                                ImageToggleButton:
+                                    size_hint: (None, None)
+                                    size: (40 * root.uiScale, 40 * root.uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive06new.png"
+                                    group: "ToolModes"
+                                    on_press: root.setTool("arch")
+                                ImageToggleButton:
+                                    size_hint: (None, None)
+                                    size: (40 * root.uiScale, 40 * root.uiScale)
+                                    source: "UI/assets/Toolbar/Adaptive06new.png"
+                                    group: "ToolModes"
+                                    on_press: root.setTool("reset")
+                            Spinner:
+                                sync_height: True
+                                background_normal: "UI/assets/Toolbar/Adaptive07new.png"
+                                pos: (self.parent.x + self.parent.width - 120 * root.uiScale, self.parent.y)
+                                size_hint: (None, None)
+                                size: (120 * root.uiScale, 40 * root.uiScale)
+                                option_cls: Factory.get("BackdropOptn")
+                                text: "backdrop"
+                                values: ["param1", "param2", "param3", "param4", "param5"]
+                        PianoRoll:
+                            x: self.parent.x
+                            y: self.parent.y + 40 * root.uiScale
+                            size_hint: (1, None)
+                            height: self.parent.height - 40 * root.uiScale
+                            id: pianoRoll
+                Widget:
+                    pos: self.parent.pos
+                    size_hint: (1, 0.25)
+                    canvas:
+                        Color:
+                            rgba: root.bgColor
+                        Rectangle:
+                            pos: self.pos
+                            size:(self.width, self.height)
+                    AdaptiveSpace:
+                        pos: self.parent.pos
+                        size:(self.parent.width, self.parent.height)
+                        id: adaptiveSpace
+
+        #dark: 0.137 0.125 0.173
+        #medium: 0.184 0.184 0.267
+        #light: 0.204 0.204 0.294
+        #toolbar: 0.322 0.259 0.463

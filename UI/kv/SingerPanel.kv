@@ -1,0 +1,119 @@
+#:kivy 2.0.0
+
+<SingerSettingsPanel>:
+    size_hint: (0.9, 0.9)
+    title: "track settings"
+    BoxLayout:
+        orientation: "horizontal"
+        padding: 10
+        spacing: 10
+        NodeEditor:
+        BoxLayout:
+            size_hint: (None, 1)
+            width: 300
+            orientation: "vertical"
+            padding: 10
+            spacing: 10
+            GridLayout:
+                size_hint: (1, None)
+                height: self.minimum_height
+                rows: 3
+                orientation: "lr-tb"
+                padding: 10
+                spacing: 10
+                Label:
+                    text: "main voice:"
+                    size_hint_y: None
+                    height: 30
+                Spinner:
+                    sync_height: True
+                    text_autoupdate: True
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                    size_hint_y: None
+                    height: 30
+                    option_cls: Factory.get("BackdropOptn")
+                Label:
+                    text: "mix-in voice:"
+                    size_hint_y: None
+                    height: 30
+                Spinner:
+                    sync_height: True
+                    text_autoupdate: True
+                    background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                    background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                    size_hint_y: None
+                    height: 30
+                    option_cls: Factory.get("BackdropOptn")
+                Label:
+                    text: "pause threshold:"
+                    size_hint_y: None
+                    height: 30
+                NumberInput:
+                    size_hint_y: None
+                    height: 30
+            ScrollView:
+                do_scroll_x: False
+                do_scroll_y: True
+                scroll_type: ["bars"]
+                bar_width: 10
+                TreeView:
+            Button:
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                size_hint_y: None
+                height: 30
+                text: "close"
+                on_press: self.parent.parent.parent.parent.parent.dismiss()
+
+<SingerPanel>:
+    anchor_x: "center"
+    anchor_y: "center"
+    size_hint: (1, None)
+    height: 200
+    ManagedToggleButton:
+        size_hint: (None, None)
+        size: (self.parent.width - 20, self.parent.height - 20)
+        background_normal: "UI/assets/TrackList/SingerBGNew.png"
+        background_down: "UI/assets/TrackList/SingerBGNew.png"
+        group: "SingerPanels"
+        on_state: if self.state == 'down': self.parent.changeTrack()
+        Label:
+            size_hint: (1, None)
+            height: 30
+            x: self.parent.x
+            y: self.parent.top - 30
+            text: self.parent.parent.name
+        Image:
+            size: (0.5 * self.parent.width, self.parent.height - 50) if 0.5 * self.parent.width < self.parent.height - 50 else (self.parent.height - 50, self.parent.height - 50)
+            x: self.parent.x + 10
+            y: self.parent.y + 10
+            texture: self.parent.parent.image
+        BoxLayout:
+            orientation: "vertical"
+            size: (0.5 * self.parent.width, self.parent.height - 50) if 0.5 * self.parent.width < self.parent.height - 50 else (self.parent.width - self.parent.height + 30, self.parent.height - 50)
+            x: self.parent.x + 0.5 * self.parent.width if 0.5 * self.parent.width < self.parent.height - 40 else self.parent.x + self.parent.height - 40
+            y: self.parent.y + 10
+            BoxLayout:
+                orientation: "horizontal"
+                ImageButton:
+                    source: "UI/assets/TrackList/SingerGrey01new.png"
+                    on_press: self.parent.parent.parent.parent.openSettings()
+                ImageButton:
+                    source: "UI/assets/TrackList/SingerGrey02new.png"
+                    on_press: self.parent.parent.parent.parent.copyTrack()
+                ImageButton:
+                    source: "UI/assets/TrackList/SingerGrey03new.png"
+                    on_press: self.parent.parent.parent.parent.deleteTrack()
+            Slider:
+                min: 0
+                max: 1.2
+                value: 1.
+                on_value: self.parent.parent.parent.updateVolume(self.value)
+            AnchorLayout:
+                anchor_x: "center"
+                anchor_y: "center"
+                ProgressBar:
+                    size_hint_x: None
+                    width: self.parent.width - 30
+                    max: 1.

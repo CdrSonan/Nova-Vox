@@ -1,0 +1,85 @@
+import numbers
+from Backend.DataHandler.AudioSample import AudioSample
+from global_consts import sampleRate
+from os import path
+
+class UtauSample():
+    """class representing an audio sample loaded from UTAU.
+    
+    Methods:
+        __init__: initialises the object based on both UTAU and Nova-Vox sample properties
+        
+        updateHandle: updates the handle of the sample, which is used to represent it in the devkit UI
+        
+        convert: returns a Nova-Vox compatible AudioSample object of the sample"""
+
+
+    def __init__(self, filepath:str, _type:int, key:str, start:float, end:float, offset:float, fixed:float, blank:float, preuttr:float, overlap:float, isVoiced:bool = True, isPlosive:bool = False) -> None:
+        """initialises the object based on both UTAU and Nova-Vox sample properties.
+        
+        Arguments:
+            filepath: the path to the .wav file of the sample
+
+            _type: the type of the sample. Can be either 0 for phoneme or 1 for transition
+
+            key: the kay of the phoneme. Expected to be None for transition samples.
+
+            start: the start of the sample in Nova-Vox in ms relative to the start of the .wav file
+
+            end: the end of the sample in Nova-Vox in ms relative to the start of the .wav file
+
+            offset: the offset property of the sample in UTAU
+
+            fixed: the consonant property of the sample in UTAU
+
+            blank: the cutoff property of the sample in UTAU
+
+            preuttr: the pre-utterance property of the sample in UTAU
+
+            overlap: the overlap property of the sample in UTAU
+
+            isVoiced: flag indicating whether the sample is voiced (voicedExcitation is muted for unvoiced samples during ESPER processing)
+
+            isPlosive: flag indicating whether the sample is considered a plosive sound (if possible, plosives retain their original length after border creation during synthesis)
+            
+        Returns:
+            None"""
+            
+
+        self.audioSample = AudioSample(filepath)
+        self._type = _type
+        if self._type == 0:
+            self.key = key
+        else:
+            self.key = None
+        self.start = start
+        if end == None:
+            if blank >= 0 or self._type == 2:
+                self.end = self.audioSample.waveform.size()[0] * 1000 / sampleRate
+            else:
+                self.end = offset
+        else:
+            self.end = end
+        self.handle = path.split(self.audioSample.filepath)[1] + ", " + str(self.start) + " - " + str(self.end)
+        self.offset = offset
+        self.fixed = fixed
+        self.blank = blank
+        self.preuttr = preuttr
+        self.overlap = overlap
+        self.audioSample.isVoiced = isVoiced
+        self.audioSample.isPlosive = isPlosive
+
+    def updateHandle(self) -> None:
+        """updates the handle of the sample, which is used to represent it in the devkit UI, to reflect changed sample properties"""
+
+        self.handle = path.split(self.audioSample.filepath)[1] + ", " + str(self.start) + " - " + str(self.end)
+
+    def convert(self) -> AudioSample:
+        """returns a Nova-Vox compatible AudioSample object of the sample.
+        The waveform is trimmed to the area between start and end, and all UTAU-specific data is discarded"""
+
+        start = int(self.start * sampleRate / 1000)
+        end = int(self.end * sampleRate / 1000)
+        self.audioSample.waveform = self.audioSample.waveform[start:end]
+        return self.audioSample
+        

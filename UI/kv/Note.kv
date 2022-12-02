@@ -1,0 +1,29 @@
+#:kivy 2.0.0
+
+<NoteProperties>:
+    size_hint: (None, None)
+    size: (200, 80)
+    pos: (self.reference.x, self.reference.y - 80)if self.reference.width > 200 else (self.reference.x + (self.reference.width / 2) - 100, self.reference.y - 80)
+    orientation: 'vertical'
+    arrow_pos: "top_mid"
+    ReferencingButton:
+        text: "change input mode"
+        on_press: self.reference.changeInputMode()
+    ReferencingButton:
+        text: "delete"
+        on_press: self.reference.delete()
+
+<Note>:
+    size_hint: (None, None)
+    group: "Notes"
+    border: (3, 3, 3, 3)
+    TextInput:
+        pos: self.parent.x, self.parent.y
+        size: self.parent.width, self.parent.height
+        font_size: 16
+        padding: (6, self.parent.height / 2 - 8, 6, self.parent.height / 2 - 8) if self.parent.height > 16 else (6, 0, 6, 0)
+        multiline: False
+        text_validate_unfocus: True
+        foreground_color: (0.9, 0.9, 0, 1) if self.parent.inputMode else (1, 1, 1, 1)
+        background_color: (0, 0, 0, 0)
+        on_focus: self.parent.changeLyrics(self.text, self.focus)

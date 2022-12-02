@@ -1,0 +1,76 @@
+#:kivy 2.0.0
+#:import fullRoot UI.code.editor.Util.fullRoot
+
+<ParamCurve>:
+    on_scroll_x: self.parent.triggerScroll()
+    do_scroll: (True, False)
+    scroll_type: ["bars"]
+    bar_width: 10
+    on_height: self.redraw()
+    Widget:
+        size_hint: (None, None)
+        y: self.parent.y + 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.y + 10
+        width: int(self.parent.xScale * self.parent.seqLength)
+        height: self.parent.height - 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.height - 10
+        canvas:
+            Color:
+                rgba: (0.5, 0.5, 0.5, 1)
+            Line:
+                points: [(0, self.parent.height / 2), (self.width, self.parent.height / 2)]
+            Line:
+                points: [(0, 0), (self.width, 0)]
+            Line:
+                points: [(0, self.parent.height), (self.width, self.parent.height)]
+<PitchOptns>:
+    on_scroll_x: self.parent.triggerScroll()
+    do_scroll: (True, False)
+    scroll_type: ["bars"]
+    bar_width: 10
+    on_height: self.redraw()
+    Widget:
+        size_hint: (None, None)
+        y: self.parent.y + 10 * fullRoot(root).uiScale
+        width: int(self.parent.xScale * self.parent.seqLength)
+        height: self.parent.height - 10 * fullRoot(root).uiScale
+        canvas:
+            Color:
+                rgba: (0.5, 0.5, 0.5, 1)
+            Line:
+                points: [(0, self.parent.height / 2), (self.width, self.parent.height / 2)]
+            Line:
+                points: [(0, 0), (self.width, 0)]
+            Line:
+                points: [(0, self.parent.height), (self.width, self.parent.height)]
+            Line:
+                points: [(0, self.parent.height / 4), (self.width, self.parent.height / 4)]
+            Line:
+                points: [(0, self.parent.height * 3 / 4), (self.width, self.parent.height * 3 / 4)]
+<TimingOptns>:
+    on_scroll_x: self.parent.triggerScroll()
+    do_scroll: (True, False)
+    scroll_type: ["bars"]
+    bar_width: 10
+    on_height: self.redraw()
+    Widget:
+        size_hint: (None, None)
+        y: self.parent.y + 10 * fullRoot(root).uiScale
+        width: int(self.parent.xScale * self.parent.seqLength)
+        height: self.parent.height - 10 * fullRoot(root).uiScale
+        canvas:
+            Color:
+                rgba: (0.5, 0.5, 0.5, 1)
+            Line:
+                points: [(0, self.parent.height / 2), (self.width, self.parent.height / 2)]
+            Line:
+                points: [(0, 0), (self.width, 0)]
+            Line:
+                points: [(0, self.parent.height), (self.width, self.parent.height)]
+            Line:
+                points: [(0, self.parent.height / 4), (self.width, self.parent.height / 4)]
+            Line:
+                points: [(0, self.parent.height * 3 / 4), (self.width, self.parent.height * 3 / 4)]
+<AdaptiveSpace>:
+    anchor_x: "center"
+    anchor_y: "center"
+    xScale: 1.
+    seqLength: 5000

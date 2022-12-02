@@ -1,0 +1,216 @@
+#:kivy 2.0.0
+#:import fullRoot UI.code.editor.Util.fullRoot
+
+<PianoRollOctaveBackground>:
+    size_hint: (None, 0.25)
+    width : 100
+    canvas:
+        Color:
+            rgba: (0.25, 0.25, 0.25, 1)
+        Rectangle:
+            pos: (self.parent.x, self.y)
+            size:(self.parent.width, self.height)
+        Color:
+            rgba: (0.2, 0.2, 0.2, 1)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 1/12)
+            size:(self.parent.width, self.height * 1/12)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 3/12)
+            size:(self.parent.width, self.height * 1/12)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 6/12)
+            size:(self.parent.width, self.height * 1/12)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 8/12)
+            size:(self.parent.width, self.height * 1/12)
+        Rectangle:
+            pos: (self.parent.x, self.y + self.height* 10/12)
+            size:(self.parent.width, self.height * 1/12)
+        Line:
+            points:([self.parent.x + self.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y], [self.parent.x + self.parent.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y])
+        Line:
+            points:([self.parent.x + self.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y + self.height* 5/12], [self.parent.x + self.parent.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y + self.height* 5/12])
+<PianoRollOctave>:
+    size_hint: (None, 0.25)
+    width : 100
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano03.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 1/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 2/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 3/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 4/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 5/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 6/7
+        size_hint: (1, None)
+        height: self.parent.height / 7
+        source: "UI/assets/PianoRoll/Piano01.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 1/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 3/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 6/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 8/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+    Image:
+        x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
+        y: self.parent.y + self.parent.height * 10/12
+        size_hint: (0.66, None)
+        height: self.parent.height / 12
+        source: "UI/assets/PianoRoll/Piano02.png"
+        allow_stretch: True
+        keep_ratio: False
+
+<PlaybackHead>:
+    x: self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale - self.width / 2
+    y: self.parent.y + self.parent.height - 30 * fullRoot(root).uiScale
+    size_hint: (None, None)
+    width: 20
+    height: 20
+    source: "UI/assets/Toolbar/Adaptive11.png"
+    canvas:
+        Color:
+            rgba: (0., 1., 0., 1)
+        Line:
+            points: (self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y, self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y + self.parent.height)
+
+<TimingLabel>:
+    x: self.reference.x + int(self.reference.parent.parent.xScale * self.reference.parent.parent.tempo * self.index)
+    y: self.reference.y
+    size_hint: (None, None)
+    width: min(self.reference.parent.parent.xScale * self.reference.parent.parent.tempo, 20)
+    height: self.reference.height
+    point1: self.reference.parent.y
+    point2: self.reference.parent.y + self.reference.parent.height
+    text: str(int(self.index / 4) + 1) if self.modulo == 0 else str(self.modulo + 1)
+    color: (1, 1, 1, 1) if self.modulo == 0 else (0.5, 0.5, 0.5, 1)
+    canvas:
+        Color:
+            rgba: (0.5, 0.5, 0.5, 1) if self.modulo == 0 else (0.3, 0.3, 0.3, 1)
+        Line:
+            points: (self.x, self.point1, self.x, self.point2)
+
+<TimingBar>:
+    orientation: "horizontal"
+    x: self.parent.x
+    y: self.parent.y + self.parent.parent.height - 30 * fullRoot(root).uiScale + self.parent.parent.scroll_y * (self.parent.height - self.parent.parent.height)
+    size_hint: (None, None)
+    size: (self.parent.parent.length * self.parent.parent.xScale, 30 * fullRoot(root).uiScale)
+    canvas:
+        Color:
+            rgba: (0, 0, 0, 0.5)
+        Rectangle:
+            pos: (self.x, self.y)
+            size:(self.width, self.height)
+
+<PianoRoll>:
+    do_scroll: (True, True)
+    scroll_type: ["bars"]
+    bar_width: 10
+    xScale: 1
+    yScale: 30
+    measureSize: 4
+    on_scroll_x: self.triggerScroll()
+    length: 5000
+    playbackPos: 0
+    FloatLayout:
+        x: self.parent.x
+        y: self.parent.y
+        size_hint: (None, None)
+        size: (self.parent.length * self.parent.xScale, 48 * self.parent.yScale)
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 12 * self.parent.parent.yScale
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 24 * self.parent.parent.yScale
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 36 * self.parent.parent.yScale
+        TimingBar:
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 12 * self.parent.parent.yScale
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 24 * self.parent.parent.yScale
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 36 * self.parent.parent.yScale
+        PlaybackHead:

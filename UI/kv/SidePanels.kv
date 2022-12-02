@@ -1,0 +1,534 @@
+#:kivy 2.0.0
+#:import soundfile soundfile
+
+<ListElement>:
+    size_hint_y: None
+    height: 30
+    on_press: self.parent.parent.parent.parent.detailElement(self.index)
+
+<FileSidePanel>:
+    size_hint: (0.4, 1 - (50 / root.height))
+    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
+    background_color: [0.137, 0.125, 0.173, 0.5]
+    overlay_color: [0, 0, 0, 0]
+    BoxLayout:
+        padding: 10
+        spacing: 10
+        orientation: "vertical"
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "save"
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "load"
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "import"
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "export"
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "render"
+            on_press: self.parent.parent.openRenderPopup()
+
+<FileRenderPopup>:
+    size_hint: (None, None)
+    size: (400, 400)
+    title: "render settings"
+    BoxLayout:
+        padding: 10
+        spacing: 10
+        orientation: "vertical"
+        GridLayout:
+            rows: 3
+            orientation: "tb-lr"
+            padding: 10
+            spacing: 10
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "format:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "bitdepth:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "sample rate:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Spinner:
+                sync_height: True
+                text_autoupdate: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                size_hint_y: None
+                height: 30
+                option_cls: Factory.get("BackdropOptn")
+                values: soundfile.available_formats().keys()
+                text: "WAV"
+                on_text: self.parent.parent.parent.parent.parent.reloadBitdepths(self.text)
+            Spinner:
+                sync_height: True
+                text_autoupdate: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                size_hint_y: None
+                height: 30
+                option_cls: Factory.get("BackdropOptn")
+                values: soundfile.available_subtypes("WAV").keys()
+                text: "PCM_24"
+                on_text: self.parent.parent.parent.parent.parent.bitdepth = self.text
+            Spinner:
+                sync_height: True
+                text_autoupdate: True
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+                size_hint_y: None
+                height: 30
+                option_cls: Factory.get("BackdropOptn")
+                values: ["44100", "48000", "96000", "192000"]
+                text: "48000"
+                on_text: self.parent.parent.parent.parent.parent.sampleRate = self.text
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "render"
+            on_press: self.parent.parent.parent.parent.finalisingClose()
+
+<SingerSidePanel>:
+    size_hint: (0.4, 1 - (50 / root.height))
+    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
+    background_color: [0.137, 0.125, 0.173, 0.5]
+    overlay_color: [0, 0, 0, 0]
+    on_open: self.listVoicebanks()
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+        ScrollView:
+            do_scroll: (False, True)
+            scroll_type: ["bars"]
+            bar_width: 10
+            BoxLayout:
+                id: singers_list
+                size_hint_y: None
+                orientation: "vertical"
+                spacing: 2
+        GridLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            rows: 5
+            padding: 10
+            spacing: 10
+            orientation: "tb-lr"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Name:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 80
+                text: "Image:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Version:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Description:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "License:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: singer_name
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Image:
+                size_hint_y: None
+                height: 80
+                id: singer_image
+                source: "UI/assets/TrackList/SingerGrey04.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: singer_version
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: singer_description
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: singer_license
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "import"
+            on_press: root.importVoicebank(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.voicebanks[self.parent.parent.selectedIndex].name, self.parent.parent.voicebanks[self.parent.parent.selectedIndex].image) if (self.parent.parent.selectedIndex != None) else None
+        
+
+<ParamSidePanel>:
+    size_hint: (0.4, 1 - (50 / root.height))
+    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
+    background_color: [0.137, 0.125, 0.173, 0.5]
+    overlay_color: [0, 0, 0, 0]
+    on_open: self.listParams()
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+        ScrollView:
+            do_scroll: (False, True)
+            scroll_type: ["bars"]
+            bar_width: 10
+            BoxLayout:
+                id: params_list
+                size_hint_y: None
+                orientation: "vertical"
+                spacing: 2
+        GridLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            rows: 6
+            padding: 10
+            spacing: 10
+            orientation: "tb-lr"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Name:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Type:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Capacity:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Recurrency:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "Version:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                text: "License:"
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_name
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_type
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_capacity
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_recurrency
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_version
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            Label:
+                size_hint_y: None
+                height: 30
+                id: param_license
+                background_normal: "UI/assets/Toolbar/Adaptive09.png"
+                background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "import"
+            on_press: root.importParam(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.parameters[self.parent.parent.selectedIndex].name)
+
+<ScriptingSidePanel>:
+    size_hint: (0.4, 1 - (50 / root.height))
+    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
+    background_color: [0.137, 0.125, 0.173, 0.5]
+    overlay_color: [0, 0, 0, 0]
+    on_open: self.loadCache()
+    on_pre_dismiss: self.saveCache()
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+        CodeInput:
+            id: scripting_editor
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "run"
+            on_press: self.parent.parent.runScript()
+        ManagedButton:
+            size_hint_y: None
+            height: 30
+            text: "open Devkit"
+            on_press: self.parent.parent.openDevkit()
+
+<SettingsSidePanel>:
+    size_hint: (0.4, 1 - (50 / root.height))
+    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
+    background_color: [0.137, 0.125, 0.173, 0.5]
+    overlay_color: [0, 0, 0, 0]
+    on_open: self.readSettings()
+    on_pre_dismiss: self.writeSettings()
+    GridLayout:
+        cols: 2
+        orientation: "lr-tb"
+        padding: 10
+        spacing: 10
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "Language:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Spinner:
+            id: settings_lang
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: ["en", "jp"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "Accelerator:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Spinner:
+            id: settings_accel
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: ["CPU", "GPU", "Hybrid"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "Tensor Cores:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Spinner:
+            id: settings_tcores
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: ["disabled", "enabled"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "low-spec mode:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Spinner:
+            id: settings_lowSpecMode
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: ["disabled", "enabled"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "caching mode:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Spinner:
+            id: settings_cachingMode
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: ["save RAM", "default", "best rendering speed"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "audio API:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Spinner:
+            id: settings_audioApi
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: self.parent.parent.audioApiNames
+            on_text: self.parent.parent.refreshAudioDevices(self.text)
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "audio device:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Spinner:
+            id: settings_audioDevice
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: self.parent.parent.audioDeviceNames
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "Logging level:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Spinner:
+            id: settings_loglevel
+            sync_height: True
+            text_autoupdate: True
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+            size_hint_y: None
+            height: 30
+            option_cls: Factory.get("BackdropOptn")
+            values: ["debug", "info", "warning", "error", "critical"]
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "Data directory:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ManagedButton:
+            id: settings_datadir
+            sync_height: True
+            size_hint_y: None
+            height: 30
+            text: ""
+            on_press: self.parent.parent.changeDataDir()
+        Label:
+            size_hint_y: None
+            height: 30
+            text: "UI Scale:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        Slider:
+            id: settings_uiScale
+            size_hint_y: None
+            height: 30
+            min: 0.25
+            max: 4.
+            step: 0.05
+            orientation: 'horizontal'
+            on_value: self.parent.parent.applyColors()
+        Label:
+            size_hint_y: None
+            height: 200
+            valign: "middle"
+            text: "Toolbar Color:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ColorWheel:
+            id: settings_toolColor
+            size_hint_y: None
+            height: 200
+            on_color: self.parent.parent.applyColors()
+        Label:
+            size_hint_y: None
+            height: 200
+            valign: "middle"
+            text: "Accent Color:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ColorWheel:
+            id: settings_accColor
+            size_hint_y: None
+            height: 200
+            on_color: self.parent.parent.applyColors()
+        Label:
+            size_hint_y: None
+            height: 200
+            valign: "middle"
+            text: "Background Color:"
+            background_normal: "UI/assets/Toolbar/Adaptive09.png"
+            background_down: "UI/assets/Toolbar/Adaptive09_clicked.png"
+        ColorWheel:
+            id: settings_bgColor
+            size_hint_y: None
+            height: 200
+            on_color: self.parent.parent.applyColors()

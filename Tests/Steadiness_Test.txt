@@ -1,0 +1,25 @@
+borders = [0, 2, 4,
+           70, 72, 74,
+           80, 82, 104,
+           150, 152, 156,
+           164, 171, 172,
+           656,657, 658
+          ]
+
+phonemes = ["E", "K", "I", "K", "U"]
+
+startCaps = torch.zeros(5)
+
+endCaps = torch.zeros(5)
+
+offsets = [0, 20, 20, 0, 13]
+
+repetititionSpacing = torch.full([5], 0.8)
+
+pitch = torch.full([700], 193)
+
+steadiness = torch.linspace(1, -1, 700)
+
+breathiness =torch.full([700], 0)
+
+sequence = VocalSequence(700, borders, phonemes, startCaps, endCaps, offsets, repetititionSpacing, pitch, steadiness, breathiness)
