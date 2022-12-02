@@ -61,31 +61,31 @@
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side01new.png"
-            on_press: Factory.FileSidePanel().open()
+            on_press: Factory.FileSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
             pos: (root.width - 50 * root.uiScale, root.height - 160 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side02new.png"
-            on_press: Factory.SingerSidePanel().open()
+            on_press: Factory.SingerSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
             pos: (root.width - 50 * root.uiScale, root.height - 220 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side03new.png"
-            on_press: Factory.ParamSidePanel().open()
+            on_press: Factory.ParamSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
             pos: (root.width - 50 * root.uiScale, root.height - 280 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side04new.png"
-            on_press: Factory.ScriptingSidePanel().open()
+            on_press: Factory.ScriptingSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
             pos: (root.width - 50 * root.uiScale, root.height - 340 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side05new.png"
-            on_press: Factory.SettingsSidePanel().open()
+            on_press: Factory.SettingsSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
             pos: (root.width - 50 * root.uiScale, root.height - 400 * root.uiScale)
             size_hint: (None, None)
@@ -196,7 +196,7 @@
                                 ImageToggleButton:
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
-                                    source: "UI/assets/Toolbar/Adaptive04new.png"
+                                    source: "UI/assets/Toolbar/Adaptive05new.png"
                                     group: "ToolModes"
                                     on_press: root.setTool("draw")
                                     state: "down"
@@ -209,24 +209,44 @@
                                 ImageToggleButton:
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
-                                    source: "UI/assets/Toolbar/Adaptive06new.png"
+                                    source: "UI/assets/Toolbar/Adaptive05new.png"
                                     group: "ToolModes"
                                     on_press: root.setTool("arch")
                                 ImageToggleButton:
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
-                                    source: "UI/assets/Toolbar/Adaptive06new.png"
+                                    source: "UI/assets/Toolbar/Adaptive05new.png"
                                     group: "ToolModes"
                                     on_press: root.setTool("reset")
                             Spinner:
+                                id: measureSelector
                                 sync_height: True
                                 background_normal: "UI/assets/Toolbar/Adaptive07new.png"
                                 pos: (self.parent.x + self.parent.width - 120 * root.uiScale, self.parent.y)
                                 size_hint: (None, None)
                                 size: (120 * root.uiScale, 40 * root.uiScale)
-                                option_cls: Factory.get("BackdropOptn")
-                                text: "backdrop"
-                                values: ["param1", "param2", "param3", "param4", "param5"]
+                                option_cls: Factory.get("ManagedSpinnerOptn")
+                                text: "4/4"
+                                values: ["4/4", "3/4", "2/4", "6/8", "1/1"]
+                                on_text: root.ids["pianoRoll"].updateTempo(self.text, root.ids["tempoSelector"].text, root.ids["quantSelector"].text)
+                            NumberInput:
+                                id: tempoSelector
+                                pos: (self.parent.x + self.parent.width - 240 * root.uiScale, self.parent.y)
+                                size_hint: (None, None)
+                                size: (120 * root.uiScale, 40 * root.uiScale)
+                                text: "120"
+                                on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, self.text, root.ids["quantSelector"].text)
+                            Spinner:
+                                id: quantSelector
+                                sync_height: True
+                                background_normal: "UI/assets/Toolbar/Adaptive07new.png"
+                                pos: (self.parent.x + self.parent.width - 360 * root.uiScale, self.parent.y)
+                                size_hint: (None, None)
+                                size: (120 * root.uiScale, 40 * root.uiScale)
+                                option_cls: Factory.get("ManagedSpinnerOptn")
+                                text: "Q: off"
+                                values: ["Q: 1/1", "Q: 1/2", "Q: 1/4", "Q: 1/8", "Q: 1/16", "Q: 1/32", "Q: off"]
+                                on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, root.ids["tempoSelector"].text, self.text)
                         PianoRoll:
                             x: self.parent.x
                             y: self.parent.y + 40 * root.uiScale

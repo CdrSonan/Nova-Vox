@@ -35,7 +35,7 @@ def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDe
 
     if path == None:
         path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
-    with open(path, 'r+') as f:
+    with open(path, 'w') as f:
         f.write("[lang]" + "\n")
         f.write("language = " + lang + "\n")
         f.write("\n")

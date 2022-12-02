@@ -75,20 +75,36 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.pSearchRange.display.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
-        self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter, global_consts.defaultUnvoicedIterations)
-        self.sideBar.unvoicedIter.variable.set(20)
-        self.sideBar.unvoicedIter.entry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 0, to = 100)
-        self.sideBar.unvoicedIter.entry["textvariable"] = self.sideBar.unvoicedIter.variable
-        self.sideBar.unvoicedIter.entry.pack(side = "right", fill = "x")
-        self.sideBar.unvoicedIter.display = tkinter.Label(self.sideBar.unvoicedIter)
-        self.sideBar.unvoicedIter.display["text"] = loc["uviter"]
-        self.sideBar.unvoicedIter.display.pack(side = "right", fill = "x")
-        self.sideBar.unvoicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.sideBar.specSmooth = tkinter.Frame(self.sideBar)
+        self.sideBar.specSmooth.widthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecWidth)
+        self.sideBar.specSmooth.widthEntry = tkinter.Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
+        self.sideBar.specSmooth.widthEntry["textvariable"] = self.sideBar.specSmooth.widthVariable
+        self.sideBar.specSmooth.widthEntry.pack(side = "right", fill = "x")
+        self.sideBar.specSmooth.depthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecDepth)
+        self.sideBar.specSmooth.depthEntry = tkinter.Spinbox(self.sideBar.specSmooth, from_ = 0, to = 100)
+        self.sideBar.specSmooth.depthEntry["textvariable"] = self.sideBar.specSmooth.depthVariable
+        self.sideBar.specSmooth.depthEntry.pack(side = "right", fill = "x")
+        self.sideBar.specSmooth.display = tkinter.Label(self.sideBar.specSmooth)
+        self.sideBar.specSmooth.display["text"] = loc["specSmooth"]
+        self.sideBar.specSmooth.display.pack(side = "right", fill = "x")
+        self.sideBar.specSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.tempSmooth = tkinter.Frame(self.sideBar)
+        self.sideBar.tempSmooth.widthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempWidth)
+        self.sideBar.tempSmooth.widthEntry = tkinter.Spinbox(self.sideBar.tempSmooth, from_ = 1, to = 100)
+        self.sideBar.tempSmooth.widthEntry["textvariable"] = self.sideBar.tempSmooth.widthVariable
+        self.sideBar.tempSmooth.widthEntry.pack(side = "right", fill = "x")
+        self.sideBar.tempSmooth.depthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempDepth)
+        self.sideBar.tempSmooth.depthEntry = tkinter.Spinbox(self.sideBar.tempSmooth, from_ = 0, to = 100)
+        self.sideBar.tempSmooth.depthEntry["textvariable"] = self.sideBar.tempSmooth.depthVariable
+        self.sideBar.tempSmooth.depthEntry.pack(side = "right", fill = "x")
+        self.sideBar.tempSmooth.display = tkinter.Label(self.sideBar.tempSmooth)
+        self.sideBar.tempSmooth.display["text"] = loc["tempSmooth"]
+        self.sideBar.tempSmooth.display.pack(side = "right", fill = "x")
+        self.sideBar.tempSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.epochs = tkinter.Frame(self.sideBar)
-        self.sideBar.epochs.variable = tkinter.IntVar(self.sideBar.epochs)
-        self.sideBar.epochs.variable.set(1)
+        self.sideBar.epochs.variable = tkinter.IntVar(self.sideBar.epochs, 1)
         self.sideBar.epochs.entry = tkinter.Spinbox(self.sideBar.epochs, from_ = 1, to = 100)
         self.sideBar.epochs.entry["textvariable"] = self.sideBar.epochs.variable
         self.sideBar.epochs.entry.pack(side = "right", fill = "x")
@@ -96,6 +112,16 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.epochs.display["text"] = loc["epochs"]
         self.sideBar.epochs.display.pack(side = "right", fill = "x")
         self.sideBar.epochs.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.additive = tkinter.Frame(self.sideBar)
+        self.sideBar.additive.variable = tkinter.BooleanVar(self.sideBar.additive, True)
+        self.sideBar.additive.entry = tkinter.Checkbutton(self.sideBar.additive)
+        self.sideBar.additive.entry["variable"] = self.sideBar.additive.variable
+        self.sideBar.additive.entry.pack(side = "right", fill = "x")
+        self.sideBar.additive.display = tkinter.Label(self.sideBar.additive)
+        self.sideBar.additive.display["text"] = loc["additive"]
+        self.sideBar.additive.display.pack(side = "right", fill = "x")
+        self.sideBar.additive.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.sideBar.logging = tkinter.Frame(self.sideBar)
         self.sideBar.logging.variable = tkinter.BooleanVar(self.sideBar.logging, False)
@@ -216,7 +242,17 @@ class CrfaiUi(tkinter.Frame):
         global loadedVB
         self.statusVar.set("training Ai...")
         self.update()
-        loadedVB.trainCrfAi(self.sideBar.epochs.variable.get(), True, self.sideBar.unvoicedIter.variable.get(), self.sideBar.expPitch.variable.get(), self.sideBar.pSearchRange.variable.get(), self.sideBar.logging.variable.get())
+        loadedVB.trainCrfAi(
+            self.sideBar.epochs.variable.get(),
+            self.sideBar.additive.variable.get(),
+            self.sideBar.specSmooth.widthVariable.get(),
+            self.sideBar.specSmooth.depthVariable.get(),
+            self.sideBar.tempSmooth.widthVariable.get(),
+            self.sideBar.tempSmooth.depthVariable.get(),
+            self.sideBar.expPitch.variable.get(),
+            self.sideBar.pSearchRange.variable.get(),
+            self.sideBar.logging.variable.get()
+        )
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             loadedVB.delCrfTrainSample(0)
@@ -235,7 +271,10 @@ class CrfaiUi(tkinter.Frame):
     def disableButtons(self) -> None:
         """Utility function for disabling the AI settings buttons"""
 
-        self.sideBar.unvoicedIter.entry["state"] = "disabled"
+        self.sideBar.specSmooth.widthEntry["state"] = "disabled"
+        self.sideBar.specSmooth.depthEntry["state"] = "disabled"
+        self.sideBar.tempSmooth.widthEntry["state"] = "disabled"
+        self.sideBar.tempSmooth.depthEntry["state"] = "disabled"
         self.sideBar.epochs.entry["state"] = "disabled"
         self.sideBar.trainButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
@@ -243,7 +282,10 @@ class CrfaiUi(tkinter.Frame):
     def enableButtons(self) -> None:
         """Utility function for enabling the AI settings buttons"""
 
-        self.sideBar.unvoicedIter.entry["state"] = "normal"
+        self.sideBar.specSmooth.widthEntry["state"] = "normal"
+        self.sideBar.specSmooth.depthEntry["state"] = "normal"
+        self.sideBar.tempSmooth.widthEntry["state"] = "normal"
+        self.sideBar.tempSmooth.depthEntry["state"] = "normal"
         self.sideBar.epochs.entry["state"] = "normal"
         self.sideBar.trainButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"

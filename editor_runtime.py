@@ -9,7 +9,6 @@ except ImportError:
         def close(self):
             pass
     pyi_splash = PseudoSplash()
-    pass
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading PyTorch libraries...")
 import torch

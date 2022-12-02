@@ -112,30 +112,52 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.pBroadcastButton["text"] = loc["pit_brdc"]
         self.sideBar.pBroadcastButton["command"] = self.onPitBrdcPress
         self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
-        
-        self.sideBar.voicedFilter = tkinter.Frame(self.sideBar)
-        self.sideBar.voicedFilter.variable = tkinter.IntVar(self.sideBar.voicedFilter, global_consts.defaultVoicedFilter)
-        self.sideBar.voicedFilter.entry = tkinter.Spinbox(self.sideBar.voicedFilter, from_ = 1, to = 50)
-        self.sideBar.voicedFilter.entry["textvariable"] = self.sideBar.voicedFilter.variable
-        self.sideBar.voicedFilter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
-        self.sideBar.voicedFilter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
-        self.sideBar.voicedFilter.entry.pack(side = "right", fill = "x")
-        self.sideBar.voicedFilter.display = tkinter.Label(self.sideBar.voicedFilter)
-        self.sideBar.voicedFilter.display["text"] = loc["vfilter"]
-        self.sideBar.voicedFilter.display.pack(side = "right", fill = "x")
-        self.sideBar.voicedFilter.pack(side = "top", fill = "x", padx = 5, pady = 2)
-        
-        self.sideBar.unvoicedIter = tkinter.Frame(self.sideBar)
-        self.sideBar.unvoicedIter.variable = tkinter.IntVar(self.sideBar.unvoicedIter, global_consts.defaultUnvoicedIterations)
-        self.sideBar.unvoicedIter.entry = tkinter.Spinbox(self.sideBar.unvoicedIter, from_ = 1, to = 100)
-        self.sideBar.unvoicedIter.entry["textvariable"] = self.sideBar.unvoicedIter.variable
-        self.sideBar.unvoicedIter.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
-        self.sideBar.unvoicedIter.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
-        self.sideBar.unvoicedIter.entry.pack(side = "right", fill = "x")
-        self.sideBar.unvoicedIter.display = tkinter.Label(self.sideBar.unvoicedIter)
-        self.sideBar.unvoicedIter.display["text"] = loc["uviter"]
-        self.sideBar.unvoicedIter.display.pack(side = "right", fill = "x")
-        self.sideBar.unvoicedIter.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.voicedThrh = tkinter.Frame(self.sideBar)
+        self.sideBar.voicedThrh.variable = tkinter.DoubleVar(self.sideBar.voicedThrh, global_consts.defaultVoicedThrh)
+        self.sideBar.voicedThrh.entry = tkinter.Spinbox(self.sideBar.voicedThrh, from_ = 0.35, to = 0.95, increment = 0.05)
+        self.sideBar.voicedThrh.entry["textvariable"] = self.sideBar.voicedThrh.variable
+        self.sideBar.voicedThrh.entry.pack(side = "right", fill = "x")
+        self.sideBar.voicedThrh.display = tkinter.Label(self.sideBar.voicedThrh)
+        self.sideBar.voicedThrh.display["text"] = loc["voicedThrh"]
+        self.sideBar.voicedThrh.display.pack(side = "right", fill = "x")
+        self.sideBar.voicedThrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.specSmooth = tkinter.Frame(self.sideBar)
+        self.sideBar.specSmooth.widthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecWidth)
+        self.sideBar.specSmooth.widthEntry = tkinter.Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
+        self.sideBar.specSmooth.widthEntry["textvariable"] = self.sideBar.specSmooth.widthVariable
+        self.sideBar.specSmooth.widthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        self.sideBar.specSmooth.widthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
+        self.sideBar.specSmooth.widthEntry.pack(side = "right", fill = "x")
+        self.sideBar.specSmooth.depthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecDepth)
+        self.sideBar.specSmooth.depthEntry = tkinter.Spinbox(self.sideBar.specSmooth, from_ = 0, to = 100)
+        self.sideBar.specSmooth.depthEntry["textvariable"] = self.sideBar.specSmooth.depthVariable
+        self.sideBar.specSmooth.depthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        self.sideBar.specSmooth.depthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
+        self.sideBar.specSmooth.depthEntry.pack(side = "right", fill = "x")
+        self.sideBar.specSmooth.display = tkinter.Label(self.sideBar.specSmooth)
+        self.sideBar.specSmooth.display["text"] = loc["specSmooth"]
+        self.sideBar.specSmooth.display.pack(side = "right", fill = "x")
+        self.sideBar.specSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.tempSmooth = tkinter.Frame(self.sideBar)
+        self.sideBar.tempSmooth.widthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempWidth)
+        self.sideBar.tempSmooth.widthEntry = tkinter.Spinbox(self.sideBar.tempSmooth, from_ = 1, to = 100)
+        self.sideBar.tempSmooth.widthEntry["textvariable"] = self.sideBar.tempSmooth.widthVariable
+        self.sideBar.tempSmooth.widthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        self.sideBar.tempSmooth.widthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
+        self.sideBar.tempSmooth.widthEntry.pack(side = "right", fill = "x")
+        self.sideBar.tempSmooth.depthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempDepth)
+        self.sideBar.tempSmooth.depthEntry = tkinter.Spinbox(self.sideBar.tempSmooth, from_ = 0, to = 100)
+        self.sideBar.tempSmooth.depthEntry["textvariable"] = self.sideBar.tempSmooth.depthVariable
+        self.sideBar.tempSmooth.depthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        self.sideBar.tempSmooth.depthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
+        self.sideBar.tempSmooth.depthEntry.pack(side = "right", fill = "x")
+        self.sideBar.tempSmooth.display = tkinter.Label(self.sideBar.tempSmooth)
+        self.sideBar.tempSmooth.display["text"] = loc["tempSmooth"]
+        self.sideBar.tempSmooth.display.pack(side = "right", fill = "x")
+        self.sideBar.tempSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.sideBar.sBroadcastButton = tkinter.Button(self.sideBar)
         self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
@@ -200,16 +222,22 @@ class PhonemedictUi(tkinter.Frame):
             if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
                 self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key].expectedPitch)
                 self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key].searchRange)
-                self.sideBar.voicedFilter.variable.set(loadedVB.phonemeDict[key].voicedFilter)
-                self.sideBar.unvoicedIter.variable.set(loadedVB.phonemeDict[key].unvoicedIterations)
+                self.sideBar.voicedThrh.variable.set(loadedVB.phonemeDict[key].voicedThrh)
+                self.sideBar.specSmooth.widthVariable.set(loadedVB.phonemeDict[key].specWidth)
+                self.sideBar.specSmooth.depthVariable.set(loadedVB.phonemeDict[key].specDepth)
+                self.sideBar.tempSmooth.widthVariable.set(loadedVB.phonemeDict[key].tempWidth)
+                self.sideBar.tempSmooth.depthVariable.set(loadedVB.phonemeDict[key].tempDepth)
                 self.sideBar.isVoiced.variable.set(loadedVB.phonemeDict[key].isVoiced)
                 self.sideBar.isPlosive.variable.set(loadedVB.phonemeDict[key].isPlosive)
                 self.enableButtons()
             else:
                 self.sideBar.expPitch.variable.set(None)
                 self.sideBar.pSearchRange.variable.set(None)
-                self.sideBar.voicedFilter.variable.set(None)
-                self.sideBar.unvoicedIter.variable.set(None)
+                self.sideBar.voicedThrh.variable.set(None)
+                self.sideBar.specSmooth.widthVariable.set(None)
+                self.sideBar.specSmooth.depthVariable.set(None)
+                self.sideBar.tempSmooth.widthVariable.set(None)
+                self.sideBar.tempSmooth.depthVariable.set(None)
                 self.sideBar.isVoiced.variable.set(False)
                 self.sideBar.isPlosive.variable.set(False)
                 self.disableButtons()
@@ -228,8 +256,11 @@ class PhonemedictUi(tkinter.Frame):
 
         self.sideBar.expPitch.entry["state"] = "disabled"
         self.sideBar.pSearchRange.entry["state"] = "disabled"
-        self.sideBar.voicedFilter.entry["state"] = "disabled"
-        self.sideBar.unvoicedIter.entry["state"] = "disabled"
+        self.sideBar.voicedThrh.entry["state"] = "disabled"
+        self.sideBar.specSmooth.widthEntry["state"] = "disabled"
+        self.sideBar.specSmooth.depthEntry["state"] = "disabled"
+        self.sideBar.tempSmooth.widthEntry["state"] = "disabled"
+        self.sideBar.tempSmooth.depthEntry["state"] = "disabled"
         self.sideBar.fileButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
         self.sideBar.isVoiced.entry["state"] = "disabled"
@@ -240,8 +271,11 @@ class PhonemedictUi(tkinter.Frame):
 
         self.sideBar.expPitch.entry["state"] = "normal"
         self.sideBar.pSearchRange.entry["state"] = "normal"
-        self.sideBar.voicedFilter.entry["state"] = "normal"
-        self.sideBar.unvoicedIter.entry["state"] = "normal"
+        self.sideBar.voicedThrh.entry["state"] = "normal"
+        self.sideBar.specSmooth.widthEntry["state"] = "normal"
+        self.sideBar.specSmooth.depthEntry["state"] = "normal"
+        self.sideBar.tempSmooth.widthEntry["state"] = "normal"
+        self.sideBar.tempSmooth.depthEntry["state"] = "normal"
         self.sideBar.fileButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"
         self.sideBar.isVoiced.entry["state"] = "normal"
@@ -345,15 +379,35 @@ class PhonemedictUi(tkinter.Frame):
     def onSpecBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the spectral filtering & analysis settings of the currently selected sample to all samples"""
 
-        voicedFilter = self.sideBar.voicedFilter.variable.get()
-        unvoicedIter = self.sideBar.unvoicedIter.variable.get()
+        newValues = [
+            self.sideBar.voicedThrh.variable.get(),
+            self.sideBar.specSmooth.widthVariable.get(),
+            self.sideBar.specSmooth.depthVariable.get(),
+            self.sideBar.tempSmooth.widthVariable.get(),
+            self.sideBar.tempSmooth.depthVariable.get(),
+        ]
         for i in loadedVB.phonemeDict:
-            j = loadedVB.phonemeDict[i]
-            if type(j).__name__ == "AudioSample":
-                if (j.voicedFilter != voicedFilter) or (j.unvoicedIterations != unvoicedIter):
-                    j.voicedFilter = voicedFilter
-                    j.unvoicedIterations = unvoicedIter
-                    calculateSpectra(j, True)
+            phoneme = loadedVB.phonemeDict[i]
+            oldValues = [
+                phoneme.voicedThrh,
+                phoneme.specWidth,
+                phoneme.specDepth,
+                phoneme.tempWidth,
+                phoneme.tempDepth
+            ]
+            reset = False
+            if type(phoneme).__name__ == "AudioSample":
+                for j in range(len(oldValues)):
+                    if oldValues[j] != newValues[j]:
+                        reset = True
+                        break
+            if reset:
+                phoneme.voicedThrh = newValues[0]
+                phoneme.specWidth = newValues[1]
+                phoneme.specDepth = newValues[2]
+                phoneme.tempWidth = newValues[3]
+                phoneme.tempDepth = newValues[4]
+                calculateSpectra(phoneme, True)
         self.onSliderMove(self.diagram.timeSlider.get())
         
     def onPitchUpdateTrigger(self, event) -> None:
@@ -403,12 +457,35 @@ class PhonemedictUi(tkinter.Frame):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
-            if (loadedVB.phonemeDict[key].voicedFilter != self.sideBar.voicedFilter.variable.get()) or (loadedVB.phonemeDict[key].unvoicedIterations != self.sideBar.unvoicedIter.variable.get()):
-                loadedVB.phonemeDict[key].voicedFilter = self.sideBar.voicedFilter.variable.get()
-                loadedVB.phonemeDict[key].unvoicedIterations = self.sideBar.unvoicedIter.variable.get()
-                calculateSpectra(loadedVB.phonemeDict[key], True)
-                self.onSliderMove(self.diagram.timeSlider.get())
+        newValues = [
+            self.sideBar.voicedThrh.variable.get(),
+            self.sideBar.specSmooth.widthVariable.get(),
+            self.sideBar.specSmooth.depthVariable.get(),
+            self.sideBar.tempSmooth.widthVariable.get(),
+            self.sideBar.tempSmooth.depthVariable.get(),
+        ]
+        phoneme = loadedVB.phonemeDict[key]
+        oldValues = [
+            phoneme.voicedThrh,
+            phoneme.specWidth,
+            phoneme.specDepth,
+            phoneme.tempWidth,
+            phoneme.tempDepth
+        ]
+        reset = False
+        if type(phoneme).__name__ == "AudioSample":
+            for j in range(len(oldValues)):
+                if oldValues[j] != newValues[j]:
+                    reset = True
+                    break
+        if reset:
+            phoneme.voicedThrh = newValues[0]
+            phoneme.specWidth = newValues[1]
+            phoneme.specDepth = newValues[2]
+            phoneme.tempWidth = newValues[3]
+            phoneme.tempDepth = newValues[4]
+            calculateSpectra(phoneme, True)
+        self.onSliderMove(self.diagram.timeSlider.get())
         
     def onFilechangePress(self, event) -> None:
         """UI Frontend function for changing the file associated with a phoneme"""
@@ -436,10 +513,12 @@ class PhonemedictUi(tkinter.Frame):
         loadedVB.finalizePhoneme(key)
         self.sideBar.expPitch.variable.set(None)
         self.sideBar.pSearchRange.variable.set(None)
-        self.sideBar.voicedFilter.variable.set(None)
-        self.sideBar.unvoicedIter.variable.set(None)
+        self.sideBar.voicedThrh.variable.set(None)
+        self.sideBar.specSmooth.widthVariable.set(None)
+        self.sideBar.specSmooth.depthVariable.set(None)
+        self.sideBar.tempSmooth.widthVariable.set(None)
+        self.sideBar.tempSmooth.depthVariable.set(None)
         self.disableButtons()
-        
         
     def onOkPress(self) -> None:
         """Updates the last selected phoneme and closes the Phoneme Dict UI window when the OK button is pressed"""

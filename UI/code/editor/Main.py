@@ -84,7 +84,7 @@ class NovaVoxUI(Widget):
             middleLayer.mainAudioBufferPos = 0
             middleLayer.movePlayhead(0)
         else:
-            middleLayer.mainAudioBufferPos = middleLayer.trackList[middleLayer.activeTrack].borders[0]
+            middleLayer.mainAudioBufferPos = int(middleLayer.trackList[middleLayer.activeTrack].borders[0])
             middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[0])
             
     def spoolForward(self) -> None:
@@ -93,7 +93,7 @@ class NovaVoxUI(Widget):
         if middleLayer.activeTrack == None or len(middleLayer.trackList[middleLayer.activeTrack].borders) == 0:
             return
         else:
-            middleLayer.mainAudioBufferPos = middleLayer.trackList[middleLayer.activeTrack].borders[-1]
+            middleLayer.mainAudioBufferPos = int(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
             middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
 
     def undo(self) -> None:

@@ -106,10 +106,10 @@ class SingerSettingsPanel(Popup):
         if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]:
             middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
             middleLayer.submitChangeVB(self.index, middleLayer.trackList[self.index].vbPath)
-            for i in range(len(middleLayer.ids["singerList"])):
-                if middleLayer.ids["singerList"][i].index == self.index:
-                    middleLayer.ids["singerList"][i].name = self.children[0].children[0].children[0].children[0].children[2].children[4].text
-                    middleLayer.ids["singerList"][i].image = self.vbData[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)].image
+            for i in middleLayer.ids["singerList"].children:
+                if i.index == self.index:
+                    i.name = self.children[0].children[0].children[0].children[0].children[2].children[4].text
+                    i.image = self.vbData[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)].image
                     break
         
 class LicensePanel(Popup):

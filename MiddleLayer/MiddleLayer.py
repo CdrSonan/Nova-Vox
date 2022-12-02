@@ -1,6 +1,7 @@
 from kivy.core.image import Image as CoreImage
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, OptionProperty
+from kivy.clock import mainthread
 
 from io import BytesIO
 from copy import copy, deepcopy
@@ -851,6 +852,7 @@ class MiddleLayer(Widget):
                 track -= 1
         self.audioBuffer[track][index:index + len(data)] = data
     
+    @mainthread
     def movePlayhead(self, position:int) -> None:
         """sets the position of the playback head in the piano roll UI"""
 

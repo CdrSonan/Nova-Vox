@@ -76,8 +76,11 @@ class AudioSample():
         
         self.expectedPitch = global_consts.defaultExpectedPitch
         self.searchRange = global_consts.defaultSearchRange
-        self.voicedFilter = global_consts.defaultVoicedFilter
-        self.unvoicedIterations = global_consts.defaultUnvoicedIterations
+        self.voicedThrh = global_consts.defaultVoicedThrh
+        self.specWidth = global_consts.defaultSpecWidth
+        self.specDepth = global_consts.defaultSpecDepth
+        self.tempWidth = global_consts.defaultTempWidth
+        self.tempDepth = global_consts.defaultTempDepth
         
 class LiteAudioSample():
     """A stripped down version of AudioSample only holding the data required for synthesis.

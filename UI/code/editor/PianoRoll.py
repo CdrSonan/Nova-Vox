@@ -46,6 +46,15 @@ class Note(ToggleButton):
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
 
+    def quantize(self, x:float, y:float = None) -> tuple:
+        if self.parent.parent.quantization == None:
+            xOut = x
+        else:
+            xOut = int(x / self.parent.parent.xScale / self.parent.parent.quantization + 0.5) * self.parent.parent.xScale
+        if y == None:
+            return xOut
+        return (xOut, y)
+
     def on_touch_down(self, touch) -> bool:
         """callback function used for processing mouse input on the note"""
 
@@ -63,7 +72,7 @@ class Note(ToggleButton):
                 touch.ud["grabMode"] = "start"
             else:
                 touch.ud["grabMode"] = "mid"
-                touch.ud["xOffset"] = (self.pos[0] - coord[0]) / self.parent.parent.xScale
+                touch.ud["xOffset"] = (self.pos[0] - self.quantize(coord[0])) / self.parent.parent.xScale
                 touch.ud["yOffset"] = (self.pos[1] - coord[1]) / self.parent.parent.yScale
             touch.ud['param'] = False
             return True
@@ -165,6 +174,8 @@ class PianoRoll(ScrollView):
         self.measureSize = 4
         self.tempo = NumericProperty()
         self.tempo = 125
+        self.quantization = NumericProperty()
+        self.quantization = None
         self.playbackPos = NumericProperty()
         self.playbackPos = 0
         self.currentNote = ObjectProperty()
@@ -192,6 +203,56 @@ class PianoRoll(ScrollView):
     @mainthread
     def generateTimingMarkers(self) -> None:
         self.updateTimingMarkers()
+
+    def updateTempo(self, measureType:str, tempo:str, quantization:str) -> None:
+        measureSizes = {
+            "4/4": 4,
+            "3/4": 3,
+            "2/4": 2,
+            "6/8": 6,
+            "1/1": 1
+        }
+        tempoMultipliers = {
+            "4/4": 1.,
+            "3/4": 1.,
+            "2/4": 1.,
+            "6/8": 3.,
+            "1/1": 1.
+        }
+        quantMultipliers = {
+            "4/4": 4.,
+            "3/4": 4.,
+            "2/4": 4.,
+            "6/8": 8.,
+            "1/1": 1.
+        }
+        quantFactors = {
+            "Q: 1/1": 1.,
+            "Q: 1/2": 2.,
+            "Q: 1/4": 4.,
+            "Q: 1/8": 8.,
+            "Q: 1/16": 16.,
+            "Q: 1/32": 32.,
+            "Q: off": None
+        }
+        self.measureSize = measureSizes[measureType]
+        if tempo != "":
+            self.tempo = 15000. / (float(tempo) * tempoMultipliers[measureType])
+        if quantFactors[quantization] == None:
+            self.quantization = None
+        else:
+            self.quantization = self.tempo * quantMultipliers[measureType] / quantFactors[quantization]
+        self.updateTimingMarkers()
+
+    def quantize(self, x:float, y:float = None) -> tuple:
+        if self.quantization == None:
+            xOut = x
+        else:
+            xOut = int(int(x / self.xScale / self.quantization + 0.5) * self.xScale * self.quantization)
+        print("quantize", x, xOut, self.tempo, self.quantization)
+        if y == None:
+            return xOut
+        return (xOut, y)
 
     def updateTimingMarkers(self) -> None:
         """plots all timing markers that are currently in view"""
@@ -364,16 +425,17 @@ class PianoRoll(ScrollView):
                     return True
                 if middleLayer.mode == "notes":
                     index = 0
+                    xQuant = self.quantize(x)
                     for i in self.children[0].children:
                         if i.__class__.__name__ == "Note":
-                            if i.xPos < x:
+                            if i.xPos < xQuant:
                                 index += 1
-                            elif i.xPos > x:
+                            elif i.xPos > xQuant:
                                 i.index += 1
                             else:
                                 index += 1
-                                x += 1
-                    newNote = Note(index = index, xPos = x, yPos = y, length = 100, height = self.yScale)
+                                xQuant += 1
+                    newNote = Note(index = index, xPos = xQuant, yPos = y, length = 100, height = self.yScale)
                     middleLayer.addNote(index, x, y, newNote)
                     self.children[0].add_widget(newNote, index = 5)
                     touch.ud["noteIndex"] = index
@@ -390,12 +452,12 @@ class PianoRoll(ScrollView):
                         return len(middleLayer.trackList[middleLayer.activeTrack].borders) - 1
                     border = getNearestBorder(x)
                     touch.ud["border"] = border
-                    touch.ud["offset"] = x - middleLayer.trackList[middleLayer.activeTrack].borders[border]
+                    touch.ud["offset"] = self.quantize(x) - middleLayer.trackList[middleLayer.activeTrack].borders[border]
                 elif middleLayer.mode == "pitch":
                     with self.children[0].canvas:
                         Color(0, 0, 1)
-                        touch.ud['line'] = Line(points=self.to_local(touch.x, touch.y))
-                        touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
+                        touch.ud['line'] = Line(points=self.quantize(*self.to_local(touch.x, touch.y)))
+                        touch.ud['startPoint'] = self.quantize(*self.to_local(touch.x, touch.y))
                         touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
                         touch.ud['lastPoint'] = touch.ud['startPoint'][0]
                         touch.ud['startPointOffset'] = 0
@@ -414,7 +476,7 @@ class PianoRoll(ScrollView):
             return False
         if middleLayer.activeTrack == None:
             return
-        coord = self.to_local(touch.x, touch.y)
+        coord = self.quantize(*self.to_local(touch.x, touch.y))
         x = int(coord[0] / self.xScale)
         y = int(coord[1] / self.yScale)
         yMod = coord[1]

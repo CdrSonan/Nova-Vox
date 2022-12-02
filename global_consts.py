@@ -29,6 +29,8 @@ spectralRolloff1 = 144
 spectralRolloff2 = 192
 pitchShiftSpectralRolloff = 10
 breCompPremul = 0.6
+crfBorderAbs = 7
+crfBorderRel = 0.1
 
 #audio pipeline
 audioBufferSize = 2048
@@ -48,8 +50,11 @@ version = "Alpha 5.0"
 #devkit defaults
 defaultExpectedPitch = 249.
 defaultSearchRange = 0.55
-defaultVoicedFilter = 10
-defaultUnvoicedIterations = 20
+defaultVoicedThrh = 0.5
+defaultSpecWidth = 2
+defaultSpecDepth = 30
+defaultTempWidth = 2
+defaultTempDepth = 10
 
 #control phoneme list
 controlPhonemes = [
