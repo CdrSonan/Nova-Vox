@@ -412,7 +412,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                             aiSpec = voicebank.ai.interpolate(specA.to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), specB.to(device = device_ai), internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3], internalInputs.pitch[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]])
                             aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]].unsqueeze(1)
                             aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0] + (0.5 + 0.5 * aiBalance) * aiSpec[1]
-                            pitchOffset = currentPitch[internalInputs.borders[3 * j] - internalInputs.borders[3 * j + 2]:] + nextPitch[:internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]]
+                            pitchOffset = currentPitch[internalInputs.borders[3 * j + 3] - internalInputs.borders[3 * j + 5]:] + nextPitch[:internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]]
                             for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
                                 aiSpecOut, previousShift = pitchAdjust(aiSpec[k - internalInputs.borders[3 * j + 3]], j, k, internalInputs, voicebank, previousShift, pitchOffset[k - internalInputs.borders[3 * j + 3]])
                                 spectrum.write(aiSpecOut, k)
