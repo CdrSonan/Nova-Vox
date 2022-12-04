@@ -478,10 +478,10 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         voicedSignal *= torch.unsqueeze(breathinessVoiced, 1)
                         excitationSignal *= breathinessUnvoiced
 
-                        """import matplotlib.pyplot as plt
-                        for start, i in enumerate(voicedSignal):
-                            plt.plot(torch.linspace(start * global_consts.batchSize, (start + 3) * global_consts.batchSize, global_consts.tripleBatchSize), torch.fft.irfft(i.detach()))
-                        plt.show()"""
+                        import matplotlib.pyplot as plt
+                        for start, k in enumerate(voicedSignal):
+                            plt.plot(torch.linspace(start * global_consts.batchSize, (start + 3) * global_consts.batchSize, global_consts.tripleBatchSize), torch.fft.irfft(k.detach()))
+                        plt.show()
 
                         voicedSignal = torch.transpose(voicedSignal, 0, 1)
 

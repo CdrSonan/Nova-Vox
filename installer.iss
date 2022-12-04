@@ -47,7 +47,7 @@ Name: "main"; Description: "Nova-Vox Editor and Dependencies"; Types: full minim
 Name: "devkit"; Description: "Devkit Executable"; Types: full custom
 Name: "devkit\phontables"; Description: "Phonetic tables for Devkit"; Types: full custom
 Name: "voices"; Description: "Default Voicebanks"; Types: full custom
-Name: "voices\Adachi_Rei"; Description: "Adachi Rei UTAU port"; Types: full custom
+Name: "voices\Test2"; Description: "RIP test Voicebank"; Types: full custom
 Name: "params"; Description: "Default Parameters"; Types: full custom
 
 [Tasks]
@@ -103,7 +103,7 @@ end;
 Source: "dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
 Source: "dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
-Source: "Voices\Adachi Rei.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Adachi_Rei; Flags: ignoreversion
+Source: "Voices\Test2.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Test2; Flags: ignoreversion
 ;Source: "Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion
 ;Source: "Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs

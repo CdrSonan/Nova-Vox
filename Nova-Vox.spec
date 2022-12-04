@@ -109,4 +109,3 @@ coll_devkit = COLLECT(exe_devkit,
                       name='devkit_build')
 
 os.replace(os.path.join(specpath, 'dist\\devkit_build\\Nova-Vox Devkit.exe'), os.path.join(specpath, 'dist\\Nova-Vox\\Nova-Vox Devkit.exe'))
-os.rmdir(os.path.join(specpath, 'dist\\devkit_build'))

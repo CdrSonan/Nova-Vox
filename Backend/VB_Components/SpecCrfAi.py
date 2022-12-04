@@ -472,6 +472,10 @@ class AIWrapper():
         
         self.crfAi.eval()
         self.predAi.eval()
+        self.predAiHarm.eval()
+        self.crfAi.requires_grad_(False)
+        self.predAi.requires_grad_(False)
+        self.predAiHarm.requires_grad_(False)
         phase1 = specharm1[halfHarms:2 * halfHarms]
         phase2 = specharm2[halfHarms:2 * halfHarms]
         phase3 = specharm3[halfHarms:2 * halfHarms]
@@ -524,6 +528,9 @@ class AIWrapper():
 
     def predict(self, specharm:torch.Tensor):
         self.predAi.eval()
+        self.predAiHarm.eval()
+        self.predAi.requires_grad_(False)
+        self.predAiHarm.requires_grad_(False)
         if specharm.dim() == 1:
             specharm = specharm.unsqueeze(0)
         phases = specharm[:, halfHarms:2 * halfHarms]

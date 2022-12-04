@@ -28,6 +28,7 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
 def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor, pitch:int) -> torch.Tensor:
     """calculates amplitude continuity function based on the absolute values of an stft sequence. Frequencies with a high amplitude continuity are more likely to be voiced."""
 
+    return amplitudes
     if amplitudes.size()[1] == 1:
         return torch.ones_like(amplitudes)
     amplitudeContinuity = amplitudes.clone()
@@ -327,7 +328,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2] = phaseShift(audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2], -audioSample.specharm[counter, int(global_consts.nHarmonics / 2) + 2], torch.device("cpu"))
             counter += 1
             continue
-        interpolationPoints = interp(torch.linspace(0, markerLength - 1, markerLength), localMarkers, torch.linspace(0, markerLength - 1, (markerLength - 1) * global_consts.nHarmonics))
+        interpolationPoints = interp(torch.linspace(0, markerLength - 1, markerLength), localMarkers, torch.linspace(0, markerLength - 1, (markerLength - 1) * global_consts.nHarmonics + 1))
         interpolatedWave = interp(torch.linspace(0, global_consts.tripleBatchSize * global_consts.filterBSMult - 1, global_consts.tripleBatchSize * global_consts.filterBSMult), window, interpolationPoints)
 
         harmFunction = torch.empty((int(global_consts.nHarmonics / 2) + 1, 0))
@@ -336,8 +337,8 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             harmFunction = torch.cat((harmFunction, torch.unsqueeze(torch.fft.rfft(interpolatedWave[j * global_consts.nHarmonics:(j + 1) * global_consts.nHarmonics]), -1)), 1)
 
         amplitudes = harmFunction.abs()
-        phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
-        phaseContinuity = torch.pow(phaseContinuity, 2)
+        #phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
+        #phaseContinuity = torch.pow(phaseContinuity, 2)
         #amplitudes *= phaseContinuity
         amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
         harmFunction = torch.polar(amplitudes, harmFunction.angle())
