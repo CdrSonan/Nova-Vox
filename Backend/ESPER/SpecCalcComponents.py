@@ -317,13 +317,19 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
             amplitudes = torch.mean(amplitudes, dim = 1)
             phases = torch.mean(harmFunction.angle(), dim = 1)#TODO: vector-based phase mean
-            harmFunction = torch.polar(amplitudes, harmFunction.angle())
+            harmFunction = torch.polar(amplitudes, phases)
             if audioSample.isVoiced == False:
                 harmFunction *= 0.
-            globalHarmFuntion[i] = harmFunction
             phases = phaseShift(phases, -phases[1], torch.device("cpu"))
             harmFunction = torch.cat((amplitudes, phases), 0)
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
+            harmFunction = torch.stft(window, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), onesided = True, return_complex = True)
+            amplitudes = harmFunction.abs()
+            amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
+            amplitudes = torch.mean(amplitudes, dim = 1)
+            phases = torch.mean(harmFunction.angle(), dim = 1)#TODO: vector-based phase mean
+            harmFunction = torch.polar(amplitudes, phases)
+            globalHarmFuntion[i] = harmFunction
             counter += 1
             continue
         interpolationPoints = interp(torch.linspace(0, markerLength - 1, markerLength), localMarkers, torch.linspace(0, markerLength - 1, (markerLength - 1) * global_consts.nHarmonics + 1))
@@ -331,21 +337,22 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         innerBorders = torch.tensor([global_consts.halfTripleBatchSize * (global_consts.filterBSMult - 1), global_consts.halfTripleBatchSize * (global_consts.filterBSMult + 1)])
         innerBorders = torch.searchsorted(interpolationPoints, innerBorders)
         harmFunction = torch.empty((int(global_consts.nHarmonics / 2) + 1, 0))
-        for j in range(markerLength - 1):
-            harmFunction = torch.cat((harmFunction, torch.unsqueeze(torch.fft.rfft(interpolatedWave[j * global_consts.nHarmonics:(j + 1) * global_consts.nHarmonics]), -1)), 1)#TODO: convolution-based harmFunction
-        amplitudes = harmFunction.abs()
+        interpolatedWave[:global_consts.nHarmonics + 1] *= torch.linspace(0, 1, global_consts.nHarmonics + 1)
+        interpolatedWave[-global_consts.nHarmonics - 1:] *= torch.linspace(1, 0, global_consts.nHarmonics + 1)
+        interpolatedWave = torch.reshape(interpolatedWave[:-1], (markerLength - 1, global_consts.nHarmonics))
+        harmFunction = torch.sum(interpolatedWave, dim = 0) / (markerLength - 2)
         #phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
         #phaseContinuity = torch.pow(phaseContinuity, 2)
         #amplitudes *= phaseContinuity
-        amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
-        amplitudes = torch.mean(amplitudes, dim = 1)
-        phases = torch.mean(harmFunction.angle(), dim = 1)#TODO: vector-based phase mean
-        harmFunction = torch.polar(amplitudes, phases)
+        #amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
         if audioSample.isVoiced == False:
             harmFunction *= 0.
-        #harmFunction = phaseShiftFourier(harmFunction, localMarkers[0].item() / global_consts.nHarmonics, torch.device("cpu"))
-        harmFunctionFull = torch.tile(harmFunction, (markerLength - 1,))
-        globalHarmFuntion[i] = interp(interpolationPoints, harmFunctionFull, torch.linspace(interpolationPoints[innerBorders[0]], interpolationPoints[innerBorders[1]], global_consts.tripleBatchSize))
+        harmFunctionFull = torch.tile(harmFunction, (markerLength,))[:(markerLength - 1) * global_consts.nHarmonics + 1]
+        harmFunctionFull = interp(interpolationPoints, harmFunctionFull, torch.linspace(interpolationPoints[innerBorders[0]], interpolationPoints[innerBorders[1]], global_consts.tripleBatchSize))
+        globalHarmFuntion[i] = torch.fft.rfft(harmFunctionFull)
+        harmFunction = torch.fft.rfft(harmFunction)
+        amplitudes = harmFunction.abs()
+        phases = harmFunction.angle()
         phases = phaseShift(phases, -phases[1], torch.device("cpu"))
         harmFunction = torch.cat((amplitudes, phases), 0)
         audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
