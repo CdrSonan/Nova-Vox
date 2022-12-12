@@ -2,5 +2,6 @@ build/
 dist/
 venv/
 .vs/
+Voices/
 __pycache__/
 *setup.exe
