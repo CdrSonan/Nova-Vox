@@ -273,9 +273,9 @@ class UtauImportUi(tkinter.Frame):
         index = self.phonemeList.list.lastFocusedIndex
         self.sampleList[index]._type = self.sideBar._type.variable.get()
         if self.sideBar._type.variable.get():
-            self.disableButtons
+            self.disableButtons()
         else:
-            self.enableButtons
+            self.enableButtons()
     
     def onAddPress(self) -> None:
         """UI Frontend function for adding a sample to the SampleList"""
@@ -285,10 +285,10 @@ class UtauImportUi(tkinter.Frame):
         if filepath != "":
             for s in self.sampleList:
                 if filepath == s.audioSample.filepath:
-                    sample = UtauSample(filepath, 1, None, 0, None, s.offset, s.fixed, s.blank, s.preuttr, s.overlap, "VV")
+                    sample = UtauSample(filepath, 1, None, 0, None, s.offset, s.fixed, s.blank, s.preuttr, s.overlap, True, False)
                     break
             else:
-                sample = UtauSample(filepath, 1, None, 0, None, 0, 0, 0, 0, 0, "VV")
+                sample = UtauSample(filepath, 1, None, 0, None, 0, 0, 0, 0, 0, True, False)
             self.sampleList.append(sample)
             self.phonemeList.list.lb.insert("end", sample.handle)
         

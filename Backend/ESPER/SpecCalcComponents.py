@@ -103,13 +103,14 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
     workingSpectra = slope * lowSpectra + ((1. - slope) * highSpectra)
     workingSpectra = torch.cat((torch.tile(torch.unsqueeze(workingSpectra[0], 0), (audioSample.tempDepth, 1)), workingSpectra, torch.tile(torch.unsqueeze(workingSpectra[-1], 0), (audioSample.tempDepth, 1))), 0)
     spectra = workingSpectra.clone()
-    for i in range(audioSample.tempDepth):
-        for j in range(1, audioSample.tempWidth + 1):
-            spectra = torch.roll(workingSpectra, -j, dims = 0) + spectra + torch.roll(workingSpectra, j, dims = 0)
-        spectra = spectra / (2 * audioSample.tempWidth + 1)
-        workingSpectra = torch.max(workingSpectra, spectra)
-        spectra = workingSpectra
-    spectra = spectra[audioSample.tempDepth:-audioSample.tempDepth]
+    if audioSample.tempDepth > 0:
+        for i in range(audioSample.tempDepth):
+            for j in range(1, audioSample.tempWidth + 1):
+                spectra = torch.roll(workingSpectra, -j, dims = 0) + spectra + torch.roll(workingSpectra, j, dims = 0)
+            spectra = spectra / (2 * audioSample.tempWidth + 1)
+            workingSpectra = torch.max(workingSpectra, spectra)
+            spectra = workingSpectra
+        spectra = spectra[audioSample.tempDepth:-audioSample.tempDepth]
     spectra = threshold(spectra)
     audioSample.specharm[:, global_consts.nHarmonics + 2:] = spectra
     return audioSample

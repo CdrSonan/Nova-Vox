@@ -27,7 +27,7 @@ ampContThreshold = 10
 #synthesis spectral processing
 spectralRolloff1 = 144
 spectralRolloff2 = 192
-pitchShiftSpectralRolloff = 10
+pitchShiftSpectralRolloff = 4
 breCompPremul = 0.6
 crfBorderAbs = 7
 crfBorderRel = 0.1
