@@ -270,7 +270,7 @@ class Voicebank():
             
             
         if additive == False:
-            self.ai.crfAi = SpecCrfAi()
+            self.ai.crfAi = SpecCrfAi(device = self.ai.device)
         print("sample preprocessing started")
         sampleCount = len(self.stagedCrfTrainSamples)
         for i in range(sampleCount):
@@ -305,8 +305,8 @@ class Voicebank():
             
             
         if additive == False:
-            self.ai.predAi = SpecPredAi()
-            self.ai.predAiHarm = HarmPredAi()
+            self.ai.predAi = SpecPredAi(device = self.ai.device)
+            self.ai.predAiHarm = HarmPredAi(device = self.ai.device)
         print("sample preprocessing started")
         sampleCount = len(self.stagedPredTrainSamples)
         for i in range(sampleCount):
@@ -373,7 +373,7 @@ class LiteVoicebank():
         self.metadata = VbMetadata()
         self.filepath = filepath
         self.phonemeDict = dict()
-        self.ai = AIWrapper(device)
+        self.ai = AIWrapper(device, torch.load(filepath)["hparams"])
         self.parameters = []
         self.wordDict = dict()
         self.stagedCrfTrainSamples = []

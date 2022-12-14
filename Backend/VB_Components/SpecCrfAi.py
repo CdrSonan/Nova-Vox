@@ -582,6 +582,9 @@ class AIWrapper():
             for data in self.dataLoader(indata):
                 data = data.to(device = self.device)
                 data = torch.squeeze(data)
+                import matplotlib.pyplot as plt
+                plt.imshow(data.cpu())
+                plt.show()
                 spectrum1 = data[2, 2 * halfHarms:]
                 spectrum2 = data[3, 2 * halfHarms:]
                 spectrum3 = data[-2, 2 * halfHarms:]
@@ -593,7 +596,7 @@ class AIWrapper():
                 self.crfAiOptimizer.zero_grad()
                 loss.backward()
                 self.crfAiOptimizer.step()
-            print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
+                print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
             if writer != None:
                 writer.add_scalar("loss", loss.data)
             self.crfAi.sampleCount += len(indata)
