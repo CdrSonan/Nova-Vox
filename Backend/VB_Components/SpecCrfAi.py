@@ -370,10 +370,10 @@ class AIWrapper():
         self.device = device
         self.final = False
         self.defectiveCrfBins = []
-        self.crfAiOptimizer = torch.optim.Adam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
-        self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-        self.predAiHarmOptimizer = torch.optim.Adam(self.predAiHarm.parameters(), lr=self.predAiHarm.learningRate, weight_decay=self.predAiHarm.regularization)
-        self.criterion = RelLoss()
+        self.crfAiOptimizer = torch.optim.RMSprop(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization, momentum = 0.1)
+        self.predAiOptimizer = torch.optim.NAdam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+        self.predAiHarmOptimizer = torch.optim.NAdam(self.predAiHarm.parameters(), lr=self.predAiHarm.learningRate, weight_decay=self.predAiHarm.regularization)
+        self.criterion = nn.L1Loss()
     
     @staticmethod
     def dataLoader(data) -> DataLoader:
@@ -432,7 +432,7 @@ class AIWrapper():
             if reset:
                 self.crfAi = SpecCrfAi(device = self.device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
                 if self.final:
-                    self.crfAiOptimizer = torch.optim.Adam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
+                    self.crfAiOptimizer = torch.optim.RMSprop(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization, momentum = 0.1)
             self.crfAi.epoch = aiState['crfAi_epoch']
             self.crfAi.sampleCount = aiState["crfAi_sampleCount"]
             self.crfAi.load_state_dict(aiState['crfAi_model_state_dict'])
@@ -443,8 +443,8 @@ class AIWrapper():
                 self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
                 self.predAiHarm = HarmPredAi(device = self.device, learningRate=self.hparams["predh_lr"], regularization=self.hparams["predh_reg"], recSize=self.hparams["predh_rs"])
                 if self.final:
-                    self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-                    self.predAiHarmOptimizer = torch.optim.Adam(self.predAiHarm.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+                    self.predAiOptimizer = torch.optim.NAdam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+                    self.predAiHarmOptimizer = torch.optim.NAdam(self.predAiHarm.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
             self.predAi.epoch = aiState["predAi_epoch"]
             self.predAi.sampleCount = aiState["predAi_sampleCount"]
             self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
@@ -582,9 +582,6 @@ class AIWrapper():
             for data in self.dataLoader(indata):
                 data = data.to(device = self.device)
                 data = torch.squeeze(data)
-                import matplotlib.pyplot as plt
-                plt.imshow(data.cpu())
-                plt.show()
                 spectrum1 = data[2, 2 * halfHarms:]
                 spectrum2 = data[3, 2 * halfHarms:]
                 spectrum3 = data[-2, 2 * halfHarms:]

@@ -41,9 +41,8 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the voiced excitation of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause":
-        offset = 0
-    else:
-        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm.size()[0] / 2)
+        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
+    offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm.size()[0] / 2)
     if vocalSegment.startCap:
         windowStart = offset
     else:

@@ -270,7 +270,7 @@ class Voicebank():
             
             
         if additive == False:
-            self.ai.crfAi = SpecCrfAi(device = self.ai.device)
+            self.ai.crfAi = SpecCrfAi(self.ai.device, self.ai.hparams["crf_lr"], self.ai.hparams["crf_hlc"], self.ai.hparams["crf_hls"], self.ai.hparams["crf_reg"])
         print("sample preprocessing started")
         sampleCount = len(self.stagedCrfTrainSamples)
         for i in range(sampleCount):
@@ -282,7 +282,7 @@ class Voicebank():
             self.stagedCrfTrainSamples[i].tempWidth = tempWidth
             self.stagedCrfTrainSamples[i].tempDepth = tempDepth
             calculatePitch(self.stagedCrfTrainSamples[i], True)
-            calculateSpectra(self.stagedCrfTrainSamples[i], False)
+            calculateSpectra(self.stagedCrfTrainSamples[i], False)#TODO: Check/invert both flags
             avgSpecharm = torch.cat((self.stagedCrfTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedCrfTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
             self.stagedCrfTrainSamples[i] = (avgSpecharm + self.stagedCrfTrainSamples[i].specharm).to(device = self.device)
         print("sample preprocessing complete")
@@ -305,8 +305,8 @@ class Voicebank():
             
             
         if additive == False:
-            self.ai.predAi = SpecPredAi(device = self.ai.device)
-            self.ai.predAiHarm = HarmPredAi(device = self.ai.device)
+            self.ai.predAi = SpecPredAi(self.ai.device, self.ai.hparams["pred_lr"], self.ai.hparams["pred_rlc"], self.ai.hparams["pred_rs"], self.ai.hparams["pred_reg"])
+            self.ai.predAiHarm = HarmPredAi(self.ai.device, self.ai.hparams["pred_lr"], self.ai.hparams["pred_rlc"], self.ai.hparams["pred_rs"], self.ai.hparams["pred_reg"])
         print("sample preprocessing started")
         sampleCount = len(self.stagedPredTrainSamples)
         for i in range(sampleCount):

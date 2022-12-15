@@ -338,13 +338,13 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         innerBorders = torch.tensor([global_consts.halfTripleBatchSize * (global_consts.filterBSMult - 1), global_consts.halfTripleBatchSize * (global_consts.filterBSMult + 1)])
         innerBorders = torch.searchsorted(interpolationPoints, innerBorders)
         harmFunction = torch.empty((int(global_consts.nHarmonics / 2) + 1, 0))
-        if markerLength == 2:
-            harmFunction = interpolatedWave
-        else:
+        if markerLength > 2:
             interpolatedWave[:global_consts.nHarmonics + 1] *= torch.linspace(0, 1, global_consts.nHarmonics + 1)
             interpolatedWave[-global_consts.nHarmonics - 1:] *= torch.linspace(1, 0, global_consts.nHarmonics + 1)
             interpolatedWave = torch.reshape(interpolatedWave[:-1], (markerLength - 1, global_consts.nHarmonics))
             harmFunction = torch.sum(interpolatedWave, dim = 0) / (markerLength - 2)
+        else:
+            harmFunction = interpolatedWave
         #phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
         #phaseContinuity = torch.pow(phaseContinuity, 2)
         #amplitudes *= phaseContinuity
