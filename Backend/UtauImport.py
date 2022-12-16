@@ -85,7 +85,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
             raise LookupError("filename/alias " + alias + "/" + aliasCopy + " contains one or several phonemes not in the specified phoneme list")
         
     output = []
-
+    print(sequence, typeSequence)
     filepath = path.join(otoPath, filename)
     intermediate = max(-2 * (fixed - preuttr) + offset + fixed, (fixed / 2) + offset)
     output.append(UtauSample(filepath, 2, None, 0, None, offset, fixed, blank, preuttr, overlap))
