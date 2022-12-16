@@ -54,10 +54,11 @@ class UtauSample():
             self.key = None
         self.start = start
         if end == None:
-            if blank >= 0 or self._type == 2:
-                self.end = self.audioSample.waveform.size()[0] * 1000 / sampleRate
+            if blank >= 0:
+                timesize = self.audioSample.waveform.size()[0] * 1000 / sampleRate
+                self.end = timesize - blank
             else:
-                self.end = offset
+                self.end = offset - blank
         else:
             self.end = end
         self.handle = path.split(self.audioSample.filepath)[1] + ", " + str(self.start) + " - " + str(self.end)
