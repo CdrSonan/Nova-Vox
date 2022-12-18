@@ -56,6 +56,9 @@ defaultSpecDepth = 30
 defaultTempWidth = 2
 defaultTempDepth = 10
 
+#oto.ini parser
+consonantEndOffset = 15
+
 #control phoneme list
 controlPhonemes = [
     ("-", "C"),

@@ -271,6 +271,7 @@ class Voicebank():
             
         if additive == False:
             self.ai.crfAi = SpecCrfAi(self.ai.device, self.ai.hparams["crf_lr"], self.ai.hparams["crf_hlc"], self.ai.hparams["crf_hls"], self.ai.hparams["crf_reg"])
+            self.ai.crfAiOptimizer = torch.optim.NAdam(self.ai.crfAi.parameters(), lr=self.ai.crfAi.learningRate, weight_decay=self.ai.crfAi.regularization)
         print("sample preprocessing started")
         sampleCount = len(self.stagedCrfTrainSamples)
         for i in range(sampleCount):
@@ -282,7 +283,7 @@ class Voicebank():
             self.stagedCrfTrainSamples[i].tempWidth = tempWidth
             self.stagedCrfTrainSamples[i].tempDepth = tempDepth
             calculatePitch(self.stagedCrfTrainSamples[i], True)
-            calculateSpectra(self.stagedCrfTrainSamples[i], False)#TODO: Check/invert both flags
+            calculateSpectra(self.stagedCrfTrainSamples[i], False)
             avgSpecharm = torch.cat((self.stagedCrfTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedCrfTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
             self.stagedCrfTrainSamples[i] = (avgSpecharm + self.stagedCrfTrainSamples[i].specharm).to(device = self.device)
         print("sample preprocessing complete")
@@ -307,6 +308,8 @@ class Voicebank():
         if additive == False:
             self.ai.predAi = SpecPredAi(self.ai.device, self.ai.hparams["pred_lr"], self.ai.hparams["pred_rlc"], self.ai.hparams["pred_rs"], self.ai.hparams["pred_reg"])
             self.ai.predAiHarm = HarmPredAi(self.ai.device, self.ai.hparams["pred_lr"], self.ai.hparams["pred_rlc"], self.ai.hparams["pred_rs"], self.ai.hparams["pred_reg"])
+            self.ai.predAiOptimizer = torch.optim.Adadelta(self.ai.predAi.parameters(), lr=self.ai.predAi.learningRate, weight_decay=self.ai.predAi.regularization)
+            self.ai.predAiHarmOptimizer = torch.optim.Adadelta(self.ai.predAiHarm.parameters(), lr=self.ai.predAiHarm.learningRate, weight_decay=self.ai.predAiHarm.regularization)
         print("sample preprocessing started")
         sampleCount = len(self.stagedPredTrainSamples)
         for i in range(sampleCount):
