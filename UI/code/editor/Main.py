@@ -41,10 +41,13 @@ class NovaVoxUI(Widget):
         if change == None:
             return None
         if change.type == False:
+            print("recv status update ", change.track, change.index, change.value)
             middleLayer.updateRenderStatus(change.track, change.index, change.value)
         elif change.type == "updateAudio":
+            print("recv audio update ", change.track, change.index, change.value)
             middleLayer.updateAudioBuffer(change.track, change.index, change.value)
         elif change.type == "zeroAudio":
+            print("recv audio zero ", change.track, change.index, change.value)
             if change.value < 0:
                 change.index += change.value
                 change.value *= -1

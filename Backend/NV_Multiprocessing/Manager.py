@@ -64,6 +64,7 @@ class RenderManager():
         self.connection.put(InputChange(type, final, *data), True)
         if final:
             self.rerenderFlag.set()
+        print("sent packet ", type, final, data)
 
     def restart(self, sequenceList:list, voicebankList:list, aiParamStackList:list) -> None:
         """Method for restarting the rendering process. The required data is fetched again from the main process. This is to prevent any possible issues with the data held by the rendering process from persisting.

@@ -41,8 +41,9 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the voiced excitation of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause":
-        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
-    offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm.size()[0] / 2)
+        offset = 0
+    else:
+        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm.size()[0] / 2)
     if vocalSegment.startCap:
         windowStart = offset
     else:
@@ -52,7 +53,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     else:
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + offset
     if vocalSegment.phonemeKey == "_autopause":
-        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], 0.001)
+        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], 0.001)
     spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].avgSpecharm.to(device = device)
     specharm = Loop.loopSamplerSpecharm(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey].specharm, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
     specharm[:, :int(global_consts.nHarmonics / 2) + 1] *= torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2)

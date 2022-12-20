@@ -1,4 +1,3 @@
-from lib2to3.pgen2.literals import evalString
 import math
 import torch
 import global_consts
@@ -6,13 +5,12 @@ import logging
 import Backend.Resampler.Resamplers as rs
 from copy import copy
 from Backend.DataHandler.VocalSegment import VocalSegment
-from Backend.VB_Components.SpecCrfAi import AIWrapper
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
 from Backend.NV_Multiprocessing.Caching import DenseCache, SparseCache
 from Backend.NV_Multiprocessing.Update import trimSequence, posToSegment
 from MiddleLayer.IniParser import readSettings
-from Backend.Resampler.CubicSplineInter import interp, extrap
+from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseShift
 
 def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputListIn, rerenderFlagIn, connectionIn, remoteConnectionIn):
@@ -25,8 +23,6 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
     rerenderFlag = rerenderFlagIn
     connection = connectionIn
     remoteConnection = remoteConnectionIn
-
-    softplus = torch.nn.Softplus(10, 2)
 
     def updateFromMain(change, lastZero):
         global statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
@@ -150,7 +146,6 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                 statusControl[change.data[0]].rs[math.floor(change.data[2] / 3):math.floor((change.data[2] + len(change.data[3])) / 3)] *= 0
                 statusControl[change.data[0]].ai[math.floor(change.data[2] / 3):math.floor((change.data[2] + len(change.data[3])) / 3)] *= 0
             elif change.data[1] in ["pitch", "steadiness", "breathiness", "aiBalance"]:
-                print(change.data)
                 eval("inputList[change.data[0]]." + change.data[1])[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 positions = posToSegment(change.data[0], change.data[2], change.data[2] + len(change.data[3]), inputList)
                 statusControl[change.data[0]].rs[positions[0]:positions[1]] *= 0
@@ -160,7 +155,9 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                 inputList[change.data[0]].aiParamInputs[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
+            print("renderer: offset type packet received:", change, change.type, change.data)
             inputList, internalStatusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, internalStatusControl)
+            print("offset type received: (post trim)", change, change.type, change.data)
         if change.final == False:
             return updateFromMain(connection.get(), lastZero)
         else:
@@ -170,27 +167,26 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                 return False
 
     def pitchAdjust(spectrumInput, j, k, internalInputs, voicebank, previousShift, pitchOffset):
-        if internalInputs.phonemes[j] != "_autopause":
-            steadiness = torch.pow(1. - internalInputs.steadiness[k], 2)
-            targetPitch = global_consts.tripleBatchSize / (internalInputs.pitch[k] + pitchOffset * steadiness)
-            nativePitch = global_consts.tripleBatchSize / (voicebank.phonemeDict[internalInputs.phonemes[j]].pitch + pitchOffset * steadiness)
-            inputSpectrum = spectrumInput[global_consts.nHarmonics + 2:]
-            phaseDifference = global_consts.batchSize / internalInputs.pitch[k].to(torch.float64)
-
-            harmonics = spectrumInput[:int(global_consts.nHarmonics / 2) + 1]
-            originSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
-            newHarmonics = harmonics / interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), torch.square(inputSpectrum), originSpace)
-            targetSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * targetPitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
-            newHarmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), torch.square(inputSpectrum), targetSpace)
-            slope = torch.ones([global_consts.pitchShiftSpectralRolloff,])
-            slope[int(global_consts.pitchShiftSpectralRolloff / 2):] = torch.linspace(1, 0, int(global_consts.pitchShiftSpectralRolloff / 2))
-            newHarmonics[:global_consts.pitchShiftSpectralRolloff] *= 1. - slope
-            newHarmonics[:global_consts.pitchShiftSpectralRolloff] += slope * harmonics[:global_consts.pitchShiftSpectralRolloff]
-
-            phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
-            phases = phaseShift(phases, previousShift, device_rs)
-            previousShift += phaseDifference * 2 * math.pi
-            previousShift = previousShift % (2 * math.pi)
+        if internalInputs.phonemes[j] == "_autopause":
+            return spectrumInput, 0.
+        steadiness = torch.pow(1. - internalInputs.steadiness[k], 2)
+        targetPitch = global_consts.tripleBatchSize / (internalInputs.pitch[k] + pitchOffset * steadiness)
+        nativePitch = global_consts.tripleBatchSize / (voicebank.phonemeDict[internalInputs.phonemes[j]].pitch + pitchOffset * steadiness)
+        inputSpectrum = spectrumInput[global_consts.nHarmonics + 2:]
+        phaseDifference = global_consts.batchSize / internalInputs.pitch[k].to(torch.float64)
+        harmonics = spectrumInput[:int(global_consts.nHarmonics / 2) + 1]
+        originSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
+        newHarmonics = harmonics / interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), torch.square(inputSpectrum), originSpace)
+        targetSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * targetPitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
+        newHarmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), torch.square(inputSpectrum), targetSpace)
+        slope = torch.ones([global_consts.pitchShiftSpectralRolloff,])
+        slope[int(global_consts.pitchShiftSpectralRolloff / 2):] = torch.linspace(1, 0, int(global_consts.pitchShiftSpectralRolloff / 2))
+        newHarmonics[:global_consts.pitchShiftSpectralRolloff] *= 1. - slope
+        newHarmonics[:global_consts.pitchShiftSpectralRolloff] += slope * harmonics[:global_consts.pitchShiftSpectralRolloff]
+        phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
+        phases = phaseShift(phases, previousShift, device_rs)
+        previousShift += phaseDifference * 2 * math.pi
+        previousShift = previousShift % (2 * math.pi)
         return torch.cat((newHarmonics, phases, torch.square(inputSpectrum)), 0), previousShift
 
     #reading settings, setting device and interOutput properties accordingly
@@ -426,9 +422,9 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         #istft of voiced excitation + pitch shift
 
                         #write remaining spectral data to cache
-                        import matplotlib.pyplot as plt
-                        plt.imshow(spectrum.read(0, 1000).detach()) #TODO: remove gradient tracking in cache
-                        plt.show()
+                        #import matplotlib.pyplot as plt
+                        #plt.imshow(spectrum.read(0, 1000).detach()) #TODO: remove gradient tracking in cache
+                        #plt.show()
 
                         remoteConnection.put(StatusChange(i, j, 2))
 

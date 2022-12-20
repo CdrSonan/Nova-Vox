@@ -24,6 +24,7 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, internalSta
     issues during debugging. Neither phoneme should be implemented by any Voicebank"""
 
 
+    print("sequence trimmer called")
     phonemes = inputList[index].phonemes
     offsets = inputList[index].offsets
     repetititionSpacing = inputList[index].repetititionSpacing
@@ -34,7 +35,7 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, internalSta
         phonemes = phonemes[0:position] + ["_0"] * delta + phonemes[position:]
         offsets = torch.cat([offsets[0:position], torch.zeros([delta,]), offsets[position:]], 0)
         repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.full([delta,], 0.5), repetititionSpacing[position:]], 0)
-        borders = borders[0:3 * position] + [0] * (3 * delta) + borders[3 * position:]
+        borders = borders[0:3 * position] + [borders[3 * position] + 1] * (3 * delta) + borders[3 * position:]
         startCaps = startCaps[0:position] + [False] * delta + startCaps[position:]
         endCaps = endCaps[0:position] + [False] * delta + endCaps[position:]
         if position == 0:
