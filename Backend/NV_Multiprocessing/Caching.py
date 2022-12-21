@@ -48,14 +48,14 @@ class SparseCache():
             start += self.fullSize[0]
         if end == None:
             if self.start == None:
-                return torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype)
+                return torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device)
             elif start < self.start or start >= self.end:
-                return torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype)
+                return torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device)
             return self.tensor[start - self.start]
         if end < 0:
             end += self.fullSize[0]
         if self.start == None or self.end == None:
-            return torch.zeros((end - start,) + self.fullSize[1:], dtype = self.tensor.dtype)
+            return torch.zeros((end - start,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device)
         start -= self.start
         end -= self.end
         prepend = 0
@@ -75,7 +75,7 @@ class SparseCache():
             output = self.tensor[0:0]
         else:
             output = self.tensor[start:end]
-        output = torch.cat((torch.zeros((prepend,) + self.fullSize[1:], dtype = self.tensor.dtype), output, torch.zeros((append,) + self.fullSize[1:], dtype = self.tensor.dtype)), 0)
+        output = torch.cat((torch.zeros((prepend,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device), output, torch.zeros((append,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device)), 0)
         return output
     def write(self, value:torch.tensor, start:int, end:int = None) -> None:
         """writes value to the cache, starting at index start and ending at index end. Therefore, the length of value should be end - start. If it is 1, the end parameter can be omitted."""
@@ -89,11 +89,11 @@ class SparseCache():
                 self.tensor = torch.zeros((1,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device)
                 self.tensor[0] = value
             elif start < self.start:
-                self.tensor =  torch.cat((torch.zeros((self.start - start,) + self.fullSize[1:], dtype = self.tensor.dtype), self.tensor), 0)
+                self.tensor =  torch.cat((torch.zeros((self.start - start,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device), self.tensor), 0)
                 self.start = start
                 self.tensor[0] = value
             elif start >= self.end:
-                self.tensor =  torch.cat((self.tensor, torch.zeros((start + 1 - self.end,) + self.fullSize[1:], dtype = self.tensor.dtype)), 0)
+                self.tensor =  torch.cat((self.tensor, torch.zeros((start + 1 - self.end,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device)), 0)
                 self.end = start + 1
                 self.tensor[-1] = value
             else:
@@ -119,6 +119,6 @@ class SparseCache():
         self.start -= prepend
         self.end += append
         end += (self.end - self.start)
-        self.tensor = torch.cat((torch.zeros((prepend,) + self.fullSize[1:], dtype = self.tensor.dtype), self.tensor, torch.zeros((append,) + self.fullSize[1:], dtype = self.tensor.dtype)), 0)
+        self.tensor = torch.cat((torch.zeros((prepend,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device), self.tensor, torch.zeros((append,) + self.fullSize[1:], dtype = self.tensor.dtype, device = self.tensor.device)), 0)
         self.tensor[start:end] = value
         

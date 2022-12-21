@@ -37,7 +37,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
             return True
         elif change.type == "addTrack":
             statusControl.append(SequenceStatusControl(change.data[1]))
-            voicebankList.append(LiteVoicebank(change.data[0]))
+            voicebankList.append(LiteVoicebank(change.data[0], device = device_ai))
             aiParamStackList.append(change.data[2])
             inputList.append(change.data[1])
             if settings["cachingMode"] == "best rendering speed":
@@ -173,7 +173,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
             except:
                 return False
 
-    def pitchAdjust(spectrumInput, j, k, internalInputs, voicebank, previousShift, pitchOffset):
+    def pitchAdjust(spectrumInput, j, k, internalInputs, voicebank, previousShift, pitchOffset, device):
         if internalInputs.phonemes[j] == "_autopause":
             return spectrumInput, 0.
         steadiness = torch.pow(1. - internalInputs.steadiness[k], 2)
@@ -182,16 +182,16 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
         inputSpectrum = spectrumInput[global_consts.nHarmonics + 2:]
         phaseDifference = global_consts.batchSize / internalInputs.pitch[k].to(torch.float64)
         harmonics = spectrumInput[:int(global_consts.nHarmonics / 2) + 1]
-        originSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
-        newHarmonics = harmonics / interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), torch.square(inputSpectrum), originSpace)
-        targetSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * targetPitch, int(global_consts.nHarmonics / 2) + 1), torch.tensor([global_consts.halfTripleBatchSize,]))
-        newHarmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1), torch.square(inputSpectrum), targetSpace)
-        slope = torch.ones([global_consts.pitchShiftSpectralRolloff,])
-        slope[int(global_consts.pitchShiftSpectralRolloff / 2):] = torch.linspace(1, 0, int(global_consts.pitchShiftSpectralRolloff / 2))
+        originSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1, device = device), torch.tensor([global_consts.halfTripleBatchSize,], device = device))
+        newHarmonics = harmonics / interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device), torch.square(inputSpectrum), originSpace)
+        targetSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * targetPitch, int(global_consts.nHarmonics / 2) + 1, device = device), torch.tensor([global_consts.halfTripleBatchSize,], device = device))
+        newHarmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device), torch.square(inputSpectrum), targetSpace)
+        slope = torch.ones([global_consts.pitchShiftSpectralRolloff,], device = device)
+        slope[int(global_consts.pitchShiftSpectralRolloff / 2):] = torch.linspace(1, 0, int(global_consts.pitchShiftSpectralRolloff / 2), device = device)
         newHarmonics[:global_consts.pitchShiftSpectralRolloff] *= 1. - slope
         newHarmonics[:global_consts.pitchShiftSpectralRolloff] += slope * harmonics[:global_consts.pitchShiftSpectralRolloff]
         phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
-        phases = phaseShift(phases, previousShift, device_rs)
+        phases = phaseShift(phases, previousShift, device)
         previousShift += phaseDifference * 2 * math.pi
         previousShift = previousShift % (2 * math.pi)
         return torch.cat((newHarmonics, phases, torch.square(inputSpectrum)), 0), previousShift
@@ -380,13 +380,13 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                             else:
                                 specB = currentSpectrum[1]
                             aiSpec = voicebank.ai.interpolate(specA.to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), specB.to(device = device_ai), internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j], internalInputs.pitch[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]])
-                            aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]].unsqueeze(1)
-                            aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0] + (0.5 + 0.5 * aiBalance) * aiSpec[1]
+                            aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]].unsqueeze(1).to(device = device_rs)
+                            aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0].to(device = device_rs) + (0.5 + 0.5 * aiBalance) * aiSpec[1].to(device = device_rs)
                             pitchOffset = previousPitch[internalInputs.borders[3 * j] - internalInputs.borders[3 * j + 2]:] + currentPitch[:internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]]
                             for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2]):
-                                aiSpecOut, previousShift = pitchAdjust(aiSpec[k - internalInputs.borders[3 * j]], j, k, internalInputs, voicebank, previousShift, pitchOffset[k - internalInputs.borders[3 * j]])
-                                spectrum.write(aiSpecOut, k)
-                            pitch.write(pitchOffset, internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2])
+                                aiSpecOut, previousShift = pitchAdjust(aiSpec[k - internalInputs.borders[3 * j]], j, k, internalInputs, voicebank, previousShift, pitchOffset[k - internalInputs.borders[3 * j]], device_rs)
+                                spectrum.write(aiSpecOut.to(device_rs), k)
+                            pitch.write(pitchOffset.to(device_rs), internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2])
                         if internalInputs.endCaps[j]:
                             windowEnd = internalInputs.borders[3 * j + 5]
                             windowEndEx = internalInputs.borders[3 * j + 5]
@@ -396,15 +396,15 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                             excitation.write(nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx], windowEndEx, internalInputs.borders[3 * j + 5])
                         aiSpec = torch.roll(currentSpectrum, (-1,), (0,))
                         aiSpec[0] = currentSpectrum[0]
-                        aiSpec = torch.squeeze(voicebank.ai.predict(aiSpec))
-                        aiBalance = internalInputs.aiBalance[windowStart:windowEnd].unsqueeze(1)
+                        aiSpec = torch.squeeze(voicebank.ai.predict(aiSpec.to(device = device_ai))).to(device = device_rs)
+                        aiBalance = internalInputs.aiBalance[windowStart:windowEnd].unsqueeze(1).to(device = device_rs)
                         aiSpec = (0.5 - 0.5 * aiBalance) * currentSpectrum + (0.5 + 0.5 * aiBalance) * aiSpec
                         pitchOffset = currentPitch[windowStart - internalInputs.borders[3 * j]:windowEnd - internalInputs.borders[3 * j]]
                         for k in range(currentSpectrum.size()[0]):
-                            aiSpecOut, previousShift = pitchAdjust(aiSpec[k], j,  windowStart + k, internalInputs, voicebank, previousShift, pitchOffset[k])
-                            spectrum.write(aiSpecOut, windowStart + k)
-                        pitch.write(pitchOffset, windowStart, windowEnd)
-                        excitation.write(currentExcitation, windowStartEx, windowEndEx)
+                            aiSpecOut, previousShift = pitchAdjust(aiSpec[k], j,  windowStart + k, internalInputs, voicebank, previousShift, pitchOffset[k], device_rs)
+                            spectrum.write(aiSpecOut.to(device_rs), windowStart + k)
+                        pitch.write(pitchOffset.to(device_rs), windowStart, windowEnd)
+                        excitation.write(currentExcitation.to(device_rs), windowStartEx, windowEndEx)
 
                         if internalInputs.endCaps[j] == False:
                             if currentSpectrum.size()[0] == 1:
@@ -416,13 +416,13 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                             else:
                                 specB = nextSpectrum[1]
                             aiSpec = voicebank.ai.interpolate(specA.to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), specB.to(device = device_ai), internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3], internalInputs.pitch[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]])
-                            aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]].unsqueeze(1)
-                            aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0] + (0.5 + 0.5 * aiBalance) * aiSpec[1]
+                            aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]].unsqueeze(1).to(device = device_rs)
+                            aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0].to(device = device_rs) + (0.5 + 0.5 * aiBalance) * aiSpec[1].to(device = device_rs)
                             pitchOffset = currentPitch[internalInputs.borders[3 * j + 3] - internalInputs.borders[3 * j + 5]:] + nextPitch[:internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]]
                             for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
-                                aiSpecOut, previousShift = pitchAdjust(aiSpec[k - internalInputs.borders[3 * j + 3]], j, k, internalInputs, voicebank, previousShift, pitchOffset[k - internalInputs.borders[3 * j + 3]])
-                                spectrum.write(aiSpecOut, k)
-                            pitch.write(pitchOffset, internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5])
+                                aiSpecOut, previousShift = pitchAdjust(aiSpec[k - internalInputs.borders[3 * j + 3]], j, k, internalInputs, voicebank, previousShift, pitchOffset[k - internalInputs.borders[3 * j + 3]], device_rs)
+                                spectrum.write(aiSpecOut.to(device_rs), k)
+                            pitch.write(pitchOffset.to(device_rs), internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5])
                         
                         #TODO: implement crfai skipping if transition was already calculated in the previous frame
                         
@@ -457,11 +457,11 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                         #cosines = harms.real
                         #newSines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
                         #newCosines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
-                        voicedSignal = torch.empty((internalInputs.borders[3 * (j - 1) + 5] - startPoint, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
+                        voicedSignal = torch.empty((internalInputs.borders[3 * (j - 1) + 5] - startPoint, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
                         for k in range(harms.size()[0]):
                             requiredSize = global_consts.tripleBatchSize / (internalInputs.pitch[k + startPoint].item() + pitchOffset[k] * steadiness[k])
                             harmCurve = torch.tile(torch.fft.irfft(harms[k], global_consts.nHarmonics), (math.ceil(requiredSize),))[:int(requiredSize * global_consts.nHarmonics)]
-                            voicedSignal[k] = torch.fft.rfft(interp(torch.linspace(0, 1, int(requiredSize * global_consts.nHarmonics)), harmCurve, torch.linspace(0, 1, global_consts.tripleBatchSize)) * window)
+                            voicedSignal[k] = torch.fft.rfft(interp(torch.linspace(0, 1, int(requiredSize * global_consts.nHarmonics), device = device_rs), harmCurve, torch.linspace(0, 1, global_consts.tripleBatchSize, device = device_rs)) * window)
                             #inputFreqs = torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1).unsqueeze(0).tile(global_consts.halfTripleBatchSize + 1, 1) * requiredSize
                             #outputFreqs = torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1).unsqueeze(1).tile(1, int(global_consts.nHarmonics / 2) + 1)
                             #sineToSine = outputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi

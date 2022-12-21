@@ -45,9 +45,9 @@ def phaseShift(inputTensor:torch.Tensor, phase:float, device:torch.device) -> to
 
 
     phaseOffsets = torch.full(inputTensor.size(), phase, device = device)
-    phaseOffsets *= torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1)
+    phaseOffsets *= torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1, device = device)
     outputTensor = inputTensor + phaseOffsets
-    outputTensor = torch.remainder(outputTensor, torch.tensor([2 * math.pi]))
+    outputTensor = torch.remainder(outputTensor, torch.tensor([2 * math.pi], device = device))
     return outputTensor
     
 def calculatePhaseDiff(batchRS:int, phases:torch.Tensor, pitch:torch.Tensor) -> int:
