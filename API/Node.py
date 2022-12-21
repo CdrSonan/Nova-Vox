@@ -1,8 +1,14 @@
+#Copyright 2022 Contributors to the Nova-Vox project
+
+#This file is part of Nova-Vox.
+#Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+#Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
+
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.behaviors.drag import DragBehavior
-from kivy.uix.image import Image
 from kivy.properties import ObjectProperty
 from kivy.graphics import Color, Ellipse, RoundedRectangle
 from kivy.clock import Clock

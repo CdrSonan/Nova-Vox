@@ -1,5 +1,10 @@
-post-installation info:
+Thank you for installing Nova-Vox!
 
--first-time PYC compilation
+Upon its first launch, Nova-Vox is going to precompile its code, as well as the software libraries it depends on.
+Therefore, it is normal for the first launch to take up to several minutes.
+All further launches are going to be much faster.
 
--links to website for downloads & resources
+To get started, we recommend you to check out our tutorial page (PLACEHOLDER FOR LINK).
+You can also download additional Voices, Plugins and more from our website (PLACEHOLDER FOR LINK).
+
+Have fun creating!

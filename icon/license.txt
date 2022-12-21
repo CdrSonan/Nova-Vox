@@ -1,0 +1,8 @@
+This folder contains both modified and unmodified versions of the Nova-Vox logo created by deeepiii in various file formats, which are directly used by the Nova-Vox program.
+
+The Nova-Vox logo, and therefore also all files within this folder, are licensed under a Creative Commons BY-NC-SA license.
+In short, this means you can use the logo ONLY for non-commercial purposes, and any modifications to the logo must be distributed under the same license.
+Also, if the logo is used, credit must be given to the original creator (deeepiii), even if you make changes to it.
+If you want or need more details, please visit the official license page: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Please see <Nova-Vox_Logo_Files/Nova-Vox Logo Files/License and Notes.txt> for additional details.

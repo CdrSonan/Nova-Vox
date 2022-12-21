@@ -1,7 +1,11 @@
-pre-installation info
+Nova-Vox is distributed under the GNU GPL 3.0 (or later) license, which you will be prompted to agree to shortly.
+We believe that choosing this license is the best option for Nova-Vox because of its openness, and because it ensures Nova-Vox will remain free software that everyone can benefit from.
+However, we kindly ask you to adhere to the following points, even though none of them constitute additional terms to the license used by Nova-Vox.
 
--Do not process someone else's vocal data without their consent
+-Do not process recordings of other people without their consent
 
--Do not violate the licenses of Nova-Vox Voicebanks or other content
+-Do not violate the licenses of Nova-Vox Voicebanks, Plugins or other content of the same nature.
 
--Do not port Voicebanks from other engines to Nova-Vox if doing so violates their respective licenses or ToS
+-Do not port Voicebanks from other engines to Nova-Vox if doing so violates their respective licenses or Terms of Service
+
+Our goal is not to make Nova-Vox less open in any way, but rather to work towards an environment in which all Nova-Vox users can safely use our software and related content, without worrying about their work potentially being abused in ways they did not agree to.
