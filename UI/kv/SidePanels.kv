@@ -13,7 +13,6 @@
     size_hint_y: None
     height: 30
     on_press: self.parent.parent.parent.parent.detailElement(self.index)
-    border: (30, 30, 30, 30)
 
 <FileSidePanel>:
     size_hint: (0.4, 1 - (50 / root.height))
@@ -129,6 +128,7 @@
                 size_hint_y: None
                 orientation: "vertical"
                 spacing: 2
+                height: self.minimum_height
         GridLayout:
             size_hint_y: None
             height: self.minimum_height
@@ -203,6 +203,7 @@
                 size_hint_y: None
                 orientation: "vertical"
                 spacing: 2
+                height: self.minimum_height
         GridLayout:
             size_hint_y: None
             height: self.minimum_height
@@ -350,7 +351,7 @@
             id: settings_lowSpecMode
             sync_height: True
             text_autoupdate: True
-            bbackground_normal: "UI/assets/Toolbar/Adaptive07mod.png"
+            background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
             background_down: "UI/assets/Toolbar/Adaptive07mod.png"
             size_hint_y: None
             height: 30
