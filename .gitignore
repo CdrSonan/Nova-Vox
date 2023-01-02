@@ -5,3 +5,4 @@ venv/
 Voices/
 __pycache__/
 *setup.exe
+torchaudio/

@@ -15,7 +15,7 @@ common_excludes = ["torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
 common_imports = ["torch", "torchaudio", "soundfile"]
 
-common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("UI/kv/*", "UI/kv"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList")]
+common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("UI/kv/*", "UI/kv"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList"), ("./torchaudio", "./torchaudio")]
 
 block_cipher = None
 
