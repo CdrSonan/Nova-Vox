@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -14,16 +14,19 @@
     on_scroll_x: self.generateGrid()
     on_scroll_y: self.generateGrid()
     canvas:
+        #canvas operations essentially result in a darkened background compared to the parent wisget
         Color:
             rgba: (0, 0, 0, 0.5)
         Rectangle:
             pos: (self.x, self.y)
             size:(self.width, self.height)
     FloatLayout:
+        #FloatLayout that will contain all nodes as children
         x: self.parent.x
         y: self.parent.y
         size_hint: (None, None)
         size: (max(self.parent.strictWidth * 2, self.parent.width * 2) / self.parent.scale, max(self.parent.strictHeight * 2, self.parent.height * 2) / self.parent.scale)
+        #size adapts to Zoom level
         Widget:
             x: self.parent.x
             y: self.parent.y

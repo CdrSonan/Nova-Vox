@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -25,6 +25,7 @@
     group: "Notes"
     border: (3, 3, 3, 3)
     TextInput:
+        #lyrics/phonemes text input field
         pos: self.parent.x, self.parent.y
         size: self.parent.width, self.parent.height
         font_size: 16
@@ -32,5 +33,7 @@
         multiline: False
         text_validate_unfocus: True
         foreground_color: (0.9, 0.9, 0, 1) if self.parent.inputMode else (1, 1, 1, 1)
+        #changes when switching the note between lyrics and phoneme mode
         background_color: (0, 0, 0, 0)
+        #transparent background of the text field, showing the parent widget
         on_focus: self.parent.changeLyrics(self.text, self.focus)

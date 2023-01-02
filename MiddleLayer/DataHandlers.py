@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -73,7 +73,7 @@ class Track():
             else:
                 self.phonemeLengths[i] = None
                 
-    #TODO: find out if this can be removed
+    #TODO: update to _autopause system
     def generateCaps(self) -> tuple([list, list]):
         """utility function for generating startCap and endCap attributes for the track. These are not required by the main process, and are instead sent to the rendering process with to_sequence"""
 
@@ -81,10 +81,9 @@ class Track():
         for i in self.phonemes:
             noneList.append(False)
         return [noneList, noneList]
-    #TODO: this too
 
     def toSequence(self) -> VocalSequence:
-        """converts the track to a VOcalSequence object for sending it to the rendering thread. Also handles conversion of MIDI pitch to frequency."""
+        """converts the track to a VocalSequence object for sending it to the rendering thread. Also handles conversion of MIDI pitch to frequency."""
 
         caps = self.generateCaps()
         pitch = torch.full_like(self.pitch, global_consts.sampleRate) / (torch.pow(2, (self.pitch - torch.full_like(self.pitch, 69)) / torch.full_like(self.pitch, 12)) * 440)

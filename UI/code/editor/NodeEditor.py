@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -12,6 +12,8 @@ from kivy.clock import mainthread
 from math import pow, log, floor, ceil
 
 class NodeEditor(ScrollView):
+    """class of the audio processing node editor"""
+
     def __init__(self, **kw):
         super().__init__(**kw)
         self.scale = NumericProperty()
@@ -26,9 +28,13 @@ class NodeEditor(ScrollView):
 
     @mainthread
     def generateGrid(self):
+        """delayed call od updateGrid(). Required during widget initialization, when not all properties required by updateGrid() are available yet."""
+
         self.updateGrid()
 
     def updateGrid(self):
+        """updates the background grid of the node editor to reflect changed scroll values or zoom levels"""
+
         interval = self.scale * 100 / pow(5, ceil(log(self.scale, 5)))
         self.children[0].size = (max(self.strictWidth * 2, self.width * 2) * self.scale, max(self.strictHeight * 2, self.height * 2) * self.scale)
         self.children[0].children[-1].canvas.clear()
@@ -52,6 +58,8 @@ class NodeEditor(ScrollView):
             i.recalculateSize()
             
     def on_touch_down(self, touch):
+        """callback function used for processing mouse input"""
+
         if touch.is_mouse_scrolling:
             position = self.to_local(*touch.pos)
             xPos = position[0]

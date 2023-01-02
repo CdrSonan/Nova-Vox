@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -7,6 +7,8 @@
 
 try:
     import pyi_splash
+    #pyi_splash is only available when the program is packaged and launched through the PyInstaller Bootstrapper.
+    #to avoid issues when running the program prior to packaging, pyi_splash is replaced with the PseudoSplash dummy class, which implements all relevant methods, in that case.
 except ImportError:
     class PseudoSplash:
         def __init__(self):
@@ -14,7 +16,7 @@ except ImportError:
         def is_alive(self):
             return False
         def close(self):
-            pass
+            del(self)
     pyi_splash = PseudoSplash()
 if pyi_splash.is_alive():
     pyi_splash.update_text("loading PyTorch libraries...")
@@ -35,11 +37,9 @@ torch.backends.cuda.matmul.allow_tf32 = tcores
 torch.backends.cudnn.allow_tf32 = tcores
 
 if pyi_splash.is_alive():
-    pyi_splash.update_text("loading Nova-Vox Backend...")
+    pyi_splash.update_text("starting logging process...")
 import sys
 from os import getenv, path, makedirs
-if pyi_splash.is_alive():
-    pyi_splash.update_text("starting logging process...")
 import logging
 if settings["loglevel"] == "debug":
     loglevel = logging.DEBUG

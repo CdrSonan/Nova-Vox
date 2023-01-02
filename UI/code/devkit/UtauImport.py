@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -14,6 +14,7 @@ import csv
 import sounddevice
 
 import matplotlib
+#set up matplotlib to use more efficient plotting settings
 matplotlib.use('TkAgg')
 matplotlib.rcParams['path.simplify'] = True
 matplotlib.rcParams['path.simplify_threshold'] = 1.
@@ -49,6 +50,7 @@ class UtauImportUi(tkinter.Frame):
 
         global loadedVB
 
+        #Audio file waveform diagram
         self.diagram = tkinter.LabelFrame(self, text = loc["utau_diag_lbl"])
         self.diagram.fig = Figure(figsize=(4, 4))
         self.diagram.ax = self.diagram.fig.add_axes([0.1, 0.1, 0.8, 0.8])
@@ -64,6 +66,7 @@ class UtauImportUi(tkinter.Frame):
         self.diagram.playButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         self.diagram.pack(side = "right", fill = "y", padx = 5, pady = 2)
         
+        #UTAU phoneme list and related controls
         self.phonemeList = tkinter.LabelFrame(self, text = loc["smp_list"])
         self.phonemeList.list = tkinter.Frame(self.phonemeList)
         self.phonemeList.list.lb = tkinter.Listbox(self.phonemeList.list)
@@ -86,9 +89,11 @@ class UtauImportUi(tkinter.Frame):
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
+        #per-sample settings panel
         self.sideBar = tkinter.LabelFrame(self, text = loc["per_smp_set"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
+        #sample type selection
         self.sideBar._type = tkinter.Frame(self.sideBar)
         self.sideBar._type.variable = tkinter.BooleanVar(self.sideBar._type)
         self.sideBar._type.entry = tkinter.Frame(self.sideBar._type)
@@ -104,6 +109,7 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar._type.display.pack(side = "right", fill = "x")
         self.sideBar._type.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
+        #key selection for phoneme samples
         self.sideBar.key = tkinter.Frame(self.sideBar)
         self.sideBar.key.variable = tkinter.StringVar(self.sideBar.key)
         self.sideBar.key.entry = tkinter.Entry(self.sideBar.key)
@@ -116,6 +122,7 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.key.display.pack(side = "right", fill = "x")
         self.sideBar.key.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
+        #start point selection
         self.sideBar.start = tkinter.Frame(self.sideBar)
         self.sideBar.start.variable = tkinter.DoubleVar(self.sideBar.start)
         self.sideBar.start.entry = tkinter.Spinbox(self.sideBar.start, from_ = 0, increment = 0.05)
@@ -128,6 +135,7 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.start.display.pack(side = "right", fill = "x")
         self.sideBar.start.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
+        #end point selection
         self.sideBar.end = tkinter.Frame(self.sideBar)
         self.sideBar.end.variable = tkinter.DoubleVar(self.sideBar.end)
         self.sideBar.end.entry = tkinter.Spinbox(self.sideBar.end, from_ = 0, increment = 0.05)
@@ -140,14 +148,17 @@ class UtauImportUi(tkinter.Frame):
         self.sideBar.end.display.pack(side = "right", fill = "x")
         self.sideBar.end.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
+        #sample import button
         self.sideBar.importButton = tkinter.Button(self.sideBar)
         self.sideBar.importButton["text"] = loc["smp_import"]
         self.sideBar.importButton["command"] = self.onImportPress
         self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
+        #oto.ini parser settings panel
         self.otoSettings = tkinter.LabelFrame(self, text = loc["oto_set"])
         self.otoSettings.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
 
+        #prefix selection
         self.otoSettings.stripPrefix = tkinter.Frame(self.otoSettings)
         self.otoSettings.stripPrefix.variable = tkinter.StringVar(self.otoSettings.stripPrefix)
         self.otoSettings.stripPrefix.entry = tkinter.Entry(self.otoSettings.stripPrefix)
@@ -158,6 +169,7 @@ class UtauImportUi(tkinter.Frame):
         self.otoSettings.stripPrefix.display.pack(side = "right", fill = "x")
         self.otoSettings.stripPrefix.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
+        #postfix selection
         self.otoSettings.stripPostfix = tkinter.Frame(self.otoSettings)
         self.otoSettings.stripPostfix.variable = tkinter.StringVar(self.otoSettings.stripPostfix)
         self.otoSettings.stripPostfix.entry = tkinter.Entry(self.otoSettings.stripPostfix)
@@ -168,6 +180,7 @@ class UtauImportUi(tkinter.Frame):
         self.otoSettings.stripPostfix.display.pack(side = "right", fill = "x")
         self.otoSettings.stripPostfix.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
+        #language selection
         languages = os.listdir(os.path.join(self.phoneticsPath, "Lists"))
         self.otoSettings.language = tkinter.Frame(self.otoSettings)
         self.otoSettings.language.variable = tkinter.StringVar(self.otoSettings.language)
@@ -178,6 +191,7 @@ class UtauImportUi(tkinter.Frame):
         self.otoSettings.language.display.pack(side = "right", fill = "x")
         self.otoSettings.language.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
+        #shift-JIS decoder flag
         self.otoSettings.forceJIS = tkinter.Frame(self.otoSettings)
         self.otoSettings.forceJIS.variable = tkinter.BooleanVar(self.otoSettings.forceJIS, True)
         self.otoSettings.forceJIS.entry = tkinter.Checkbutton(self.otoSettings.forceJIS)
@@ -188,6 +202,7 @@ class UtauImportUi(tkinter.Frame):
         self.otoSettings.forceJIS.display.pack(side = "right", fill = "x")
         self.otoSettings.forceJIS.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
+        #per-type sample exclusions
         self.otoSettings.typeSelector = tkinter.Frame(self.otoSettings)
         self.otoSettings.typeSelector.variablePhon = tkinter.BooleanVar(self.otoSettings.typeSelector, True)
         self.otoSettings.typeSelector.entryPhon = tkinter.Checkbutton(self.otoSettings.typeSelector)
@@ -212,6 +227,7 @@ class UtauImportUi(tkinter.Frame):
         self.otoSettings.typeSelector.displaySeq.pack(side = "right", fill = "x")
         self.otoSettings.typeSelector.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
+        #window controls
         self.okButton = tkinter.Button(self)
         self.okButton["text"] = loc["ok"]
         self.okButton["command"] = self.onOkPress
@@ -230,8 +246,8 @@ class UtauImportUi(tkinter.Frame):
         self.phonemeList.list.lastFocusedIndex = None
 
     def play(self) -> None:
-        """starts or stops audio playback.
-        If state is true, starts playback, if state is false, stops playback. If state is None or not given, starts playback if it is not already in progress, and stops playback if it is."""
+        """plays an UTAU sample from its configured start point to end point"""
+
         sample = self.sampleList[self.phonemeList.list.lastFocusedIndex]
         wave = sample.audioSample.waveform[int(sample.start * global_consts.sampleRate / 1000):int(sample.end * global_consts.sampleRate / 1000)]
         sounddevice.play(wave, samplerate=global_consts.sampleRate)
@@ -453,13 +469,16 @@ class UtauImportUi(tkinter.Frame):
                     fetchedSamples = fetchSamples(filename, properties, otoPath, self.otoSettings.stripPrefix.variable.get(), self.otoSettings.stripPostfix.variable.get(), phonemePath, conversionPath, self.otoSettings.forceJIS.variable.get())
                     for sample in fetchedSamples:
                         if sample._type == 1 and self.otoSettings.typeSelector.variableTrans.get():
+                            #transition sample
                             self.sampleList.append(sample)
                             self.phonemeList.list.lb.insert("end", sample.handle)
                         elif sample._type == 2 and sample.audioSample.filepath not in samplePaths and self.otoSettings.typeSelector.variableSeq.get():
+                            #sequence sample
                             samplePaths.append(sample.audioSample.filepath)
                             self.sampleList.append(sample)
                             self.phonemeList.list.lb.insert("end", sample.handle)
                         elif self.otoSettings.typeSelector.variablePhon.get():
+                            #phoneme sample
                             for i in range(len(self.sampleList)):
                                 if self.sampleList[i].key == sample.key:
                                     if sample.end - sample.start > self.sampleList[i].end - self.sampleList[i].start:

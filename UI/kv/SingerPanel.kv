@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -16,6 +16,7 @@
         spacing: 10
         NodeEditor:
         BoxLayout:
+            #layout for side bar
             size_hint: (None, 1)
             width: 300
             orientation: "vertical"
@@ -33,6 +34,7 @@
                     size_hint_y: None
                     height: 30
                 Spinner:
+                    #main Voicebank selector
                     sync_height: True
                     text_autoupdate: True
                     background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
@@ -45,6 +47,7 @@
                     size_hint_y: None
                     height: 30
                 Spinner:
+                    #Mix-in VOicebank selector
                     sync_height: True
                     text_autoupdate: True
                     background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
@@ -57,15 +60,18 @@
                     size_hint_y: None
                     height: 30
                 NumberInput:
+                    #pause threshold input
                     size_hint_y: None
                     height: 30
             ScrollView:
+                #available node list
                 do_scroll_x: False
                 do_scroll_y: True
                 scroll_type: ["bars"]
                 bar_width: 10
                 TreeView:
             ManagedButton:
+                #close button
                 size_hint_y: None
                 height: 30
                 text: "close"
@@ -90,6 +96,7 @@
             y: self.parent.top - 30
             text: self.parent.parent.name
         Image:
+            #singer portrait
             size: (0.5 * self.parent.width, self.parent.height - 50) if 0.5 * self.parent.width < self.parent.height - 50 else (self.parent.height - 50, self.parent.height - 50)
             x: self.parent.x + 10
             y: self.parent.y + 10
@@ -102,20 +109,26 @@
             BoxLayout:
                 orientation: "horizontal"
                 ImageButton:
+                    #singer/track settings button
                     source: "UI/assets/TrackList/SingerGrey01new.png"
                     on_press: self.parent.parent.parent.parent.openSettings()
                 ImageButton:
+                    #copy/duplicate button
                     source: "UI/assets/TrackList/SingerGrey02new.png"
                     on_press: self.parent.parent.parent.parent.copyTrack()
                 ImageButton:
+                    #delete button
                     source: "UI/assets/TrackList/SingerGrey03new.png"
                     on_press: self.parent.parent.parent.parent.deleteTrack()
             Slider:
+                #volume slider
                 min: 0
                 max: 1.2
                 value: 1.
                 on_value: self.parent.parent.parent.updateVolume(self.value)
             AnchorLayout:
+                #volume meter
+                #anchor layout and width reduction keep volume meter aligned with volume slider
                 anchor_x: "center"
                 anchor_y: "center"
                 ProgressBar:

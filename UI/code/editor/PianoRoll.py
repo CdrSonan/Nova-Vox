@@ -54,6 +54,7 @@ class Note(ToggleButton):
         self.height = self.parent.parent.yScale
 
     def quantize(self, x:float, y:float = None) -> tuple:
+        """adjusts the x coordinate of a touch to achieve the desired input quantization"""
         if self.parent.parent.quantization == None:
             xOut = x
         else:
@@ -209,9 +210,12 @@ class PianoRoll(ScrollView):
 
     @mainthread
     def generateTimingMarkers(self) -> None:
+        """delayed call of updateTimingMarkers(). The delay is required during widget initialization, since not all properties required by updateTimingMarkers() are available during initialization yet."""
         self.updateTimingMarkers()
 
     def updateTempo(self, measureType:str, tempo:str, quantization:str) -> None:
+        """callback function used or updating the tempo of the track"""
+
         measureSizes = {
             "4/4": 4,
             "3/4": 3,
@@ -252,11 +256,12 @@ class PianoRoll(ScrollView):
         self.updateTimingMarkers()
 
     def quantize(self, x:float, y:float = None) -> tuple:
+        """adjusts the x coordinate of a touch to achieve the desired input quantization"""
+
         if self.quantization == None:
             xOut = x
         else:
             xOut = int(int(x / self.xScale / self.quantization + 0.5) * self.xScale * self.quantization)
-        print("quantize", x, xOut, self.tempo, self.quantization)
         if y == None:
             return xOut
         return (xOut, y)
@@ -274,6 +279,8 @@ class PianoRoll(ScrollView):
             i += 1
 
     def on_scroll_x(self, instance, scroll_x:float) -> None:
+        """updates the displayed timing markers when the view is scrolled"""
+        
         self.updateTimingMarkers()
 
     def changePlaybackPos(self, playbackPos:float) -> None:

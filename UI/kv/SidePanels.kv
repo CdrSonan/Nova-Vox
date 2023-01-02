@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -71,6 +71,7 @@
                 height: 30
                 text: "sample rate:"
             Spinner:
+                #file format dropdown menu
                 sync_height: True
                 text_autoupdate: True
                 background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
@@ -82,6 +83,7 @@
                 text: "WAV"
                 on_text: self.parent.parent.parent.parent.parent.reloadBitdepths(self.text)
             Spinner:
+                #file format bitdepth/subtype dropdown menu
                 sync_height: True
                 text_autoupdate: True
                 background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
@@ -93,6 +95,7 @@
                 text: "PCM_24"
                 on_text: self.parent.parent.parent.parent.parent.bitdepth = self.text
             Spinner:
+                #sample rate dropdown menu
                 sync_height: True
                 text_autoupdate: True
                 background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
@@ -306,6 +309,7 @@
             height: 30
             text: "Language:"
         Spinner:
+            #language dropdown menu
             id: settings_lang
             sync_height: True
             text_autoupdate: True
@@ -320,6 +324,7 @@
             height: 30
             text: "Accelerator:"
         Spinner:
+            #accelerator dropdown menu
             id: settings_accel
             sync_height: True
             text_autoupdate: True
@@ -334,6 +339,7 @@
             height: 30
             text: "Tensor Cores:"
         Spinner:
+            #tensor core dropdown menu
             id: settings_tcores
             sync_height: True
             text_autoupdate: True
@@ -348,6 +354,7 @@
             height: 30
             text: "low-spec mode:"
         Spinner:
+            #performance mode dropdown menu
             id: settings_lowSpecMode
             sync_height: True
             text_autoupdate: True
@@ -362,6 +369,7 @@
             height: 30
             text: "caching mode:"
         Spinner:
+            #caching mode dropdown menu
             id: settings_cachingMode
             sync_height: True
             text_autoupdate: True
@@ -376,6 +384,7 @@
             height: 30
             text: "audio API:"
         Spinner:
+            #audio driver dropdown menu
             id: settings_audioApi
             sync_height: True
             text_autoupdate: True
@@ -391,6 +400,7 @@
             height: 30
             text: "audio device:"
         Spinner:
+            #audio device dropdown menu
             id: settings_audioDevice
             sync_height: True
             text_autoupdate: True
@@ -405,6 +415,7 @@
             height: 30
             text: "Logging level:"
         Spinner:
+            #logging level dropdown menu
             id: settings_loglevel
             sync_height: True
             text_autoupdate: True
@@ -419,6 +430,7 @@
             height: 30
             text: "Data directory:"
         ManagedButton:
+            #data directory selection button
             id: settings_datadir
             sync_height: True
             size_hint_y: None
@@ -430,6 +442,7 @@
             height: 30
             text: "UI Scale:"
         Slider:
+            #UI scale slider
             id: settings_uiScale
             size_hint_y: None
             height: 30
@@ -444,6 +457,7 @@
             valign: "middle"
             text: "Toolbar Color:"
         ColorWheel:
+            #tool bar color wheel
             id: settings_toolColor
             size_hint_y: None
             height: 200
@@ -454,6 +468,7 @@
             valign: "middle"
             text: "Accent Color:"
         ColorWheel:
+            #accent color wheel
             id: settings_accColor
             size_hint_y: None
             height: 200
@@ -464,6 +479,7 @@
             valign: "middle"
             text: "Background Color:"
         ColorWheel:
+            #background color wheel
             id: settings_bgColor
             size_hint_y: None
             height: 200

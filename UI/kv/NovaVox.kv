@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -20,6 +20,7 @@
     FloatLayout:
         size: (root.width, root.height)
         canvas:
+            #toolbartop and side bar backgrounds as canvas ops
             Color:
                 rgba: root.toolColor
             Rectangle:
@@ -28,19 +29,24 @@
             Rectangle:
                 pos: (0, root.height - 50 * root.uiScale)
                 size:(root.width, 50 * root.uiScale)
+        
+        #Top bar buttons
         ImageButton:
+            #logo/license window button
             pos: (4 * root.uiScale, root.height - 49 * root.uiScale)
             size_hint: (None, None)
             size: (48 * root.uiScale, 48 * root.uiScale)
             source: "UI/assets/TopBar/logo.gif"
             on_press: Factory.LicensePanel().open()
         ImageButton:
+            #reverse button
             pos: (80 * root.uiScale, root.height - 40 * root.uiScale)
             size_hint: (None, None)
             size: (42 * root.uiScale, 30 * root.uiScale)
             source: "UI/assets/TopBar/Top01.png"
             on_press: root.spoolBack()
         ImageToggleButton:
+            #play button
             pos: (142 * root.uiScale, root.height - 45 * root.uiScale)
             size_hint: (None, None)
             size: (28 * root.uiScale, 40 * root.uiScale)
@@ -48,64 +54,77 @@
             id: playButton
             on_state: root.play(self.state)
         ImageButton:
+            #fast forward button
             pos: (190 * root.uiScale, root.height - 40 * root.uiScale)
             size_hint: (None, None)
             size: (42 * root.uiScale, 30 * root.uiScale)
             source: "UI/assets/TopBar/Top03.png"
             on_press: root.spoolForward()
         ImageButton:
+            #undo button
             pos: (260 * root.uiScale, root.height - 45 * root.uiScale)
             size_hint: (None, None)
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "UI/assets/TopBar/Top04.png"
             on_press: root.undo
         ImageButton:
+            #redo button
             pos: (314 * root.uiScale, root.height - 45 * root.uiScale)
             size_hint: (None, None)
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "UI/assets/TopBar/Top05.png"
             on_press: root.redo
+        
+        #Side bar buttons
         ImageButton:
+            #file button
             pos: (root.width - 50 * root.uiScale, root.height - 100 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side01new.png"
             on_press: Factory.FileSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
+            #Singer/Voicebank button
             pos: (root.width - 50 * root.uiScale, root.height - 160 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side02new.png"
             on_press: Factory.SingerSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
+            #Parameter button
             pos: (root.width - 50 * root.uiScale, root.height - 220 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side03new.png"
             on_press: Factory.ParamSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
+            #scripting/rocket button
             pos: (root.width - 50 * root.uiScale, root.height - 280 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side04new.png"
             on_press: Factory.ScriptingSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
+            #settings button
             pos: (root.width - 50 * root.uiScale, root.height - 340 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side05new.png"
             on_press: Factory.SettingsSidePanel(uiScale = root.uiScale, toolColor = root.toolColor, accColor = root.accColor, bgColor = root.bgColor).open()
         ImageButton:
+            #renderer restart button
             pos: (root.width - 50 * root.uiScale, root.height - 400 * root.uiScale)
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side06new.png"
         BoxLayout:
+            #layout for the main part of the window
             orientation: "horizontal"
             pos: (0, 0)
             size_hint: (None, None)
             size: root.width - 50 * root.uiScale, root.height - 50 * root.uiScale
             Splitter:
+                #vertical splitter between singer + parameter lists, and piano roll + parameter curve(s)
                 size_hint: (0.25, 1)
                 sizable_from: "right"
                 rescale_with_parent: True
@@ -115,12 +134,14 @@
                 BoxLayout:
                     orientation: "vertical"
                     Splitter:
+                        #horizontal splitter between singer list and parameter list
                         size_hint: (1, 0.75)
                         sizable_from: "bottom"
                         rescale_with_parent: True
                         max_size: self.parent.height - 100
                         strip_size: 5
                         Widget:
+                            #singer list
                             canvas:
                                 Color:
                                     rgba: root.bgColor
@@ -140,6 +161,7 @@
                                     width: self.parent.width - 10
                                     height: self.minimum_height
                     Widget:
+                        #parameter list
                         size_hint: (1, 0.25)
                         canvas:
                             Color:
@@ -163,27 +185,33 @@
                 orientation: "vertical"
                 size_hint: (0.75, 1)
                 Splitter:
+                    #horizontal splitter between piano roll and parameter curve(s)
                     size_hint: (1, 0.75)
                     sizable_from: "bottom"
                     rescale_with_parent: True
                     max_size: self.parent.height - 100
                     strip_size: 5
                     FloatLayout:
+                        #layout containing the piano roll, and associated toolbar
                         Widget:
+                            #toolbar widget
                             pos: self.parent.pos
                             size_hint: (1, None)
                             height: 40 * root.uiScale
                             canvas:
+                                #toolbar background through canvas ops
                                 Color:
                                     rgba: root.toolColor
                                 Rectangle:
                                     pos: self.parent.pos
                                     size:(self.width, 40 * root.uiScale)
                             BoxLayout:
+                                #layout for the toolbar
                                 pos: self.parent.pos
                                 orientation: "horizontal"
                                 padding: (2, 0)
                                 ImageToggleButton:
+                                    #note edit mode button
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
                                     source: "UI/assets/Toolbar/Adaptive04new.png"
@@ -191,18 +219,21 @@
                                     on_press: root.setMode("notes")
                                     state: "down"
                                 ImageToggleButton:
+                                    #timing edit mode button
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
                                     source: "UI/assets/Toolbar/Adaptive05new.png"
                                     group: "DisplayModes"
                                     on_press: root.setMode("timing")
                                 ImageToggleButton:
+                                    #pitch edit mode button
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
                                     source: "UI/assets/Toolbar/Adaptive06new.png"
                                     group: "DisplayModes"
                                     on_press: root.setMode("pitch")
                                 ImageToggleButton:
+                                    #drawing tool button
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
                                     source: "UI/assets/Toolbar/pencil.png"
@@ -210,24 +241,28 @@
                                     on_press: root.setTool("draw")
                                     state: "down"
                                 ImageToggleButton:
+                                    #line tool button
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
                                     source: "UI/assets/Toolbar/line.png"
                                     group: "ToolModes"
                                     on_press: root.setTool("line")
                                 ImageToggleButton:
+                                    #arch/curve tool button
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
                                     source: "UI/assets/Toolbar/curve.png"
                                     group: "ToolModes"
                                     on_press: root.setTool("arch")
                                 ImageToggleButton:
+                                    #reset tool button
                                     size_hint: (None, None)
                                     size: (40 * root.uiScale, 40 * root.uiScale)
                                     source: "UI/assets/Toolbar/reset.png"
                                     group: "ToolModes"
                                     on_press: root.setTool("reset")
                             Spinner:
+                                #measure type dropdown menu
                                 id: measureSelector
                                 sync_height: True
                                 background_normal: "UI/assets/Toolbar/Adaptive07new.png"
@@ -239,6 +274,7 @@
                                 values: ["4/4", "3/4", "2/4", "6/8", "1/1"]
                                 on_text: root.ids["pianoRoll"].updateTempo(self.text, root.ids["tempoSelector"].text, root.ids["quantSelector"].text)
                             NumberInput:
+                                #tempo text input
                                 id: tempoSelector
                                 pos: (self.parent.x + self.parent.width - 240 * root.uiScale, self.parent.y)
                                 size_hint: (None, None)
@@ -246,6 +282,7 @@
                                 text: "120"
                                 on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, self.text, root.ids["quantSelector"].text)
                             Spinner:
+                                #quantization dropdown menu
                                 id: quantSelector
                                 sync_height: True
                                 background_normal: "UI/assets/Toolbar/Adaptive07new.png"
@@ -263,6 +300,7 @@
                             height: self.parent.height - 40 * root.uiScale
                             id: pianoRoll
                 Widget:
+                    #parameter curve/adaptive space widget
                     pos: self.parent.pos
                     size_hint: (1, 0.25)
                     canvas:
@@ -276,6 +314,7 @@
                         size:(self.parent.width, self.parent.height)
                         id: adaptiveSpace
 
+        #color reference
         #dark: 0.137 0.125 0.173
         #medium: 0.184 0.184 0.267
         #light: 0.204 0.204 0.294

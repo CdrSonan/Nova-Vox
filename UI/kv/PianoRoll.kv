@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -13,6 +13,7 @@
     size_hint: (None, 0.25)
     width : 100
     canvas:
+        #piano roll background with darker background for semitone keys
         Color:
             rgba: (0.25, 0.25, 0.25, 1)
         Rectangle:
@@ -35,11 +36,14 @@
         Rectangle:
             pos: (self.parent.x, self.y + self.height* 10/12)
             size:(self.parent.width, self.height * 1/12)
+        #lines between notes B + C, and E + F
         Line:
             points:([self.parent.x + self.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y], [self.parent.x + self.parent.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y])
         Line:
             points:([self.parent.x + self.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y + self.height* 5/12], [self.parent.x + self.parent.width + self.parent.parent.scroll_x * (self.parent.width - self.parent.parent.width), self.y + self.height* 5/12])
+
 <PianoRollOctave>:
+    #tilable keyboard graphic for the left side of the piano roll
     size_hint: (None, 0.25)
     width : 100
     Image:
@@ -153,6 +157,7 @@
             points: (self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y, self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y + self.parent.height)
 
 <TimingLabel>:
+    #timing label on the top bar and corresponding vertical timing marker
     x: self.reference.x + int(self.reference.parent.parent.xScale * self.reference.parent.parent.tempo * self.index)
     y: self.reference.y
     size_hint: (None, None)
@@ -160,6 +165,7 @@
     height: self.reference.height
     point1: self.reference.parent.y
     point2: self.reference.parent.y + self.reference.parent.height
+    #adaptive text and color depending on whether the marker marks a new measure or not
     text: str(int(self.index / 4) + 1) if self.modulo == 0 else str(self.modulo + 1)
     color: (1, 1, 1, 1) if self.modulo == 0 else (0.5, 0.5, 0.5, 1)
     canvas:
@@ -169,6 +175,7 @@
             points: (self.x, self.point1, self.x, self.point2)
 
 <TimingBar>:
+    #top bar containing timing markers
     orientation: "horizontal"
     x: self.parent.x
     y: self.parent.y + self.parent.parent.height - 30 * fullRoot(root).uiScale + self.parent.parent.scroll_y * (self.parent.height - self.parent.parent.height)

@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -270,6 +270,8 @@ class TimingOptns(ScrollView):
         """Callback function used for editing the timing parameters"""
 
         def getPreviousBar(self, x:float) -> float:
+            """utility function that returns the first bar to the left of a touch position"""
+
             if touch.ud['section']:
                 for i in range(len(self.points1)):
                     j = len(self.points1) - i - 1
@@ -283,6 +285,8 @@ class TimingOptns(ScrollView):
             return None
 
         def barToPos(self, bar:int, x:float) -> float:
+            """utility function that returns the x position of a bar, or x if no bar index is passed"""
+
             if bar == None:
                 return x
             if touch.ud['section']:
@@ -368,6 +372,8 @@ class TimingOptns(ScrollView):
         """Callback function used for editing the timing parameters"""
 
         def getCurrentBar(self, x:int) -> int:
+            """returns the index of the next bar to the left of a touch position, or None if no such bar exists"""
+
             if touch.ud['section']:
                 for i in range(len(self.points1)):
                     j = len(self.points1) - i - 1
@@ -422,6 +428,8 @@ class TimingOptns(ScrollView):
             return super(TimingOptns, self).on_touch_up(touch)
 
 class PitchOptns(ScrollView):
+    """Widget displaying two curves for controlling vibrato"""
+
     xScale = NumericProperty(1)
     seqLength = NumericProperty(5000)
 

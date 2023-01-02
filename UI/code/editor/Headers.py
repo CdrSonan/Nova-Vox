@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -88,6 +88,7 @@ class ParamPanel(ManagedToggleButton):
 
     def on_width(self, widget, width) -> None:
         """updates the width of the label subwidget when the width of the widget changes"""
+
         for i in self.children:
             if i.__class__.__name__ == "Label":
                 i.width = self.width - 106

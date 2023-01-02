@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -16,6 +16,9 @@ common_excludes = ["torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 common_imports = ["torch", "torchaudio", "soundfile"]
 
 common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("UI/kv/*", "UI/kv"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList"), ("./torchaudio", "./torchaudio")]
+# !!! IMPORTANT !!!
+#the "./torchaudio" folder must be set up to contain the same files as the torchaudio folder in the site_packages dir of your Python installation.
+#It must be added manually here because the PyInstaller hook for Torchaudio is currently broken.
 
 block_cipher = None
 

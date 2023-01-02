@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -70,6 +70,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
         reader = csv.reader(open(convFile, encoding = "utf_8"), delimiter = ",")
         for row in reader:
             aliasCopy = aliasCopy.replace(row[0], row[1])
+    #obtain sequence of phonemes and of phoneme types for the current oto.ini line
     sequence = []
     typeSequence = []
     while len(aliasCopy) > 0:
@@ -81,6 +82,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
             p = phonemes[i]
             f = aliasCopy.find(p)
             if f == 0:
+                #handle numeric postfixes for phoneme variants
                 if len(aliasCopy) > len(p):
                     if aliasCopy[len(p)] in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
                         p += aliasCopy[len(p)]
@@ -90,7 +92,8 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
                 break
         else:
             raise LookupError("filename/alias " + alias + "/" + aliasCopy + " contains one or several phonemes not in the specified phoneme list")
-        
+    
+    #fetch samples based on the obtained sequences
     output = []
     filepath = path.join(otoPath, filename)
     intermediate = offset + preuttr + min((fixed - preuttr) / 2, consonantEndOffset)

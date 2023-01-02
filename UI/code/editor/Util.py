@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -22,7 +22,7 @@ def fullRoot(widget):
     return root
 
 class ImageButton(ButtonBehavior, Image):
-    """Class for a button displaying an image instead of text"""
+    """a "managed" button that displays an image instead of text, automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 
     function = ObjectProperty(None)
 
@@ -47,7 +47,7 @@ class ImageButton(ButtonBehavior, Image):
         self.on_mouseover(self, Window.mouse_pos)
 
 class ImageToggleButton(ToggleButtonBehavior, Image):
-    """Class for a toggle button displaying an image instead of text"""
+    """a "managed" toggle button that displays an image instead of text, automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 
     function = ObjectProperty(None)
 
@@ -73,6 +73,7 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
         self.on_mouseover(widget, Window.mouse_pos)
 
 class ManagedButton(Button):
+    """a "managed" button that automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 
     function = ObjectProperty(None)
 
@@ -97,6 +98,7 @@ class ManagedButton(Button):
         self.on_mouseover(self, Window.mouse_pos)
 
 class ManagedToggleButton(ToggleButton):
+    """a "managed" toggle button that automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 
     function = ObjectProperty(None)
 

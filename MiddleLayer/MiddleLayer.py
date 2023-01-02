@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -366,6 +366,7 @@ class MiddleLayer(Widget):
 
         #TODO: refactor timing calculations to dedicated function and add callback in switchNote
         phonIndex = self.trackList[self.activeTrack].notes[index].phonemeStart
+        #update phoneme list and other phoneme-space lists
         if offset > 0:
             if len(self.trackList[self.activeTrack].phonemes) > phonIndex and self.trackList[self.activeTrack].notes[index].phonemeEnd > phonIndex:
                 if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
@@ -388,6 +389,7 @@ class MiddleLayer(Widget):
             i.phonemeEnd += offset
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
         self.submitOffset(False, phonIndex, offset)
+        #_autopause handling and iterator setup for timing marker calculations
         autopause = False
         if len(self.trackList[self.activeTrack].phonemes) == 0:
             return
@@ -435,6 +437,7 @@ class MiddleLayer(Widget):
             lengthDeltas.append(None)
         preuttrActive = True
         preuttr = 0.
+        #update timing markers
         for i in range(iterationEnd - iterationStart):
             if self.trackList[self.activeTrack].phonemes[i + iterationStart] == "_autopause":
                 continue

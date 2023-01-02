@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -16,6 +16,7 @@
     bar_width: 10
     on_height: self.redraw()
     Widget:
+        #widget covers the entire parent ScrollView, except for the scroll bar at the bottom
         size_hint: (None, None)
         y: self.parent.y + 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.y + 10
         width: int(self.parent.xScale * self.parent.seqLength)
@@ -23,12 +24,14 @@
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)
+            #three horizontal lines corresponding to parameter values of 0, -1 and 1 respectively
             Line:
                 points: [(0, self.parent.height / 2), (self.width, self.parent.height / 2)]
             Line:
                 points: [(0, 0), (self.width, 0)]
             Line:
                 points: [(0, self.parent.height), (self.width, self.parent.height)]
+
 <PitchOptns>:
     on_scroll_x: self.parent.triggerScroll()
     do_scroll: (True, False)
@@ -36,6 +39,7 @@
     bar_width: 10
     on_height: self.redraw()
     Widget:
+        #widget covers the entire parent ScrollView, except for the scroll bar at the bottom
         size_hint: (None, None)
         y: self.parent.y + 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.y + 10
         width: int(self.parent.xScale * self.parent.seqLength)
@@ -43,6 +47,7 @@
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)
+            #five horizontal lines dividing the area into two bar diagrams on top of one another, and marking the positions of parameter values of 0, 0.5 and 1 for both
             Line:
                 points: [(0, self.parent.height / 2), (self.width, self.parent.height / 2)]
             Line:
@@ -53,6 +58,7 @@
                 points: [(0, self.parent.height / 4), (self.width, self.parent.height / 4)]
             Line:
                 points: [(0, self.parent.height * 3 / 4), (self.width, self.parent.height * 3 / 4)]
+
 <TimingOptns>:
     on_scroll_x: self.parent.triggerScroll()
     do_scroll: (True, False)
@@ -60,6 +66,7 @@
     bar_width: 10
     on_height: self.redraw()
     Widget:
+        #widget covers the entire parent ScrollView, except for the scroll bar at the bottom
         size_hint: (None, None)
         y: self.parent.y + 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.y + 10
         width: int(self.parent.xScale * self.parent.seqLength)
@@ -67,6 +74,7 @@
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)
+            #five horizontal lines dividing the area into two parameter curve areas on top of one another, and marking the positions of parameter values of 0, -1 and 1 for both
             Line:
                 points: [(0, self.parent.height / 2), (self.width, self.parent.height / 2)]
             Line:
@@ -77,7 +85,9 @@
                 points: [(0, self.parent.height / 4), (self.width, self.parent.height / 4)]
             Line:
                 points: [(0, self.parent.height * 3 / 4), (self.width, self.parent.height * 3 / 4)]
+
 <AdaptiveSpace>:
+    #set properties required by child widgets, and use anchor that is slightly more resilient in case of UI formatting errors
     anchor_x: "center"
     anchor_y: "center"
     xScale: 1.

@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -79,7 +79,7 @@ class FileRenderPopup(Popup):
             file.write(data)
 
     def finalisingClose(self) -> None:
-        """sets the final flag, so the popup can be dismissed"""
+        """sets the final flag so the popup can be dismissed, and then dismisses it"""
 
         self.final = True
         self.dismiss()
@@ -155,7 +155,7 @@ class SingerSidePanel(ModalView):
         middleLayer.importVoicebank(path, name, image)
 
 class ParamSidePanel(ModalView):
-    """Side panel containing a list of installed AI-driven parameters, and options to display info about them and load them"""
+    """Side panel containing a list of installed parameters, and options to display info about them and load them"""
 
     uiScale = NumericProperty()
     toolColor = ColorProperty()
@@ -292,6 +292,8 @@ class SettingsSidePanel(ModalView):
         tkui.destroy()
 
     def applyColors(self) -> None:
+        """applies a new set of colors to the UI when one of the available color settings is changed"""
+
         app = App.get_running_app()
         app.root.uiScale = self.ids["settings_uiScale"].value
         app.root.toolColor = self.ids["settings_toolColor"].color

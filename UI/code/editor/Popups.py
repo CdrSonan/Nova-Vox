@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -29,7 +29,7 @@ class TreeViewButton(ButtonBehavior, TreeViewLabel):
         return super().on_press()
 
 class SingerSettingsPanel(Popup):
-    """Popup displaying per-track settings"""
+    """Popup displaying per-track settings and the node editor"""
 
     def __init__(self, index, **kwargs) -> None:
         global middleLayer
@@ -55,7 +55,7 @@ class SingerSettingsPanel(Popup):
         self.makeNodeTree()
 
     def listVoicebanks(self) -> None:
-        """creates a list of installed Voicebanks for switching the one used by the track"""
+        """creates a list of installed Voicebanks for switching the main or mix-in Voicebank used by the track"""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
@@ -75,7 +75,11 @@ class SingerSettingsPanel(Popup):
         self.modVoicebanks.append("None")
 
     def makeNodeTree(self):
+        """builds the hierarchical view of all available nodes by searching the appropriate 1st-party and Addon Python modules"""
+
         def classesinmodule(module):
+            """utility function for getting all classes in a Python module"""
+
             md = module.__dict__
             return [
                 md[c] for c in md if (

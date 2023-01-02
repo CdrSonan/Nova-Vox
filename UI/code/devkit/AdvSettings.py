@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -17,6 +17,7 @@ from Locale.devkit_locale import getLocale
 loc = getLocale()
 
 class AdvSettingsUi(tkinter.Frame):
+    """class of the advanced AI settings UI window"""
 
     def __init__(self, master=None) -> None:
         logging.info("Initializing adv. AI settings UI")
@@ -190,11 +191,13 @@ class AdvSettingsUi(tkinter.Frame):
         self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
     def onOkPress(self) -> None:
+        """applies all changes and closes the window when the OK button is pressed"""
 
         self.applyHyperParams()
         self.master.destroy()
 
     def applyHyperParams(self) -> None:
+        """applies all changes set by the user, and resets the AI components of the currently loaded Voicebank if necessary"""
 
         global loadedVB
 
@@ -244,6 +247,7 @@ class AdvSettingsUi(tkinter.Frame):
             loadedVB.ai.predAiOptimizer = torch.optim.Adam(loadedVB.ai.predAi.parameters(), lr=loadedVB.ai.predAi.learningRate, weight_decay=loadedVB.ai.predAi.regularization)
 
     def applyResampSettings(self) -> None:
+        """placeholder function for saving resampler settings into the Voicebank file"""
 
         global loadedVB
 
