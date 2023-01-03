@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -22,9 +22,9 @@ class AudioSample():
         
         pitch: average pitch of the sample given as wavelength in data points
         
-        spectra: deviations of the audio spectrum from the average for each stft batch
+        specharm: deviations of the audio spectrum and harmonics from the average during each engine tick
         
-        spectrum: audio spectrum averaged across the entire sample
+        avgSpecharm: audio spectrum and harmonics averaged across the entire sample
         
         excitation: unvoiced excitation signal
         
@@ -34,20 +34,14 @@ class AudioSample():
 
         isPlosive: flag indicating whether the sample is considered a plosive sound (if possible, plosives retain their original length after border creation during synthesis)
         
-        expectedPitch: estimated pitch of the sample in Hz. Must be manually filled and is used during calculatePitch() calls.
+        expectedPitch: estimated pitch of the sample in Hz. Must be manually filled and is used during ESPER.calculatePitch() calls.
         
-        searchRange: pitch frequency search range relative to expectedPitch. Should be a value between 0 and 1. Must be manually filled and is used during calculatePitch() calls.
+        searchRange: pitch frequency search range relative to expectedPitch. Should be a value between 0 and 1. Must be manually filled and is used during ESPER.calculatePitch() calls.
         
-        voicedFilter: spectral filtering iterations used for voiced component. Must be manually filled with a positive Integer and is used during calculateSpectra() calls.
-        
-        unvoicedIterations: spectral filtering iterations used for unvoiced component. Must be manually filled with a positive Integer and is used during calculateSpectra() calls.
+        specWidth, specDepth, tempWidth, tempDepth: width and depth used for spectral smoothing when calling ESPER.calculateSpectra(), along the frequency dimension of each stft batch, and the time dimension between the batches, respectively.
     
     Methods:
-        __init__: Constructor for initialising an AudioSample based on an audio file
-        
-        calculatePitch(): Method for calculating pitch data based on previously set attributes
-        
-        calculateSpectra(): Method for calculating spectral and excitation data based on previously set attributes"""
+        __init__: Constructor for initialising an AudioSample based on an audio file"""
         
         
     def __init__(self, filepath:str) -> None:
@@ -97,9 +91,9 @@ class LiteAudioSample():
         
         pitch: average pitch of the sample given as wavelength in data points
         
-        spectra: deviations of the audio spectrum from the average for each stft batch
+        specharm: deviations of the audio spectrum and harmonics from the average during each engine tick
         
-        spectrum: audio spectrum averaged across the entire sample
+        avgSpecharm: audio spectrum and harmonics averaged across the entire sample
         
         excitation: unvoiced excitation signal
         

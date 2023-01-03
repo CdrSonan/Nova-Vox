@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -26,13 +26,15 @@ class Voicebank():
         
         phonemeDict: a Dictionary object containing the samples for the individual phonemes
         
-        crfAi: The phoneme crossfade Ai of the Voicebank, including its training
+        ai: Wrapper for all mandatory AI-driven components of the Voicebank
         
         parameters: currently a placeholder. Will contain the Voicebank's Ai-driven parameters.
         
         wordDict: a Dictionary containing overrides for Nova-Vox's default dictionary
         
-        stagedTrainSamples: a List object containing the samples staged to be used in Ai training
+        stagedCrfTrainSamples: a List object containing the samples staged to be used in phoneme crossfade Ai training
+
+        stagedPredTrainSamples: a List object containing the samples staged to be used in prediction Ai training
         
     Functions:
         __init__: Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank
@@ -44,6 +46,8 @@ class Voicebank():
         loadPhonemeDict: loads Phoneme data from a Voicebank file
         
         loadCrfWeights: loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai
+
+        loadPredWeights: loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai
         
         loadParameters: currently placeholder
         
@@ -59,15 +63,21 @@ class Voicebank():
         
         finalizePhoneme: finalizes a Phoneme, discarding any data related to it that's not strictly required for synthesis
         
-        addTrainSample: stages an audio sample the phoneme crossfade Ai is to be trained with
+        addCrfTrainSample: stages an audio sample the phoneme crossfade Ai is to be trained with
         
-        delTrainSampled: removes an audio sample from the list of staged training phonemes
+        delCrfTrainSampled: removes an audio sample from the list of staged crossfade Ai training phonemes
         
-        changeTrainSampleFile: currently unused method that changes the file of a staged phoneme crossfade Ai training sample
+        changeCrfTrainSampleFile: currently unused method that changes the file of a staged phoneme crossfade Ai training sample
+
+        addPredTrainSample: stages an audio sample the prediction Ai is to be trained with
+        
+        delPredTrainSampled: removes an audio sample from the list of staged prediction Ai training phonemes
+        
+        changePredTrainSampleFile: currently unused method that changes the file of a staged prediction Ai training sample
         
         trainCrfAi: initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings
         
-        finalizeCrfAi: finalized the Voicebank's phoneme crossfade Ai, discarding all data related to it that's not strictly required for synthesis"""
+        trainPredAi: initiates the training of the Voicebank's prediction Ai using all staged training samples and the Ai's settings"""
         
         
     def __init__(self, filepath:str, device:torch.device = None) -> None:
@@ -269,11 +279,12 @@ class Voicebank():
             epochs: Integer, the number of epochs the training is to be conducted with
             
             additive: Bool, whether the training should be conducted in addition to any existing training (True), or replaye it (False)
+
+            specWidth, specDepth, tempWidth, tempDepth: parameters used for spectral smoothing of the training samples
+
+            expPitch, pSearchRange: parameters used for pitch calculation of the training samples
             
-            filterWidth: Integer, the width of the spectral filter applied to the training samples
-            
-            voicedIterations, unvoicedIterations: Integer, the number of filtering iterations for the voiced and unvoiced voice components respectively.
-            In the context of this function, only the sum of both is relevant."""
+            logging: flag indicationg whether to write telemetry data to a Tensorboard log"""
             
             
         if additive == False:
@@ -305,11 +316,12 @@ class Voicebank():
             epochs: Integer, the number of epochs the training is to be conducted with
             
             additive: Bool, whether the training should be conducted in addition to any existing training (True), or replaye it (False)
+
+            specWidth, specDepth, tempWidth, tempDepth: parameters used for spectral smoothing of the training samples
+
+            expPitch, pSearchRange: parameters used for pitch calculation of the training samples
             
-            filterWidth: Integer, the width of the spectral filter applied to the training samples
-            
-            voicedIterations, unvoicedIterations: Integer, the number of filtering iterations for the voiced and unvoiced voice components respectively.
-            In the context of this function, only the sum of both is relevant."""
+            logging: flag indicationg whether to write telemetry data to a Tensorboard log"""
             
             
         if additive == False:
@@ -338,7 +350,7 @@ class Voicebank():
         print("AI training complete")
 
 class LiteVoicebank():
-    """Class for holding a Voicebank as handled by the devkit.
+    """Class for holding a Voicebank with only the features required for synthesis.
     
     Attributes:
         metadata: VbMetadata object containing the Voicebank's metadata
@@ -347,13 +359,15 @@ class LiteVoicebank():
         
         phonemeDict: a Dictionary object containing the samples for the individual phonemes
         
-        crfAi: The phoneme crossfade Ai of the Voicebank, including its training
+        ai: Wrapper for all mandatory AI-driven components of the Voicebank
         
         parameters: currently a placeholder. Will contain the Voicebank's Ai-driven parameters.
         
         wordDict: a Dictionary containing overrides for NovaVox's default dictionary
         
-        stagedTrainSamples: a List object containing the samples staged to be used in Ai training
+        stagedCrfTrainSamples: a List object containing the samples staged to be used in phoneme crossfade Ai training
+
+        stagedPredTrainSamples: a List object containing the samples staged to be used in prediction Ai training
         
     Functions:
         __init__: Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank
@@ -363,6 +377,8 @@ class LiteVoicebank():
         loadPhonemeDict: loads Phoneme data from a Voicebank file
         
         loadCrfWeights: loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai
+
+        loadPredWeights: loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai
         
         loadParameters: currently placeholder
         

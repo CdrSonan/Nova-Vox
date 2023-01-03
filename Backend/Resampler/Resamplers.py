@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -45,7 +45,7 @@ def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tenso
     return excitation.transpose(0, 1)
     
 def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
-    """resampler function for aquiring the voiced excitation of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
+    """resampler function for aquiring the specharm of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause":
         offset = 0
@@ -70,6 +70,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     return specharm
 
 def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+    """resampler function for aquiring the pitch curve of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause":
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,])

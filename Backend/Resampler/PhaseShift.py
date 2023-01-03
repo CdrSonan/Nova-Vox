@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -91,6 +91,11 @@ def calculatePhaseDiff(batchRS:int, phases:torch.Tensor, pitch:torch.Tensor) -> 
     return phaseDiff
 
 def phaseInterp(phaseA: torch.Tensor, phaseB: torch.Tensor, factor: torch.Tensor) -> torch.Tensor:
+    """performs linear interpolation between two phases, which are expected to be values between 0 and 2*pi, based on a factor between 0 and 1.
+    This function always chooses the shorter of the two possible paths between the two phases.
+    (For example, if phaseA is 0.1*pi and phaseB is 1.9*pi, the interpolation will take the shorter path, crossing 0, rather than the longer path crossing pi.)"""
+
+
     diff = phaseB - phaseA
     diff = torch.remainder(diff, 2 * math.pi)
     diffB = diff - 2 * math.pi

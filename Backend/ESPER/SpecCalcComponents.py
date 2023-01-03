@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -35,7 +35,6 @@ def calculatePhaseContinuity(signals:torch.Tensor) -> torch.Tensor:
 def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor, pitch:int) -> torch.Tensor:
     """calculates amplitude continuity function based on the absolute values of an stft sequence. Frequencies with a high amplitude continuity are more likely to be voiced."""
 
-    return amplitudes
     if amplitudes.size()[1] == 1:
         return torch.ones_like(amplitudes)
     amplitudeContinuity = amplitudes.clone()
@@ -123,6 +122,8 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
     return audioSample
 
 def averageSpectra(audioSample:AudioSample, useVariance:bool = True) -> AudioSample:
+    """averages the specharm signal after all other calculations, reduces outliers, and writes the result into avgSpecharm"""
+
     audioSample.avgSpecharm = torch.mean(torch.cat((audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1], audioSample.specharm[:, global_consts.nHarmonics + 2:]), 1), 0)
     audioSample.specharm[:, global_consts.nHarmonics + 2:] -= audioSample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]
     audioSample.specharm[:, :int(global_consts.nHarmonics / 2) + 1] -= audioSample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1]
@@ -303,7 +304,7 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
     return markers
 
 def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
-    """separates the voiced and unvoiced parts of an AudioSample using DIO pitch markers of a sequence of windows, and phase and amplitude continuity functions."""
+    """separates the voiced and unvoiced parts of an AudioSample using DIO pitch markers of a sequence of windows."""
 
     padLength = global_consts.halfTripleBatchSize * global_consts.filterBSMult
     wave = torch.cat((torch.flip(audioSample.waveform[:padLength], (0,)), audioSample.waveform, torch.flip(audioSample.waveform[-padLength:], (0,))), 0)

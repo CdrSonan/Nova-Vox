@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -16,16 +16,16 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     """Method for calculating spectral data based on the previously set attributes filterWidth, voicedFilter and unvoicedIterations.
         
     Arguments:
-        None
+        useVariance: whether to use variance statistics to reduce outliers in the sample
             
     Returns:
         None
             
-    This function separates voiced and unvoiced excitation, and calculates the spectral envelope for the unvoiced part of an AudioSample object.
-    The voiced/unvoiced separation is performed by calculating per-utterance phase and amplitude continuity functions from the windowed input signal.
-    Based on these functions, the voiced signal is generated, and the unvoiced signal is calculated as the difference between the voiced signal and the input.
-    The result is an STFT sequence of the unvoiced signal, and a sequence harmonic spectra of the voiced signal.
-    Subsequently, the spectral envelope of the unvoiced signal is calculated, and the unvoiced excitation is obtained as the unvoiced signal divided by this spectral envelope.
+    This function separates voiced and unvoiced excitation, and calculates the spectral envelope for the AudioSample object.
+    The voiced/unvoiced separation is performed by resampling the signal into a per-utterance representation, and computing a running mean.
+    This way, the voiced signal is obtained, and the unvoiced signal is calculated as the difference between the voiced signal and the input.
+    The result is an STFT sequence of the unvoiced signal, and a sequence harmonics of the voiced signal.
+    Subsequently, the spectral envelope of the signal is calculated, and the unvoiced excitation is obtained as the unvoiced signal divided by this spectral envelope.
     The spectral calculation uses two methods for low and high frequencies respectively:
     -an adaptation of the True Envelope Estimator
     -fourier space running mean smoothing

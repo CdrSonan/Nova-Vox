@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -23,7 +23,7 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
         
     This method of pitch calculation uses the detect_pitch_frequency method implemented in TorchAudio. It does not reliably work for values of searchRange below 0.33. This means a rather large search range is required, 
     introducing the risk of the pitch being detected as a whole multiple or fraction of its real value. For this reason, the pitch is multiplied or divided by a compensation factor if it is too far off the expected value.
-    In case the pitch detection fails in spite of the correctly set search range, it uses a fallback. Afterwards, it calls calculatePhases(), since phase information only needs to be updated when the pitch changes."""
+    In case the pitch detection fails in spite of the correctly set search range, it uses a fallback."""
 
     try:
         audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
@@ -94,7 +94,7 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
     audioSample.pitchDeltas = pitchDeltas
 
 def calculatePhases(audioSample:AudioSample) -> None:
-    """calculates phase information for an AudioSample object. Should be called after pitch calculation.
+    """legacy method for calculating phase information for an AudioSample object. Was originally called after pitch calculation.
     
     Arguments:
         audioSample: The AudioSample object the operation is to be performed on
@@ -102,7 +102,8 @@ def calculatePhases(audioSample:AudioSample) -> None:
     Returns:
         None
         
-    This method fits a sine and cosine curve of the f0 frequency to the waveform. The phase is then determined by reinterpreting the premul factors of the two curves as real and imaginary part of a complex exponential function, and extracting its phase."""
+    This method fits a sine and cosine curve of the f0 frequency to the waveform. The phase is then determined by reinterpreting the premul factors of the two curves as real and imaginary part of a complex exponential function, and extracting its phase.
+    The result was then written to a phase attribute of the AudioSample class, which is now deprecated."""
 
 
     audioSample.phases = torch.empty_like(audioSample.pitchDeltas)

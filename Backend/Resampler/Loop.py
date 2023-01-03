@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -11,10 +11,10 @@ import global_consts
 from Backend.Resampler.PhaseShift import phaseInterp
     
 def loopSamplerSpecharm(inputTensor:torch.Tensor, targetSize:int, repetititionSpacing:float, device:torch.device) -> torch.Tensor:
-    """loops the spectra sequence of an AudioSample to match the target size with configurable overlap.
+    """loops the specharm sequence of an AudioSample to match the target size with configurable overlap.
     
     Arguments:
-        inputTensor: Tensor representing the voiced excitation of the input sample
+        inputTensor: Tensor representing the specharm of the input sample
         
         targetSize: the desired length of the output in engine ticks
         
@@ -23,9 +23,9 @@ def loopSamplerSpecharm(inputTensor:torch.Tensor, targetSize:int, repetititionSp
         device: the device the calculations are to be performed on.
         
     Returns:
-        Tensor of length requiredLength representing the looped voiced excitation signal. It is natively available on the device specified in the parameters.
-        
-    It is also suited for looping any kind of data that can be represented as a vector for each engine tick. """
+        Tensor of length requiredLength representing the looped specharm signal. It is natively available on the device specified in the parameters."""
+
+    
     phases = inputTensor[:, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
     
     inputTensor = torch.cat((inputTensor[:, :int(global_consts.nHarmonics / 2) + 1], inputTensor[:, global_consts.nHarmonics + 2:]), 1)
@@ -67,6 +67,23 @@ def loopSamplerSpecharm(inputTensor:torch.Tensor, targetSize:int, repetititionSp
     return torch.cat((outputTensor[:, :int(global_consts.nHarmonics / 2) + 1], outputPhases, outputTensor[:, int(global_consts.nHarmonics / 2) + 1:]), 1)
 
 def loopSamplerPitch(inputTensor:torch.Tensor, targetSize:int, repetititionSpacing:float, device:torch.device) -> torch.Tensor:
+    """loops the pitch curve of an AudioSample to match the target size with configurable overlap.
+    
+    Arguments:
+        inputTensor: Tensor representing the pitch curve of the input sample
+        
+        targetSize: the desired length of the output in engine ticks
+        
+        repetititionSpacing: integer between 0 and 1. Represents the desired amount of overlap between sample instances. 0 indicates no overlap, 1 indicates the entire sample length is part of the overlaps to the previous or next samples.
+        
+        device: the device the calculations are to be performed on.
+        
+    Returns:
+        Tensor of length requiredLength representing the looped pitch curve signal. It is natively available on the device specified in the parameters.
+        
+    Additionally, this method can also be used for looping arbitrary data that can be represented as a vector for each engine tick."""
+
+    
     repetititionSpacing = math.ceil(repetititionSpacing * inputTensor.size()[0] / 2)
     requiredTensors = math.ceil((targetSize - repetititionSpacing) / (inputTensor.size()[0] - repetititionSpacing))
     if requiredTensors <= 1:
