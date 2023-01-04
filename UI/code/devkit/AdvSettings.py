@@ -12,7 +12,8 @@ import sys
 
 import torch
 
-from Backend.VB_Components.SpecCrfAi import SpecCrfAi, SpecPredAi
+from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
+from Backend.VB_Components.Ai.PredAi import SpecPredAi, HarmPredAi
 from Locale.devkit_locale import getLocale
 loc = getLocale()
 
@@ -237,6 +238,7 @@ class AdvSettingsUi(tkinter.Frame):
         if resetPred:
             loadedVB.ai.hparams["pred_rs"] = hparams["pred_rs"]
             loadedVB.ai.predAi = SpecPredAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["pred_lr"], regularization=loadedVB.ai.hparams["pred_reg"], recSize=loadedVB.ai.hparams["rs"])
+            self.predAiHarm = HarmPredAi(loadedVB.ai.device, loadedVB.ai.hparams["pred_lr"], loadedVB.ai.hparams["pred_rlc"], loadedVB.ai.hparams["pred_rs"], loadedVB.ai.hparams["pred_reg"])
         if resetCrfOptim:
             loadedVB.ai.hparams["crf_lr"] = hparams["crf_lr"]
             loadedVB.ai.hparams["crf_reg"] = hparams["crf_reg"]
@@ -244,7 +246,8 @@ class AdvSettingsUi(tkinter.Frame):
         if resetPredOptim:
             loadedVB.ai.hparams["pred_lr"] = hparams["pred_lr"]
             loadedVB.ai.hparams["pred_reg"] = hparams["pred_reg"]
-            loadedVB.ai.predAiOptimizer = torch.optim.Adam(loadedVB.ai.predAi.parameters(), lr=loadedVB.ai.predAi.learningRate, weight_decay=loadedVB.ai.predAi.regularization)
+            loadedVB.ai.predAiOptimizer = torch.optim.Adadelta(loadedVB.ai.predAi.parameters(), lr=loadedVB.ai.predAi.learningRate, weight_decay=loadedVB.ai.predAi.regularization)
+            self.predAiHarmOptimizer = torch.optim.Adadelta(loadedVB.ai.predAiHarm.parameters(), lr=loadedVB.ai.predAiHarm.learningRate, weight_decay=loadedVB.ai.predAiHarm.regularization)
 
     def applyResampSettings(self) -> None:
         """placeholder function for saving resampler settings into the Voicebank file"""
