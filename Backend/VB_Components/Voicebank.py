@@ -193,15 +193,15 @@ class Voicebank():
             filepath: a String representing the filepath to the .wav audio file of the phoneme sample"""
             
             
-        self.phonemeDict[key] = AudioSample(filepath)
-        calculatePitch(self.phonemeDict[key])
-        calculateSpectra(self.phonemeDict[key])
+        self.phonemeDict[key] = [AudioSample(filepath),]
+        calculatePitch(self.phonemeDict[key][0])
+        calculateSpectra(self.phonemeDict[key][0])
 
     def addPhonemeUtau(self, sample:UtauSample) -> None:
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
-            self.phonemeDict[sample.key] = sample.convert()
-            calculatePitch(self.phonemeDict[sample.key])
-            calculateSpectra(self.phonemeDict[sample.key])
+            self.phonemeDict[sample.key] = [sample.convert(),]
+            calculatePitch(self.phonemeDict[sample.key][0])
+            calculateSpectra(self.phonemeDict[sample.key][0])
         else:
             logging.warning("skipped one or several samples below the size threshold")
     
@@ -218,7 +218,7 @@ class Voicebank():
     def changePhonemeFile(self, key:str, filepath:str) -> None:
         """changes the file of a Phoneme"""
 
-        self.phonemeDict[key] = AudioSample(filepath)
+        self.phonemeDict[key] = [AudioSample(filepath),]
     
     def finalizePhoneme(self, key:str) -> None:
         """finalizes a Phoneme, discarding any data related to it that's not strictly required for synthesis"""

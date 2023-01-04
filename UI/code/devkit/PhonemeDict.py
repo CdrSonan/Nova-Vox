@@ -225,16 +225,16 @@ class PhonemedictUi(tkinter.Frame):
             index = self.phonemeList.list.lastFocusedIndex
             key = self.phonemeList.list.lb.get(index)
             self.sideBar.key.variable.set(key)
-            if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
-                self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key].expectedPitch)
-                self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key].searchRange)
-                self.sideBar.voicedThrh.variable.set(loadedVB.phonemeDict[key].voicedThrh)
-                self.sideBar.specSmooth.widthVariable.set(loadedVB.phonemeDict[key].specWidth)
-                self.sideBar.specSmooth.depthVariable.set(loadedVB.phonemeDict[key].specDepth)
-                self.sideBar.tempSmooth.widthVariable.set(loadedVB.phonemeDict[key].tempWidth)
-                self.sideBar.tempSmooth.depthVariable.set(loadedVB.phonemeDict[key].tempDepth)
-                self.sideBar.isVoiced.variable.set(loadedVB.phonemeDict[key].isVoiced)
-                self.sideBar.isPlosive.variable.set(loadedVB.phonemeDict[key].isPlosive)
+            if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
+                self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key][0].expectedPitch)
+                self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key][0].searchRange)
+                self.sideBar.voicedThrh.variable.set(loadedVB.phonemeDict[key][0].voicedThrh)
+                self.sideBar.specSmooth.widthVariable.set(loadedVB.phonemeDict[key][0].specWidth)
+                self.sideBar.specSmooth.depthVariable.set(loadedVB.phonemeDict[key][0].specDepth)
+                self.sideBar.tempSmooth.widthVariable.set(loadedVB.phonemeDict[key][0].tempWidth)
+                self.sideBar.tempSmooth.depthVariable.set(loadedVB.phonemeDict[key][0].tempDepth)
+                self.sideBar.isVoiced.variable.set(loadedVB.phonemeDict[key][0].isVoiced)
+                self.sideBar.isPlosive.variable.set(loadedVB.phonemeDict[key][0].isPlosive)
                 self.enableButtons()
             else:
                 self.sideBar.expPitch.variable.set(None)
@@ -299,8 +299,8 @@ class PhonemedictUi(tkinter.Frame):
             filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
             if filepath != "":
                 loadedVB.addPhoneme(key, filepath)
-                calculatePitch(loadedVB.phonemeDict[key], True)
-                calculateSpectra(loadedVB.phonemeDict[key], True)
+                calculatePitch(loadedVB.phonemeDict[key][0], True)
+                calculateSpectra(loadedVB.phonemeDict[key][0], True)
                 self.phonemeList.list.lb.insert("end", key)
         
     def onRemovePress(self) -> None:
@@ -328,11 +328,11 @@ class PhonemedictUi(tkinter.Frame):
         value = int(value)
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        spectrum = loadedVB.phonemeDict[key].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + loadedVB.phonemeDict[key].specharm[value, global_consts.nHarmonics + 2:]
-        harmonics = loadedVB.phonemeDict[key].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1] + loadedVB.phonemeDict[key].specharm[value, :int(global_consts.nHarmonics / 2) + 1]
-        excitation = torch.abs(loadedVB.phonemeDict[key].excitation[value]) * spectrum
+        spectrum = loadedVB.phonemeDict[key][0].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + loadedVB.phonemeDict[key][0].specharm[value, global_consts.nHarmonics + 2:]
+        harmonics = loadedVB.phonemeDict[key][0].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1] + loadedVB.phonemeDict[key][0].specharm[value, :int(global_consts.nHarmonics / 2) + 1]
+        excitation = torch.abs(loadedVB.phonemeDict[key][0].excitation[value]) * spectrum
         xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
-        harmScale = torch.linspace(0, global_consts.nHarmonics / 2 * global_consts.sampleRate / loadedVB.phonemeDict[key].pitchDeltas[value], int(global_consts.nHarmonics / 2) + 1)
+        harmScale = torch.linspace(0, global_consts.nHarmonics / 2 * global_consts.sampleRate / loadedVB.phonemeDict[key][0].pitchDeltas[value], int(global_consts.nHarmonics / 2) + 1)
         self.diagram.ax.plot(xScale, excitation, label = loc["excitation"], color = "red")
         self.diagram.ax.vlines(harmScale, 0., torch.sqrt(harmonics), label = loc["vExcitation"], color = "blue")
         self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"], color = "orange")
@@ -350,7 +350,7 @@ class PhonemedictUi(tkinter.Frame):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        maxValue = loadedVB.phonemeDict[key].specharm.size()[0] - 2
+        maxValue = loadedVB.phonemeDict[key][0].specharm.size()[0] - 2
         self.diagram.timeSlider.destroy()
         self.diagram.timeSlider = tkinter.Scale(self.diagram, from_ = 0, to = maxValue, orient = "horizontal", length = 600, command = self.onSliderMove)
         self.diagram.timeSlider.pack(side = "left", fill = "both", expand = True, padx = 5, pady = 2)
@@ -423,12 +423,12 @@ class PhonemedictUi(tkinter.Frame):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
-            if (loadedVB.phonemeDict[key].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key].searchRange != self.sideBar.pSearchRange.variable.get()):
-                loadedVB.phonemeDict[key].expectedPitch = self.sideBar.expPitch.variable.get()
-                loadedVB.phonemeDict[key].searchRange = self.sideBar.pSearchRange.variable.get()
-                calculatePitch(loadedVB.phonemeDict[key], True)
-                calculateSpectra(loadedVB.phonemeDict[key], True)
+        if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
+            if (loadedVB.phonemeDict[key][0].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key][0].searchRange != self.sideBar.pSearchRange.variable.get()):
+                loadedVB.phonemeDict[key][0].expectedPitch = self.sideBar.expPitch.variable.get()
+                loadedVB.phonemeDict[key][0].searchRange = self.sideBar.pSearchRange.variable.get()
+                calculatePitch(loadedVB.phonemeDict[key][0], True)
+                calculateSpectra(loadedVB.phonemeDict[key][0], True)
     
     def onVoicedUpdateTrigger(self) -> None:
         """UI Frontend function for updating the "Voiced" flag of a phoneme"""
@@ -437,10 +437,10 @@ class PhonemedictUi(tkinter.Frame):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
-            if loadedVB.phonemeDict[key].isVoiced != self.sideBar.isVoiced.variable.get():
-                loadedVB.phonemeDict[key].isVoiced = self.sideBar.isVoiced.variable.get()
-                calculateSpectra(loadedVB.phonemeDict[key], True)
+        if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
+            if loadedVB.phonemeDict[key][0].isVoiced != self.sideBar.isVoiced.variable.get():
+                loadedVB.phonemeDict[key][0].isVoiced = self.sideBar.isVoiced.variable.get()
+                calculateSpectra(loadedVB.phonemeDict[key][0], True)
                 self.onSliderMove(self.diagram.timeSlider.get())
 
     def onPlosiveUpdateTrigger(self) -> None:
@@ -450,10 +450,10 @@ class PhonemedictUi(tkinter.Frame):
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
-        if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
-            if loadedVB.phonemeDict[key].isPlosive != self.sideBar.isPlosive.variable.get():
-                loadedVB.phonemeDict[key].isPlosive = self.sideBar.isPlosive.variable.get()
-                calculateSpectra(loadedVB.phonemeDict[key], True)
+        if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
+            if loadedVB.phonemeDict[key][0].isPlosive != self.sideBar.isPlosive.variable.get():
+                loadedVB.phonemeDict[key][0].isPlosive = self.sideBar.isPlosive.variable.get()
+                calculateSpectra(loadedVB.phonemeDict[key][0], True)
                 self.onSliderMove(self.diagram.timeSlider.get())
         
     def onSpectralUpdateTrigger(self, event) -> None:
@@ -470,7 +470,7 @@ class PhonemedictUi(tkinter.Frame):
             self.sideBar.tempSmooth.widthVariable.get(),
             self.sideBar.tempSmooth.depthVariable.get(),
         ]
-        phoneme = loadedVB.phonemeDict[key]
+        phoneme = loadedVB.phonemeDict[key][0]
         oldValues = [
             phoneme.voicedThrh,
             phoneme.specWidth,
@@ -503,8 +503,8 @@ class PhonemedictUi(tkinter.Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.changePhonemeFile(key, filepath)
-            calculatePitch(loadedVB.phonemeDict[key], True)
-            calculateSpectra(loadedVB.phonemeDict[key], True)
+            calculatePitch(loadedVB.phonemeDict[key][0], True)
+            calculateSpectra(loadedVB.phonemeDict[key][0], True)
             self.phonemeList.list.lb.delete(index)
             self.phonemeList.list.lb.insert(index, key)
             
@@ -536,7 +536,7 @@ class PhonemedictUi(tkinter.Frame):
             if index != None:
                 key = self.phonemeList.list.lb.get(index)
                 self.onKeyChange(None)
-                if type(loadedVB.phonemeDict[key]).__name__ == "AudioSample":
+                if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
                     self.onPitchUpdateTrigger(None)
                     self.onSpectralUpdateTrigger(None)
         self.master.destroy()

@@ -178,7 +178,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
             return spectrumInput, 0.
         steadiness = torch.pow(1. - internalInputs.steadiness[k], 2)
         targetPitch = global_consts.tripleBatchSize / (internalInputs.pitch[k] + pitchOffset * steadiness)
-        nativePitch = global_consts.tripleBatchSize / (voicebank.phonemeDict[internalInputs.phonemes[j]].pitch + pitchOffset * steadiness)
+        nativePitch = global_consts.tripleBatchSize / (voicebank.phonemeDict[internalInputs.phonemes[j]][0].pitch + pitchOffset * steadiness)
         inputSpectrum = spectrumInput[global_consts.nHarmonics + 2:]
         phaseDifference = global_consts.batchSize / internalInputs.pitch[k].to(torch.float64)
         harmonics = spectrumInput[:int(global_consts.nHarmonics / 2) + 1]
