@@ -758,6 +758,14 @@ class MiddleLayer(Widget):
         self.offsetPhonemes(index, offset, futurePhonemes = phonemes)
         self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, phonemes)
+        offsets = []
+        for i in phonemes:
+            if self.trackList[self.activeTrack].phonemeLengths[i] == None:
+                offsets.append(torch.tensor([0.5,], torch.half))
+            else:
+                offsets.append(torch.tensor([0.05,], torch.half))
+        self.trackList[self.activeTrack].loopOffset[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = offsets
+        self.submitNamedPhonParamChange(False, "offsets", self.trackList[self.activeTrack].notes[index].phonemeStart, offsets)
         self.makeAutoPauses(index)
         self.submitFinalize()
 
