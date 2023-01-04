@@ -73,14 +73,18 @@ class Track():
             else:
                 self.phonemeLengths[i] = None
                 
-    #TODO: update to _autopause system
     def generateCaps(self) -> tuple([list, list]):
         """utility function for generating startCap and endCap attributes for the track. These are not required by the main process, and are instead sent to the rendering process with to_sequence"""
 
-        noneList = []
-        for i in self.phonemes:
-            noneList.append(False)
-        return [noneList, noneList]
+        startCaps = [False] * len(self.phonemes)
+        endCaps = [False] * len(self.phonemes)
+        for index, phoneme in enumerate(self.phonemes):
+            if phoneme == "_autopause":
+                if index < len(self.phonemes) - 1:
+                    startCaps[index + 1] = True
+                if index > 0:
+                    endCaps[index - 1] = True
+        return startCaps, endCaps
 
     def toSequence(self) -> VocalSequence:
         """converts the track to a VocalSequence object for sending it to the rendering thread. Also handles conversion of MIDI pitch to frequency."""
