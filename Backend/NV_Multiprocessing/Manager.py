@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -25,8 +25,7 @@ class RenderManager():
         stop: terminates the rendering process"""
 
 
-    #TODO: manage InputList, refactor AiParamStackList to NodeTreeList
-    def __init__(self, sequenceList:list, voicebankList:list, aiParamStackList:list) -> None:
+    def __init__(self, trackList:list) -> None:
         """Initializes a RenderManager object and its associated rendering process based on the data alread present on the main process.
         
         Arguments:
@@ -34,20 +33,20 @@ class RenderManager():
 
             voicebankList: a list or other iterable of Voicebank or LiteVoicebank objects with the same length as sequenceList. Holds the voicebanks used for synthesis by the rendering process.
 
-            aiParamStackList: deprecated. List or other iterable of AiParamStack objects used by the rendering processfor processing of synthesis output
+            NodeGraphList: placeholder for future list of serialized NodeGraph objects
         
         Returns:
             None"""
 
 
         self.statusControl = []
-        self.inputList = []
+        voicebankList, NodeGraphList, sequenceList = self.batchConvert(trackList)
         self.rerenderFlag = mp.Event()
         self.connection = mp.Queue(0)
         self.remoteConnection = mp.Queue(0)
-        for i in sequenceList:
+        for i in trackList:
             self.statusControl.append(SequenceStatusControl(i))
-        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, aiParamStackList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale()["render_process_name"], daemon = True)
+        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale()["render_process_name"], daemon = True)
         self.renderProcess.start()
 
     def receiveChange(self) -> StatusChange:
@@ -73,7 +72,7 @@ class RenderManager():
             self.rerenderFlag.set()
         print("sent packet ", type, final, data)
 
-    def restart(self, sequenceList:list, voicebankList:list, aiParamStackList:list) -> None:
+    def restart(self, trackList:list) -> None:
         """Method for restarting the rendering process. The required data is fetched again from the main process. This is to prevent any possible issues with the data held by the rendering process from persisting.
         
         Arguments:
@@ -81,21 +80,34 @@ class RenderManager():
 
             voicebankList: a list or other iterable of Voicebank or LiteVoicebank objects with the same length as sequenceList. Holds the voicebanks used for synthesis by the rendering process.
 
-            aiParamStackList: deprecated. List or other iterable of AiParamStack objects used by the rendering processfor processing of synthesis output
+            NodeGraphList: placeholder for future list of serialized NodeGraph objects
 
         Returns:
             None"""
 
 
         self.stop()
+        voicebankList, NodeGraphList, sequenceList = self.batchConvert(trackList)
         del self.statusControl[:]
-        for i in sequenceList:
+        for i in trackList:
             self.statusControl.append(SequenceStatusControl(i))
-        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, aiParamStackList, self.inputList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale("render_process_name"), daemon = True)
+        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale("render_process_name"), daemon = True)
         self.renderProcess.start()
 
     def stop(self) -> None:
         """simple method for safely terminating the rendering process"""
 
         self.renderProcess.terminate()
-        
+
+    def batchConvert(self, trackList:list) -> tuple:
+        """utility function for simultaneously converting multiple tracks to vocalSequence representation"""
+
+        voicebankList = []
+        NodeGraphList = []
+        sequenceList = []
+        for i in trackList:
+            info = i.convert()
+            voicebankList.append(info[0])
+            NodeGraphList.append(info[1])
+            sequenceList.append(info[2])
+        return voicebankList, NodeGraphList, sequenceList

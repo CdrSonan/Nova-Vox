@@ -8,20 +8,19 @@
 from kivy.properties import ObjectProperty
 import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
-from Backend.Param_Components.AiParams import AiParam
 from Backend.VB_Components.Voicebank import LiteVoicebank
 import global_consts
+
+class Nodegraph():
+    def __init__(self) -> None:
+        self.params = dict()
 
 class Parameter():
     """class for holding and managing a parameter curve as seen by the main process. Exact layout will change with node tree implementation."""
 
     def __init__(self, path:str) -> None:
-        self.paramPath = path
         self.curve = torch.full([1000], 0)
-        self.name = ""
         self.enabled = True
-    def to_param(self, length:int) -> AiParam:
-        return AiParam(self.paramPath)
 
 class Track():
     """class for holding and managing a vocal track as seen by the main process. Contains all settings required for processing on the main process.
@@ -62,7 +61,7 @@ class Track():
         self.useVibratoStrength = True
         self.pauseThreshold = 100
         self.mixinVB = None
-        self.paramStack = []
+        self.nodegraph = Nodegraph()
         self.borders = [0, 1, 2]
         self.length = 5000
         self.phonemeLengths = dict()
@@ -86,12 +85,14 @@ class Track():
                     endCaps[index - 1] = True
         return startCaps, endCaps
 
-    def toSequence(self) -> VocalSequence:
-        """converts the track to a VocalSequence object for sending it to the rendering thread. Also handles conversion of MIDI pitch to frequency."""
+    def convert(self) -> tuple:
+        """converts the track to a tuple for sending it to the rendering thread. Also handles conversion of MIDI pitch to frequency."""
 
         caps = self.generateCaps()
         pitch = torch.full_like(self.pitch, global_consts.sampleRate) / (torch.pow(2, (self.pitch - torch.full_like(self.pitch, 69)) / torch.full_like(self.pitch, 12)) * 440)
-        return VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength)
+        sequence = VocalSequence(self.length, self.borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength)
+        return self.vbPath, None, sequence#None object is placeholder for wrapped NodeGraph
+        #TODO: add node wrapping
 
 class Note():
     """Container class for a note as handled by the main process. Contains a reference property pointing at its UI representation."""

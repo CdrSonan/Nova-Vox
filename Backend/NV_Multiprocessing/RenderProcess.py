@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -20,26 +20,54 @@ from MiddleLayer.IniParser import readSettings
 from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseShift
 
-def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputListIn, rerenderFlagIn, connectionIn, remoteConnectionIn):
+def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn, rerenderFlagIn, connectionIn, remoteConnectionIn):
 
-    global statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
+    global statusControl, voicebankList, nodeGraphList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
+
+    #reading settings, setting device and interOutput properties accordingly
+    logging.info("render process started, reading settings")
+    settings = readSettings()
+    if settings["lowSpecMode"] == "enabled":
+        interOutput = False
+    elif settings["lowSpecMode"] == "disabled":
+        interOutput = True
+    else:
+        print("could not read intermediate output setting. Intermediate outputs have been disabled by default.")
+        interOutput = False
+    if settings["accelerator"] == "CPU":
+        device_rs = torch.device("cpu")
+        device_ai = torch.device("cpu")
+    elif settings["accelerator"] == "Hybrid":
+        device_rs = torch.device("cpu")
+        device_ai = torch.device("cuda")
+    elif settings["accelerator"] == "GPU":
+        device_rs = torch.device("cuda")
+        device_ai = torch.device("cuda")
+    else:
+        print("could not read accelerator setting. Accelerator has been set to CPU by default.")
+        device_rs = torch.device("cpu")
+        device_ai = torch.device("cpu")
+
+    #setting up initial data structures
     statusControl = statusControlIn
-    voicebankList = voicebankListIn
-    aiParamStackList = aiParamStackListIn
+    voicebankList = []
+    for vbPath in voicebankListIn:
+        voicebankList.append(LiteVoicebank(vbPath, device = device_ai))
+    nodeGraphList = nodeGraphListIn#TODO: add node unwrapping
     inputList = inputListIn
     rerenderFlag = rerenderFlagIn
     connection = connectionIn
     remoteConnection = remoteConnectionIn
 
     def updateFromMain(change, lastZero):
-        global statusControl, voicebankList, aiParamStackList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
+        global statusControl, voicebankList, nodeGraphList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
-            statusControl.append(SequenceStatusControl(change.data[1]))
+            statusControl.append(SequenceStatusControl(change.data[2]))
             voicebankList.append(LiteVoicebank(change.data[0], device = device_ai))
-            aiParamStackList.append(change.data[2])
-            inputList.append(change.data[1])
+            nodeGraphList.append(change.data[1])
+            inputList.append(change.data[2])
             if settings["cachingMode"] == "best rendering speed":
                 length = inputList[-1].pitch.size()[0]
                 spectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
@@ -48,7 +76,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
         elif change.type == "removeTrack":
             del statusControl[change.data[0]]
             del voicebankList[change.data[0]]
-            del aiParamStackList[change.data[0]]
+            del nodeGraphList[change.data[0]]
             del inputList[change.data[0]]
             if settings["cachingMode"] == "best rendering speed":
                 del spectrumCache[change.data[0]]
@@ -58,7 +86,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
         elif change.type == "duplicateTrack":
             statusControl.append(copy(statusControl[change.data[0]]))
             voicebankList.append(copy(voicebankList[change.data[0]]))
-            aiParamStackList.append(copy(aiParamStackList[change.data[0]]))
+            nodeGraphList.append(copy(nodeGraphList[change.data[0]]))
             inputList.append(copy(inputList[change.data[0]]))
             if settings["cachingMode"] == "best rendering speed":
                 spectrumCache.append(copy(spectrumCache[change.data[0]]))
@@ -69,11 +97,8 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
             voicebankList.insert(change.data[0], LiteVoicebank(change.data[1]))
             statusControl[change.data[0]].rs *= 0
             statusControl[change.data[0]].ai *= 0
-        elif change.type == "addParam":
-            aiParamStackList[change.data[0]].addParam(change.data[1])
-            statusControl[change.data[0]].ai *= 0
-        elif change.type == "removeParam":
-            aiParamStackList[change.data[0]].removeParam(change.data[1])
+        elif change.type == "nodeUpdate":
+            nodeGraphList[change.data[0]].update(change.data[1])
             statusControl[change.data[0]].ai *= 0
         elif change.type == "enableParam":
             if change.data[1] == "breathiness":
@@ -92,7 +117,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                 inputList[change.data[0]].useAIBalance = True
                 statusControl[change.data[0]].rs *= 0
             else:
-                aiParamStackList[change.data[1]].enableParam(change.data[2])
+                nodeGraphList[change.data[1]].enableParam(change.data[2])
             statusControl[change.data[1]].ai *= 0
         elif change.type == "disableParam":
             if change.data[1] == "breathiness":
@@ -111,10 +136,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
                 inputList[change.data[0]].useAIBalance = False
                 statusControl[change.data[0]].rs *= 0
             else:
-                aiParamStackList[change.data[0]].disableParam(change.data[1])
-            statusControl[change.data[0]].ai *= 0
-        elif change.type == "moveParam":
-            aiParamStackList[change.data[0]].insert(change.data[2], aiParamStackList[change.data[0]].pop(change.data[1]))
+                nodeGraphList[change.data[0]].disableParam(change.data[1])
             statusControl[change.data[0]].ai *= 0
         elif change.type == "changeInput":
             if change.data[1] in ["phonemes", "offsets", "repetititionSpacing"]:
@@ -196,30 +218,6 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
         previousShift = previousShift % (2 * math.pi)
         return torch.cat((newHarmonics, phases, torch.square(inputSpectrum)), 0), previousShift
 
-    #reading settings, setting device and interOutput properties accordingly
-    logging.info("render process started, reading settings")
-    settings = readSettings()
-    if settings["lowSpecMode"] == "enabled":
-        interOutput = False
-    elif settings["lowSpecMode"] == "disabled":
-        interOutput = True
-    else:
-        print("could not read intermediate output setting. Intermediate outputs have been disabled by default.")
-        interOutput = False
-    if settings["accelerator"] == "CPU":
-        device_rs = torch.device("cpu")
-        device_ai = torch.device("cpu")
-    elif settings["accelerator"] == "Hybrid":
-        device_rs = torch.device("cpu")
-        device_ai = torch.device("cuda")
-    elif settings["accelerator"] == "GPU":
-        device_rs = torch.device("cuda")
-        device_ai = torch.device("cuda")
-    else:
-        print("could not read accelerator setting. Accelerator has been set to CPU by default.")
-        device_rs = torch.device("cpu")
-        device_ai = torch.device("cpu")
-
     #setting up caching and other required data that is independent of each individual rendering iteration
     window = torch.hann_window(global_consts.tripleBatchSize, device = device_rs)
     lastZero = None
@@ -249,7 +247,7 @@ def renderProcess(statusControlIn, voicebankListIn, aiParamStackListIn, inputLis
 
             voicebank = voicebankList[i]
             voicebank.ai.device = device_ai
-            aiParamStack = aiParamStackList[i]
+            nodeGraph = nodeGraphList[i]
 
             length = internalInputs.pitch.size()[0]
 

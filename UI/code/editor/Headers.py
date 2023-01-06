@@ -100,9 +100,9 @@ class ParamPanel(ManagedToggleButton):
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if self.children[0].state == "down":
-            middleLayer.enableParam(self.index, self.name)
+            middleLayer.enableParam(self.name)
         else:
-            middleLayer.disableParam(self.index, self.name)
+            middleLayer.disableParam(self.name)
 
     def moveParam(self) -> None:
         """signals the middleLayer to move the widget to a new position within the stack"""

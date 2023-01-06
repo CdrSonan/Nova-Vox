@@ -18,7 +18,6 @@ import math
 
 import sounddevice
 
-from Backend.Param_Components.AiParams import AiParamStack
 import global_consts
 
 from MiddleLayer.IniParser import readSettings
@@ -36,13 +35,10 @@ class MiddleLayer(Widget):
         """Constructor called once during program startup. uses the id list of the main UI for referencing various UI elements and updating them. Functionality related to such UI updates may be moved to a dedicated class in the future, deprecating this argument."""
         
         super().__init__(**kwargs)
-        self.sequenceList = []
-        self.voicebankList = []
-        self.aiParamStackList = []
-        from Backend.NV_Multiprocessing.Manager import RenderManager
-        self.manager = RenderManager(self.sequenceList, self.voicebankList, self.aiParamStackList)
-        self.ids = ids
         self.trackList = []
+        from Backend.NV_Multiprocessing.Manager import RenderManager
+        self.manager = RenderManager(self.trackList)
+        self.ids = ids
         self.activeTrack = None
         self.activeParam = "steadiness"
         self.mode = OptionProperty("notes", options = ["notes", "timing", "pitch"])
@@ -86,15 +82,14 @@ class MiddleLayer(Widget):
         image = im.texture
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.audioBuffer.append(torch.zeros([5000 * global_consts.batchSize,]))
-        self.aiParamStackList.append(AiParamStack([]))
         self.submitAddTrack(track)
 
     def importParam(self, path:str, name:str) -> None:
         """placeholder function for importing an Ai-driven parameter. Deprecated with the introduction of node-based processing."""
 
-        self.trackList[self.activeTrack].paramStack.append(dh.Parameter(path))
-        self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = True, sortable = True, deletable = True, index = len(self.trackList[self.activeTrack].paramStack) - 1))
-        self.submitAddParam(path)
+        self.trackList[self.activeTrack].nodeGraph.append(path)
+        self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = True, sortable = True, deletable = True, index = len(self.trackList[self.activeTrack].nodegraph.params) - 1))
+        self.submitNodegraphUpdate()
 
     def changeTrack(self, index) -> None:
         """Helper function triggering the required UI updates when the user selects a different track"""
@@ -138,7 +133,7 @@ class MiddleLayer(Widget):
         self.trackList[-1].useAIBalance = copy(reference.useAIBalance)
         self.trackList[-1].useVibratoSpeed = copy(reference.useVibratoSpeed)
         self.trackList[-1].useVibratoStrength = copy(reference.useVibratoStrength)
-        self.trackList[-1].paramStack = []#replace once paramStack is fully implemented
+        self.trackList[-1].nodegraph = copy(reference.nodegraph)
         self.trackList[-1].borders = deepcopy(reference.borders)
         self.trackList[-1].length = copy(reference.length)
         self.trackList[-1].mixinVB = copy(reference.mixinVB)
@@ -146,7 +141,6 @@ class MiddleLayer(Widget):
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.audioBuffer.append(deepcopy(self.audioBuffer[index]))
-        self.aiParamStackList.append(AiParamStack([]))
         self.submitDuplicateTrack(index)
 
     def deleteTrack(self, index:int) -> None:
@@ -154,7 +148,6 @@ class MiddleLayer(Widget):
 
         self.trackList.pop(index)
         self.audioBuffer.pop(index)
-        self.aiParamStackList.pop(index)
         if self.activeTrack != None:
             if index <= self.activeTrack and index > 0:
                 self.changeTrack(self.activeTrack - 1)
@@ -174,7 +167,7 @@ class MiddleLayer(Widget):
     def deleteParam(self, index:int) -> None:
         """Placeholder function for removing an Ai-driven parameter from a track's stack. Deprecated with the introduction of node-based processing."""
 
-        self.trackList[self.activeTrack].paramStack.pop(index)
+        self.trackList[self.activeTrack].nodegraph.delete(index)
         if index <= self.activeParam:
             self.changeParam(self.activeParam - 1)
         for i in self.ids["paramList"].children:
@@ -182,9 +175,9 @@ class MiddleLayer(Widget):
                 i.parent.remove_widget(i)
             if i.index > index:
                 i.index = i.index - 1
-        self.submitRemoveParam(index)
+        self.submitNodegraphUpdate
 
-    def enableParam(self, index:int, name:str = None) -> None:
+    def enableParam(self, name:str = None) -> None:
         """Enables a toggle-able parameter curve of a vocal track.
 
         Arguments:
@@ -193,22 +186,21 @@ class MiddleLayer(Widget):
             name: when adressing a named resampler parameter, the name of the parameter. Otherwise ignored."""
 
 
-        if index == -1:
-            if name == "steadiness":
-                self.trackList[self.activeTrack].useSteadiness = True
-            elif name == "breathiness":
-                self.trackList[self.activeTrack].useBreathiness = True
-            elif name == "AI balance":
-                self.trackList[self.activeTrack].useAIBalance = True
-            elif name == "vibrato speed":
-                self.trackList[self.activeTrack].useVibratoSpeed = True
-            elif name == "vibrato strength":
-                self.trackList[self.activeTrack].useVibratoStrength = True
+        if name == "steadiness":
+            self.trackList[self.activeTrack].useSteadiness = True
+        elif name == "breathiness":
+            self.trackList[self.activeTrack].useBreathiness = True
+        elif name == "AI balance":
+            self.trackList[self.activeTrack].useAIBalance = True
+        elif name == "vibrato speed":
+            self.trackList[self.activeTrack].useVibratoSpeed = True
+        elif name == "vibrato strength":
+            self.trackList[self.activeTrack].useVibratoStrength = True
         else:
-            self.trackList[self.activeTrack].paramStack[index].enabled = True
-        self.submitEnableParam(index, name)
+            self.trackList[self.activeTrack].nodegraph.params[name].enabled = True
+        self.submitEnableParam(name)
         
-    def disableParam(self, index:int, name:str) -> None:
+    def disableParam(self, name:str) -> None:
         """Disables a toggle-able parameter curve of a vocal track.
 
         Arguments:
@@ -217,34 +209,24 @@ class MiddleLayer(Widget):
             name: When adressing a named resampler parameter, the name of the parameter. Otherwise ignored."""
 
 
-        if index == -1:
-            if name == "steadiness":
-                self.trackList[self.activeTrack].useSteadiness = False
-            elif name == "breathiness":
-                self.trackList[self.activeTrack].useBreathiness = False
-            elif name == "AI balance":
-                self.trackList[self.activeTrack].useAIBalance = False
-            elif name == "vibrato speed":
-                self.trackList[self.activeTrack].useVibratoSpeed = False
-            elif name == "vibrato strength":
-                self.trackList[self.activeTrack].useVibratoStrength = False
+        if name == "steadiness":
+            self.trackList[self.activeTrack].useSteadiness = False
+        elif name == "breathiness":
+            self.trackList[self.activeTrack].useBreathiness = False
+        elif name == "AI balance":
+            self.trackList[self.activeTrack].useAIBalance = False
+        elif name == "vibrato speed":
+            self.trackList[self.activeTrack].useVibratoSpeed = False
+        elif name == "vibrato strength":
+            self.trackList[self.activeTrack].useVibratoStrength = False
         else:
-            self.trackList[self.activeTrack].paramStack[index].enabled = False
-        self.submitDisableParam(index, name)
+            self.trackList[self.activeTrack].nodegraph.params[name].enabled = False
+        self.submitDisableParam(name)
 
     def moveParam(self, name:str, switchable:bool, sortable:bool, deletable:bool, index:int, delta:int, switchState:bool = True) -> None:
         """Moves a sortable parameter curve at index index of the current track's param curve stack to a different position defined by delta.
         All other arguments specify information about the parameter being moved for re-applying its header widget."""
 
-        param = self.trackList[self.activeTrack].paramStack[index]
-        if delta > 0:
-            for i in range(delta):
-                self.trackList[self.activeTrack].paramStack[index + i] = self.trackList[self.activeTrack].paramStack[index + i + 1]
-            self.trackList[self.activeTrack].paramStack[index + delta] = param
-        if delta < 0:
-            for i in range(-delta):
-                self.trackList[self.activeTrack].paramStack[index - i] = self.trackList[self.activeTrack].paramStack[index - i - 1]
-            self.trackList[self.activeTrack].paramStack[index - delta] = param
         for i in self.ids["paramList"].children:
             if i.index == index:
                 i.parent.remove_widget(i)
@@ -263,7 +245,7 @@ class MiddleLayer(Widget):
             self.ids["paramList"].add_widget(ParamPanel(name = "AI balance", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useAIBalance))
             self.ids["adaptiveSpace"].add_widget(ParamCurve())
             counter = 0
-            for i in self.trackList[self.activeTrack].paramStack:
+            for i in self.trackList[self.activeTrack].nodegraph.params:
                 self.ids["paramList"].add_widget(ParamPanel(name = i.name, index = counter))
                 counter += 1
             self.changeParam(-1, "steadiness")
@@ -328,7 +310,7 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].vibratoStrength[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                 self.submitNamedParamChange(True, "vibratoStrength", start, torch.tensor(data, dtype = torch.half))
         else:
-            self.trackList[self.activeTrack].paramStack[self.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+            self.trackList[self.activeTrack].nodegraph.params[self.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
             self.submitParamChange(True, self.activeParam, start, torch.tensor(data, dtype = torch.half))
 
     def applyPitchChanges(self, data:list, start:int) -> None:
@@ -798,7 +780,7 @@ class MiddleLayer(Widget):
         self.manager.sendChange("terminate", True)
 
     def submitAddTrack(self, track:dh.Track) -> None:
-        self.manager.sendChange("addTrack", True, track.vbPath, track.toSequence(), self.aiParamStackList[-1])
+        self.manager.sendChange("addTrack", True, *track.convert())
 
     def submitRemoveTrack(self, index:int) -> None:
         self.manager.sendChange("removeTrack", True, index)
@@ -809,23 +791,15 @@ class MiddleLayer(Widget):
     def submitChangeVB(self, index:int, path:str) -> None:
         self.manager.sendChange("changeVB", True, index, path)
     
-    def submitAddParam(self, path:str) -> None:
-        self.manager.sendChange("addParam", True, self.activeTrack, path)
+    def submitNodegraphUpdate(self) -> None:
+        #placeholder until NodeGraph is fully implemented
+        self.manager.sendChange("nodeUpdate", True, self.activeTrack, None)
     
-    def submitRemoveParam(self, index:int) -> None:
-        self.manager.sendChange("removeParam", True, self.activeTrack, index)
+    def submitEnableParam(self, name:str) -> None:
+        self.manager.sendChange("enableParam", True, self.activeTrack, name)
     
-    def submitEnableParam(self, index:int, name:str) -> None:
-        if index == -1:
-            self.manager.sendChange("enableParam", True, self.activeTrack, name)
-        else:
-            self.manager.sendChange("enableParam", True, self.activeTrack, index)
-    
-    def submitDisableParam(self, index:int, name:str) -> None:
-        if index == -1:
-            self.manager.sendChange("disableParam", True, self.activeTrack, name)
-        else:
-            self.manager.sendChange("disableParam", True, self.activeTrack, index)
+    def submitDisableParam(self, name:str) -> None:
+        self.manager.sendChange("disableParam", True, self.activeTrack, name)
     
     def submitBorderChange(self, final:bool, index:int, data) -> None:
         self.manager.sendChange("changeInput", final, self.activeTrack, "borders", index, data)
