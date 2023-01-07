@@ -76,11 +76,7 @@ class RenderManager():
         """Method for restarting the rendering process. The required data is fetched again from the main process. This is to prevent any possible issues with the data held by the rendering process from persisting.
         
         Arguments:
-            sequenceList: a list or other iterable of VocalSequence objects, and the main source of data for the rendering process.
-
-            voicebankList: a list or other iterable of Voicebank or LiteVoicebank objects with the same length as sequenceList. Holds the voicebanks used for synthesis by the rendering process.
-
-            NodeGraphList: placeholder for future list of serialized NodeGraph objects
+            trackList: a list or other iterable of Track objects, and the main source of data for the rendering process.
 
         Returns:
             None"""
@@ -89,9 +85,10 @@ class RenderManager():
         self.stop()
         voicebankList, NodeGraphList, sequenceList = self.batchConvert(trackList)
         del self.statusControl[:]
+        print("rendering subprocess restarting...")
         for i in trackList:
             self.statusControl.append(SequenceStatusControl(i))
-        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale("render_process_name"), daemon = True)
+        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale()["render_process_name"], daemon = True)
         self.renderProcess.start()
 
     def stop(self) -> None:

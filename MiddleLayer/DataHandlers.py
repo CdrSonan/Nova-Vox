@@ -13,7 +13,17 @@ import global_consts
 
 class Nodegraph():
     def __init__(self) -> None:
+        self.nodes = []
+        #self.nodes[1].connect()#TODO:finish
         self.params = dict()
+
+    def pack(self):
+        for i in self.nodes:
+            i.pack()
+
+    def unpack(self):
+        for i in self.nodes:
+            i.unpack()
 
 class Parameter():
     """class for holding and managing a parameter curve as seen by the main process. Exact layout will change with node tree implementation."""

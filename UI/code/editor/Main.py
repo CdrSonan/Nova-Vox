@@ -117,6 +117,11 @@ class NovaVoxUI(Widget):
 
         print("redo callback")
 
+    def restart(self) -> None:
+        """restarts the rendering process through its manager"""
+
+        middleLayer.manager.restart(middleLayer.trackList)
+
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers) -> None:
         """universal function for processing keyboard shortcuts and keeping track of modifier keys"""
 

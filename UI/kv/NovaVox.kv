@@ -66,14 +66,14 @@
             size_hint: (None, None)
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "UI/assets/TopBar/Top04.png"
-            on_press: root.undo
+            on_press: root.undo()
         ImageButton:
             #redo button
             pos: (314 * root.uiScale, root.height - 45 * root.uiScale)
             size_hint: (None, None)
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "UI/assets/TopBar/Top05.png"
-            on_press: root.redo
+            on_press: root.redo()
         
         #Side bar buttons
         ImageButton:
@@ -117,6 +117,7 @@
             size_hint: (None, None)
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "UI/assets/SideBar/Side06new.png"
+            on_press: root.restart()
         BoxLayout:
             #layout for the main part of the window
             orientation: "horizontal"

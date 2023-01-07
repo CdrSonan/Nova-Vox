@@ -27,6 +27,7 @@ import soundfile
 import global_consts
 
 from MiddleLayer.IniParser import readSettings, writeSettings
+from MiddleLayer.FileIO import saveNVX, loadNVX
 
 from UI.code.editor.Util import ListElement
 
@@ -38,6 +39,29 @@ class FileSidePanel(ModalView):
     toolColor = ColorProperty()
     accColor = ColorProperty()
     bgColor = ColorProperty()
+
+    def save(self) -> None:
+        """saves the current work to a .nvx file"""
+
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        tkui = Tk()
+        tkui.withdraw()
+        dir = filedialog.asksaveasfilename(filetypes = (("NVX", "nvx"), ("all files", "*")))
+        tkui.destroy()
+        saveNVX(dir, middleLayer)
+
+    def load(self) -> None:
+        """loads a .nvx file into the editor"""
+
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        tkui = Tk()
+        tkui.withdraw()
+        dir = filedialog.askopenfilename(filetypes = (("NVX", "nvx"), ("all files", "*")))
+        tkui.destroy()
+        loadNVX(dir, middleLayer)
+
 
     def openRenderPopup(self) -> None:
         """opens a popup containing the settings for rendering files"""
