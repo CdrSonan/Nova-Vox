@@ -72,6 +72,21 @@ class MiddleLayer(Widget):
             inImage: image displayed in the track header"""
 
 
+        self.importVoicebankNoSubmit(path, name, inImage)
+        self.submitAddTrack(self.trackList[-1])
+
+    def importVoicebankNoSubmit(self, path:str, name:str, inImage) -> None:
+        """Creates a new vocal track with a Voicebank loaded from disk, but does not submit it to the rendering process.
+        The rendering process needs to be restarted, or submitAddTrack needs to be called separately for the new track to be recognized
+
+        Arguments:
+            path: filepath of the .nvvb Voicebank file used for the track
+
+            name: display name of the Voicebank/track
+
+            inImage: image displayed in the track header"""
+        
+
         track = dh.Track(path)
         self.trackList.append(track)
         canvas_img = inImage
@@ -81,8 +96,7 @@ class MiddleLayer(Widget):
         im = CoreImage(BytesIO(data.read()), ext='png')
         image = im.texture
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
-        self.audioBuffer.append(torch.zeros([5000 * global_consts.batchSize,]))
-        self.submitAddTrack(track)
+        self.audioBuffer.append(torch.zeros([track.length * global_consts.batchSize,]))
 
     def importParam(self, path:str, name:str) -> None:
         """placeholder function for importing an Ai-driven parameter. Deprecated with the introduction of node-based processing."""
