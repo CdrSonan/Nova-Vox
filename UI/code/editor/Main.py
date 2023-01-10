@@ -129,6 +129,10 @@ class NovaVoxUI(Widget):
             return False
         if keycode[0] == 303 or keycode[0] == 304: 
             middleLayer.shift = True
+        elif keycode[0] == 305 or keycode[0] == 306: 
+            middleLayer.ctrl = True
+        elif keycode[0] == 307 or keycode[0] == 308: 
+            middleLayer.alt = True
         elif keycode[0] == 32:
             middleLayer.play()
         else:
@@ -142,6 +146,8 @@ class NovaVoxUI(Widget):
             return False
         if keycode[0] == 303 or keycode[0] == 304: 
             middleLayer.shift = False
-        else:
-            pass
+        if keycode[0] == 305 or keycode[0] == 306: 
+            middleLayer.ctrl = False
+        if keycode[0] == 307 or keycode[0] == 308: 
+            middleLayer.alt = False
         return True

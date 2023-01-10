@@ -47,6 +47,10 @@ class MiddleLayer(Widget):
         self.tool = "draw"
         self.shift = BooleanProperty()
         self.shift = False
+        self.alt = BooleanProperty()
+        self.alt = False
+        self.ctrl = BooleanProperty()
+        self.ctrl = False
         self.scrollValue = 0.
         self.audioBuffer = []
         self.mainAudioBufferPos = 0

@@ -72,7 +72,7 @@ def loadNVX(path:str, middleLayer:MiddleLayer) -> None:
     for trackData in tracks:
         track = validateTrackData(trackData)
         vbData = torch.load(track.vbPath)["metadata"]
-        middleLayer.importVoicebank(track.vbPath, vbData.name, vbData.image)
+        middleLayer.importVoicebankNoSubmit(track.vbPath, vbData.name, vbData.image)
         middleLayer.trackList[-1].volume = track["volume"]
         for note in track["notes"]:
             middleLayer.trackList[-1].notes.append(Note(note.xPos, note.yPos, note.phonemeStart, note.phonemeEnd))

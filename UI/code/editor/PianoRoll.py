@@ -169,27 +169,15 @@ class TimingLabel(Label):
 
 class PianoRoll(ScrollView):
     """Class for the editor piano roll"""
+    length = NumericProperty(5000)
+    xScale = NumericProperty(1)
+    yScale = NumericProperty(10)
 
     def __init__(self, **kwargs) -> None:
         super(PianoRoll, self).__init__(**kwargs)
-        self.length = NumericProperty()
-        self.length = 5000
-        self.xScale = NumericProperty()
-        self.xScale = 1
-        self.yScale = NumericProperty()
-        self.yScale = 10
-        self.measureSize = NumericProperty()
         self.measureSize = 4
-        self.tempo = NumericProperty()
         self.tempo = 125
-        self.quantization = NumericProperty()
         self.quantization = None
-        self.playbackPos = NumericProperty()
-        self.playbackPos = 0
-        self.currentNote = ObjectProperty()
-        self.timingMarkers = ListProperty()
-        self.pitchLine = ObjectProperty()
-        self.basePitchLine = ObjectProperty()
         self.timingMarkers = []
         self.pitchLine = None
         self.basePitchLine = None
@@ -202,7 +190,7 @@ class PianoRoll(ScrollView):
         from UI.code.editor.Main import middleLayer
         index = 0
         for i in middleLayer.trackList[middleLayer.activeTrack].notes:
-            note = Note(index = index, xPos = i.xPos, yPos = i.yPos, length = i.length * self.xScale, height = self.yScale, inputMode = i.phonemeMode)
+            note = Note(index = index, xPos = i.xPos, yPos = i.yPos, length = i.length, height = self.yScale, inputMode = i.phonemeMode)
             note.children[0].text = i.content
             self.children[0].add_widget(note)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].reference = note
@@ -272,10 +260,10 @@ class PianoRoll(ScrollView):
         self.children[0].children[-global_consts.octaves - 1].clear_widgets()
         i = floor(self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width / self.tempo)
         t = i * self.tempo
-        while t <= self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width + self.width * self.xScale:
+        while t <= self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width + self.width:
             modulo = i % self.measureSize
             self.children[0].children[-global_consts.octaves - 1].add_widget(TimingLabel(index = i, reference = self.children[0].children[-global_consts.octaves - 1], modulo = modulo))
-            t += self.tempo
+            t += self.tempo * self.xScale
             i += 1
 
     def on_scroll_x(self, instance, scroll_x:float) -> None:
@@ -412,7 +400,9 @@ class PianoRoll(ScrollView):
                 return True
         if self.collide_point(*touch.pos):
             if touch.is_mouse_scrolling:
+                print("call")
                 if middleLayer.shift:
+                    #horizontal scrolling
                     if touch.button == 'scrollup':
                         newvalue = self.scroll_x + self.convert_distance_to_scroll(self.scroll_wheel_distance, 0)[0]
                         if newvalue < 1:
@@ -425,6 +415,39 @@ class PianoRoll(ScrollView):
                             self.scroll_x = newvalue
                         else:
                             self.scroll_x = 0.
+                    return True
+                if middleLayer.ctrl:
+                    #horizontal zoom
+                    if touch.button == 'scrollup':
+                        newvalue = self.xScale / 0.9
+                        if newvalue < 10.:
+                            self.xScale = newvalue
+                        else:
+                            self.xScale = 10.
+                    elif touch.button == 'scrolldown':
+                        newvalue = self.xScale * 0.9
+                        if newvalue > 0.1:
+                            self.xScale = newvalue
+                        else:
+                            self.xScale = 0.1
+                    self.updateTimingMarkers()
+                    self.updateTrack()
+                    return True
+                if middleLayer.alt:
+                    #vertical zoom
+                    if touch.button == 'scrollup':
+                        newvalue = self.yScale / 0.9
+                        if newvalue < 100.:
+                            self.yScale = newvalue
+                        else:
+                            self.yScale = 100.
+                    elif touch.button == 'scrolldown':
+                        newvalue = self.yScale * 0.9
+                        if newvalue > 1.:
+                            self.yScale = newvalue
+                        else:
+                            self.yScale = 1.
+                    self.updateTrack()
                     return True
                 return super(PianoRoll, self).on_touch_down(touch)
             else:

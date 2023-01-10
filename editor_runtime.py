@@ -94,6 +94,8 @@ if __name__ == '__main__':
     Config.set('graphics', 'width', '1900')
     Config.set('graphics', 'height', '1060')
     Config.set('graphics', 'window_state', 'maximized')
+    Config.set('input', 'mouse', 'mouse,disable_multitouch')
+    Config.set('kivy', 'window_icon','icon/nova-vox-logo-2-color.png' )
     Config.write()
 
     Builder.load_file("UI/kv/ImageButton.kv")

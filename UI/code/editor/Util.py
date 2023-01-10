@@ -13,7 +13,6 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.bubble import BubbleButton
 from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
-from kivy.app import App
 
 def fullRoot(widget):
     root = widget
