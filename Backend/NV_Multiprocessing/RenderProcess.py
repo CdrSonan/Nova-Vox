@@ -16,6 +16,7 @@ from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
 from Backend.NV_Multiprocessing.Caching import DenseCache, SparseCache
 from Backend.NV_Multiprocessing.Update import trimSequence, posToSegment
+from Backend.Util import ensureTensorLength
 from MiddleLayer.IniParser import readSettings
 from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseShift
@@ -187,6 +188,15 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             print("renderer: offset type packet received:", change, change.type, change.data)
             inputList, internalStatusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, internalStatusControl)
             print("offset type received: (post trim)", change, change.type, change.data)
+        elif change.type == "changeLength":
+            inputList[change.data[0]].length = change.data[1]
+            inputList[change.data[0]].pitch = ensureTensorLength(inputList[change.data[0]].pitch, change.data[1], -1.)
+            inputList[change.data[0]].steadiness = ensureTensorLength(inputList[change.data[0]].steadiness, change.data[1], 0.)
+            inputList[change.data[0]].breathiness = ensureTensorLength(inputList[change.data[0]].breathiness, change.data[1], 0.)
+            inputList[change.data[0]].aiBalance = ensureTensorLength(inputList[change.data[0]].aiBalance, change.data[1], 0.)
+            inputList[change.data[0]].vibratoSpeed = ensureTensorLength(inputList[change.data[0]].vibratoSpeed, change.data[1], 0.)
+            inputList[change.data[0]].vibratoStrength = ensureTensorLength(inputList[change.data[0]].vibratoStrength, change.data[1], 0.)
+
         if change.final == False:
             return updateFromMain(connection.get(), lastZero)
         else:

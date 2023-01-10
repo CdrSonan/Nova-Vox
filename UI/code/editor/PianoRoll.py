@@ -52,6 +52,7 @@ class Note(ToggleButton):
         self.pos = (self.xPos * self.parent.parent.xScale, self.yPos * self.parent.parent.yScale)
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
+        self.parent.parent.updateLength()
 
     def quantize(self, x:float, y:float = None) -> tuple:
         """adjusts the x coordinate of a touch to achieve the desired input quantization"""
@@ -199,7 +200,17 @@ class PianoRoll(ScrollView):
     @mainthread
     def generateTimingMarkers(self) -> None:
         """delayed call of updateTimingMarkers(). The delay is required during widget initialization, since not all properties required by updateTimingMarkers() are available during initialization yet."""
+
         self.updateTimingMarkers()
+
+    def updateLength(self) -> None:
+        """updates the length of the track according to the position and length of the last note"""
+
+        if len(middleLayer.trackList) > 0 and len(middleLayer.trackList[middleLayer.activeTrack].notes) > 0:
+            noteEnd = middleLayer.trackList[middleLayer.activeTrack].notes[-1].xPos + middleLayer.trackList[middleLayer.activeTrack].notes[-1].length
+        else:
+            noteEnd = 0
+        self.length = noteEnd + 5000
 
     def updateTempo(self, measureType:str, tempo:str, quantization:str) -> None:
         """callback function used or updating the tempo of the track"""

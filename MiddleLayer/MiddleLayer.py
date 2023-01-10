@@ -23,6 +23,8 @@ import global_consts
 from MiddleLayer.IniParser import readSettings
 import MiddleLayer.DataHandlers as dh
 
+from Backend.Util import ensureTensorLength
+
 from UI.code.editor.AdaptiveSpace import ParamCurve, TimingOptns, PitchOptns
 from UI.code.editor.Headers import SingerPanel, ParamPanel
 
@@ -794,6 +796,21 @@ class MiddleLayer(Widget):
             self.submitNamedPhonParamChange(False, "borders", index, [self.trackList[self.activeTrack].borders[index],])
             self.repairBorders(index + 1)
 
+    def changeLength(self, length:int) -> None:
+        """changes the length of the active track, and submits the change to the renderer"""
+
+        self.trackList[self.activeTrack].length = length
+        self.trackList[self.activeTrack].pitch = ensureTensorLength(self.trackList[self.activeTrack].pitch, length, -1)
+        self.trackList[self.activeTrack].basePitch = ensureTensorLength(self.trackList[self.activeTrack].basePitch, length, -1)
+        self.trackList[self.activeTrack].breathiness = ensureTensorLength(self.trackList[self.activeTrack].breathiness, length, 0)
+        self.trackList[self.activeTrack].steadiness = ensureTensorLength(self.trackList[self.activeTrack].steadiness, length, 0)
+        self.trackList[self.activeTrack].aiBalance = ensureTensorLength(self.trackList[self.activeTrack].aiBalance, length, 0)
+        self.trackList[self.activeTrack].vibratoSpeed = ensureTensorLength(self.trackList[self.activeTrack].vibratoSpeed, length, 0)
+        self.trackList[self.activeTrack].vibratoStrength = ensureTensorLength(self.trackList[self.activeTrack].vibratoStrength, length, 0)
+        self.audioBuffer[self.activeTrack] = ensureTensorLength(self.audioBuffer[self.activeTrack], length * global_consts.batchSize, 0)
+        self.submitChangeLength(True, length)
+
+
     def submitTerminate(self) -> None:
         self.manager.sendChange("terminate", True)
 
@@ -833,6 +850,9 @@ class MiddleLayer(Widget):
     
     def submitOffset(self, final:bool, index:int, offset:int) -> None:
         self.manager.sendChange("offset", final, self.activeTrack, index, offset)
+
+    def submitChangeLength(self, final:bool, length:int) -> None:
+        self.manager.sendChange("changeLength", final, self.activeTrack, length)
     
     def submitFinalize(self) -> None:
         self.manager.sendChange("finalize", True)
