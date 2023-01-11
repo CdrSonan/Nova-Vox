@@ -37,9 +37,12 @@ torch.backends.cuda.matmul.allow_tf32 = tcores
 torch.backends.cudnn.allow_tf32 = tcores
 
 if pyi_splash.is_alive():
-    pyi_splash.update_text("starting logging process...")
+    pyi_splash.update_text("importing utility libraries...")
 import sys
 from os import getenv, path, makedirs
+from traceback import print_exc
+if pyi_splash.is_alive():
+    pyi_splash.update_text("starting logging process...")
 import logging
 if settings["loglevel"] == "debug":
     loglevel = logging.DEBUG
@@ -75,6 +78,8 @@ if __name__ == '__main__':
     from kivy.lang import Builder
     from kivy.clock import Clock
     from kivy.config import Config
+    from kivy.base import ExceptionManager
+    from MiddleLayer.ErrorHandler import ErrorHandler
     if settings["lowSpecMode"] == "disabled":
         updateInterval = 0.25
     elif settings["lowSpecMode"] == "enabled":
@@ -118,12 +123,14 @@ if __name__ == '__main__':
     from asyncio import get_event_loop
     loop = get_event_loop()
 
+    ExceptionManager.add_handler(ErrorHandler())
+
     pyi_splash.close()
     try:
         loop.run_until_complete(NovaVoxApp().async_run(async_lib='asyncio'))
     except Exception as e:
-        print("An error has occured:")
-        print(e)
+        print("An irrecoverable error has occured:")
+        print_exc()
         print("Press <Enter> to close this window.")
         input("")
     finally:

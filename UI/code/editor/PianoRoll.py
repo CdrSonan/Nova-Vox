@@ -52,7 +52,6 @@ class Note(ToggleButton):
         self.pos = (self.xPos * self.parent.parent.xScale, self.yPos * self.parent.parent.yScale)
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
-        self.parent.parent.updateLength()
 
     def quantize(self, x:float, y:float = None) -> tuple:
         """adjusts the x coordinate of a touch to achieve the desired input quantization"""
@@ -211,6 +210,8 @@ class PianoRoll(ScrollView):
         else:
             noteEnd = 0
         self.length = noteEnd + 5000
+        middleLayer.changeLength(self.length)
+        self.updateTimingMarkers()
 
     def updateTempo(self, measureType:str, tempo:str, quantization:str) -> None:
         """callback function used or updating the tempo of the track"""
@@ -411,7 +412,6 @@ class PianoRoll(ScrollView):
                 return True
         if self.collide_point(*touch.pos):
             if touch.is_mouse_scrolling:
-                print("call")
                 if middleLayer.shift:
                     #horizontal scrolling
                     if touch.button == 'scrollup':
@@ -533,6 +533,7 @@ class PianoRoll(ScrollView):
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
                 if abs(touch.ud["initialPos"][0] - coord[0]) < 4 and abs(touch.ud["initialPos"][1] - coord[1]) < 4:
                     return True
+                touch.ud["promptLengthUpdate"] = True
                 if touch.ud["grabMode"] == "start":
                     length = max(note.xPos + note.length - x, 1)
                     note.length = length
@@ -646,6 +647,8 @@ class PianoRoll(ScrollView):
         from UI.code.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(PianoRoll, self).on_touch_up(touch)
+        if 'promptLengthUpdate' in touch.ud and touch.ud['param'] == False:
+            self.updateLength()
         if 'startPoint' in touch.ud and touch.ud['param'] == False:
             data = []
             if touch.ud['startPointOffset'] == 0:

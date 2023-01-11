@@ -9,6 +9,7 @@ from kivy.properties import ObjectProperty
 import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.VB_Components.Voicebank import LiteVoicebank
+from Backend.Util import ensureTensorLength
 import global_consts
 
 class Nodegraph():
@@ -81,6 +82,41 @@ class Track():
                 self.phonemeLengths[i] = tmpVb.phonemeDict[i].specharm.size()[0]
             else:
                 self.phonemeLengths[i] = None
+
+    def validate(self) -> None:
+        """validates the data of the track, ensuring there are no inconsistencies capable of causing crashes"""
+
+        self.length = max(
+            self.length,
+            5000,
+            self.pitch.size()[0],
+            self.basePitch.size()[0],
+            self.breathiness.size()[0],
+            self.steadiness.size()[0],
+            self.aiBalance.size()[0],
+            self.vibratoSpeed.size()[0],
+            self.vibratoStrength.size()[0]
+        )
+        self.volume = max(self.volume, 0.)
+        self.volume = min(self.volume, 2.)
+        self.pauseThreshold = max(self.pauseThreshold, 0)
+        self.pitch = ensureTensorLength(self.pitch, self.length, -1)
+        self.basePitch = ensureTensorLength(self.basePitch, self.length, -1)
+        self.breathiness = ensureTensorLength(self.breathiness, self.length, -1)
+        self.steadiness = ensureTensorLength(self.steadiness, self.length, -1)
+        self.aiBalance = ensureTensorLength(self.aiBalance, self.length, -1)
+        self.vibratoSpeed = ensureTensorLength(self.vibratoSpeed, self.length, -1)
+        self.vibratoStrength = ensureTensorLength(self.vibratoStrength, self.length, -1)
+
+        #notes
+        #phonemes
+        #borders
+        #loopOverlap
+        #loopOffset
+        #audio cache
+        #vbPath
+        #mixinVB
+        
                 
     def generateCaps(self) -> tuple([list, list]):
         """utility function for generating startCap and endCap attributes for the track. These are not required by the main process, and are instead sent to the rendering process with to_sequence"""

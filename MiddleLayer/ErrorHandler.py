@@ -5,15 +5,10 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-import torch
-import traceback
+from kivy.base import ExceptionHandler, ExceptionManager
 
-def ensureTensorLength(tensor:torch.Tensor, length:int, fill:float) -> torch.Tensor:
-    """helper function for ensuring a tensor has a certain length along dim 0, and padding/pruning it if it does not have the correct length"""
-
-    lengthDelta = length - tensor.size()[0]
-    if lengthDelta < 0:
-        return tensor[:length]
-    if lengthDelta > 0:
-        return torch.cat((tensor, torch.full((lengthDelta, *tensor.size()[1:]), fill, dtype = tensor.dtype, device = tensor.device)), 0)
-    return tensor
+class ErrorHandler(ExceptionHandler):
+    def handle_exception(self, inst):
+        print("Error recovery triggered for:")
+        print(inst)
+        return ExceptionManager.PASS
