@@ -19,6 +19,7 @@ def saveNVX(path:str, middleLayer:MiddleLayer) -> None:
 
     tracks = []
     for track in middleLayer.trackList:
+        track.validate()
         notes = []
         for note in track.notes:
             notes.append({
@@ -100,4 +101,5 @@ def loadNVX(path:str, middleLayer:MiddleLayer) -> None:
         middleLayer.trackList[-1].length = track["length"]
         middleLayer.trackList[-1].mixinVB = track["mixinVB"]
         middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
+        middleLayer.trackList[-1].validate()
     middleLayer.manager.restart(middleLayer.trackList)

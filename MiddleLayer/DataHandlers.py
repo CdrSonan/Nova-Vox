@@ -7,6 +7,7 @@
 
 from kivy.properties import ObjectProperty
 import torch
+from os.path import isfile
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.Util import ensureTensorLength
@@ -102,17 +103,40 @@ class Track():
         self.pauseThreshold = max(self.pauseThreshold, 0)
         self.pitch = ensureTensorLength(self.pitch, self.length, -1)
         self.basePitch = ensureTensorLength(self.basePitch, self.length, -1)
-        self.breathiness = ensureTensorLength(self.breathiness, self.length, -1)
-        self.steadiness = ensureTensorLength(self.steadiness, self.length, -1)
-        self.aiBalance = ensureTensorLength(self.aiBalance, self.length, -1)
-        self.vibratoSpeed = ensureTensorLength(self.vibratoSpeed, self.length, -1)
-        self.vibratoStrength = ensureTensorLength(self.vibratoStrength, self.length, -1)
-
-        #notes
-        #phonemes
-        #borders
-        #loopOverlap
-        #loopOffset
+        self.breathiness = ensureTensorLength(self.breathiness, self.length, 0)
+        self.steadiness = ensureTensorLength(self.steadiness, self.length, 0)
+        self.aiBalance = ensureTensorLength(self.aiBalance, self.length, 0)
+        self.vibratoSpeed = ensureTensorLength(self.vibratoSpeed, self.length, 0)
+        self.vibratoStrength = ensureTensorLength(self.vibratoStrength, self.length, 0)
+        if len(self.borders) > 3 * len(self.phonemes) + 3:
+            self.borders = self.borders[:3 * len(self.phonemes) + 3]
+        elif len(self.borders) < 3 * len(self.phonemes) + 3:
+            self.borders.extend(range(self.borders[-1] + 1, self.borders[-1] + 4 + 3 * len(self.phonemes) - len(self.borders)))
+        self.borders.sort()
+        for i in range(1, len(self.borders)):
+            if self.borders[i] == self.borders[i - 1]:
+                self.borders[i] = self.borders[i - 1] + 1
+        for i, phoneme in enumerate(self.phonemes):
+            if phoneme not in self.phonemeLengths.keys():
+                self.phonemes[i] = self.phonemeLengths.keys()[0]
+        if self.loopOverlap.size() > len(self.phonemes):
+            self.loopOverlap = self.loopOverlap[:len(self.phonemes)]
+        elif self.loopOverlap.size()[0] < len(self.phonemes):
+            self.loopOverlap = torch.cat((self.loopOverlap, torch.zeros((len(self.phonemes) - self.loopOverlap.size()[0],), device = self.loopOverlap.device, dtype = torch.half)), 0)
+        if self.loopOffset.size() > len(self.phonemes):
+            self.loopOffset = self.loopOffset[:len(self.phonemes)]
+        elif self.loopOffset.size()[0] < len(self.phonemes):
+            self.loopOffset = torch.cat((self.loopOffset, torch.zeros((len(self.phonemes) - self.loopOffset.size()[0],), device = self.loopOffset.device, dtype = torch.half)), 0)
+        currentxPos = 0
+        currentPhoneme = 0
+        for i in self.notes:
+            i.length = max(i.length, 1)
+            if i.xPos <= currentxPos:
+                i.xPos = currentxPos + 1
+            currentxPos = i.xPos
+            i.phonemeStart = currentPhoneme
+            i.phonemeEnd = max(i.phonemeEnd, currentPhoneme)
+            currentPhoneme = i.phonemeEnd
         #audio cache
         #vbPath
         #mixinVB

@@ -6,9 +6,16 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 from kivy.base import ExceptionHandler, ExceptionManager
+from traceback import print_exc
 
 class ErrorHandler(ExceptionHandler):
     def handle_exception(self, inst):
-        print("Error recovery triggered for:")
-        print(inst)
+        print("Attempting error recovery for:")
+        print_exc()
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        try:
+            middleLayer.validate()
+        except:
+            return ExceptionManager.RAISE
         return ExceptionManager.PASS

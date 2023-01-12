@@ -810,6 +810,15 @@ class MiddleLayer(Widget):
         self.audioBuffer[self.activeTrack] = ensureTensorLength(self.audioBuffer[self.activeTrack], length * global_consts.batchSize, 0)
         self.submitChangeLength(True, length)
 
+    def validate(self) -> None:
+        """validates the data held by the middle layer, and fixes any errors encountered"""
+
+        for index, track in enumerate(self.trackList):
+            track.validate()
+            self.audioBuffer[index] = ensureTensorLength(self.audioBuffer[index], track.length * global_consts.batchSize, 0)
+        del self.deletions[:]
+        self.manager.restart(self.trackList)
+        self.ids["pianoRoll"].updateTrack()
 
     def submitTerminate(self) -> None:
         self.manager.sendChange("terminate", True)
