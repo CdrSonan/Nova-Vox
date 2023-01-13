@@ -40,7 +40,6 @@ if pyi_splash.is_alive():
     pyi_splash.update_text("importing utility libraries...")
 import sys
 from os import getenv, path, makedirs
-from traceback import print_exc
 if pyi_splash.is_alive():
     pyi_splash.update_text("starting logging process...")
 import logging
@@ -129,8 +128,7 @@ if __name__ == '__main__':
     try:
         loop.run_until_complete(NovaVoxApp().async_run(async_lib='asyncio'))
     except Exception as e:
-        print("An irrecoverable error has occured:")
-        print_exc()
+        print("Irrecoverable error.")
         print("Press <Enter> to close this window.")
         input("")
     finally:

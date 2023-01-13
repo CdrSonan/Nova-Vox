@@ -36,6 +36,9 @@ pitchShiftSpectralRolloff = 4
 breCompPremul = 0.6
 crfBorderAbs = 7
 crfBorderRel = 0.1
+maxVibratoSpeed = 0.15
+maxVibratoStrength = 1.
+vibratoEnvelopeExp = 0.25
 
 #audio pipeline
 audioBufferSize = 2048

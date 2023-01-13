@@ -17,5 +17,7 @@ class ErrorHandler(ExceptionHandler):
         try:
             middleLayer.validate()
         except:
+            "Recovery failed due to:"
+            print_exc()
             return ExceptionManager.RAISE
         return ExceptionManager.PASS

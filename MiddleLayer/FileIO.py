@@ -101,5 +101,4 @@ def loadNVX(path:str, middleLayer:MiddleLayer) -> None:
         middleLayer.trackList[-1].length = track["length"]
         middleLayer.trackList[-1].mixinVB = track["mixinVB"]
         middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
-        middleLayer.trackList[-1].validate()
-    middleLayer.manager.restart(middleLayer.trackList)
+    middleLayer.validate()

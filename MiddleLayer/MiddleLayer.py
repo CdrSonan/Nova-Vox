@@ -984,5 +984,13 @@ class MiddleLayer(Widget):
         if nextHeight != None:
             self.trackList[self.activeTrack].basePitch[transitionPoint2 - math.ceil(transitionLength2 / 2):transitionPoint2 + math.ceil(transitionLength2 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * math.ceil(transitionLength2 / 2))), 2) * (currentHeight - nextHeight) + torch.full([2 * math.ceil(transitionLength2 / 2),], nextHeight)
         self.trackList[self.activeTrack].basePitch[self.trackList[self.activeTrack].notes[index].xPos:self.trackList[self.activeTrack].notes[index].xPos + int(dipWidth)] -= torch.pow(torch.sin(torch.linspace(0, math.pi, int(dipWidth))), 2) * dipHeight
+        vibratoSpeed = (self.trackList[self.activeTrack].vibratoSpeed[start:end] / 3. + 0.66) * global_consts.maxVibratoSpeed
+        vibratoStrength = (self.trackList[self.activeTrack].vibratoStrength[start:end] / 2. + 0.5) * global_consts.maxVibratoStrength
+        vibratoCurve = torch.cumsum(vibratoSpeed.to(torch.float32), 0)
+        if previousHeight != None:
+            vibratoCurve -= torch.sum(vibratoSpeed[:transitionPoint1 + math.ceil(transitionLength1 / 2) - start])
+        vibratoCurve = vibratoStrength * torch.sin(vibratoCurve)
+        vibratoCurve *= torch.pow(torch.sin(torch.linspace(0, math.pi, end - start + 1)[:-1]), torch.tensor([global_consts.vibratoEnvelopeExp,], device = self.trackList[self.activeTrack].basePitch.device))
+        self.trackList[self.activeTrack].basePitch[start:end] += vibratoCurve
         self.trackList[self.activeTrack].pitch[start:end] = self.trackList[self.activeTrack].basePitch[start:end] + torch.heaviside(self.trackList[self.activeTrack].basePitch[start:end], torch.ones_like(self.trackList[self.activeTrack].basePitch[start:end])) * pitchDelta
         self.applyPitchChanges(self.trackList[self.activeTrack].pitch[start:end], start)
