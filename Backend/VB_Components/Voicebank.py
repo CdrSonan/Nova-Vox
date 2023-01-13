@@ -284,7 +284,7 @@ class Voicebank():
 
             expPitch, pSearchRange: parameters used for pitch calculation of the training samples
             
-            logging: flag indicationg whether to write telemetry data to a Tensorboard log"""
+            logging: flag indicationg whether to write telemetry data to a .csv log"""
             
 
         print("sample preprocessing started")
@@ -318,7 +318,7 @@ class Voicebank():
 
             expPitch, pSearchRange: parameters used for pitch calculation of the training samples
             
-            logging: flag indicationg whether to write telemetry data to a Tensorboard log"""
+            logging: flag indicationg whether to write telemetry data to a .csv log"""
             
 
         print("sample preprocessing started")

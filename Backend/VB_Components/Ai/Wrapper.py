@@ -7,10 +7,10 @@
 
 import math
 from os import path, getenv
+from csv import DictWriter
 import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
-from torch.utils.tensorboard import SummaryWriter
 import global_consts
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
 from Backend.VB_Components.Ai.PredAi import SpecPredAi, HarmPredAi
@@ -255,7 +255,7 @@ class AIWrapper():
             
             epochs: number of epochs to use for training as Integer.
 
-            logging: Flag indicating whether to write telemetry to a Tensorboard log
+            logging: Flag indicating whether to write telemetry to a .csv log
 
             reset: Flag indicating whether the Ai should be reset before training
             
@@ -268,8 +268,9 @@ class AIWrapper():
             self.crfAiOptimizer = torch.optim.NAdam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
         self.crfAi.train()
         if logging:
-            writer = SummaryWriter(path.join(getenv("APPDATA"), "Nova-Vox", "Logs"))
-            #writer.add_graph(self, (indata[0][0], indata[0][1], indata[0][-2], indata[0][-1], torch.tensor([0.5])))
+            csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_crf.csv"), 'w', newline='')
+            fieldnames = ["epochs", "learning rate", "hidden layer count", "loss", "acc. sample count", "wtd. train loss"]
+            writer = DictWriter(csvFile, fieldnames)
         else:
             writer = None
 
@@ -294,10 +295,20 @@ class AIWrapper():
                 loss.backward()
                 self.crfAiOptimizer.step()
                 print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
-            if writer != None:
-                writer.add_scalar("loss", loss.data)
             self.crfAi.sampleCount += len(indata)
             reportedLoss = (reportedLoss * 99 + loss.data) / 100
+            if writer != None:
+                results = {
+                    "epochs": epoch,
+                    "learning rate": self.crfAi.learningRate,
+                    "hidden layer count": self.crfAi.hiddenLayerCount,
+                    "loss": loss.data,
+                    "acc. sample count": self.crfAi.sampleCount,
+                    "wtd. train loss": reportedLoss
+                }
+                writer.writerow(results)
+        if writer != None:
+            writer.close()
         criterion = torch.zeros((global_consts.halfTripleBatchSize + 1,), device = self.device)
         criterionSteps = 0
         with torch.no_grad():
@@ -318,16 +329,6 @@ class AIWrapper():
             criterion = torch.less(criterion, torch.tensor([self.hparams["crf_def_thrh"],], device = self.device))
         self.defectiveCrfBins = criterion.to_sparse().coalesce().indices()
         print("defective Crf frequency bins:", self.defectiveCrfBins)
-        hparams = dict()
-        hparams["epochs"] = epochs
-        hparams["learning rate"] = self.crfAi.learningRate
-        hparams["hidden layer count"] = self.crfAi.hiddenLayerCount
-        metrics = dict()
-        metrics["acc. sample count"] = self.crfAi.sampleCount
-        metrics["wtd. train loss"] = reportedLoss
-        if writer != None:
-            writer.add_hparams(hparams, metrics)
-            writer.close()
     
     def trainPred(self, indata, epochs:int=1, logging:bool = False, reset:bool = False) -> None:
         """trains the NN based on a dataset of specharm sequences"""
@@ -340,8 +341,9 @@ class AIWrapper():
         self.predAi.train()
         self.predAiHarm.train()
         if logging:
-            writer = SummaryWriter(path.join(getenv("APPDATA"), "Nova-Vox", "Logs"))
-            #writer.add_graph(self, (indata[0][0], indata[0][1], indata[0][-2], indata[0][-1], torch.tensor([0.5])))
+            csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_pred.csv"), 'w', newline='')
+            fieldnames = ["epochs", "learning rate", "hidden layer count", "spec. loss", "harm. loss", "acc. sample count", "wtd. spec. train loss" "wtd. harm. train loss"]
+            writer = DictWriter(csvFile, fieldnames)
         else:
             writer = None
         if (self.predAi.epoch == 0) or self.predAi.epoch == epochs:
@@ -349,6 +351,7 @@ class AIWrapper():
         else:
             self.predAi.epoch = None
         reportedLoss = 0.
+        reportedLossHarm = 0.
         for epoch in range(epochs):
             for data in self.dataLoader(indata):
                 data = torch.squeeze(data)
@@ -368,21 +371,26 @@ class AIWrapper():
                 input = torch.squeeze(input)
                 target = torch.squeeze(target)
                 output = self.predAiHarm(input)
-                loss = self.criterion(output.squeeze(), target)
+                lossHarm = self.criterion(output.squeeze(), target)
                 self.predAiHarmOptimizer.zero_grad()
-                loss.backward()
+                lossHarm.backward()
                 self.predAiHarmOptimizer.step()
-                reportedLoss = (reportedLoss * 99 + loss.data) / 100
+                reportedLossHarm = (reportedLossHarm * 99 + lossHarm.data) / 100
                 print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
-            if writer != None:
-                writer.add_scalar("loss", loss.data)
             self.predAi.sampleCount += len(indata)
-        hparams = dict()
-        hparams["epochs"] = epochs
-        metrics = dict()
-        metrics["wtd. train loss"] = reportedLoss
+            if writer != None:
+                results = {
+                    "epochs": epoch,
+                    "learning rate": self.predAi.learningRate,
+                    "hidden layer count": self.predAi.recLayerCount,
+                    "spec. loss": loss.data,
+                    "harm. loss": lossHarm.data,
+                    "acc. sample count": self.predAi.sampleCount,
+                    "wtd. spec. train loss": reportedLoss,
+                    "wtd. harm. train loss": reportedLossHarm
+                }
+                writer.writerow(results)
         if writer != None:
-            writer.add_hparams(hparams, metrics)
             writer.close()
 
     def trainCrfDebug(self, indata, testdata, epochs:int=1, logging:bool = False) -> None:
@@ -401,8 +409,9 @@ class AIWrapper():
 
         self.crfAi.train()
         if logging:
-            writer = SummaryWriter(path.join(getenv("APPDATA"), "Nova-Vox", "Logs"))
-            #writer.add_graph(self, (indata[0][0], indata[0][1], indata[0][-2], indata[0][-1], torch.tensor([0.5])))
+            csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_crf.csv"), 'w', newline='')
+            fieldnames = ["epochs", "learning rate", "hidden layer count", "loss", "acc. sample count", "wtd. train loss"]
+            writer = DictWriter(csvFile, fieldnames)
         else:
             writer = None
 
@@ -449,9 +458,6 @@ class AIWrapper():
                 loss = self.criterion(output, target)
                 testLossSpecLocal.append(loss.data.item())
                 print('epoch [{}/{}], test loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
-            if writer != None:
-                writer.add_scalar("loss", loss.data)
-            self.crfAi.sampleCount += len(indata)
             reportedLoss = (reportedLoss * 99 + loss.data) / 100
 
             from numpy import array, std, mean
@@ -462,15 +468,17 @@ class AIWrapper():
             trainLossSpecStd.append(std(trainLossSpecLocal))
             testLossSpecStd.append(std(testLossSpecLocal))
 
-        hparams = dict()
-        hparams["epochs"] = epochs
-        hparams["learning rate"] = self.crfAi.learningRate
-        hparams["hidden layer count"] = self.crfAi.hiddenLayerCount
-        metrics = dict()
-        metrics["acc. sample count"] = self.crfAi.sampleCount
-        metrics["wtd. train loss"] = reportedLoss
+            if writer != None:
+                results = {
+                    "epochs": epoch,
+                    "learning rate": self.crfAi.learningRate,
+                    "hidden layer count": self.crfAi.hiddenLayerCount,
+                    "loss": loss.data,
+                    "acc. sample count": self.crfAi.sampleCount,
+                    "wtd. train loss": reportedLoss
+                }
+                writer.writerow(results)
         if writer != None:
-            writer.add_hparams(hparams, metrics)
             writer.close()
         import matplotlib.pyplot as plt
         plt.plot(trainLossSpec)

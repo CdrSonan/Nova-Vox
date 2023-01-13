@@ -9,11 +9,9 @@ import logging
 import tkinter
 import torch
 import sys
-from os import path, system
 
 import global_consts
 from Locale.devkit_locale import getLocale
-from MiddleLayer.IniParser import readSettings
 loc = getLocale()
 
 class CrfaiUi(tkinter.Frame):
@@ -159,11 +157,6 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.finalizeButton["text"] = loc["finalize"]
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
-
-        self.sideBar.tensorBoardButton = tkinter.Button(self.sideBar)
-        self.sideBar.tensorBoardButton["text"] = loc["open_tb"]
-        self.sideBar.tensorBoardButton["command"] = lambda : system("start tensorboard.exe --logdir " + path.join(readSettings()["dataDir"], "Nova-Vox", "Logs"))
-        self.sideBar.tensorBoardButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
         if loadedVB.ai.crfAi.epoch == None:
             epoch = loc["varying"]
