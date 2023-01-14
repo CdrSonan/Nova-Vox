@@ -64,6 +64,7 @@ class Note(ToggleButton):
         rectanglePos = (self.pos[0] + (index - self.reference.phonemeStart) / self.reference.phonemeLength * self.width, self.pos[1])
         rectangleSize = (self.width / self.reference.phonemeLength, self.height * status / 5.)
         self.statusBars.insert(Rectangle(rectanglePos, rectangleSize), index - self.reference.phonemeStart)
+        self.canvas.add(self.statusBars[index - self.reference.phonemeStart])
 
     def quantize(self, x:float, y:float = None) -> tuple:
         """adjusts the x coordinate of a touch to achieve the desired input quantization"""
