@@ -874,7 +874,10 @@ class MiddleLayer(Widget):
                 return None
             elif i < track:
                 track -= 1
-            #update code here
+        for i in self.trackList[track].notes:
+            if i.phonemeStart > index:
+                break
+        i.updateStatus(index, value)
     
     def updateVolume(self, index:int, volume:float) -> None:
         """updates the volume of the track at position index of the track list"""

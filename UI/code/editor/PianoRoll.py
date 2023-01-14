@@ -7,7 +7,7 @@
 
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, BooleanProperty, NumericProperty, ListProperty
-from kivy.graphics import Color, Line
+from kivy.graphics import Color, Line, Rectangle
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
@@ -38,12 +38,15 @@ class Note(ToggleButton):
     yPos = NumericProperty()
     length = NumericProperty()
     inputMode = BooleanProperty()
+    statusBars = ListProperty()
 
     def on_parent(self, note, parent) -> None:
         """redraw call during initial note creation"""
 
         if parent == None:
             return
+        with self.canvas:
+            Color(0., 0., 1., 0.5)
         self.redraw()
 
     def redraw(self) -> None:
@@ -52,6 +55,15 @@ class Note(ToggleButton):
         self.pos = (self.xPos * self.parent.parent.xScale, self.yPos * self.parent.parent.yScale)
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
+
+    def updateStatus(self, index, status):
+        """updates one of the status bars present on the note"""
+
+        self.canvas.remove(self.statusBars[index - self.reference.phonemeStart])
+        del self.statusBars[index - self.reference.phonemeStart]
+        rectanglePos = (self.pos[0] + (index - self.reference.phonemeStart) / self.reference.phonemeLength * self.width, self.pos[1])
+        rectangleSize = (self.width / self.reference.phonemeLength, self.height * status / 5.)
+        self.statusBars.insert(Rectangle(rectanglePos, rectangleSize), index - self.reference.phonemeStart)
 
     def quantize(self, x:float, y:float = None) -> tuple:
         """adjusts the x coordinate of a touch to achieve the desired input quantization"""
@@ -139,6 +151,13 @@ class Note(ToggleButton):
         from UI.code.editor.Main import middleLayer
         if focus == False:
             middleLayer.changeLyrics(self.index, text)
+        for i in range(len(self.statusBars)):
+            self.canvas.remove(self.statusBars[i])
+            del self.statusBars[i]
+        for i in range(self.reference.phonemeLength):
+            rectanglePos = (self.pos[0] + i / self.reference.phonemeLength * self.width, self.pos[1])
+            rectangleSize = (self.width / self.reference.phonemeLength, 0.)
+        self.statusBars.insert(Rectangle(rectanglePos, rectangleSize), i)
 
 class PianoRollOctave(FloatLayout):
     """header of a one octave region on the piano roll"""
