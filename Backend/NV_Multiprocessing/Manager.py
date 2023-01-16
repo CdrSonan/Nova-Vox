@@ -86,7 +86,7 @@ class RenderManager():
         voicebankList, NodeGraphList, sequenceList = self.batchConvert(trackList)
         del self.statusControl[:]
         print("rendering subprocess restarting...")
-        for i in trackList:
+        for i in sequenceList:
             self.statusControl.append(SequenceStatusControl(i))
         self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale()["render_process_name"], daemon = True)
         self.renderProcess.start()

@@ -360,6 +360,8 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         if audioSample.isVoiced == False:
             harmFunction *= 0.
         harmFunctionFull = torch.tile(harmFunction, (markerLength,))[:(markerLength - 1) * global_consts.nHarmonics + 1]
+        harmFunctionFull *= audioSample.voicedThrh
+        harmFunctionFull += interpolatedWave * (1. - audioSample.voicedThrh)
         harmFunctionFull = interp(interpolationPoints, harmFunctionFull, torch.linspace(interpolationPoints[innerBorders[0]], interpolationPoints[innerBorders[1] - 1], global_consts.tripleBatchSize))
         globalHarmFuntion[i] = torch.fft.rfft(harmFunctionFull)
         harmFunction = torch.fft.rfft(harmFunction)

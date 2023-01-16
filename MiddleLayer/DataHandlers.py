@@ -119,11 +119,11 @@ class Track():
         for i, phoneme in enumerate(self.phonemes):
             if phoneme not in self.phonemeLengths.keys():
                 self.phonemes[i] = self.phonemeLengths.keys()[0]
-        if self.loopOverlap.size() > len(self.phonemes):
+        if self.loopOverlap.size()[0] > len(self.phonemes):
             self.loopOverlap = self.loopOverlap[:len(self.phonemes)]
         elif self.loopOverlap.size()[0] < len(self.phonemes):
             self.loopOverlap = torch.cat((self.loopOverlap, torch.zeros((len(self.phonemes) - self.loopOverlap.size()[0],), device = self.loopOverlap.device, dtype = torch.half)), 0)
-        if self.loopOffset.size() > len(self.phonemes):
+        if self.loopOffset.size()[0] > len(self.phonemes):
             self.loopOffset = self.loopOffset[:len(self.phonemes)]
         elif self.loopOffset.size()[0] < len(self.phonemes):
             self.loopOffset = torch.cat((self.loopOffset, torch.zeros((len(self.phonemes) - self.loopOffset.size()[0],), device = self.loopOffset.device, dtype = torch.half)), 0)
@@ -168,7 +168,6 @@ class Note():
     """Container class for a note as handled by the main process. Contains a reference property pointing at its UI representation."""
 
     def __init__(self, xPos, yPos, start = 0, end = 1, reference = None) -> None:
-        self.reference = ObjectProperty()
         self.reference = reference
         self.length = 100
         self.xPos = xPos

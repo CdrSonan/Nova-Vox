@@ -59,12 +59,15 @@ class Note(ToggleButton):
     def updateStatus(self, index, status):
         """updates one of the status bars present on the note"""
 
-        self.canvas.remove(self.statusBars[index - self.reference.phonemeStart])
-        del self.statusBars[index - self.reference.phonemeStart]
-        rectanglePos = (self.pos[0] + (index - self.reference.phonemeStart) / self.reference.phonemeLength * self.width, self.pos[1])
-        rectangleSize = (self.width / self.reference.phonemeLength, self.height * status / 5.)
-        self.statusBars.insert(Rectangle(rectanglePos, rectangleSize), index - self.reference.phonemeStart)
-        self.canvas.add(self.statusBars[index - self.reference.phonemeStart])
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
+        self.canvas.remove(self.statusBars[index - reference.phonemeStart])
+        del self.statusBars[index - reference.phonemeStart]
+        rectanglePos = (self.pos[0] + (index - reference.phonemeStart) / (reference.phonemeEnd - reference.phonemeStart) * self.width, self.pos[1])
+        rectangleSize = (self.width / (reference.phonemeEnd - reference.phonemeStart), self.height * status / 5.)
+        self.statusBars.insert(Rectangle(rectanglePos, rectangleSize), index - reference.phonemeStart)
+        self.canvas.add(self.statusBars[index - reference.phonemeStart])
 
     def quantize(self, x:float, y:float = None) -> tuple:
         """adjusts the x coordinate of a touch to achieve the desired input quantization"""
@@ -150,15 +153,18 @@ class Note(ToggleButton):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
+        reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
+        phonemeLength = reference.phonemeEnd - reference.phonemeStart
         if focus == False:
             middleLayer.changeLyrics(self.index, text)
         for i in range(len(self.statusBars)):
             self.canvas.remove(self.statusBars[i])
             del self.statusBars[i]
-        for i in range(self.reference.phonemeLength):
-            rectanglePos = (self.pos[0] + i / self.reference.phonemeLength * self.width, self.pos[1])
-            rectangleSize = (self.width / self.reference.phonemeLength, 0.)
-        self.statusBars.insert(Rectangle(rectanglePos, rectangleSize), i)
+        for i in range(phonemeLength):
+            rectanglePos = (self.pos[0] + i / phonemeLength * self.width, self.pos[1])
+            rectangleSize = (self.width / phonemeLength, 0.)
+            self.statusBars.insert(Rectangle(rectanglePos, rectangleSize), i)
+            self.canvas.add(self.statusBars[i])
 
 class PianoRollOctave(FloatLayout):
     """header of a one octave region on the piano roll"""
