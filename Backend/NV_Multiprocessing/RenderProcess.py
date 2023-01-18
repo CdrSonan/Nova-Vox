@@ -83,7 +83,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 del spectrumCache[change.data[0]]
                 del processedSpectrumCache[change.data[0]]
                 del excitationCache[change.data[0]]
-            remoteConnection.put(StatusChange(None, None, None, None))
+            remoteConnection.put(StatusChange(None, None, None, "deletion"))
         elif change.type == "duplicateTrack":
             statusControl.append(copy(statusControl[change.data[0]]))
             voicebankList.append(copy(voicebankList[change.data[0]]))
@@ -532,5 +532,5 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 if updateFromMain(c, lastZero):
                     break
         except Exception as e:
-            remoteConnection.put(e)
+            remoteConnection.put(StatusChange(None, None, e, "error"))
             break

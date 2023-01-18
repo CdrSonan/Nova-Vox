@@ -7,7 +7,7 @@
 
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, BooleanProperty, NumericProperty, ListProperty
-from kivy.graphics import Color, Line, Rectangle
+from kivy.graphics import Color, Line, Rectangle, InstructionGroup
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
@@ -43,11 +43,8 @@ class Note(ToggleButton):
     def on_parent(self, note, parent) -> None:
         """redraw call during initial note creation"""
 
-        if parent == None:
-            return
-        with self.canvas:
-            Color(0., 0., 1., 0.5)
-        self.redraw()
+        if parent != None:
+            self.redraw()
 
     def redraw(self) -> None:
         """redraws the note"""
@@ -62,12 +59,20 @@ class Note(ToggleButton):
         global middleLayer
         from UI.code.editor.Main import middleLayer
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
-        self.canvas.remove(self.statusBars[index - reference.phonemeStart])
+        effPhonemeStart = reference.phonemeStart
+        if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
+            effPhonemeStart += 1
+            if index == 0:
+                return
+        self.canvas.remove(self.statusBars[index - effPhonemeStart])
         del self.statusBars[index - reference.phonemeStart]
-        rectanglePos = (self.pos[0] + (index - reference.phonemeStart) / (reference.phonemeEnd - reference.phonemeStart) * self.width, self.pos[1])
-        rectangleSize = (self.width / (reference.phonemeEnd - reference.phonemeStart), self.height * status / 5.)
-        self.statusBars.insert(Rectangle(rectanglePos, rectangleSize), index - reference.phonemeStart)
-        self.canvas.add(self.statusBars[index - reference.phonemeStart])
+        rectanglePos = (self.pos[0] + (index - effPhonemeStart) / (reference.phonemeEnd - effPhonemeStart) * self.width, self.pos[1] + self.height * status / 5.)
+        rectangleSize = (self.width / (reference.phonemeEnd - effPhonemeStart), self.height * (1. - status / 5.))
+        group = InstructionGroup()
+        group.add(Color(0., 0., 0., 0.5))
+        group.add(Rectangle(pos = rectanglePos, size = rectangleSize))
+        self.statusBars.insert(index - effPhonemeStart, group)
+        self.canvas.add(self.statusBars[index - effPhonemeStart])
 
     def quantize(self, x:float, y:float = None) -> tuple:
         """adjusts the x coordinate of a touch to achieve the desired input quantization"""
@@ -153,17 +158,21 @@ class Note(ToggleButton):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
+        if focus:
+            return
+        middleLayer.changeLyrics(self.index, text)
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
         phonemeLength = reference.phonemeEnd - reference.phonemeStart
-        if focus == False:
-            middleLayer.changeLyrics(self.index, text)
         for i in range(len(self.statusBars)):
             self.canvas.remove(self.statusBars[i])
             del self.statusBars[i]
         for i in range(phonemeLength):
             rectanglePos = (self.pos[0] + i / phonemeLength * self.width, self.pos[1])
-            rectangleSize = (self.width / phonemeLength, 0.)
-            self.statusBars.insert(Rectangle(rectanglePos, rectangleSize), i)
+            rectangleSize = (self.width / phonemeLength, self.height)
+            group = InstructionGroup()
+            group.add(Color(0., 0., 0., 0.5))
+            group.add(Rectangle(pos = rectanglePos, size = rectangleSize))
+            self.statusBars.insert(i, group)
             self.canvas.add(self.statusBars[i])
 
 class PianoRollOctave(FloatLayout):
@@ -313,7 +322,7 @@ class PianoRoll(ScrollView):
         """changes the position of the playback head"""
 
         with self.children[0].children[0].canvas:
-            points = self.children[0].children[0].canvas.children[-1].points
+            points = self.children[0].children[0].canvas.children[-1].points#TODO: Fix reference system!!!
             points[0] = playbackPos * self.xScale
             points[2] = playbackPos * self.xScale
             del self.children[0].children[0].canvas.children[-1]

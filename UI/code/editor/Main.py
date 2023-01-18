@@ -46,11 +46,9 @@ class NovaVoxUI(Widget):
         """periodically called update function tied to UI updates that reads changes from the rendering process and passes them to the middleLayer"""
 
         change = middleLayer.manager.receiveChange()
-        if change.__class__ == Exception:
-            raise change
         if change == None:
             return None
-        if change.type == False:
+        if change.type == "status":
             print("recv status update ", change.track, change.index, change.value)
             middleLayer.updateRenderStatus(change.track, change.index, change.value)
         elif change.type == "updateAudio":
@@ -62,8 +60,10 @@ class NovaVoxUI(Widget):
                 change.index += change.value
                 change.value *= -1
             middleLayer.updateAudioBuffer(change.track, change.index, torch.zeros([change.value,]))
-        else:
+        elif change.type == "deletion":
             middleLayer.deletions.pop(0)
+        elif change.type == "error":
+            raise change.value
         return self.update(deltatime)
 
     def setMode(self, mode) -> None:

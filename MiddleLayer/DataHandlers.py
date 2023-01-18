@@ -117,8 +117,8 @@ class Track():
             if self.borders[i] == self.borders[i - 1]:
                 self.borders[i] = self.borders[i - 1] + 1
         for i, phoneme in enumerate(self.phonemes):
-            if phoneme not in self.phonemeLengths.keys():
-                self.phonemes[i] = self.phonemeLengths.keys()[0]
+            if (phoneme not in self.phonemeLengths.keys()) and (phoneme not in ["_X", "_0", "_autopause"]):
+                self.phonemes[i] = "_X"
         if self.loopOverlap.size()[0] > len(self.phonemes):
             self.loopOverlap = self.loopOverlap[:len(self.phonemes)]
         elif self.loopOverlap.size()[0] < len(self.phonemes):

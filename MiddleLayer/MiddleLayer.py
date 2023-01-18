@@ -875,7 +875,7 @@ class MiddleLayer(Widget):
             elif i < track:
                 track -= 1
         for i in self.trackList[track].notes:
-            if i.phonemeStart > index:
+            if i.phonemeEnd > index:
                 break
         i.reference.updateStatus(index, value)
     
