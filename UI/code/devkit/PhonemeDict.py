@@ -124,7 +124,8 @@ class PhonemedictUi(tkinter.Frame):
         self.sideBar.voicedThrh.variable = tkinter.DoubleVar(self.sideBar.voicedThrh, global_consts.defaultVoicedThrh)
         self.sideBar.voicedThrh.entry = tkinter.Spinbox(self.sideBar.voicedThrh, from_ = 0.35, to = 0.95, increment = 0.05)
         self.sideBar.voicedThrh.entry["textvariable"] = self.sideBar.voicedThrh.variable
-        #TODO: add callbacks to separateV_UV once implemented
+        self.sideBar.voicedThrh.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
+        self.sideBar.voicedThrh.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.voicedThrh.entry.pack(side = "right", fill = "x")
         self.sideBar.voicedThrh.display = tkinter.Label(self.sideBar.voicedThrh)
         self.sideBar.voicedThrh.display["text"] = loc["voicedThrh"]

@@ -79,8 +79,8 @@ class Track():
         self.phonemeLengths = dict()
         tmpVb = LiteVoicebank(self.vbPath)
         for i in tmpVb.phonemeDict.keys():
-            if tmpVb.phonemeDict[i].isPlosive:
-                self.phonemeLengths[i] = tmpVb.phonemeDict[i].specharm.size()[0]
+            if tmpVb.phonemeDict[i][0].isPlosive:
+                self.phonemeLengths[i] = tmpVb.phonemeDict[i][0].specharm.size()[0]
             else:
                 self.phonemeLengths[i] = None
 

@@ -118,6 +118,7 @@ def getLocale():
         locale["cons_hard"] = "hard consonant"
         locale["cons_soft"] = "soft consonant"
         locale["pit_brdc"] = "apply pitch settings to all"
+        locale["logging"] = "log training telemetry to .csv file"
         locale["ai_smp_export"] = "export samples as AI dataset file"
         locale["ai_smp_import"] = "import samples as AI dataset file"
         locale["pitch_calc_err"] = "error during pitch detection; using fallback method"

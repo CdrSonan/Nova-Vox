@@ -46,6 +46,8 @@ class NovaVoxUI(Widget):
         """periodically called update function tied to UI updates that reads changes from the rendering process and passes them to the middleLayer"""
 
         change = middleLayer.manager.receiveChange()
+        if change.__class__ == Exception:
+            raise change
         if change == None:
             return None
         if change.type == False:

@@ -345,12 +345,11 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         interpolatedWave = interp(torch.linspace(0, global_consts.tripleBatchSize * global_consts.filterBSMult - 1, global_consts.tripleBatchSize * global_consts.filterBSMult), window, interpolationPoints)
         innerBorders = torch.tensor([global_consts.halfTripleBatchSize * (global_consts.filterBSMult - 1), global_consts.halfTripleBatchSize * (global_consts.filterBSMult + 1)])
         innerBorders = torch.searchsorted(interpolationPoints, innerBorders)
-        harmFunction = torch.empty((int(global_consts.nHarmonics / 2) + 1, 0))
         if markerLength > 2:
             interpolatedWave[:global_consts.nHarmonics + 1] *= torch.linspace(0, 1, global_consts.nHarmonics + 1)
             interpolatedWave[-global_consts.nHarmonics - 1:] *= torch.linspace(1, 0, global_consts.nHarmonics + 1)
-            interpolatedWave = torch.reshape(interpolatedWave[:-1], (markerLength - 1, global_consts.nHarmonics))
-            harmFunction = torch.sum(interpolatedWave, dim = 0) / (markerLength - 2)
+            harmFunction = torch.reshape(interpolatedWave[:-1], (markerLength - 1, global_consts.nHarmonics))
+            harmFunction = torch.sum(harmFunction, dim = 0) / (markerLength - 2)
         else:
             harmFunction = interpolatedWave
         #phaseContinuity = calculatePhaseContinuity(harmFunction.transpose(0, 1)).transpose(0, 1)
@@ -360,8 +359,9 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         if audioSample.isVoiced == False:
             harmFunction *= 0.
         harmFunctionFull = torch.tile(harmFunction, (markerLength,))[:(markerLength - 1) * global_consts.nHarmonics + 1]
-        harmFunctionFull *= audioSample.voicedThrh
-        harmFunctionFull += interpolatedWave * (1. - audioSample.voicedThrh)
+        harmFunctionFull *= 1. - audioSample.voicedThrh
+        if audioSample.isVoiced == False:
+            harmFunctionFull += interpolatedWave * audioSample.voicedThrh
         harmFunctionFull = interp(interpolationPoints, harmFunctionFull, torch.linspace(interpolationPoints[innerBorders[0]], interpolationPoints[innerBorders[1] - 1], global_consts.tripleBatchSize))
         globalHarmFuntion[i] = torch.fft.rfft(harmFunctionFull)
         harmFunction = torch.fft.rfft(harmFunction)
