@@ -762,7 +762,9 @@ class MiddleLayer(Widget):
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, phonemes)
         offsets = torch.tensor([], dtype = torch.half)
         for i in phonemes:
-            if self.trackList[self.activeTrack].phonemeLengths[i] == None:
+            if i == "_autopause":
+                offsets = torch.cat((offsets, torch.tensor([0.,], dtype = torch.half)), 0)
+            elif self.trackList[self.activeTrack].phonemeLengths[i] == None:
                 offsets = torch.cat((offsets, torch.tensor([0.5,], dtype = torch.half)), 0)
             else:
                 offsets = torch.cat((offsets, torch.tensor([0.05,], dtype = torch.half)), 0)

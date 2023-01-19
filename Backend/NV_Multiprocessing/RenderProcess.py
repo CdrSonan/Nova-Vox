@@ -11,6 +11,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     import torch
     import global_consts
     import logging
+    from traceback import print_exc
     import Backend.Resampler.Resamplers as rs
     from copy import copy
     from Backend.DataHandler.VocalSegment import VocalSegment
@@ -532,5 +533,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 if updateFromMain(c, lastZero):
                     break
         except Exception as e:
+            print_exc()
             remoteConnection.put(StatusChange(None, None, e, "error"))
             break

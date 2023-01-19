@@ -61,9 +61,9 @@ class Note(ToggleButton):
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
         effPhonemeStart = reference.phonemeStart
         if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
-            effPhonemeStart += 1
-            if index == 0:
+            if index == effPhonemeStart:
                 return
+            effPhonemeStart += 1
         self.canvas.remove(self.statusBars[index - effPhonemeStart])
         del self.statusBars[index - reference.phonemeStart]
         rectanglePos = (self.pos[0] + (index - effPhonemeStart) / (reference.phonemeEnd - effPhonemeStart) * self.width, self.pos[1] + self.height * status / 5.)
@@ -163,6 +163,8 @@ class Note(ToggleButton):
         middleLayer.changeLyrics(self.index, text)
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
         phonemeLength = reference.phonemeEnd - reference.phonemeStart
+        if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
+            phonemeLength -= 1
         for i in range(len(self.statusBars)):
             self.canvas.remove(self.statusBars[i])
             del self.statusBars[i]
@@ -304,12 +306,12 @@ class PianoRoll(ScrollView):
     def updateTimingMarkers(self) -> None:
         """plots all timing markers that are currently in view"""
 
-        self.children[0].children[-global_consts.octaves - 1].clear_widgets()
+        self.ids["timingBar"].clear_widgets()
         i = floor(self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width / self.tempo)
         t = i * self.tempo
         while t <= self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width + self.width:
             modulo = i % self.measureSize
-            self.children[0].children[-global_consts.octaves - 1].add_widget(TimingLabel(index = i, reference = self.children[0].children[-global_consts.octaves - 1], modulo = modulo))
+            self.ids["timingBar"].add_widget(TimingLabel(index = i, reference = self.ids["timingBar"], modulo = modulo))
             t += self.tempo * self.xScale
             i += 1
 
@@ -321,13 +323,13 @@ class PianoRoll(ScrollView):
     def changePlaybackPos(self, playbackPos:float) -> None:
         """changes the position of the playback head"""
 
-        with self.children[0].children[0].canvas:
-            points = self.children[0].children[0].canvas.children[-1].points#TODO: Fix reference system!!!
+        with self.ids["playbackHead"].canvas:
+            points = self.ids["playbackHead"].canvas.children[-1].points#TODO: Fix reference system!!!
             points[0] = playbackPos * self.xScale
             points[2] = playbackPos * self.xScale
-            del self.children[0].children[0].canvas.children[-1]
+            del self.ids["playbackHead"].canvas.children[-1]
             Line(points = points)
-            del self.children[0].children[0].canvas.children[-2]
+            del self.ids["playbackHead"].canvas.children[-2]
 
     def redrawPitch(self) -> None:
         """redraws the pitch curve, fetching the required data from the middleLayer"""

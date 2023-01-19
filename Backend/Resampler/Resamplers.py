@@ -35,7 +35,7 @@ def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tenso
         windowEnd = math.ceil((vocalSegment.end2 - vocalSegment.start1) * premul)
         length += vocalSegment.end2
     if vocalSegment.phonemeKey == "_autopause":
-        return torch.zeros([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], dtype = torch.complex64)
+        return torch.zeros([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], dtype = torch.complex64, device = device)
     excitation = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].excitation.to(device = device)[windowStart:windowEnd]
     excitation = torch.transpose(excitation, 0, 1)
     transform = torchaudio.transforms.TimeStretch(hop_length = global_consts.batchSize,
@@ -60,7 +60,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     else:
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + offset
     if vocalSegment.phonemeKey == "_autopause":
-        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], 0.001)
+        return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], 0.001, device = device)
     spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].avgSpecharm.to(device = device)
     specharm = Loop.loopSamplerSpecharm(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
     specharm[:, :int(global_consts.nHarmonics / 2) + 1] *= torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2)
@@ -73,7 +73,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the pitch curve of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause":
-        return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,])
+        return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,], device = device)
     pitchDeltas = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].pitchDeltas
     requiredSize = math.ceil(torch.max(pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize
     pitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].pitch.to(device = device)
