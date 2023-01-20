@@ -58,7 +58,7 @@ version = "Alpha 6.0"
 #devkit default values
 defaultExpectedPitch = 249.
 defaultSearchRange = 0.55
-defaultVoicedThrh = 0.
+defaultVoicedThrh = 1.
 defaultSpecWidth = 2
 defaultSpecDepth = 30
 defaultTempWidth = 2

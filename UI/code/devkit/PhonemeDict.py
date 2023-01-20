@@ -376,7 +376,7 @@ class PhonemedictUi(tkinter.Frame):
         pitch = self.sideBar.expPitch.variable.get()
         pitchRange = self.sideBar.pSearchRange.variable.get()
         for i in loadedVB.phonemeDict:
-            j = loadedVB.phonemeDict[i]
+            j = loadedVB.phonemeDict[i][0]
             if type(j).__name__ == "AudioSample":
                 if (j.expectedPitch != pitch) or (j.searchRange != pitchRange):
                     j.expectedPitch = pitch
@@ -395,7 +395,7 @@ class PhonemedictUi(tkinter.Frame):
             self.sideBar.tempSmooth.depthVariable.get(),
         ]
         for i in loadedVB.phonemeDict:
-            phoneme = loadedVB.phonemeDict[i]
+            phoneme = loadedVB.phonemeDict[i][0]
             oldValues = [
                 phoneme.voicedThrh,
                 phoneme.specWidth,
