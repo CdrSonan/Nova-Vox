@@ -72,39 +72,30 @@
                 size_hint_y: None
                 height: 30
                 text: "sample rate:"
-            Spinner:
+            ManagedSpinner:
                 #file format dropdown menu
                 sync_height: True
                 text_autoupdate: True
-                background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-                background_down: "UI/assets/Toolbar/Adaptive07mod.png"
                 size_hint_y: None
                 height: 30
-                option_cls: Factory.get("ManagedSpinnerOptn")
                 values: soundfile.available_formats().keys()
                 text: "WAV"
                 on_text: self.parent.parent.parent.parent.parent.reloadBitdepths(self.text)
-            Spinner:
+            ManagedSpinner:
                 #file format bitdepth/subtype dropdown menu
                 sync_height: True
                 text_autoupdate: True
-                background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-                background_down: "UI/assets/Toolbar/Adaptive07mod.png"
                 size_hint_y: None
                 height: 30
-                option_cls: Factory.get("ManagedSpinnerOptn")
                 values: soundfile.available_subtypes("WAV").keys()
                 text: "PCM_24"
                 on_text: self.parent.parent.parent.parent.parent.bitdepth = self.text
-            Spinner:
+            ManagedSpinner:
                 #sample rate dropdown menu
                 sync_height: True
                 text_autoupdate: True
-                background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-                background_down: "UI/assets/Toolbar/Adaptive07mod.png"
                 size_hint_y: None
                 height: 30
-                option_cls: Factory.get("ManagedSpinnerOptn")
                 values: ["44100", "48000", "96000", "192000"]
                 text: "48000"
                 on_text: self.parent.parent.parent.parent.parent.sampleRate = self.text
@@ -310,122 +301,98 @@
             size_hint_y: None
             height: 30
             text: "Language:"
-        Spinner:
+        ManagedSpinner:
             #language dropdown menu
             id: settings_lang
             sync_height: True
             text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-            background_down: "UI/assets/Toolbar/Adaptive07mod.png"
             size_hint_y: None
             height: 30
-            option_cls: Factory.get("ManagedSpinnerOptn")
             values: ["en", "jp"]
         Label:
             size_hint_y: None
             height: 30
             text: "Accelerator:"
-        Spinner:
+        ManagedSpinner:
             #accelerator dropdown menu
             id: settings_accel
             sync_height: True
             text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-            background_down: "UI/assets/Toolbar/Adaptive07mod.png"
             size_hint_y: None
             height: 30
-            option_cls: Factory.get("ManagedSpinnerOptn")
             values: ["CPU", "GPU", "Hybrid"]
         Label:
             size_hint_y: None
             height: 30
             text: "Tensor Cores:"
-        Spinner:
+        ManagedSpinner:
             #tensor core dropdown menu
             id: settings_tcores
             sync_height: True
             text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-            background_down: "UI/assets/Toolbar/Adaptive07mod.png"
             size_hint_y: None
             height: 30
-            option_cls: Factory.get("ManagedSpinnerOptn")
             values: ["disabled", "enabled"]
         Label:
             size_hint_y: None
             height: 30
             text: "low-spec mode:"
-        Spinner:
+        ManagedSpinner:
             #performance mode dropdown menu
             id: settings_lowSpecMode
             sync_height: True
             text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-            background_down: "UI/assets/Toolbar/Adaptive07mod.png"
             size_hint_y: None
             height: 30
-            option_cls: Factory.get("ManagedSpinnerOptn")
             values: ["disabled", "enabled"]
         Label:
             size_hint_y: None
             height: 30
             text: "caching mode:"
-        Spinner:
+        ManagedSpinner:
             #caching mode dropdown menu
             id: settings_cachingMode
             sync_height: True
             text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-            background_down: "UI/assets/Toolbar/Adaptive07mod.png"
             size_hint_y: None
             height: 30
-            option_cls: Factory.get("ManagedSpinnerOptn")
             values: ["save RAM", "default", "best rendering speed"]
         Label:
             size_hint_y: None
             height: 30
             text: "audio API:"
-        Spinner:
+        ManagedSpinner:
             #audio driver dropdown menu
             id: settings_audioApi
             sync_height: True
             text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-            background_down: "UI/assets/Toolbar/Adaptive07mod.png"
             size_hint_y: None
             height: 30
-            option_cls: Factory.get("ManagedSpinnerOptn")
             values: self.parent.parent.audioApiNames
             on_text: self.parent.parent.refreshAudioDevices(self.text)
         Label:
             size_hint_y: None
             height: 30
             text: "audio device:"
-        Spinner:
+        ManagedSpinner:
             #audio device dropdown menu
             id: settings_audioDevice
             sync_height: True
             text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-            background_down: "UI/assets/Toolbar/Adaptive07mod.png"
             size_hint_y: None
             height: 30
-            option_cls: Factory.get("ManagedSpinnerOptn")
             values: self.parent.parent.audioDeviceNames
         Label:
             size_hint_y: None
             height: 30
             text: "Logging level:"
-        Spinner:
+        ManagedSpinner:
             #logging level dropdown menu
             id: settings_loglevel
             sync_height: True
             text_autoupdate: True
-            background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-            background_down: "UI/assets/Toolbar/Adaptive07mod.png"
             size_hint_y: None
             height: 30
-            option_cls: Factory.get("ManagedSpinnerOptn")
             values: ["debug", "info", "warning", "error", "critical"]
         Label:
             size_hint_y: None

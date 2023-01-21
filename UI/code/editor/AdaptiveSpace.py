@@ -9,9 +9,24 @@ from kivy.properties import ObjectProperty, NumericProperty, ListProperty
 from kivy.graphics import Color, Line, Rectangle
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.core.window import Window
+from UI.code.editor.Util import fullRoot
 
 class AdaptiveSpace(AnchorLayout):
     """Contains a ParamCurve, TimingOptions or PitchOptions widget depending on the current mode, and handles adressing and switching between them."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(mouse_pos=self.on_mouseover)
+
+    def on_mouseover(self, window, pos):
+        root = fullRoot(self)
+        if self.collide_point(*self.to_widget(*pos)):
+            Window.set_system_cursor("crosshair")
+            root.cursorSource = "adaptiveSpace"
+        elif root.cursorSource == "adaptiveSpace":
+            Window.set_system_cursor("arrow")
+            root.cursorSource == "none"
 
     def redraw(self) -> None:
         """redraws the currently widget currently displayed by the adaptive space. Used during several update procedures."""

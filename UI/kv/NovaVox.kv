@@ -127,6 +127,7 @@
             Splitter:
                 #vertical splitter between singer + parameter lists, and piano roll + parameter curve(s)
                 size_hint: (0.25, 1)
+                strip_cls: Factory.get("ManagedSplitterStrip")
                 sizable_from: "right"
                 rescale_with_parent: True
                 min_size: 100
@@ -137,6 +138,7 @@
                     Splitter:
                         #horizontal splitter between singer list and parameter list
                         size_hint: (1, 0.75)
+                        strip_cls: Factory.get("ManagedSplitterStrip")
                         sizable_from: "bottom"
                         rescale_with_parent: True
                         max_size: self.parent.height - 100
@@ -182,12 +184,14 @@
                                 orientation: "vertical"
                                 width: self.parent.width - 10
                                 height: self.minimum_height
+                                spacing: 2
             BoxLayout:
                 orientation: "vertical"
                 size_hint: (0.75, 1)
                 Splitter:
                     #horizontal splitter between piano roll and parameter curve(s)
                     size_hint: (1, 0.75)
+                    strip_cls: Factory.get("ManagedSplitterStrip")
                     sizable_from: "bottom"
                     rescale_with_parent: True
                     max_size: self.parent.height - 100
@@ -262,15 +266,13 @@
                                     source: "UI/assets/Toolbar/reset.png"
                                     group: "ToolModes"
                                     on_press: root.setTool("reset")
-                            Spinner:
+                            ManagedSpinner:
                                 #measure type dropdown menu
                                 id: measureSelector
                                 sync_height: True
-                                background_normal: "UI/assets/Toolbar/Adaptive07new.png"
                                 pos: (self.parent.x + self.parent.width - 120 * root.uiScale, self.parent.y)
                                 size_hint: (None, None)
                                 size: (120 * root.uiScale, 40 * root.uiScale)
-                                option_cls: Factory.get("ManagedSpinnerOptn")
                                 text: "4/4"
                                 values: ["4/4", "3/4", "2/4", "6/8", "1/1"]
                                 on_text: root.ids["pianoRoll"].updateTempo(self.text, root.ids["tempoSelector"].text, root.ids["quantSelector"].text)
@@ -282,15 +284,13 @@
                                 size: (120 * root.uiScale, 40 * root.uiScale)
                                 text: "120"
                                 on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, self.text, root.ids["quantSelector"].text)
-                            Spinner:
+                            ManagedSpinner:
                                 #quantization dropdown menu
                                 id: quantSelector
                                 sync_height: True
-                                background_normal: "UI/assets/Toolbar/Adaptive07new.png"
                                 pos: (self.parent.x + self.parent.width - 360 * root.uiScale, self.parent.y)
                                 size_hint: (None, None)
                                 size: (120 * root.uiScale, 40 * root.uiScale)
-                                option_cls: Factory.get("ManagedSpinnerOptn")
                                 text: "Q: off"
                                 values: ["Q: 1/1", "Q: 1/2", "Q: 1/4", "Q: 1/8", "Q: 1/16", "Q: 1/32", "Q: off"]
                                 on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, root.ids["tempoSelector"].text, self.text)

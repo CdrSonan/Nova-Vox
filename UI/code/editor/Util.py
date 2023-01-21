@@ -7,11 +7,13 @@
 
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
-from kivy.properties import ObjectProperty, NumericProperty
+from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.bubble import BubbleButton
 from kivy.uix.textinput import TextInput
+from kivy.uix.spinner import Spinner, SpinnerOption
+from kivy.uix.splitter import SplitterStrip, Splitter
 from kivy.core.window import Window
 
 def fullRoot(widget):
@@ -121,6 +123,83 @@ class ManagedToggleButton(ToggleButton):
 
     def on_state(self, widget, value) -> None:
         self.on_mouseover(widget, Window.mouse_pos)
+
+class ManagedSpinnerOptn(SpinnerOption):
+    """a "managed" spinner option button that automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(mouse_pos=self.on_mouseover)
+
+    def on_mouseover(self, window, pos):
+        if self.collide_point(*self.to_widget(*pos)):
+            self.background_color = (0.5, 0.5, 0.5, 1.)
+        else:
+            self.background_color = (1., 1., 1., 1.)
+
+    def on_press(self) -> None:
+        root = fullRoot(self)
+        if "accColor" in dir(root):
+            self.background_color = root.accColor
+
+    def on_release(self) -> None:
+        self.on_mouseover(self, Window.mouse_pos)
+
+class ManagedSpinner(Spinner):
+    """a "managed" spinner that automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(mouse_pos=self.on_mouseover)
+
+    def on_mouseover(self, window, pos):
+        if self.is_open:
+            root = fullRoot(self)
+            if "accColor" in dir(root):
+                self.background_color = root.accColor
+        elif self.collide_point(*self.to_widget(*pos)):
+            self.background_color = (0.5, 0.5, 0.5, 1.)
+        else:
+            self.background_color = (1., 1., 1., 1.)
+
+    def on_is_open(self, widget, value) -> None:
+        super().on_is_open(widget, value)
+        self.on_mouseover(widget, Window.mouse_pos)
+
+class ManagedSplitterStrip(SplitterStrip):
+    """a "managed" splitter strip that sets its appeareance to match the app theme, and changes the mouse cursor and opacity when it is hovered over"""
+
+    horizontal: BooleanProperty(True)
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        print("call")
+        Window.bind(mouse_pos=self.on_mouseover)
+
+    def on_mouseover(self, window, pos):
+        root = fullRoot(self)
+        if self.collide_point(*self.to_widget(*pos)):
+            self.background_color = (0.5, 0.5, 0.5, 1.)
+            if self.parent.sizable_from[0] in ('t', 'b'):
+                Window.set_system_cursor("size_ns")
+            else:
+                Window.set_system_cursor("size_we")
+            root.cursorSource = "splitters"
+        else:
+            self.background_color = (1., 1., 1., 1.)
+            if root.cursorSource == "splitters":
+                Window.set_system_cursor("arrow")
+                root.cursorSource == "none"
+
+    def on_press(self) -> None:
+        root = fullRoot(self)
+        if "accColor" in dir(root):
+            self.background_color = root.accColor
+        super().on_press()
+
+    def on_release(self) -> None:
+        super().on_release()
+        self.on_mouseover(self, Window.mouse_pos)
 
 class NumberInput(TextInput):
     """A modified text input field that sanitizes the input, ensuring it is always an integer number"""

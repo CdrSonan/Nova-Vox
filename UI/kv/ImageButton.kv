@@ -10,9 +10,9 @@
 
 #set background images matching the UI theme for all managed button types
 
-<ManagedSpinnerOptn@SpinnerOption>:
-    background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
-    background_down: "UI/assets/Toolbar/Adaptive07mod.png"
+<ManagedSpinnerOptn>:
+    background_normal: "UI/assets/Toolbar/Adaptive07full.png"
+    background_down: "UI/assets/Toolbar/Adaptive07full.png"
 
 <ManagedButton>:
     background_normal: "UI/assets/Toolbar/Adaptive07new.png"
@@ -21,3 +21,13 @@
 <ManagedToggleButton>:
     background_normal: "UI/assets/Toolbar/Adaptive07new.png"
     background_down: "UI/assets/Toolbar/Adaptive07new.png"
+
+<ManagedSpinner>:
+    background_normal: "UI/assets/Toolbar/Adaptive07mod.png"
+    background_down: "UI/assets/Toolbar/Adaptive07mod.png"
+    option_cls: Factory.get("ManagedSpinnerOptn")
+
+<ManagedSplitterStrip>:
+    horizontal: True if self.parent and self.parent.sizable_from[0] in ('t', 'b') else False
+    background_normal: "UI/assets/Toolbar/Adaptive07mod.png" if self.horizontal else "UI/assets/Toolbar/Adaptive07mod.png"
+    background_down: "UI/assets/Toolbar/Adaptive07mod.png" if self.horizontal else "UI/assets/Toolbar/Adaptive07mod.png"
