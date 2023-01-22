@@ -166,14 +166,11 @@ class ManagedSpinner(Spinner):
         super().on_is_open(widget, value)
         self.on_mouseover(widget, Window.mouse_pos)
 
-class ManagedSplitterStrip(SplitterStrip):
+class ManagedSplitterStrip(Button):
     """a "managed" splitter strip that sets its appeareance to match the app theme, and changes the mouse cursor and opacity when it is hovered over"""
-
-    horizontal: BooleanProperty(True)
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        print("call")
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
@@ -184,12 +181,12 @@ class ManagedSplitterStrip(SplitterStrip):
                 Window.set_system_cursor("size_ns")
             else:
                 Window.set_system_cursor("size_we")
-            root.cursorSource = "splitters"
+            root.cursorSource = self
         else:
             self.background_color = (1., 1., 1., 1.)
-            if root.cursorSource == "splitters":
+            if root.cursorSource == self:
                 Window.set_system_cursor("arrow")
-                root.cursorSource == "none"
+                root.cursorSource = root
 
     def on_press(self) -> None:
         root = fullRoot(self)

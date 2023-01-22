@@ -149,7 +149,7 @@ class AIWrapper():
         self.crfAi.eval()
         self.predAi.eval()
 
-    def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor) -> torch.Tensor:
+    def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int) -> torch.Tensor:
         """forward pass of both NNs for generating a transition between two phonemes, with data pre- and postprocessing
         
         Arguments:
@@ -158,6 +158,8 @@ class AIWrapper():
             outputSize: length of the generated transition in engine ticks.
 
             pitchCurve: Tensor containing the pitch curve during the transition. Used to correctly calculate harmonic amplitudes during the transition.
+
+            slopeFactor: integer expected to be between 0 and outputSize. Used for time remapping before the transition is calculated. Indicates where on the timeline 50% of the transition should have occured.
             
         Returns:
             tuple of two Tensor objects, containing the interpolated audio spectrum without and with the prediction Ai applied to it, respectively."""
@@ -181,7 +183,9 @@ class AIWrapper():
         harm2 = specharm2[:halfHarms]
         harm3 = specharm3[:halfHarms]
         harm4 = specharm4[:halfHarms]
-        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize)).transpose(0, 1)
+        factor = math.log(0.5, slopeFactor / outputSize)
+        factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.device), factor)
+        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor)).transpose(0, 1)
         for i in self.defectiveCrfBins:
             spectrum[:, i] = torch.mean(torch.cat((spectrum[:, i - 1].unsqueeze(1), spectrum[:, i + 1].unsqueeze(1)), 1), 1)
         borderRange = torch.zeros((outputSize,), device = self.device)
@@ -288,7 +292,8 @@ class AIWrapper():
                 spectrum3 = data[-2, 2 * halfHarms:]
                 spectrum4 = data[-1, 2 * halfHarms:]
                 outputSize = data.size()[0] - 2
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize).transpose(0, 1)
+                factor = torch.linspace(0, 1, outputSize, device = self.device)
+                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor).transpose(0, 1)
                 target = data[2:, 2 * halfHarms:]
                 loss = self.criterion(output, target)
                 self.crfAiOptimizer.zero_grad()
@@ -320,7 +325,8 @@ class AIWrapper():
                 spectrum3 = data[-2, 2 * halfHarms:]
                 spectrum4 = data[-1, 2 * halfHarms:]
                 outputSize = data.size()[0] - 2
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize).transpose(0, 1)
+                factor = torch.linspace(0, 1, outputSize, device = self.device)
+                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor).transpose(0, 1)
                 criterionA = torch.cat((torch.ones((outputSize, 1), device = self.device), output[:, 1:] / output[:, :-1]), 1)
                 criterionB = torch.cat((output[:, :-1] / output[:, 1:], torch.ones((outputSize, 1), device = self.device)), 1)
                 criterion += torch.mean(criterionA + criterionB, dim = 0)
@@ -436,7 +442,8 @@ class AIWrapper():
                 spectrum4 = data[-1, 2 * halfHarms:]
                 
                 outputSize = data.size()[0] - 2
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize).transpose(0, 1)
+                factor = torch.linspace(0, 1, outputSize, device = self.device)
+                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor).transpose(0, 1)
                 target = data[2:, 2 * halfHarms:]
                 loss = self.criterion(output, target)
                 trainLossSpecLocal.append(loss.data.item())
@@ -453,7 +460,8 @@ class AIWrapper():
                 spectrum4 = data[-1, 2 * halfHarms:]
                 
                 outputSize = data.size()[0] - 2
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, outputSize).transpose(0, 1)
+                factor = torch.linspace(0, 1, outputSize, device = self.device)
+                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor).transpose(0, 1)
                 target = data[2:, 2 * halfHarms:]
                 loss = self.criterion(output, target)
                 testLossSpecLocal.append(loss.data.item())

@@ -67,6 +67,18 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     specharm[:, global_consts.nHarmonics + 2:] *= torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2)
     specharm[:, :int(global_consts.nHarmonics / 2) + 1] += spectrum[:int(global_consts.nHarmonics / 2) + 1]
     specharm[:, global_consts.nHarmonics + 2:] += spectrum[int(global_consts.nHarmonics / 2) + 1:]
+    if vocalSegment.startCap:
+        factor = math.log(0.5, (vocalSegment.start2 - vocalSegment.start1) / (vocalSegment.start3 - vocalSegment.start1))
+        slope = torch.linspace(0, 1, (vocalSegment.start3 - vocalSegment.start1), device = device)
+        slope = torch.pow(slope, factor)
+        specharm[:vocalSegment.start3 - vocalSegment.start1, global_consts.nHarmonics + 2:] *= slope.unsqueeze(1)
+        specharm[:vocalSegment.start3 - vocalSegment.start1, :int(global_consts.nHarmonics / 2) + 1] *= slope.unsqueeze(1)
+    if vocalSegment.endCap:
+        factor = math.log(0.5, (vocalSegment.end3 - vocalSegment.end2) / (vocalSegment.end3 - vocalSegment.end1))
+        slope = torch.linspace(1, 0, (vocalSegment.end3 - vocalSegment.end1), device = device)
+        slope = torch.pow(slope, factor)
+        specharm[vocalSegment.end1 - vocalSegment.end3:, global_consts.nHarmonics + 2:] *= slope.unsqueeze(1)
+        specharm[vocalSegment.end1 - vocalSegment.end3:, :int(global_consts.nHarmonics / 2) + 1] *= slope.unsqueeze(1)
     return specharm
 
 def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
@@ -83,10 +95,10 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         factor = math.log(0.5, (vocalSegment.start2 - vocalSegment.start1) / (vocalSegment.start3 - vocalSegment.start1))
         slope = torch.linspace(0, 1, (vocalSegment.start3 - vocalSegment.start1), device = device)
         slope = torch.pow(slope, factor)
-        pitchDeltas[:(vocalSegment.start3 - vocalSegment.start1)] *= slope
+        pitchDeltas[:vocalSegment.start3 - vocalSegment.start1] *= slope
     if vocalSegment.endCap == False:
         factor = math.log(0.5, (vocalSegment.end3 - vocalSegment.end2) / (vocalSegment.end3 - vocalSegment.end1))
         slope = torch.linspace(1, 0, (vocalSegment.end3 - vocalSegment.end1), device = device)
         slope = torch.pow(slope, factor)
-        pitchDeltas[(vocalSegment.end1 - vocalSegment.start1):(vocalSegment.end3 - vocalSegment.start1)] *= slope
+        pitchDeltas[vocalSegment.end1 - vocalSegment.start1:vocalSegment.end3 - vocalSegment.start1] *= slope
     return pitchDeltas

@@ -83,7 +83,7 @@ class SpecCrfAi(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
         
-    def forward(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, outputSize:float) -> torch.Tensor:
+    def forward(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:torch.Tensor) -> torch.Tensor:
         """Forward NN pass.
         
         Arguments:
@@ -95,8 +95,8 @@ class SpecCrfAi(nn.Module):
         Returns:
             Tensor object representing the NN output"""
         
-
-        factor = torch.tile(torch.linspace(0, 1, outputSize, device = self.device).unsqueeze(-1).unsqueeze(-1), (1, 1, global_consts.halfTripleBatchSize + 1))
+        outputSize = factor.size()[0]
+        factor = torch.tile(factor.unsqueeze(-1).unsqueeze(-1), (1, 1, global_consts.halfTripleBatchSize + 1))
         spectrum1 = torch.unsqueeze(spectrum1.to(self.device), 0)
         spectrum2 = torch.unsqueeze(spectrum2.to(self.device), 0)
         spectrum3 = torch.unsqueeze(spectrum3.to(self.device), 0)

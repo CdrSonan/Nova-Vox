@@ -174,9 +174,12 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 for i in range(len(change.data[3])):
                     change.data[3][i] = int(change.data[3][i])
                 inputList[change.data[0]].borders[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
-                statusControl[change.data[0]].rs[math.floor(change.data[2] / 3):math.floor((change.data[2] + len(change.data[3])) / 3)] *= 0
-                statusControl[change.data[0]].ai[math.floor(change.data[2] / 3):math.floor((change.data[2] + len(change.data[3])) / 3)] *= 0
-            elif change.data[1] in ["pitch", "steadiness", "breathiness", "aiBalance"]:
+                start = max(math.floor(change.data[2] / 3) - 1, 0)
+                end = math.floor((change.data[2] + len(change.data[3]) - 1) / 3) + 1
+                statusControl[change.data[0]].rs[start:end] *= 0
+                statusControl[change.data[0]].ai[start:end] *= 0
+                print("reset status control:", start, end)
+            elif change.data[1] in ["pitch", "steadiness", "breathiness", "aiBalance", "vibratoSpeed", "vibratoStrength"]:
                 eval("inputList[change.data[0]]." + change.data[1])[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 positions = posToSegment(change.data[0], change.data[2], change.data[2] + len(change.data[3]), inputList)
                 statusControl[change.data[0]].rs[positions[0]:positions[1]] *= 0
@@ -389,7 +392,15 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     specB = currentSpectrum[0]
                                 else:
                                     specB = currentSpectrum[1]
-                                aiSpec = voicebank.ai.interpolate(specA.to(device = device_ai), previousSpectrum[-1].to(device = device_ai), currentSpectrum[0].to(device = device_ai), specB.to(device = device_ai), internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j], internalInputs.pitch[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]])
+                                aiSpec = voicebank.ai.interpolate(
+                                    specA.to(device = device_ai),
+                                    previousSpectrum[-1].to(device = device_ai),
+                                    currentSpectrum[0].to(device = device_ai),
+                                    specB.to(device = device_ai),
+                                    internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j],
+                                    internalInputs.pitch[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]],
+                                    internalInputs.borders[3 * j + 1] - internalInputs.borders[3 * j]
+                                )
                                 aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]].unsqueeze(1).to(device = device_rs)
                                 aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0].to(device = device_rs) + (0.5 + 0.5 * aiBalance) * aiSpec[1].to(device = device_rs)
                                 pitchOffset = previousPitch[internalInputs.borders[3 * j] - internalInputs.borders[3 * j + 2]:] + currentPitch[:internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]]
@@ -425,7 +436,15 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     specB = nextSpectrum[0]
                                 else:
                                     specB = nextSpectrum[1]
-                                aiSpec = voicebank.ai.interpolate(specA.to(device = device_ai), currentSpectrum[-1].to(device = device_ai), nextSpectrum[0].to(device = device_ai), specB.to(device = device_ai), internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3], internalInputs.pitch[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]])
+                                aiSpec = voicebank.ai.interpolate(
+                                    specA.to(device = device_ai),
+                                    currentSpectrum[-1].to(device = device_ai),
+                                    nextSpectrum[0].to(device = device_ai),
+                                    specB.to(device = device_ai),
+                                    internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3],
+                                    internalInputs.pitch[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]],
+                                    internalInputs.borders[3 * j + 4] - internalInputs.borders[3 * j + 3]
+                                )
                                 aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]].unsqueeze(1).to(device = device_rs)
                                 aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0].to(device = device_rs) + (0.5 + 0.5 * aiBalance) * aiSpec[1].to(device = device_rs)
                                 pitchOffset = currentPitch[internalInputs.borders[3 * j + 3] - internalInputs.borders[3 * j + 5]:] + nextPitch[:internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]]

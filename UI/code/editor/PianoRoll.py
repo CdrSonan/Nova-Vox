@@ -8,11 +8,12 @@
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, BooleanProperty, NumericProperty, ListProperty
 from kivy.graphics import Color, Line, Rectangle, InstructionGroup
-from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble
+
+from UI.code.editor.Util import ManagedToggleButton
 
 from kivy.clock import mainthread
 
@@ -30,7 +31,7 @@ class NoteProperties(Bubble):
             i.reference = self.reference
         return super().on_parent(instance, value)
 
-class Note(ToggleButton):
+class Note(ManagedToggleButton):
     """class for a note on the piano roll"""
 
     index = NumericProperty()
@@ -127,6 +128,7 @@ class Note(ToggleButton):
     def on_state(self, screen, state) -> None:
         """creates or removes the note's context menu when it is selected or deselected"""
 
+        super().on_state(screen, state)
         if state == "normal":
             self.remove_widget(self.children[0])
         else:

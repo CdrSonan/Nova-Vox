@@ -30,7 +30,7 @@ class NovaVoxUI(Widget):
     toolColor = ColorProperty(eval(settings["toolColor"]))
     accColor = ColorProperty(eval(settings["accColor"]))
     bgColor = ColorProperty(eval(settings["bgColor"]))
-    cursorSource = OptionProperty("none", options=["none", "adaptiveSpace", "splitters"])
+    cursorSource = ObjectProperty()
     
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)

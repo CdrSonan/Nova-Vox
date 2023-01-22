@@ -23,10 +23,10 @@ class AdaptiveSpace(AnchorLayout):
         root = fullRoot(self)
         if self.collide_point(*self.to_widget(*pos)):
             Window.set_system_cursor("crosshair")
-            root.cursorSource = "adaptiveSpace"
-        elif root.cursorSource == "adaptiveSpace":
+            root.cursorSource = self
+        elif root.cursorSource == self:
             Window.set_system_cursor("arrow")
-            root.cursorSource == "none"
+            root.cursorSource = root
 
     def redraw(self) -> None:
         """redraws the currently widget currently displayed by the adaptive space. Used during several update procedures."""

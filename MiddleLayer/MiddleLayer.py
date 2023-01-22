@@ -329,16 +329,21 @@ class MiddleLayer(Widget):
             else:
                 self.trackList[self.activeTrack].vibratoStrength[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                 self.submitNamedParamChange(True, "vibratoStrength", start, torch.tensor(data, dtype = torch.half))
+            for i in range(*self.posToNote(start, start + len(data))):
+                self.recalculateBasePitch(i, self.trackList[self.activeTrack].notes[i].xPos, self.trackList[self.activeTrack].notes[i].xPos + self.trackList[self.activeTrack].notes[i].length)
+            self.ids["pianoRoll"].redrawPitch()
         else:
             self.trackList[self.activeTrack].nodegraph.params[self.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
             self.submitParamChange(True, self.activeParam, start, torch.tensor(data, dtype = torch.half))
 
-    def applyPitchChanges(self, data:list, start:int) -> None:
+    def applyPitchChanges(self, data:torch.Tensor, start:int) -> None:
         """submits edits made to the pitch curve to the rendering process"""
 
-        self.trackList[self.activeTrack].pitch[start:start + len(data)] = torch.tensor(data, dtype = torch.float32)
-        data = self.noteToPitch(torch.tensor(data, dtype = torch.float32))
-        self.submitNamedPhonParamChange(True, "pitch", start, torch.tensor(data, dtype = torch.half))
+        if type(data) == list:
+            data = torch.tensor(data, dtype = torch.half)
+        self.trackList[self.activeTrack].pitch[start:start + data.size()[0]] = data
+        data = self.noteToPitch(data)
+        self.submitNamedPhonParamChange(True, "pitch", start, data)
 
     def changePianoRollMode(self) -> None:
         """helper function for piano roll UI updates when changing modes"""
@@ -936,11 +941,25 @@ class MiddleLayer(Widget):
             buffer = torch.zeros([global_consts.audioBufferSize, 2], dtype = torch.float32).expand(-1, 2).numpy()
         outdata[:] = buffer.copy()
 
-    def noteToPitch(self, data:torch.Tensor) -> torch.Tensor:
+    @staticmethod
+    def noteToPitch(data:torch.Tensor) -> torch.Tensor:
         """Utility function for converting the y position of a note to its corresponding pitch, following the MIDI standard."""
 
         #return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
         return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 36)) / torch.full_like(data, 12)) * 440)
+
+    def posToNote(self, pos1:int, pos2:int) -> tuple:
+        pos1Out = 0
+        for i in range(len(self.trackList[self.activeTrack].notes)):
+            if self.trackList[self.activeTrack].notes[i].xPos > pos1:
+                pos1Out = max(i - 1, 0)
+                break
+        pos2Out = len(self.trackList[self.activeTrack].notes)
+        for i in range(pos1Out, len(self.trackList[self.activeTrack].notes)):
+            if self.trackList[self.activeTrack].notes[i].xPos > pos2:
+                pos2Out = max(i, 0)
+                break
+        return (pos1Out, pos2Out)
 
     def recalculateBasePitch(self, index:int, oldStart:float, oldEnd:float) -> None:
         """recalculates the base pitch curve after the note at position index of the active track has been modified. oldStart and oldEnd are the start and end of the note before the transformation leading to the function call."""
