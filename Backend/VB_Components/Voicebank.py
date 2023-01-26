@@ -272,17 +272,13 @@ class Voicebank():
 
         self.stagedPredTrainSamples[index] = AudioSample(filepath)
     
-    def trainCrfAi(self, epochs:int, additive:bool, specWidth:int, specDepth:int, tempWidth:int, tempDepth:int, expPitch:float, pSearchRange:float, logging:bool = False) -> None:
+    def trainCrfAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
         
         Arguments:
             epochs: Integer, the number of epochs the training is to be conducted with
             
             additive: Bool, whether the training should be conducted in addition to any existing training (True), or replaye it (False)
-
-            specWidth, specDepth, tempWidth, tempDepth: parameters used for spectral smoothing of the training samples
-
-            expPitch, pSearchRange: parameters used for pitch calculation of the training samples
             
             logging: flag indicationg whether to write telemetry data to a .csv log"""
             
@@ -291,12 +287,6 @@ class Voicebank():
         sampleCount = len(self.stagedCrfTrainSamples)
         for i in range(sampleCount):
             print("processing sample [", i + 1, "/", sampleCount, "]")
-            self.stagedCrfTrainSamples[i].expectedPitch = expPitch
-            self.stagedCrfTrainSamples[i].searchRange = pSearchRange
-            self.stagedCrfTrainSamples[i].specWidth = specWidth
-            self.stagedCrfTrainSamples[i].specDepth = specDepth
-            self.stagedCrfTrainSamples[i].tempWidth = tempWidth
-            self.stagedCrfTrainSamples[i].tempDepth = tempDepth
             calculatePitch(self.stagedCrfTrainSamples[i], True)
             calculateSpectra(self.stagedCrfTrainSamples[i], False)
             avgSpecharm = torch.cat((self.stagedCrfTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedCrfTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
@@ -306,17 +296,13 @@ class Voicebank():
         self.ai.trainCrf(self.stagedCrfTrainSamples, epochs = epochs, logging = logging, reset = not additive)
         print("AI training complete")
 
-    def trainPredAi(self, epochs:int, additive:bool, voicedThrh:float, specWidth:int, specDepth:int, tempWidth:int, tempDepth:int, expPitch:float, pSearchRange:float, logging:bool = False) -> None:
+    def trainPredAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
         """initiates the training of the Voicebank's prediction Ai using all staged training samples and the Ai's settings.
         
         Arguments:
             epochs: Integer, the number of epochs the training is to be conducted with
             
             additive: Bool, whether the training should be conducted in addition to any existing training (True), or replaye it (False)
-
-            specWidth, specDepth, tempWidth, tempDepth: parameters used for spectral smoothing of the training samples
-
-            expPitch, pSearchRange: parameters used for pitch calculation of the training samples
             
             logging: flag indicationg whether to write telemetry data to a .csv log"""
             
@@ -325,13 +311,6 @@ class Voicebank():
         sampleCount = len(self.stagedPredTrainSamples)
         for i in range(sampleCount):
             print("processing sample [", i + 1, "/", sampleCount, "]")
-            self.stagedPredTrainSamples[i].expectedPitch = expPitch
-            self.stagedPredTrainSamples[i].searchRange = pSearchRange
-            self.stagedPredTrainSamples[i].voicedThrh = voicedThrh
-            self.stagedPredTrainSamples[i].specWidth = specWidth
-            self.stagedPredTrainSamples[i].specDepth = specDepth
-            self.stagedPredTrainSamples[i].tempWidth = tempWidth
-            self.stagedPredTrainSamples[i].tempDepth = tempDepth
             calculatePitch(self.stagedPredTrainSamples[i], False)
             calculateSpectra(self.stagedPredTrainSamples[i], False)
             avgSpecharm = torch.cat((self.stagedPredTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedPredTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)

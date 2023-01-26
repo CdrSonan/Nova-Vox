@@ -80,6 +80,11 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.pSearchRange.display.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
+        self.sideBar.pBroadcastButton = tkinter.Button(self.sideBar)
+        self.sideBar.pBroadcastButton["text"] = loc["pit_brdc"]
+        self.sideBar.pBroadcastButton["command"] = self.onPitBrdcPress
+        self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+
         self.sideBar.specSmooth = tkinter.Frame(self.sideBar)
         self.sideBar.specSmooth.widthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecWidth)
         self.sideBar.specSmooth.widthEntry = tkinter.Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
@@ -107,6 +112,11 @@ class CrfaiUi(tkinter.Frame):
         self.sideBar.tempSmooth.display["text"] = loc["tempSmooth"]
         self.sideBar.tempSmooth.display.pack(side = "right", fill = "x")
         self.sideBar.tempSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.sBroadcastButton = tkinter.Button(self.sideBar)
+        self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
+        self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
+        self.sideBar.sBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
         self.sideBar.epochs = tkinter.Frame(self.sideBar)
         self.sideBar.epochs.variable = tkinter.IntVar(self.sideBar.epochs, 1)
@@ -186,6 +196,13 @@ class CrfaiUi(tkinter.Frame):
         global loadedVB
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
+            index = self.phonemeList.list.lastFocusedIndex
+            self.sideBar.expPitch.variable.set(loadedVB.stagedCrfTrainSamples[index].expectedPitch)
+            self.sideBar.pSearchRange.variable.set(loadedVB.stagedCrfTrainSamples[index].searchRange)
+            self.sideBar.specSmooth.widthVariable.set(loadedVB.stagedCrfTrainSamples[index].specWidth)
+            self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedCrfTrainSamples[index].specDepth)
+            self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedCrfTrainSamples[index].tempWidth)
+            self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedCrfTrainSamples[index].tempDepth)
             
     def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""
@@ -193,6 +210,45 @@ class CrfaiUi(tkinter.Frame):
         logging.info("Crfai list focus loss callback")
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
+
+    def onUpdateTrigger(self) -> None:
+        """Updates the pitch and spectral processing settings of a phoneme"""
+
+        logging.info("crf staged phoneme update callback")
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        loadedVB.stagedCrfTrainSamples[index].expectedPitch = self.sideBar.expPitch.variable.get()
+        loadedVB.stagedCrfTrainSamples[index].searchRange = self.sideBar.pSearchRange.variable.get()
+        loadedVB.stagedCrfTrainSamples[index].specWidth = self.sideBar.specSmooth.widthVariable.get()
+        loadedVB.stagedCrfTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
+        loadedVB.stagedCrfTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
+        loadedVB.stagedCrfTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
+
+    def onPitBrdcPress(self) -> None:
+        """UI Frontend function for applying/broadcasting the pitch search settings of the currently selected sample to all samples"""
+
+        pitch = self.sideBar.expPitch.variable.get()
+        pitchRange = self.sideBar.pSearchRange.variable.get()
+        for i in loadedVB.stagedCrfTrainSamples:
+            i.expectedPitch = pitch
+            i.searchRange = pitchRange
+
+    def onSpecBrdcPress(self) -> None:
+        """UI Frontend function for applying/broadcasting the spectral filtering & analysis settings of the currently selected sample to all samples"""
+
+        newValues = [
+            self.sideBar.voicedThrh.variable.get(),
+            self.sideBar.specSmooth.widthVariable.get(),
+            self.sideBar.specSmooth.depthVariable.get(),
+            self.sideBar.tempSmooth.widthVariable.get(),
+            self.sideBar.tempSmooth.depthVariable.get(),
+        ]
+        for i in loadedVB.stagedCrfTrainSamples:
+            i.voicedThrh = newValues[0]
+            i.specWidth = newValues[1]
+            i.specDepth = newValues[2]
+            i.tempWidth = newValues[3]
+            i.tempDepth = newValues[4]
     
     def onAddPress(self) -> None:
         """UI Frontend function for adding a new transition sample to the list of staged AI training samples"""
@@ -245,12 +301,6 @@ class CrfaiUi(tkinter.Frame):
         loadedVB.trainCrfAi(
             self.sideBar.epochs.variable.get(),
             self.sideBar.additive.variable.get(),
-            self.sideBar.specSmooth.widthVariable.get(),
-            self.sideBar.specSmooth.depthVariable.get(),
-            self.sideBar.tempSmooth.widthVariable.get(),
-            self.sideBar.tempSmooth.depthVariable.get(),
-            self.sideBar.expPitch.variable.get(),
-            self.sideBar.pSearchRange.variable.get(),
             self.sideBar.logging.variable.get()
         )
         numIter = self.phonemeList.list.lb.size()
