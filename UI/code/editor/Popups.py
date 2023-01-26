@@ -116,7 +116,7 @@ class SingerSettingsPanel(Popup):
             middleLayer.recalculatePauses(self.index)
         if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]:
             middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
-            middleLayer.submitChangeVB(self.index, middleLayer.trackList[self.index].vbPath)
+            middleLayer.changeVB(self.index, middleLayer.trackList[self.index].vbPath)
             for i in middleLayer.ids["singerList"].children:
                 if i.index == self.index:
                     i.name = self.children[0].children[0].children[0].children[0].children[2].children[4].text

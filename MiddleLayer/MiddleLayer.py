@@ -24,6 +24,7 @@ from MiddleLayer.IniParser import readSettings
 import MiddleLayer.DataHandlers as dh
 
 from Backend.Util import ensureTensorLength
+from Backend.VB_Components.Voicebank import LiteVoicebank
 
 from UI.code.editor.AdaptiveSpace import ParamCurve, TimingOptns, PitchOptns
 from UI.code.editor.Headers import SingerPanel, ParamPanel
@@ -785,6 +786,20 @@ class MiddleLayer(Widget):
         self.repairBorders(border)
         self.submitBorderChange(True, border, [pos,])
 
+    def changeVB(self, index:int, path:str) -> None:
+        """changes the Voicebank of the active track, and performs the necessary checks"""
+
+        self.trackList[self.activeTrack].phonemeLengths = dict()
+        tmpVb = LiteVoicebank(path)
+        for i in tmpVb.phonemeDict.keys():
+            if tmpVb.phonemeDict[i][0].isPlosive:
+                self.trackList[self.activeTrack].phonemeLengths[i] = tmpVb.phonemeDict[i][0].specharm.size()[0]
+            else:
+                self.trackList[self.activeTrack].phonemeLengths[i] = None
+        self.submitChangeVB(index, path)
+        for i, note in enumerate(self.trackList[self.activeTrack].notes):
+            self.changeLyrics(i, note.content)
+
     def repairNotes(self, index:int) -> None:
         """checks if the note at position index of the active track has exactly the same position as the previous note. If so, it is moved forward by one tick, ensuring that no note gets assigned a length of 0."""
         if index == 0 or index == len(self.trackList[self.activeTrack].notes):
@@ -840,7 +855,7 @@ class MiddleLayer(Widget):
         self.manager.sendChange("duplicateTrack", True, index)
     
     def submitChangeVB(self, index:int, path:str) -> None:
-        self.manager.sendChange("changeVB", True, index, path)
+        self.manager.sendChange("changeVB", False, index, path)
     
     def submitNodegraphUpdate(self) -> None:
         #placeholder until NodeGraph is fully implemented

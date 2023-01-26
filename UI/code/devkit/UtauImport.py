@@ -180,6 +180,17 @@ class UtauImportUi(tkinter.Frame):
         self.otoSettings.stripPostfix.display.pack(side = "right", fill = "x")
         self.otoSettings.stripPostfix.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
+        #NV expression selection
+        self.otoSettings.addExpr = tkinter.Frame(self.otoSettings)
+        self.otoSettings.addExpr.variable = tkinter.StringVar(self.otoSettings.addExpr)
+        self.otoSettings.addExpr.entry = tkinter.Entry(self.otoSettings.addExpr)
+        self.otoSettings.addExpr.entry["textvariable"] = self.otoSettings.addExpr.variable
+        self.otoSettings.addExpr.entry.pack(side = "right", fill = "x")
+        self.otoSettings.addExpr.display = tkinter.Label(self.otoSettings.addExpr)
+        self.otoSettings.addExpr.display["text"] = loc["addExpr"]
+        self.otoSettings.addExpr.display.pack(side = "right", fill = "x")
+        self.otoSettings.addExpr.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
         #language selection
         languages = os.listdir(os.path.join(self.phoneticsPath, "Lists"))
         self.otoSettings.language = tkinter.Frame(self.otoSettings)
@@ -466,7 +477,7 @@ class UtauImportUi(tkinter.Frame):
                 properties = row[1].split(",")
                 occuredError = None
                 try:
-                    fetchedSamples = fetchSamples(filename, properties, otoPath, self.otoSettings.stripPrefix.variable.get(), self.otoSettings.stripPostfix.variable.get(), phonemePath, conversionPath, self.otoSettings.forceJIS.variable.get())
+                    fetchedSamples = fetchSamples(filename, properties, otoPath, self.otoSettings.stripPrefix.variable.get(), self.otoSettings.stripPostfix.variable.get(), self.otoSettings.addExpr.variable.get(), phonemePath, conversionPath, self.otoSettings.forceJIS.variable.get())
                     for sample in fetchedSamples:
                         if sample._type == 1 and self.otoSettings.typeSelector.variableTrans.get():
                             #transition sample
