@@ -13,6 +13,7 @@ from kivy.properties import NumericProperty, ColorProperty, OptionProperty
 
 from MiddleLayer.MiddleLayer import MiddleLayer
 from MiddleLayer.IniParser import readSettings
+from MiddleLayer.ErrorHandler import handleMainException, handleRendererException
 
 from UI.code.editor.AdaptiveSpace import *
 from UI.code.editor.Headers import *
@@ -49,22 +50,25 @@ class NovaVoxUI(Widget):
         change = middleLayer.manager.receiveChange()
         if change == None:
             return None
-        if change.type == "status":
-            print("recv status update ", change.track, change.index, change.value)
-            middleLayer.updateRenderStatus(change.track, change.index, change.value)
-        elif change.type == "updateAudio":
-            print("recv audio update ", change.track, change.index, change.value)
-            middleLayer.updateAudioBuffer(change.track, change.index, change.value)
-        elif change.type == "zeroAudio":
-            print("recv audio zero ", change.track, change.index, change.value)
-            if change.value < 0:
-                change.index += change.value
-                change.value *= -1
-            middleLayer.updateAudioBuffer(change.track, change.index, torch.zeros([change.value,]))
-        elif change.type == "deletion":
-            middleLayer.deletions.pop(0)
-        elif change.type == "error":
-            raise change.value
+        try:
+            if change.type == "status":
+                print("recv status update ", change.track, change.index, change.value)
+                middleLayer.updateRenderStatus(change.track, change.index, change.value)
+            elif change.type == "updateAudio":
+                print("recv audio update ", change.track, change.index, change.value)
+                middleLayer.updateAudioBuffer(change.track, change.index, change.value)
+            elif change.type == "zeroAudio":
+                print("recv audio zero ", change.track, change.index, change.value)
+                if change.value < 0:
+                    change.index += change.value
+                    change.value *= -1
+                middleLayer.updateAudioBuffer(change.track, change.index, torch.zeros([change.value,]))
+            elif change.type == "deletion":
+                middleLayer.deletions.pop(0)
+            elif change.type == "error":
+                handleRendererException(change.value)
+        except Exception as e:
+            handleMainException(e)
         return self.update(deltatime)
 
     def setMode(self, mode) -> None:

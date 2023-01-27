@@ -6,6 +6,7 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import torch.multiprocessing as mp
+from torch import Tensor
 import Backend.NV_Multiprocessing.RenderProcess
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, InputChange, StatusChange
 from Locale.editor_locale import getLocale
@@ -39,14 +40,14 @@ class RenderManager():
             None"""
 
 
-        self.statusControl = []
+        statusControl = []
         voicebankList, NodeGraphList, sequenceList = self.batchConvert(trackList)
         self.rerenderFlag = mp.Event()
         self.connection = mp.Queue(0)
         self.remoteConnection = mp.Queue(0)
-        for i in trackList:
-            self.statusControl.append(SequenceStatusControl(i))
-        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale()["render_process_name"], daemon = True)
+        for i in sequenceList:
+            statusControl.append(SequenceStatusControl(i))
+        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale()["render_process_name"], daemon = True)
         self.renderProcess.start()
 
     def receiveChange(self) -> StatusChange:
@@ -67,7 +68,14 @@ class RenderManager():
     def sendChange(self, type:str, final:bool = True, *data) -> None:
         """method for sending an InputChange object containing arbitrary data to the rendering process"""
 
-        self.connection.put(InputChange(type, final, *data), True)
+        dataOut = []
+        for i in data:
+            if i.__class__ == Tensor:
+                dataOut.append(i.clone())
+            else:
+                dataOut.append(i)
+        dataOut = tuple(dataOut)
+        self.connection.put(InputChange(type, final, *dataOut), True)
         if final:
             self.rerenderFlag.set()
         print("sent packet ", type, final, data)
@@ -83,17 +91,15 @@ class RenderManager():
 
 
         self.stop()
-        voicebankList, NodeGraphList, sequenceList = self.batchConvert(trackList)
-        del self.statusControl[:]
         print("rendering subprocess restarting...")
-        for i in sequenceList:
-            self.statusControl.append(SequenceStatusControl(i))
-        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(self.statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale()["render_process_name"], daemon = True)
-        self.renderProcess.start()
+        self.connection.close()
+        self.remoteConnection.close()
+        del self.connection
+        del self.remoteConnection
+        self.__init__(trackList)
 
     def stop(self) -> None:
         """simple method for safely terminating the rendering process"""
-
         self.renderProcess.terminate()
 
     def batchConvert(self, trackList:list) -> tuple:

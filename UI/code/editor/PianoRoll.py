@@ -549,6 +549,7 @@ class PianoRoll(ScrollView):
                         touch.ud['lastPoint'] = touch.ud['startPoint'][0]
                         touch.ud['startPointOffset'] = 0
                 touch.ud['param'] = False
+                self.on_touch_move(touch)
                 return True
         return False
 
@@ -572,7 +573,8 @@ class PianoRoll(ScrollView):
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
                 if abs(touch.ud["initialPos"][0] - coord[0]) < 4 and abs(touch.ud["initialPos"][1] - coord[1]) < 4:
                     return True
-                touch.ud["promptLengthUpdate"] = True
+                if touch.ud["noteIndex"] == len(middleLayer.trackList[middleLayer.activeTrack].notes) - 1:
+                    touch.ud["promptLengthUpdate"] = True
                 if touch.ud["grabMode"] == "start":
                     length = max(note.xPos + note.length - x, 1)
                     note.length = length

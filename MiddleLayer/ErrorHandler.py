@@ -10,7 +10,7 @@ from traceback import print_exc
 
 class ErrorHandler(ExceptionHandler):
     def handle_exception(self, inst):
-        print("Attempting error recovery for:")
+        print("Attempting error recovery for UI main process error:")
         print_exc()
         global middleLayer
         from UI.code.editor.Main import middleLayer
@@ -21,3 +21,24 @@ class ErrorHandler(ExceptionHandler):
             print_exc()
             return ExceptionManager.RAISE
         return ExceptionManager.PASS
+
+def handleRendererException(exception):
+    print("Attempting error recovery for renderer error:")
+    print(exception)
+    try:
+        middleLayer.validate()
+    except:
+        "Recovery failed due to:"
+        print_exc()
+
+def handleMainException(exception):
+    print("Attempting error recovery for non-UI main process error:")
+    try:
+        print_exc()
+    except:
+        print(exception)
+    try:
+        middleLayer.validate()
+    except:
+        "Recovery failed due to:"
+        print_exc()
