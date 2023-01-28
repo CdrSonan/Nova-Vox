@@ -8,6 +8,7 @@
 import math
 from os import path, getenv
 from csv import DictWriter
+from tqdm.auto import tqdm
 import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
@@ -283,8 +284,8 @@ class AIWrapper():
         else:
             self.crfAi.epoch = None
         reportedLoss = 0.
-        for epoch in range(epochs):
-            for data in self.dataLoader(indata):
+        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
+            for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
                 data = data.to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
@@ -299,7 +300,7 @@ class AIWrapper():
                 self.crfAiOptimizer.zero_grad()
                 loss.backward()
                 self.crfAiOptimizer.step()
-                print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
+            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
             self.crfAi.sampleCount += len(indata)
             reportedLoss = (reportedLoss * 99 + loss.data) / 100
             if writer != None:
@@ -358,8 +359,8 @@ class AIWrapper():
             self.predAi.epoch = None
         reportedLoss = 0.
         reportedLossHarm = 0.
-        for epoch in range(epochs):
-            for data in self.dataLoader(indata):
+        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
+            for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
                 data = torch.squeeze(data)
                 self.reset()
                 input = data[:-1, 2 * halfHarms:]
@@ -382,7 +383,7 @@ class AIWrapper():
                 lossHarm.backward()
                 self.predAiHarmOptimizer.step()
                 reportedLossHarm = (reportedLossHarm * 99 + lossHarm.data) / 100
-                print('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
+            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
             self.predAi.sampleCount += len(indata)
             if writer != None:
                 results = {

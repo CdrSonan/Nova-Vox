@@ -12,6 +12,7 @@ import sys
 import os
 import csv
 import sounddevice
+from tqdm.auto import tqdm
 
 import matplotlib
 #set up matplotlib to use more efficient plotting settings
@@ -420,7 +421,7 @@ class UtauImportUi(tkinter.Frame):
         logging.info("UTAU import all button callback")
         global loadedVB
         sampleCount = len(self.sampleList)
-        for i in range(sampleCount):
+        for i in tqdm(range(sampleCount), unit = "samples"):
             self.update()
             if self.sampleList[0]._type == 0:
                 loadedVB.addPhonemeUtau(self.sampleList[0])
@@ -466,11 +467,14 @@ class UtauImportUi(tkinter.Frame):
             f.close()
             i = 0
 
-            reader = csv.reader(open(filepath, encoding = "Shift_JIS"), delimiter = "=")
+            file = open(filepath, encoding = "Shift_JIS")
+            reader = csv.reader(file, delimiter = "=")
+            length = len(list(reader))
+            file.seek(0)
             otoPath = os.path.split(filepath)[0]
             samplePaths = []
-            for row in reader:
-                print("processing " + str(row))
+            for row in tqdm(reader, total = length, unit = "oto defs"):
+                #tqdm.write("processing " + str(row))
                 i += 1
                 self.update()
                 filename = row[0]
@@ -503,12 +507,12 @@ class UtauImportUi(tkinter.Frame):
                                 self.phonemeList.list.lb.insert("end", sample.handle)
 
                 except LookupError as error:
-                    print(error)
+                    tqdm.write(error)
                     if occuredError == None:
                         occuredError = 0
                     logging.warning(error)
                 except Exception as error:
-                    print(error)
+                    tqdm.write(error)
                     occuredError = 1
                     logging.error(error)
             self.update()

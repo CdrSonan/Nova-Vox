@@ -194,7 +194,7 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
         downTransitionMarkers = deque([downTransitionCandidates[torch.argmin(derrs)].item(),])
 
     while downTransitionMarkers[-1] < wave.size()[0] - audioSample.pitchDeltas[-1] * global_consts.DIOLastWinTolerance:
-        print("1", downTransitionMarkers[-1], "/", (wave.size()[0] - audioSample.pitchDeltas[-1] * global_consts.DIOLastWinTolerance).item())
+        #print("1", downTransitionMarkers[-1], "/", (wave.size()[0] - audioSample.pitchDeltas[-1] * global_consts.DIOLastWinTolerance).item())
         lastPitch = pitch(upTransitionMarkers[-1])
         lastDown = downTransitionMarkers[-1]
         lastUp = upTransitionMarkers[-1]
@@ -264,7 +264,7 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
         return torch.tensor([0, audioSample.pitch], dtype = torch.float32)
 
     for j in range(length):
-        print("2", j, "/", length)
+        #print("2", j, "/", length)
         workingWindow = wave[upTransitionMarkers[j] - 2:downTransitionMarkers[j] + 1]
         convKernel = torch.tensor([1., 1.1, 1.])
         scores = torch.tensor([])
@@ -273,7 +273,7 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
             scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
         maximumMarkers = torch.cat((maximumMarkers, torch.unsqueeze(torch.argmax(scores) + upTransitionMarkers[j], 0)), 0)
     for j in range(length - 1):
-        print("3", j, "/", length)
+        #print("3", j, "/", length)
         workingWindow = wave[downTransitionMarkers[j] - 2:upTransitionMarkers[j + 1] + 1]
         convKernel = torch.tensor([-1., -1.1, -1.])
         scores = torch.tensor([])
@@ -313,7 +313,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
     counter = 0
     markers = DIOPitchMarkers(audioSample, wave)
     for i in range(length):
-        print("4", counter, "/", length)
+        #print("4", counter, "/", length)
         window = wave[i * global_consts.batchSize:i * global_consts.batchSize + global_consts.tripleBatchSize * global_consts.filterBSMult]
         localMarkers = markers[torch.searchsorted(markers, i * global_consts.batchSize, right = True):torch.searchsorted(markers, i * global_consts.batchSize + global_consts.tripleBatchSize * global_consts.filterBSMult - 1, right = False)] - i * global_consts.batchSize
         markerLength = len(localMarkers)

@@ -179,7 +179,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 end = math.floor((change.data[2] + len(change.data[3]) - 1) / 3) + 1
                 statusControl[change.data[0]].rs[start:end] *= 0
                 statusControl[change.data[0]].ai[start:end] *= 0
-                print("reset status control:", start, end)
             elif change.data[1] in ["pitch", "steadiness", "breathiness", "aiBalance", "vibratoSpeed", "vibratoStrength"]:
                 eval("inputList[change.data[0]]." + change.data[1])[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 positions = posToSegment(change.data[0], change.data[2], change.data[2] + len(change.data[3]), inputList)
@@ -190,9 +189,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].aiParamInputs[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
-            print("renderer: offset type packet received:", change, change.type, change.data)
             inputList, internalStatusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, internalStatusControl)
-            print("offset type received: (post trim)", change, change.type, change.data)
         elif change.type == "changeLength":
             inputList[change.data[0]].length = change.data[1]
             inputList[change.data[0]].pitch = ensureTensorLength(inputList[change.data[0]].pitch, change.data[1], -1.)

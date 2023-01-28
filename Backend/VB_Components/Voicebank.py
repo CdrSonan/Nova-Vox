@@ -7,6 +7,7 @@
 
 import logging
 import torch
+from tqdm.auto import tqdm
 
 from Backend.VB_Components.VbMetadata import VbMetadata
 from Backend.VB_Components.Ai.Wrapper import AIWrapper
@@ -285,8 +286,8 @@ class Voicebank():
 
         print("sample preprocessing started")
         sampleCount = len(self.stagedCrfTrainSamples)
-        for i in range(sampleCount):
-            print("processing sample [", i + 1, "/", sampleCount, "]")
+        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
+            #tqdm.write("processing sample [", i + 1, "/", sampleCount, "]")
             calculatePitch(self.stagedCrfTrainSamples[i], True)
             calculateSpectra(self.stagedCrfTrainSamples[i], False)
             avgSpecharm = torch.cat((self.stagedCrfTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedCrfTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
@@ -309,8 +310,8 @@ class Voicebank():
 
         print("sample preprocessing started")
         sampleCount = len(self.stagedPredTrainSamples)
-        for i in range(sampleCount):
-            print("processing sample [", i + 1, "/", sampleCount, "]")
+        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
+            #tqdm.write("processing sample [", i + 1, "/", sampleCount, "]")
             calculatePitch(self.stagedPredTrainSamples[i], False)
             calculateSpectra(self.stagedPredTrainSamples[i], False)
             avgSpecharm = torch.cat((self.stagedPredTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedPredTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)

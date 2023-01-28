@@ -7,6 +7,7 @@
 
 import math
 import torch
+from tqdm.auto import tqdm
 from torchaudio.functional import detect_pitch_frequency
 from Backend.DataHandler.AudioSample import AudioSample
 import global_consts
@@ -28,8 +29,9 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
     try:
         audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
     except Exception as e:
-        print("nonfatal_pitch_calc_err")
-        print(e)
+        tqdm.write("nonfatal pitch calculation error:")
+        tqdm.write(repr(e))
+        tqdm.write("using fallback method for current sample")
         calculatePitchFallback(audioSample)
     if audioSample.pitchDeltas.size()[0] < 2:
         calculatePitchFallback(audioSample)

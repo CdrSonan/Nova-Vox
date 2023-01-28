@@ -67,7 +67,7 @@ class Note(ManagedToggleButton):
                 return
             effPhonemeStart += 1
         self.canvas.remove(self.statusBars[index - effPhonemeStart])
-        del self.statusBars[index - reference.phonemeStart]
+        del self.statusBars[index - effPhonemeStart]
         rectanglePos = (self.pos[0] + (index - effPhonemeStart) / (reference.phonemeEnd - effPhonemeStart) * self.width, self.pos[1] + self.height * status / 5.)
         rectangleSize = (self.width / (reference.phonemeEnd - effPhonemeStart), self.height * (1. - status / 5.))
         group = InstructionGroup()
@@ -168,12 +168,14 @@ class Note(ManagedToggleButton):
 
     def redrawStatusBars(self) -> None:
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
+        if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) <= reference.phonemeStart:
+            return
         phonemeLength = reference.phonemeEnd - reference.phonemeStart
         if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
             phonemeLength -= 1
         for i in range(len(self.statusBars)):
-            self.canvas.remove(self.statusBars[i])
-            del self.statusBars[i]
+            self.canvas.remove(self.statusBars[-1])
+            del self.statusBars[-1]
         for i in range(phonemeLength):
             rectanglePos = (self.pos[0] + i / phonemeLength * self.width, self.pos[1])
             rectangleSize = (self.width / phonemeLength, self.height)

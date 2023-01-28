@@ -31,7 +31,6 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, internalSta
     issues during debugging. Neither phoneme should be implemented by any Voicebank"""
 
 
-    print("sequence trimmer called")
     phonemes = inputList[index].phonemes
     offsets = inputList[index].offsets
     repetititionSpacing = inputList[index].repetititionSpacing

@@ -90,6 +90,7 @@ def getLocale():
         locale["smp_import"] = "import sample"
         locale["stripPrefix"] = "srip Prefix:"
         locale["stripPostfix"] = "srip Postfix:"
+        locale["addExpr"] = "add Expression key:"
         locale["force_jis"] = "force shift-JIS decoding"
         locale["sample_phoneme"] = "sample phonemes"
         locale["sample_transition"] = "sample transitions"

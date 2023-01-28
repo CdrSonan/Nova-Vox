@@ -100,7 +100,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
     if len(sequence) == 1:
         sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
         output.append(sample)
-        sharedKey = "_".join(sequence[0], expr)
+        sharedKey = "_".join([sequence[0], expr])
         if typeSequence[0] == "V":
             sample = UtauSample(filepath, 1, None, offset + fixed, None, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
@@ -113,7 +113,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
             sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True)
         output.append(sample)
     elif len(sequence) == 2:
-        sharedKey = "_".join(sequence[0], expr)
+        sharedKey = "_".join([sequence[0], expr])
         if typeSequence[0] == "V":
             sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
@@ -132,7 +132,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
             output.append(sample)
             sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
-        sharedKey = "_".join(sequence[1], expr)
+        sharedKey = "_".join([sequence[1], expr])
         if typeSequence[1] == "V":
             sample = UtauSample(filepath, 1, None, offset + fixed, None, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
@@ -147,7 +147,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
     elif len(sequence) == 3:
         sample = UtauSample(filepath, 1, None, offset, offset + (overlap + preuttr) / 2, offset, fixed, blank, preuttr, overlap)
         output.append(sample)
-        sharedKey = "_".join(sequence[1], expr)
+        sharedKey = "_".join([sequence[1], expr])
         if typeSequence[1] == "V":
             sample = UtauSample(filepath, 1, None, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
@@ -161,7 +161,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
         output.append(sample)
         sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap)
         output.append(sample)
-        sharedKey = "_".join(sequence[2], expr)
+        sharedKey = "_".join([sequence[2], expr])
         if typeSequence[2] == "V":
             sample = UtauSample(filepath, 1, None, offset + fixed, None, offset, fixed, blank, preuttr, overlap)
             output.append(sample)
