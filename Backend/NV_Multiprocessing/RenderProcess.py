@@ -96,7 +96,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 excitationCache.append(copy(excitationCache[change.data[0]]))
         elif change.type == "changeVB":
             del voicebankList[change.data[0]]
-            voicebankList.insert(change.data[0], LiteVoicebank(change.data[1]))
+            voicebankList.insert(change.data[0], LiteVoicebank(change.data[1], device = device_ai))
             statusControl[change.data[0]].rs *= 0
             statusControl[change.data[0]].ai *= 0
         elif change.type == "nodeUpdate":

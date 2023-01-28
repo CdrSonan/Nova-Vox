@@ -25,6 +25,8 @@ class ErrorHandler(ExceptionHandler):
 def handleRendererException(exception):
     print("Attempting error recovery for renderer error:")
     print(exception)
+    global middleLayer
+    from UI.code.editor.Main import middleLayer
     try:
         middleLayer.validate()
     except:
@@ -33,6 +35,8 @@ def handleRendererException(exception):
 
 def handleMainException(exception):
     print("Attempting error recovery for non-UI main process error:")
+    global middleLayer
+    from UI.code.editor.Main import middleLayer
     try:
         print_exc()
     except:

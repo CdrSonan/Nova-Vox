@@ -53,6 +53,7 @@ class Note(ManagedToggleButton):
         self.pos = (self.xPos * self.parent.parent.xScale, self.yPos * self.parent.parent.yScale)
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
+        self.redrawStatusBars()
 
     def updateStatus(self, index, status):
         """updates one of the status bars present on the note"""
@@ -163,6 +164,9 @@ class Note(ManagedToggleButton):
         if focus:
             return
         middleLayer.changeLyrics(self.index, text)
+        self.redrawStatusBars()
+
+    def redrawStatusBars(self) -> None:
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
         phonemeLength = reference.phonemeEnd - reference.phonemeStart
         if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
