@@ -16,6 +16,8 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     """Method for calculating spectral data based on the previously set attributes filterWidth, voicedFilter and unvoicedIterations.
         
     Arguments:
+        audioSample: instance of AudioSample to pull data from and to write results to
+
         useVariance: whether to use variance statistics to reduce outliers in the sample
             
     Returns:

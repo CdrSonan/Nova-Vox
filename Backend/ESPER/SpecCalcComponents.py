@@ -143,13 +143,17 @@ def averageSpectra(audioSample:AudioSample, useVariance:bool = True) -> AudioSam
     return audioSample
 
 def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
-    "calculates DIO Pitch markers for a single window of an AudioSample. They can then be used for voiced/unvoiced signal separation."
+    """calculates precise Pitch markers for a given waveform using an algorithm inspired by DIO.
+    
+    Arguments:
+        audioSample: expected to be an AudioSample instance already contain a valid pitch estimation in its pitch and pitchDeltas attributes.
+
+        wave: expected to be the waveform or the same sample padded by global_consts.halfTripleBatchSize * global_consts.filterBSMult on both sides.
+        """
 
     def pitch(pos:int) -> float:
-        return audioSample.pitchDeltas[min(int((pos - global_consts.halfTripleBatchSize * global_consts.filterBSMult) / global_consts.batchSize), audioSample.pitchDeltas.size()[0] - 1)].to(torch.int64)
-    
-    maximumMarkers = torch.tensor([], dtype = torch.int16)
-    minimumMarkers = torch.tensor([], dtype = torch.int16)
+        effectivePos = int((pos - global_consts.halfTripleBatchSize * global_consts.filterBSMult) / global_consts.batchSize)
+        return audioSample.pitchDeltas[min(max(effectivePos, 0), audioSample.pitchDeltas.size()[0] - 1)].to(torch.int64)
 
     #get full list of zero transitions
     zeroTransitionsUp = torch.tensor([], dtype = int)
@@ -263,30 +267,42 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
     if length <= 1:
         return torch.tensor([0, audioSample.pitch], dtype = torch.float32)
 
+    markers = torch.tensor([])
+    """maximumMarkers = torch.tensor([], dtype = torch.int16)
+    minimumMarkers = torch.tensor([], dtype = torch.int16)
+    
     for j in range(length):
         #print("2", j, "/", length)
         workingWindow = wave[upTransitionMarkers[j] - 2:downTransitionMarkers[j] + 1]
-        convKernel = torch.tensor([1., 1.1, 1.])
+        convKernel = torch.tensor([-0.5, 1., -0.5])
         scores = torch.tensor([])
+        localPitch = pitch(upTransitionMarkers[j])
         for k in range(workingWindow.size()[0] - 2):
-            bias = 1. - (global_consts.DIOBias * k / (workingWindow.size()[0] - 2))
+            if maximumMarkers.size()[0] == 0:
+                bias = 1.
+            else:
+                bias = global_consts.DIOBias2 + 1. - torch.abs(upTransitionMarkers[j] + k - 2 - maximumMarkers[-1] - localPitch) / localPitch
             scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
         maximumMarkers = torch.cat((maximumMarkers, torch.unsqueeze(torch.argmax(scores) + upTransitionMarkers[j], 0)), 0)
     for j in range(length - 1):
         #print("3", j, "/", length)
         workingWindow = wave[downTransitionMarkers[j] - 2:upTransitionMarkers[j + 1] + 1]
-        convKernel = torch.tensor([-1., -1.1, -1.])
+        convKernel = torch.tensor([0.5, -1., 0.5])
         scores = torch.tensor([])
+        localPitch = pitch(downTransitionMarkers[j])
         for k in range(workingWindow.size()[0] - 2):
-            bias = 1. - (global_consts.DIOBias * k / (workingWindow.size()[0] - 2))
+            if maximumMarkers.size()[0] == 0:
+                bias = 1.
+            else:
+                bias = global_consts.DIOBias2 + 1. - torch.abs(downTransitionMarkers[j] + k - 2 - maximumMarkers[-1] - localPitch) / localPitch
             scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
         minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[j], 0)), 0)
     if wave.size()[0] - downTransitionMarkers[-1] > audioSample.pitchDeltas[-1] * global_consts.DIOLastWinTolerance:
         workingWindow = wave[downTransitionMarkers[-1] - 2:-1]
-        convKernel = torch.tensor([-1., -1.1, -1.])
+        convKernel = torch.tensor([0.5, -1., 0.5])
         scores = torch.tensor([])
         for k in range(workingWindow.size()[0] - 2):
-            bias = 1. - (global_consts.DIOBias * k / (workingWindow.size()[0] - 2))
+            bias = global_consts.DIOBias2 - torch.abs(downTransitionMarkers[-1] + k - 2 - maximumMarkers[-1] - localPitch) / localPitch
             scores = torch.cat((scores, torch.unsqueeze(torch.sum(workingWindow[k:k+3] * convKernel * bias), 0)), 0)
         minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(torch.argmax(scores) + downTransitionMarkers[-1], 0)), 0)
     elif downTransitionMarkers.size()[0] == 1:
@@ -294,13 +310,17 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
         minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(marker, 0)), 0)
     else:
         marker = minimumMarkers[-1] + torch.mean(torch.tensor((upTransitionMarkers[-1] - upTransitionMarkers[-2], downTransitionMarkers[-1] - downTransitionMarkers[-2], maximumMarkers[-1] - maximumMarkers[-2]), dtype = torch.float32))
-        minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(marker, 0)), 0)
+        minimumMarkers = torch.cat((minimumMarkers, torch.unsqueeze(marker, 0)), 0)"""
 
-    markers = torch.tensor([])
     for j in range(length):
-        markers = torch.cat((markers, torch.unsqueeze((upTransitionMarkers[j] + downTransitionMarkers[j] + maximumMarkers[j] + minimumMarkers[j]) / 4, 0)), 0)
+        #markers = torch.cat((markers, torch.unsqueeze((upTransitionMarkers[j] + downTransitionMarkers[j] + maximumMarkers[j] + minimumMarkers[j]) / 4, 0)), 0)
+        markers = torch.cat((markers, torch.unsqueeze((upTransitionMarkers[j] + downTransitionMarkers[j]) / 2., 0)), 0)
     if markers[-1] >= wave.size()[0] - 1:
         markers = markers[:-1]
+    #import matplotlib.pyplot as plt
+    #plt.plot(wave)
+    #plt.vlines(upTransitionMarkers, torch.full_like(minimumMarkers, -1), torch.full_like(minimumMarkers, 1), color = "red")
+    #plt.show()
     return markers
 
 def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
