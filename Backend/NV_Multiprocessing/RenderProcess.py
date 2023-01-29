@@ -142,29 +142,25 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             statusControl[change.data[0]].ai *= 0
         elif change.type == "changeInput":
             if change.data[1] in ["phonemes", "offsets", "repetititionSpacing"]:
-                if change.data[1] == "phonemes":
-                    for j in range(len(change.data[3])):
-                        if inputList[change.data[0]].phonemes[change.data[2] + j] == "_autopause":
-                            inputList[change.data[0]].startCaps[change.data[2] + j] = False
-                            inputList[change.data[0]].endCaps[change.data[2] + j] = False
-                            if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
-                                inputList[change.data[0]].startCaps[change.data[2] + j + 1] = False
-                            if change.data[2] + j > 0:
-                                inputList[change.data[0]].endCaps[change.data[2] + j - 1] = False
                 eval("inputList[change.data[0]]." + change.data[1])[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].rs[change.data[2]:change.data[2] + len(change.data[3])] *= 0
                 statusControl[change.data[0]].ai[change.data[2]:change.data[2] + len(change.data[3])] *= 0
                 if change.data[1] == "phonemes":
                     for j in range(len(change.data[3])):
                         if change.data[3][j] == "_autopause":
-                            inputList[change.data[0]].startCaps[change.data[2] + j] = True
-                            inputList[change.data[0]].endCaps[change.data[2] + j] = True
                             if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
                                 inputList[change.data[0]].startCaps[change.data[2] + j + 1] = True
                             if change.data[2] + j > 0:
                                 inputList[change.data[0]].endCaps[change.data[2] + j - 1] = True
-                        if j + 1 == len(change.data[3]):
-                            inputList[change.data[0]].endCaps[change.data[2] + j] = True
+                        else:
+                            if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
+                                inputList[change.data[0]].startCaps[change.data[2] + j + 1] = False
+                            if change.data[2] + j > 0:
+                                inputList[change.data[0]].endCaps[change.data[2] + j - 1] = False
+                    if change.data[2] + len(change.data[3]) == len(inputList[change.data[0]].startCaps):
+                        inputList[change.data[0]].endCaps[-1] = True
+                    if change.data[2] == 0:
+                        inputList[change.data[0]].startCaps[0] = True
             elif change.data[1] == "borders":
                 print("RECV BORDER CHANGE", change.data[2], change.data[3], inputList[change.data[0]].borders)
                 start = inputList[change.data[0]].borders[change.data[2]] * global_consts.batchSize
