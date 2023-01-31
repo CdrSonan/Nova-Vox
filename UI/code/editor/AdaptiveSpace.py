@@ -10,7 +10,7 @@ from kivy.graphics import Color, Line, Rectangle
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.core.window import Window
-from UI.code.editor.Util import fullRoot
+from kivy.app import App
 
 class AdaptiveSpace(AnchorLayout):
     """Contains a ParamCurve, TimingOptions or PitchOptions widget depending on the current mode, and handles adressing and switching between them."""
@@ -20,7 +20,7 @@ class AdaptiveSpace(AnchorLayout):
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
-        root = fullRoot(self)
+        root = App.get_running_app().root
         if self.collide_point(*self.to_widget(*pos)):
             Window.set_system_cursor("crosshair")
             root.cursorSource = self

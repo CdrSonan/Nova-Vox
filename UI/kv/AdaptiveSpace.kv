@@ -7,8 +7,6 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-#:import fullRoot UI.code.editor.Util.fullRoot
-
 <ParamCurve>:
     on_scroll_x: self.parent.triggerScroll()
     do_scroll: (True, False)
@@ -18,9 +16,9 @@
     Widget:
         #widget covers the entire parent ScrollView, except for the scroll bar at the bottom
         size_hint: (None, None)
-        y: self.parent.y + 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.y + 10
+        y: self.parent.y + 10 * app.root.uiScale
         width: int(self.parent.xScale * self.parent.seqLength)
-        height: self.parent.height - 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.height - 10
+        height: self.parent.height - 10 * app.root.uiScale
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)
@@ -41,9 +39,9 @@
     Widget:
         #widget covers the entire parent ScrollView, except for the scroll bar at the bottom
         size_hint: (None, None)
-        y: self.parent.y + 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.y + 10
+        y: self.parent.y + 10 * app.root.uiScale
         width: int(self.parent.xScale * self.parent.seqLength)
-        height: self.parent.height - 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.height - 10
+        height: self.parent.height - 10 * app.root.uiScale
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)
@@ -68,9 +66,9 @@
     Widget:
         #widget covers the entire parent ScrollView, except for the scroll bar at the bottom
         size_hint: (None, None)
-        y: self.parent.y + 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.y + 10
+        y: self.parent.y + 10 * app.root.uiScale
         width: int(self.parent.xScale * self.parent.seqLength)
-        height: self.parent.height - 10 * fullRoot(root).uiScale if "uiScale" in fullRoot(root).__dict__.keys() else self.parent.height - 10
+        height: self.parent.height - 10 * app.root.uiScale
         canvas:
             Color:
                 rgba: (0.5, 0.5, 0.5, 1)

@@ -15,9 +15,10 @@
     on_press: self.parent.parent.parent.parent.detailElement(self.index)
 
 <FileSidePanel>:
-    size_hint: (0.4, 1 - (50 / root.height))
-    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
-    background_color: [0.137, 0.125, 0.173, 0.5]
+    size_hint: (0.4, None)
+    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    height: app.root.height - 50 * app.root.uiScale
+    background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     BoxLayout:
         padding: 10
@@ -51,6 +52,9 @@
     size_hint: (None, None)
     size: (400, 400)
     title: "render settings"
+    separator_color: app.root.accColor
+    background: "UI/assets/Toolbar/overlayfull.png"
+    overlay_color: [0, 0, 0, 0]
     BoxLayout:
         padding: 10
         spacing: 10
@@ -106,9 +110,10 @@
             on_press: self.parent.parent.parent.parent.finalisingClose()
 
 <SingerSidePanel>:
-    size_hint: (0.4, 1 - (50 / root.height))
-    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
-    background_color: [0.137, 0.125, 0.173, 0.5]
+    size_hint: (0.4, None)
+    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    height: app.root.height - 50 * app.root.uiScale
+    background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     on_open: self.listVoicebanks()
     BoxLayout:
@@ -181,9 +186,10 @@
         
 
 <ParamSidePanel>:
-    size_hint: (0.4, 1 - (50 / root.height))
-    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
-    background_color: [0.137, 0.125, 0.173, 0.5]
+    size_hint: (0.4, None)
+    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    height: app.root.height - 50 * app.root.uiScale
+    background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     on_open: self.listParams()
     BoxLayout:
@@ -262,9 +268,10 @@
             on_press: root.importParam(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.parameters[self.parent.parent.selectedIndex].name)
 
 <ScriptingSidePanel>:
-    size_hint: (0.4, 1 - (50 / root.height))
-    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
-    background_color: [0.137, 0.125, 0.173, 0.5]
+    size_hint: (0.4, None)
+    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    height: app.root.height - 50 * app.root.uiScale
+    background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     on_open: self.loadCache()
     on_pre_dismiss: self.saveCache()
@@ -286,9 +293,10 @@
             on_press: self.parent.parent.openDevkit()
 
 <SettingsSidePanel>:
-    size_hint: (0.4, 1 - (50 / root.height))
-    pos_hint: {"x": 0.6 - (25 / root.width), "y": 0}
-    background_color: [0.137, 0.125, 0.173, 0.5]
+    size_hint: (0.4, None)
+    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    height: app.root.height - 50 * app.root.uiScale
+    background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     on_open: self.readSettings()
     on_pre_dismiss: self.writeSettings()

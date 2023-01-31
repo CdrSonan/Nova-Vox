@@ -7,14 +7,13 @@
 
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
-from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
+from kivy.properties import ObjectProperty, NumericProperty
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.bubble import BubbleButton
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner, SpinnerOption
-from kivy.uix.splitter import SplitterStrip, Splitter
 from kivy.core.window import Window
+from kivy.app import App
 
 def fullRoot(widget):
     root = widget
@@ -38,7 +37,7 @@ class ImageButton(ButtonBehavior, Image):
             self.color = (1., 1., 1., 1.)
 
     def on_press(self) -> None:
-        root = fullRoot(self)
+        root = App.get_running_app().root
         if "accColor" in dir(root):
             self.color = root.accColor
         if self.function != None:
@@ -58,7 +57,7 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
 
     def on_mouseover(self, window, pos):
         if self.state == 'down':
-            root = fullRoot(self)
+            root = App.get_running_app().root
             if "accColor" in dir(root):
                 self.color = root.accColor
         elif self.collide_point(*self.to_widget(*pos)):
@@ -89,7 +88,7 @@ class ManagedButton(Button):
             self.background_color = (1., 1., 1., 1.)
 
     def on_press(self) -> None:
-        root = fullRoot(self)
+        root = App.get_running_app().root
         if "accColor" in dir(root):
             self.background_color = root.accColor
         if self.function != None:
@@ -109,7 +108,7 @@ class ManagedToggleButton(ToggleButton):
 
     def on_mouseover(self, window, pos):
         if self.state == 'down':
-            root = fullRoot(self)
+            root = App.get_running_app().root
             if "accColor" in dir(root):
                 self.background_color = root.accColor
         elif self.collide_point(*self.to_widget(*pos)):
@@ -138,7 +137,7 @@ class ManagedSpinnerOptn(SpinnerOption):
             self.background_color = (1., 1., 1., 1.)
 
     def on_press(self) -> None:
-        root = fullRoot(self)
+        root = App.get_running_app().root
         if "accColor" in dir(root):
             self.background_color = root.accColor
 
@@ -154,7 +153,7 @@ class ManagedSpinner(Spinner):
 
     def on_mouseover(self, window, pos):
         if self.is_open:
-            root = fullRoot(self)
+            root = App.get_running_app().root
             if "accColor" in dir(root):
                 self.background_color = root.accColor
         elif self.collide_point(*self.to_widget(*pos)):
@@ -174,7 +173,7 @@ class ManagedSplitterStrip(Button):
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
-        root = fullRoot(self)
+        root = App.get_running_app().root
         if self.collide_point(*self.to_widget(*pos)):
             self.background_color = (0.5, 0.5, 0.5, 1.)
             if self.parent.sizable_from[0] in ('t', 'b'):
@@ -189,7 +188,7 @@ class ManagedSplitterStrip(Button):
                 root.cursorSource = root
 
     def on_press(self) -> None:
-        root = fullRoot(self)
+        root = App.get_running_app().root
         if "accColor" in dir(root):
             self.background_color = root.accColor
         super().on_press()
@@ -206,7 +205,7 @@ class NumberInput(TextInput):
         s += "".join(char for char in substring if char.isdigit())
         return super().insert_text(s, from_undo=from_undo)
 
-class ReferencingButton(BubbleButton):
+class ReferencingButton(ManagedButton):
     """A button with an additional property for keeping a reference to a different, arbitrary object"""
 
     reference = ObjectProperty()

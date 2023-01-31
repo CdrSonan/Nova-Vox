@@ -35,11 +35,6 @@ from UI.code.editor.Util import ListElement
 class FileSidePanel(ModalView):
     """Side panel for saving, loading, importing, exporting and rendering files"""
 
-    uiScale = NumericProperty()
-    toolColor = ColorProperty()
-    accColor = ColorProperty()
-    bgColor = ColorProperty()
-
     def save(self) -> None:
         """saves the current work to a .nvx file"""
 
@@ -66,15 +61,10 @@ class FileSidePanel(ModalView):
     def openRenderPopup(self) -> None:
         """opens a popup containing the settings for rendering files"""
 
-        FileRenderPopup(uiScale = self.uiScale, toolColor = self.toolColor, accColor = self.accColor, bgColor = self.bgColor).open()
+        FileRenderPopup().open()
 
 class FileRenderPopup(Popup):
     """Popup triggered from the file side panel, containing settings specific to rendering files"""
-
-    uiScale = NumericProperty()
-    toolColor = ColorProperty()
-    accColor = ColorProperty()
-    bgColor = ColorProperty()
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -126,11 +116,6 @@ class FileRenderPopup(Popup):
 class SingerSidePanel(ModalView):
     """Side panel containing a list of installed Voicebanks, and options to display info about them and load them"""
 
-    uiScale = NumericProperty()
-    toolColor = ColorProperty()
-    accColor = ColorProperty()
-    bgColor = ColorProperty()
-
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.voicebanks = []
@@ -181,11 +166,6 @@ class SingerSidePanel(ModalView):
 class ParamSidePanel(ModalView):
     """Side panel containing a list of installed parameters, and options to display info about them and load them"""
 
-    uiScale = NumericProperty()
-    toolColor = ColorProperty()
-    accColor = ColorProperty()
-    bgColor = ColorProperty()
-
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.parameters = []
@@ -232,11 +212,6 @@ class ParamSidePanel(ModalView):
 class ScriptingSidePanel(ModalView):
     """side panel containing options for scripting, loading and unloading addons, and opening the devkit"""
 
-    uiScale = NumericProperty()
-    toolColor = ColorProperty()
-    accColor = ColorProperty()
-    bgColor = ColorProperty()
-
     def openDevkit(self) -> None:
         """opens the devkit as a separate process through the OS"""
 
@@ -271,11 +246,6 @@ class ScriptingSidePanel(ModalView):
 
 class SettingsSidePanel(ModalView):
     """Class for a side panel displaying a settings menu for the program"""
-
-    uiScale = NumericProperty()
-    toolColor = ColorProperty()
-    accColor = ColorProperty()
-    bgColor = ColorProperty()
 
     def __init__(self, **kwargs) -> None:
         audioApis = sounddevice.query_hostapis()
