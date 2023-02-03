@@ -507,7 +507,7 @@ class UtauImportUi(tkinter.Frame):
                                 self.phonemeList.list.lb.insert("end", sample.handle)
 
                 except LookupError as error:
-                    tqdm.write(error)
+                    tqdm.write(repr(error))
                     if occuredError == None:
                         occuredError = 0
                     logging.warning(error)

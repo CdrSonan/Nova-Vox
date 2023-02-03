@@ -1,16 +1,18 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+# Copyright 2022, 2023 Contributors to the Nova-Vox project
 
-#This file is part of Nova-Vox.
-#Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
-#Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
+# This file is part of Nova-Vox.
+# Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+# Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 try:
     import pyi_splash
-    #pyi_splash is only available when the program is packaged and launched through the PyInstaller Bootstrapper.
-    #to avoid issues when running the program prior to packaging, pyi_splash is replaced with the PseudoSplash dummy class, which implements all relevant methods, in that case.
+    # pyi_splash is only available when the program is packaged and launched through the PyInstaller Bootstrapper.
+    # to avoid issues when running the program prior to packaging, pyi_splash is replaced with the PseudoSplash dummy class, which implements all relevant methods, in that case.
 except ImportError:
     class PseudoSplash:
+        """Dummy class replacing pyi_splash if the program is not run through PyInstaller"""
+
         def __init__(self):
             pass
         def is_alive(self):
@@ -27,35 +29,36 @@ if pyi_splash.is_alive():
 from MiddleLayer.IniParser import readSettings
 settings = readSettings()
 if settings["tensorCores"] == "enabled":
-    tcores = True
+    TCORES = True
 elif settings["tensorCores"] == "disabled":
-    tcores = False
+    TCORES = False
 else:
     print("could not read tensor core setting. Tensor cores have been disabled by default.")
-    tcores = False
-torch.backends.cuda.matmul.allow_tf32 = tcores
-torch.backends.cudnn.allow_tf32 = tcores
+    TCORES = False
+torch.backends.cuda.matmul.allow_tf32 = TCORES
+torch.backends.cudnn.allow_tf32 = TCORES
 
 if pyi_splash.is_alive():
     pyi_splash.update_text("importing utility libraries...")
 import sys
 from os import getenv, path, makedirs
+from traceback import print_exc
 if pyi_splash.is_alive():
     pyi_splash.update_text("starting logging process...")
 import logging
 if settings["loglevel"] == "debug":
-    loglevel = logging.DEBUG
+    LOGLEVEL = logging.DEBUG
 elif settings["loglevel"] == "info":
-    loglevel = logging.INFO
+    LOGLEVEL = logging.INFO
 elif settings["loglevel"] == "warning":
-    loglevel = logging.WARNING
+    LOGLEVEL = logging.WARNING
 elif settings["loglevel"] == "error":
-    loglevel = logging.ERROR
+    LOGLEVEL = logging.ERROR
 elif settings["loglevel"] == "critical":
-    loglevel = logging.CRITICAL
+    LOGLEVEL = logging.CRITICAL
 else:
     print("could not read loglevel setting. Loglevel has been set to \"info\" by default.")
-    loglevel = logging.INFO
+    LOGLEVEL = logging.INFO
 
 logPath = path.join(getenv("APPDATA"), "Nova-Vox", "Logs")
 try:
@@ -65,7 +68,7 @@ except FileExistsError:
 
 logPath = path.join(logPath, "editor.log")
 
-logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename=logPath, filemode = "w", force = True, level=loglevel)
+logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename=logPath, filemode = "w", force = True, level=LOGLEVEL)
 logging.info("logging service started")
 
 if __name__ == '__main__':
@@ -80,18 +83,18 @@ if __name__ == '__main__':
     from kivy.base import ExceptionManager
     from MiddleLayer.ErrorHandler import ErrorHandler
     if settings["lowSpecMode"] == "disabled":
-        updateInterval = 0.25
+        UPDATEINTERVAL = 0.25
     elif settings["lowSpecMode"] == "enabled":
-        updateInterval = 2.
+        UPDATEINTERVAL = 2.
     else:
         print("could not read low-spec mode setting. low-spec mode has been disabled by default.")
-        updateInterval = 0.25
+        UPDATEINTERVAL = 0.25
     from UI.code.editor.Main import NovaVoxUI
     class NovaVoxApp(App):
         def build(self):
             self.icon = path.join("icon", "nova-vox-logo-2-color.png")
             ui = NovaVoxUI()
-            Clock.schedule_interval(ui.update, updateInterval)
+            Clock.schedule_interval(ui.update, UPDATEINTERVAL)
             return ui
     Window.minimum_height = 500
     Window.minimum_width = 800
@@ -116,7 +119,7 @@ if __name__ == '__main__':
     logging.info("starting render manager")
     if pyi_splash.is_alive():
         pyi_splash.update_text("starting renderer subprocess")
-    if (sys.platform.startswith('win')) == False:
+    if not sys.platform.startswith('win'):
         mp.set_start_method("spawn")
 
     from asyncio import get_event_loop
@@ -128,6 +131,7 @@ if __name__ == '__main__':
     try:
         loop.run_until_complete(NovaVoxApp().async_run(async_lib='asyncio'))
     except Exception as e:
+        print_exc()
         print("Irrecoverable error.")
         print("Press <Enter> to close this window.")
         input("")

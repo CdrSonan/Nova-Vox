@@ -1,9 +1,9 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+# Copyright 2022, 2023 Contributors to the Nova-Vox project
 
-#This file is part of Nova-Vox.
-#Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
-#Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
+# This file is part of Nova-Vox.
+# Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+# Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn, rerenderFlagIn, connectionIn, remoteConnectionIn):
 
@@ -63,9 +63,11 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
 
     def updateFromMain(change, lastZero):
         global statusControl, voicebankList, nodeGraphList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
+        print("update call")
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
+            print("add track received")
             statusControl.append(SequenceStatusControl(change.data[2]))
             voicebankList.append(LiteVoicebank(change.data[0], device = device_ai))
             nodeGraphList.append(change.data[1])
@@ -75,6 +77,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 spectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
                 processedSpectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
                 excitationCache.append(DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64))
+                pitchCache.append(DenseCache((length,), device_rs))
+            print("add track complete")
         elif change.type == "removeTrack":
             del statusControl[change.data[0]]
             del voicebankList[change.data[0]]
@@ -84,6 +88,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 del spectrumCache[change.data[0]]
                 del processedSpectrumCache[change.data[0]]
                 del excitationCache[change.data[0]]
+                del pitchCache[change.data[0]]
             remoteConnection.put(StatusChange(None, None, None, "deletion"))
         elif change.type == "duplicateTrack":
             statusControl.append(copy(statusControl[change.data[0]]))
@@ -94,6 +99,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 spectrumCache.append(copy(spectrumCache[change.data[0]]))
                 processedSpectrumCache.append(copy(processedSpectrumCache[change.data[0]]))
                 excitationCache.append(copy(excitationCache[change.data[0]]))
+                pitchCache.append(copy(pitchCache[change.data[0]]))
         elif change.type == "changeVB":
             del voicebankList[change.data[0]]
             voicebankList.insert(change.data[0], LiteVoicebank(change.data[1], device = device_ai))
@@ -236,10 +242,10 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         pitchCache = []
         for i in range(len(statusControl)):
             length = inputList[i].pitch.size()[0]
-            spectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
-            processedSpectrumCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), device = device_rs))
-            excitationCache.append(torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs))
-            pitchCache.append(torch.zeros((length,), dtype = torch.complex64, device = device_rs))
+            spectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
+            processedSpectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
+            excitationCache.append(DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64))
+            pitchCache.append(DenseCache((length,), device_rs))
 
     #main loop consisting of rendering iterations, and updates when required
     while True:
@@ -247,11 +253,10 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
 
         try:
             #iterate through individual VocalSequence objects
-            for i in range(len(statusControl)):
+            for i, internalStatusControl in enumerate(statusControl):
 
                 #set up data structures specific to rendering iteration
                 logging.info("starting new sequence rendering iteration, copying data from main process")
-                internalStatusControl = statusControl[i]
                 internalInputs = inputList[i]
 
                 voicebank = voicebankList[i]
@@ -308,8 +313,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             internalStatusControl.ai[k + j] = indicator
                 firstPoint = len(internalStatusControl.ai) - 1
                 lastPoint = len(internalStatusControl.ai) - 1
-                for k in range(len(internalStatusControl.ai)):
-                    if internalStatusControl.ai[k] <= 0:
+                for k, flag in enumerate(internalStatusControl.ai):
+                    if flag <= 0:
                         firstPoint = k
                         break
                 for k in range(len(internalStatusControl.ai)):
@@ -535,17 +540,14 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 else:
                     continue
                 break
-            logging.info("rendering process finished for all sequences, waiting for render semaphore")
+            logging.info("rendering process finished, waiting for render semaphore")
+            print("rendering iteration finished, waiting for render flag...")
             rerenderFlag.wait()
             rerenderFlag.clear()
-            try:
-                c = connection.get_nowait()
-            except:
-                c = None
-            if c != None:
-                if updateFromMain(c, lastZero):
-                    break
-        except Exception as e:
+            c = connection.get()
+            if updateFromMain(c, lastZero):
+                break
+        except Exception as exc:
             print_exc()
-            remoteConnection.put(StatusChange(None, None, e, "error"))
+            remoteConnection.put(StatusChange(None, None, exc, "error"))
             break

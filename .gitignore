@@ -1,7 +1,9 @@
 build/
 dist/
 venv/
+.idea/
 .vs/
+.vscode/
 Voices/
 __pycache__/
 *setup.exe

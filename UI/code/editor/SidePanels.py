@@ -11,7 +11,6 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.app import App
-from kivy.properties import NumericProperty, ColorProperty
 
 from tkinter import Tk, filedialog
 
