@@ -12,6 +12,7 @@ from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner, SpinnerOption
+from kivy.uix.modalview import ModalView
 from kivy.core.window import Window
 from kivy.app import App
 
@@ -174,18 +175,20 @@ class ManagedSplitterStrip(Button):
 
     def on_mouseover(self, window, pos):
         root = App.get_running_app().root
-        if self.collide_point(*self.to_widget(*pos)):
+        if self.collide_point(*self.to_widget(*pos)) and root.cursorPrio <= 1:
             self.background_color = (0.5, 0.5, 0.5, 1.)
             if self.parent.sizable_from[0] in ('t', 'b'):
                 Window.set_system_cursor("size_ns")
             else:
                 Window.set_system_cursor("size_we")
             root.cursorSource = self
+            root.cursorPrio = 1
         else:
             self.background_color = (1., 1., 1., 1.)
             if root.cursorSource == self:
                 Window.set_system_cursor("arrow")
                 root.cursorSource = root
+                root.cursorPrio = 0
 
     def on_press(self) -> None:
         root = App.get_running_app().root
@@ -196,6 +199,23 @@ class ManagedSplitterStrip(Button):
     def on_release(self) -> None:
         super().on_release()
         self.on_mouseover(self, Window.mouse_pos)
+        
+class CursorAwareView(ModalView):
+    """A modified ModalView that overrides mouse cursor changes from widgets with lower priority"""
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(mouse_pos=self.on_mouseover)
+
+    def on_mouseover(self, window, pos):
+        root = App.get_running_app().root
+        if self.collide_point(*self.to_widget(*pos)) and root.cursorPrio <= 2:
+            Window.set_system_cursor("arrow")
+            root.cursorSource = self
+            root.cursorPrio = 2
+        elif root.cursorSource == self:
+            root.cursorSource = root
+            root.cursorPrio = 0
 
 class NumberInput(TextInput):
     """A modified text input field that sanitizes the input, ensuring it is always an integer number"""

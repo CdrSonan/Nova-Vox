@@ -21,12 +21,14 @@ class AdaptiveSpace(AnchorLayout):
 
     def on_mouseover(self, window, pos):
         root = App.get_running_app().root
-        if self.collide_point(*self.to_widget(*pos)):
+        if self.collide_point(*self.to_widget(*pos)) and root.cursorPrio <= 1:
             Window.set_system_cursor("crosshair")
             root.cursorSource = self
+            root.cursorPrio = 1
         elif root.cursorSource == self:
             Window.set_system_cursor("arrow")
             root.cursorSource = root
+            root.cursorPrio = 0
 
     def redraw(self) -> None:
         """redraws the currently widget currently displayed by the adaptive space. Used during several update procedures."""

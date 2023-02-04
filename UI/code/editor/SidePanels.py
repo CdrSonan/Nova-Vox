@@ -7,7 +7,6 @@
 
 from kivy.core.image import Image as CoreImage
 
-from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.app import App
@@ -28,10 +27,10 @@ import global_consts
 from MiddleLayer.IniParser import readSettings, writeSettings
 from MiddleLayer.FileIO import saveNVX, loadNVX
 
-from UI.code.editor.Util import ListElement
+from UI.code.editor.Util import ListElement, CursorAwareView
 
 
-class FileSidePanel(ModalView):
+class FileSidePanel(CursorAwareView):
     """Side panel for saving, loading, importing, exporting and rendering files"""
 
     def save(self) -> None:
@@ -112,7 +111,7 @@ class FileRenderPopup(Popup):
         self.render(dir + "." + self.format.lower())
         return False
 
-class SingerSidePanel(ModalView):
+class SingerSidePanel(CursorAwareView):
     """Side panel containing a list of installed Voicebanks, and options to display info about them and load them"""
 
     def __init__(self, **kwargs) -> None:
@@ -162,7 +161,7 @@ class SingerSidePanel(ModalView):
         from UI.code.editor.Main import middleLayer
         middleLayer.importVoicebank(path, name, image)
 
-class ParamSidePanel(ModalView):
+class ParamSidePanel(CursorAwareView):
     """Side panel containing a list of installed parameters, and options to display info about them and load them"""
 
     def __init__(self, **kwargs) -> None:
@@ -208,7 +207,7 @@ class ParamSidePanel(ModalView):
         from UI.code.editor.Main import middleLayer
         middleLayer.importParam(path, name)
 
-class ScriptingSidePanel(ModalView):
+class ScriptingSidePanel(CursorAwareView):
     """side panel containing options for scripting, loading and unloading addons, and opening the devkit"""
 
     def openDevkit(self) -> None:
@@ -243,7 +242,7 @@ class ScriptingSidePanel(ModalView):
         from UI.code.editor.Main import middleLayer
         self.ids["scripting_editor"].text = middleLayer.scriptCache
 
-class SettingsSidePanel(ModalView):
+class SettingsSidePanel(CursorAwareView):
     """Class for a side panel displaying a settings menu for the program"""
 
     def __init__(self, **kwargs) -> None:
