@@ -14,8 +14,8 @@ import torch
 
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
 from Backend.VB_Components.Ai.PredAi import SpecPredAi, HarmPredAi
-from Locale.devkit_locale import getLocale
-loc = getLocale()
+from Localization.devkit_localization import getLanguage
+loc = getLanguage()
 
 class AdvSettingsUi(tkinter.Frame):
     """class of the advanced AI settings UI window"""

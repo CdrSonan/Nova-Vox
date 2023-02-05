@@ -9,7 +9,7 @@ import torch.multiprocessing as mp
 from torch import Tensor
 import Backend.NV_Multiprocessing.RenderProcess
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, InputChange, StatusChange
-from Locale.editor_locale import getLocale
+from Localization.editor_localization import getLanguage
 
 class RenderManager():
     """Class responsible for starting, terminating, and managing the connection to a rendering process. Uses two queues for managing data flow between processes and can create a rendering process in an arbitrary state.
@@ -47,7 +47,7 @@ class RenderManager():
         self.remoteConnection = mp.Queue(0)
         for i in sequenceList:
             statusControl.append(SequenceStatusControl(i))
-        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLocale()["render_process_name"], daemon = True)
+        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLanguage()["render_process_name"], daemon = True)
         self.renderProcess.start()
 
     def receiveChange(self) -> StatusChange:

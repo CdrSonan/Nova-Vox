@@ -26,8 +26,8 @@ from Backend.DataHandler.UtauSample import UtauSample
 from Backend.UtauImport import fetchSamples
 import global_consts
 from MiddleLayer.IniParser import readSettings
-from Locale.devkit_locale import getLocale
-loc = getLocale()
+from Localization.devkit_localization import getLanguage
+loc = getLanguage()
 
 class UtauImportUi(tkinter.Frame):
     """Class of the UTAU import UI window"""

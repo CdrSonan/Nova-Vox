@@ -224,7 +224,7 @@ class Voicebank():
     def finalizePhoneme(self, key:str) -> None:
         """finalizes a Phoneme, discarding any data related to it that's not strictly required for synthesis"""
 
-        self.phonemeDict[key] = LiteAudioSample(self.phonemeDict[key])
+        self.phonemeDict[key][0] = LiteAudioSample(self.phonemeDict[key][0])
         print("staged phoneme " + key + " finalized")
     
     def addCrfTrainSample(self, filepath:str) -> None:

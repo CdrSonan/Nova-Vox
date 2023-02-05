@@ -13,8 +13,8 @@ import sys
 from Backend.VB_Components.Voicebank import Voicebank
 import global_consts
 from MiddleLayer.IniParser import readSettings
-from Locale.devkit_locale import getLocale
-loc = getLocale()
+from Localization.devkit_localization import getLanguage
+loc = getLanguage()
 
 from UI.code.devkit.Metadata import MetadataUi
 from UI.code.devkit.PhonemeDict import PhonemedictUi

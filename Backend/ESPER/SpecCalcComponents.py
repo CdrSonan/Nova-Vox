@@ -174,8 +174,10 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
     while True:
         #fallback if no match is found using any offset
         if offset == min(zeroTransitionsUp.size()[0], zeroTransitionsDown.size()[0]):
-            upTransitionMarkers = torch.unsqueeze(zeroTransitionsUp[0], 0)
-            downTransitionMarkers = torch.unsqueeze(zeroTransitionsUp[0] + int(audioSample.pitch / 2), 0)
+            #upTransitionMarkers = torch.unsqueeze(zeroTransitionsUp[0], 0)
+            #downTransitionMarkers = torch.unsqueeze(zeroTransitionsUp[0] + int(audioSample.pitch / 2), 0)
+            upTransitionMarkers = [zeroTransitionsUp[0],]
+            downTransitionMarkers = [zeroTransitionsUp[0] + int(audioSample.pitch / 2),]
             skip = True
             break
         #increase offset until a valid list of upTransitionCandidates for the first upwards transition is obtained
@@ -351,7 +353,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] = harmFunction
             harmFunction = torch.stft(window, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), onesided = True, return_complex = True)
             amplitudes = harmFunction.abs()
-            amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
+            #amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
             amplitudes = torch.mean(amplitudes, dim = 1)
             phases = torch.mean(harmFunction.angle(), dim = 1)#TODO: vector-based phase mean
             harmFunction = torch.polar(amplitudes, phases)

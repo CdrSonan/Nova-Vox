@@ -11,8 +11,8 @@ import sys
 from PIL import Image, ImageTk
 
 import global_consts
-from Locale.devkit_locale import getLocale
-loc = getLocale()
+from Localization.devkit_localization import getLanguage
+loc = getLanguage()
 
 class MetadataUi(tkinter.Frame):
     """Class of the Metadata window"""

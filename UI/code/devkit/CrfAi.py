@@ -11,8 +11,8 @@ import torch
 import sys
 
 import global_consts
-from Locale.devkit_locale import getLocale
-loc = getLocale()
+from Localization.devkit_localization import getLanguage
+loc = getLanguage()
 
 class CrfaiUi(tkinter.Frame):
     """Class of the Spectral Crossfade AI UI window"""
@@ -288,8 +288,9 @@ class CrfaiUi(tkinter.Frame):
 
         logging.info("Crfai dataset export callback")
         global loadedVB
-        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
-        loadedVB.stagedCrfTrainSamples = torch.load(filepath)
+        filepaths = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
+        for i in filepaths:
+            loadedVB.stagedCrfTrainSamples.extend(torch.load(i))
                 
     def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""

@@ -329,6 +329,7 @@
             size_hint_y: None
             height: 30
             values: ["CPU", "GPU", "Hybrid"]
+            on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
             height: 30
@@ -341,6 +342,7 @@
             size_hint_y: None
             height: 30
             values: ["disabled", "enabled"]
+            on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
             height: 30
@@ -365,6 +367,7 @@
             size_hint_y: None
             height: 30
             values: ["save RAM", "default", "best rendering speed"]
+            on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
             height: 30
@@ -390,6 +393,7 @@
             size_hint_y: None
             height: 30
             values: self.parent.parent.audioDeviceNames
+            on_text: self.parent.parent.restartAudioStream()
         Label:
             size_hint_y: None
             height: 30

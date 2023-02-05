@@ -291,7 +291,13 @@ class SettingsSidePanel(CursorAwareView):
         app.root.toolColor = self.ids["settings_toolColor"].color
         app.root.accColor = self.ids["settings_accColor"].color
         app.root.bgColor = self.ids["settings_bgColor"].color
+        
+    def restartRenderProcess(self)-> None:
+        """restarts the render process after a change to accelerator, caching or TPU settings"""
 
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        middleLayer.manager.restart(middleLayer.trackList)
 
     def readSettings(self) -> None:
         """reads the settings from the settings file"""
@@ -320,4 +326,3 @@ class SettingsSidePanel(CursorAwareView):
         else:
             audioDevice = self.audioDeviceNames[0]
         writeSettings(None, self.ids["settings_lang"].text, self.ids["settings_accel"].text, self.ids["settings_tcores"].text, self.ids["settings_lowSpecMode"].text, self.ids["settings_cachingMode"].text, self.ids["settings_audioApi"].text, audioDevice, self.ids["settings_loglevel"].text, self.ids["settings_datadir"].text, self.ids["settings_uiScale"].value, self.ids["settings_toolColor"].color, self.ids["settings_accColor"].color, self.ids["settings_bgColor"].color)
-        self.restartAudioStream()
