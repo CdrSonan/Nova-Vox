@@ -23,8 +23,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{680531A2-5B3C-47B5-8380-CA6D7033BF13}
 AppName="Nova-Vox"
-AppVersion="Alpha 6.0"
-AppVerName="Nova-Vox Alpha 6.0"
+AppVersion="Closed Beta 0.7.1"
+AppVerName="Nova-Vox Closed Beta 0.7.1"
 AppPublisher="Nova-Vox development team"
 AppPublisherURL="https://nova-vox.org/"
 AppSupportURL="https://nova-vox.org/"
@@ -111,7 +111,7 @@ end;
 Source: "dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
 Source: "dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
-;Source: "Voices\RIP Test.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Test; Flags: ignoreversion
+Source: "Voices\RIP Test.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Test; Flags: ignoreversion
 Source: "Voices\Arachne Ja.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Arachne; Flags: ignoreversion
 ;Source: "Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion
 ;Source: "Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs

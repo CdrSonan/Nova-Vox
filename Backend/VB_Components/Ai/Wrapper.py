@@ -131,7 +131,7 @@ class AIWrapper():
             self.crfAi.epoch = aiState['crfAi_epoch']
             self.crfAi.sampleCount = aiState["crfAi_sampleCount"]
             self.crfAi.load_state_dict(aiState['crfAi_model_state_dict'])
-            if self.final:
+            if not self.final:
                 self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
         if (mode == None) or (mode == "pred"):
             if reset:
@@ -144,7 +144,7 @@ class AIWrapper():
             self.predAi.sampleCount = aiState["predAi_sampleCount"]
             self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
             self.predAiHarm.load_state_dict(aiState['predAiHarm_model_state_dict'])
-            if self.final:
+            if not self.final:
                 self.predAiOptimizer.load_state_dict(aiState['predAi_optimizer_state_dict'])
                 self.predAiHarmOptimizer.load_state_dict(aiState['predAiHarm_optimizer_state_dict'])
         self.crfAi.eval()
