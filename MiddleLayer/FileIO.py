@@ -66,13 +66,13 @@ def saveNVX(path:str, middleLayer:MiddleLayer) -> None:
 def loadNVX(path:str, middleLayer:MiddleLayer) -> None:
     """backend function for loading a .nvx file"""
 
-    data = torch.load(path)
+    data = torch.load(path, map_location = torch.device("cpu"))
     tracks = data["tracks"]
     for i in range(len(middleLayer.trackList)):
         middleLayer.deleteTrack(0)
     for trackData in tracks:
         track = validateTrackData(trackData)
-        vbData = torch.load(track.vbPath)["metadata"]
+        vbData = torch.load(track.vbPath, map_location = torch.device("cpu"))["metadata"]
         middleLayer.importVoicebankNoSubmit(track.vbPath, vbData.name, vbData.image)
         middleLayer.trackList[-1].volume = track["volume"]
         for note in track["notes"]:

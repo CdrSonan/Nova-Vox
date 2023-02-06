@@ -131,7 +131,7 @@ class SingerSidePanel(CursorAwareView):
         files = os.listdir(voicePath)
         for file in files:
             if file.endswith(".nvvb"):
-                data = torch.load(os.path.join(voicePath, file))
+                data = torch.load(os.path.join(voicePath, file), map_location = torch.device("cpu"))
                 self.voicebanks.append(data["metadata"])
                 self.filepaths.append(os.path.join(voicePath, file))
         j = 0
@@ -181,7 +181,7 @@ class ParamSidePanel(CursorAwareView):
         files = os.listdir(paramPath)
         for file in files:
             if file.endswith(".nvpr"):
-                data = torch.load(os.path.join(paramPath, file))
+                data = torch.load(os.path.join(paramPath, file), map_location = torch.device("cpu"))
                 self.parameters.append(data["metadata"])
                 self.filepaths.append(os.path.join(paramPath, file))
         j = 0

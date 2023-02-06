@@ -42,7 +42,6 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
         audioSample.pitchDeltas *= mul2
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
-    print(audioSample.pitchDeltas, length)
     audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0]), audioSample.pitchDeltas, torch.linspace(0., 1., length))
     audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
 

@@ -5,13 +5,10 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-from kivy.properties import ObjectProperty
 import torch
-from os.path import isfile
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.VB_Components.Voicebank import LiteVoicebank
-from Backend.Util import ensureTensorLength
-import global_consts
+from Backend.Util import ensureTensorLength, noteToPitch
 
 class Nodegraph():
     def __init__(self) -> None:
@@ -112,10 +109,18 @@ class Track():
             self.borders = self.borders[:3 * len(self.phonemes) + 3]
         elif len(self.borders) < 3 * len(self.phonemes) + 3:
             self.borders.extend(range(self.borders[-1] + 1, self.borders[-1] + 4 + 3 * len(self.phonemes) - len(self.borders)))
+        if len(self.notes) > 0:
+            maxBorder = len(self.borders) - 1
+            end = self.notes[-1].xPos + self.notes[-1].length
+            for i in range(len(self.borders)):
+                if self.borders[maxBorder - i] > end:
+                    self.borders[maxBorder - i] = end - 2 * i
+                else:
+                    break
         self.borders.sort()
         for i in range(1, len(self.borders)):
-            if self.borders[i] == self.borders[i - 1]:
-                self.borders[i] = self.borders[i - 1] + 1
+            if self.borders[i] <= self.borders[i - 1] + 1:
+                self.borders[i] = self.borders[i - 1] + 2
         for i, phoneme in enumerate(self.phonemes):
             if (phoneme not in self.phonemeLengths.keys()) and (phoneme not in ["_X", "_0", "_autopause"]):
                 self.phonemes[i] = "_X"
@@ -159,7 +164,8 @@ class Track():
         """converts the track to a tuple for sending it to the rendering thread. Also handles conversion of MIDI pitch to frequency."""
 
         caps = self.generateCaps()
-        pitch = torch.full_like(self.pitch, global_consts.sampleRate) / (torch.pow(2, (self.pitch - torch.full_like(self.pitch, 69)) / torch.full_like(self.pitch, 12)) * 440)
+        
+        pitch = noteToPitch(self.pitch)
         borders = []
         for i in self.borders:
             borders.append(int(i))#TODO: switch to integer tensor representation

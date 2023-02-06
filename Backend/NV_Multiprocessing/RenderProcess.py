@@ -5,7 +5,7 @@
 # Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn, rerenderFlagIn, connectionIn, remoteConnectionIn):
+def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn, connectionIn, remoteConnectionIn):
 
     import math
     import torch
@@ -24,7 +24,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     from Backend.Resampler.CubicSplineInter import interp
     from Backend.Resampler.PhaseShift import phaseShift
 
-    global statusControl, voicebankList, nodeGraphList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
+    global statusControl, voicebankList, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
 
     #reading settings, setting device and interOutput properties accordingly
     logging.info("render process started, reading settings")
@@ -57,17 +57,14 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         voicebankList.append(LiteVoicebank(vbPath, device = device_ai))
     nodeGraphList = nodeGraphListIn#TODO: add node unwrapping
     inputList = inputListIn
-    rerenderFlag = rerenderFlagIn
     connection = connectionIn
     remoteConnection = remoteConnectionIn
 
     def updateFromMain(change, lastZero):
-        global statusControl, voicebankList, nodeGraphList, inputList, rerenderFlag, connection, remoteConnection, internalStatusControl
-        print("update call")
+        global statusControl, voicebankList, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
-            print("add track received")
             statusControl.append(SequenceStatusControl(change.data[2]))
             voicebankList.append(LiteVoicebank(change.data[0], device = device_ai))
             nodeGraphList.append(change.data[1])
@@ -78,7 +75,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 processedSpectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
                 excitationCache.append(DenseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64))
                 pitchCache.append(DenseCache((length,), device_rs))
-            print("add track complete")
         elif change.type == "removeTrack":
             del statusControl[change.data[0]]
             del voicebankList[change.data[0]]
@@ -168,7 +164,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                     if change.data[2] == 0:
                         inputList[change.data[0]].startCaps[0] = True
             elif change.data[1] == "borders":
-                print("RECV BORDER CHANGE", change.data[2], change.data[3], inputList[change.data[0]].borders)
+                print("RENDERER: recv border change", change.data[2], change.data[3], inputList[change.data[0]].borders)
                 start = inputList[change.data[0]].borders[change.data[2]] * global_consts.batchSize
                 end = inputList[change.data[0]].borders[change.data[2] + len(change.data[3]) - 1] * global_consts.batchSize
                 if lastZero == None or lastZero != [change.data[0], start, end - start]:
@@ -535,18 +531,23 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         excitationCache[i] = excitation
 
                     #update or wait as required
-                    if rerenderFlag.is_set():
+                    try:
+                        c = connection.get_nowait()
+                    except:
+                        c = False
+                    if c:
+                        updateFromMain(c, lastZero)
                         break
                 else:
                     continue
                 break
-            logging.info("rendering process finished, waiting for render semaphore")
-            print("rendering iteration finished, waiting for render flag...")
-            rerenderFlag.wait()
-            rerenderFlag.clear()
-            c = connection.get()
-            if updateFromMain(c, lastZero):
-                break
+            else:
+                logging.info("rendering iteration finished, waiting for new data...")
+                print("rendering iteration finished, waiting for new data...")
+                c = connection.get()
+                if updateFromMain(c, lastZero):
+                    break
+                
         except Exception as exc:
             print_exc()
             remoteConnection.put(StatusChange(None, None, exc, "error"))

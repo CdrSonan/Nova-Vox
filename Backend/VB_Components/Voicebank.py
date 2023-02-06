@@ -123,7 +123,7 @@ class Voicebank():
         
     def loadMetadata(self, filepath:str) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
-        data = torch.load(filepath)
+        data = torch.load(filepath, map_location = self.device)
         self.metadata = data["metadata"]
     
     def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
@@ -137,7 +137,7 @@ class Voicebank():
             None"""
             
             
-        data = torch.load(filepath)
+        data = torch.load(filepath, map_location = self.device)
         if additive:
             for i in data["phonemeDict"].keys():
                 if i in self.phonemeDict.keys():
@@ -151,8 +151,8 @@ class Voicebank():
     def loadCrfWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
-        aiState = torch.load(filepath)["aiState"]
-        hparams = torch.load(filepath)["hparams"]
+        aiState = torch.load(filepath, map_location = self.device)["aiState"]
+        hparams = torch.load(filepath, map_location = self.device)["hparams"]
         self.ai.hparams["crf_lr"] = hparams["crf_lr"]
         self.ai.hparams["crf_reg"] = hparams["crf_reg"]
         self.ai.hparams["crf_hls"] = hparams["crf_hls"]
@@ -162,8 +162,8 @@ class Voicebank():
     def loadPredWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
-        aiState = torch.load(filepath)["aiState"]
-        hparams = torch.load(filepath)["hparams"]
+        aiState = torch.load(filepath, map_location = self.device)["aiState"]
+        hparams = torch.load(filepath, map_location = self.device)["hparams"]
         self.ai.hparams["pred_lr"] = hparams["pred_lr"]
         self.ai.hparams["pred_reg"] = hparams["pred_reg"]
         self.ai.hparams["pred_rs"] = hparams["pred_rs"]
@@ -371,12 +371,12 @@ class LiteVoicebank():
         self.metadata = VbMetadata()
         self.filepath = filepath
         self.phonemeDict = dict()
-        self.ai = AIWrapper(device, torch.load(filepath)["hparams"])
+        self.device = device
+        self.ai = AIWrapper(device, torch.load(filepath, map_location = self.device)["hparams"])
         self.parameters = []
         self.wordDict = dict()
         self.stagedCrfTrainSamples = []
         self.stagedPredTrainSamples = []
-        self.device = device
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
@@ -387,7 +387,7 @@ class LiteVoicebank():
         
     def loadMetadata(self, filepath:str) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
-        data = torch.load(filepath)
+        data = torch.load(filepath, map_location = self.device)
         self.metadata = data["metadata"]
     
     def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
@@ -401,7 +401,7 @@ class LiteVoicebank():
             None"""
             
             
-        data = torch.load(filepath)
+        data = torch.load(filepath, map_location = self.device)
         if additive:
             for i in data["phonemeDict"].keys():
                 if i in self.phonemeDict.keys():
@@ -415,8 +415,8 @@ class LiteVoicebank():
     def loadCrfWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
-        aiState = torch.load(filepath)["aiState"]
-        hparams = torch.load(filepath)["hparams"]
+        aiState = torch.load(filepath, map_location = self.device)["aiState"]
+        hparams = torch.load(filepath, map_location = self.device)["hparams"]
         self.ai.hparams["crf_hls"] = hparams["crf_hls"]
         self.ai.hparams["crf_hlc"] = hparams["crf_hlc"]
         self.ai.loadState(aiState, "crf", True)
@@ -424,8 +424,8 @@ class LiteVoicebank():
     def loadPredWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
-        aiState = torch.load(filepath)["aiState"]
-        hparams = torch.load(filepath)["hparams"]
+        aiState = torch.load(filepath, map_location = self.device)["aiState"]
+        hparams = torch.load(filepath, map_location = self.device)["hparams"]
         self.ai.hparams["pred_rs"] = hparams["pred_rs"]
         self.ai.loadState(aiState, "pred", True)
         

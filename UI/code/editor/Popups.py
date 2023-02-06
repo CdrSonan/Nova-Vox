@@ -69,7 +69,7 @@ class SingerSettingsPanel(Popup):
         files = os.listdir(voicePath)
         for file in files:
             if file.endswith(".nvvb"):
-                data = torch.load(os.path.join(voicePath, file))
+                data = torch.load(os.path.join(voicePath, file), map_location = torch.device("cpu"))
                 self.vbData.append(data["metadata"])
                 self.voicebanks.append(data["metadata"].name)
                 self.filepaths.append(os.path.join(voicePath, file))

@@ -6,7 +6,7 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import torch
-import traceback
+import global_consts
 
 def ensureTensorLength(tensor:torch.Tensor, length:int, fill:float) -> torch.Tensor:
     """helper function for ensuring a tensor has a certain length along dim 0, and padding/pruning it if it does not have the correct length"""
@@ -17,3 +17,9 @@ def ensureTensorLength(tensor:torch.Tensor, length:int, fill:float) -> torch.Ten
     if lengthDelta > 0:
         return torch.cat((tensor, torch.full((lengthDelta, *tensor.size()[1:]), fill, dtype = tensor.dtype, device = tensor.device)), 0)
     return tensor
+
+def noteToPitch(data:torch.Tensor) -> torch.Tensor:
+    """Utility function for converting the y position of a note to its corresponding pitch, following the MIDI standard."""
+
+    #return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
+    return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 36)) / torch.full_like(data, 12)) * 440)

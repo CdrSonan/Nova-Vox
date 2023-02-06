@@ -42,12 +42,11 @@ class RenderManager():
 
         statusControl = []
         voicebankList, NodeGraphList, sequenceList = self.batchConvert(trackList)
-        self.rerenderFlag = mp.Event()
         self.connection = mp.Queue(0)
         self.remoteConnection = mp.Queue(0)
         for i in sequenceList:
             statusControl.append(SequenceStatusControl(i))
-        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(statusControl, voicebankList, NodeGraphList, sequenceList, self.rerenderFlag, self.connection, self.remoteConnection), name = getLanguage()["render_process_name"], daemon = True)
+        self.renderProcess = mp.Process(target=Backend.NV_Multiprocessing.RenderProcess.renderProcess, args=(statusControl, voicebankList, NodeGraphList, sequenceList, self.connection, self.remoteConnection), name = getLanguage()["render_process_name"], daemon = True)
         self.renderProcess.start()
 
     def receiveChange(self) -> StatusChange:
@@ -76,8 +75,6 @@ class RenderManager():
                 dataOut.append(i)
         dataOut = tuple(dataOut)
         self.connection.put(InputChange(type, final, *dataOut), True)
-        if final:
-            self.rerenderFlag.set()
         print("sent packet ", type, final, data)
 
     def restart(self, trackList:list) -> None:

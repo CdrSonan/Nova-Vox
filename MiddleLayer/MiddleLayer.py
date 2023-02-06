@@ -23,7 +23,7 @@ import global_consts
 from MiddleLayer.IniParser import readSettings
 import MiddleLayer.DataHandlers as dh
 
-from Backend.Util import ensureTensorLength
+from Backend.Util import ensureTensorLength, noteToPitch
 from Backend.VB_Components.Voicebank import LiteVoicebank
 
 from UI.code.editor.AdaptiveSpace import ParamCurve, TimingOptns, PitchOptns
@@ -343,7 +343,7 @@ class MiddleLayer(Widget):
         if type(data) == list:
             data = torch.tensor(data, dtype = torch.half)
         self.trackList[self.activeTrack].pitch[start:start + data.size()[0]] = data
-        data = self.noteToPitch(data)
+        data = noteToPitch(data)
         self.submitNamedPhonParamChange(True, "pitch", start, data)
 
     def changePianoRollMode(self) -> None:
@@ -955,13 +955,6 @@ class MiddleLayer(Widget):
         else:
             buffer = torch.zeros([global_consts.audioBufferSize, 2], dtype = torch.float32).expand(-1, 2).numpy()
         outdata[:] = buffer.copy()
-
-    @staticmethod
-    def noteToPitch(data:torch.Tensor) -> torch.Tensor:
-        """Utility function for converting the y position of a note to its corresponding pitch, following the MIDI standard."""
-
-        #return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
-        return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 36)) / torch.full_like(data, 12)) * 440)
 
     def posToNote(self, pos1:int, pos2:int) -> tuple:
         pos1Out = 0

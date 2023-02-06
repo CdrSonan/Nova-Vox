@@ -302,7 +302,7 @@ class PredaiUi(tkinter.Frame):
         global loadedVB
         filepaths = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
         for i in filepaths:
-            loadedVB.stagedPredTrainSamples.extend(torch.load(i))
+            loadedVB.stagedPredTrainSamples.extend(torch.load(i, map_location = torch.device("cpu")))
                 
     def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""
