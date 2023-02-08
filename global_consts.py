@@ -50,6 +50,11 @@ pitchTransitionLength = 25
 pitchDipWidth = 40
 pitchDipHeight = 0.2
 
+#border synthesis
+refPhonemeLength = 30
+refTransitionLength = 10
+refTransitionFrac = 0.2
+
 #editor UI
 octaves = 4
 
