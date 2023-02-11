@@ -159,9 +159,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 inputList[change.data[0]].startCaps[change.data[2] + j + 1] = False
                             if change.data[2] + j > 0:
                                 inputList[change.data[0]].endCaps[change.data[2] + j - 1] = False
-                    if change.data[2] + len(change.data[3]) == len(inputList[change.data[0]].startCaps):
+                    if change.data[2] + len(change.data[3]) == len(inputList[change.data[0]].startCaps) > 0:
                         inputList[change.data[0]].endCaps[-1] = True
-                    if change.data[2] == 0:
+                    if change.data[2] == 0 and len(inputList[change.data[0]].startCaps) > 0:
                         inputList[change.data[0]].startCaps[0] = True
             elif change.data[1] == "borders":
                 print("RENDERER: recv border change", change.data[2], change.data[3], inputList[change.data[0]].borders)

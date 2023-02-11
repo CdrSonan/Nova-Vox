@@ -22,6 +22,7 @@ import global_consts
 
 from MiddleLayer.IniParser import readSettings
 import MiddleLayer.DataHandlers as dh
+from MiddleLayer.BorderSystem import recalculateBorders
 
 from Backend.Util import ensureTensorLength, noteToPitch
 from Backend.VB_Components.Voicebank import LiteVoicebank
@@ -384,7 +385,7 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOverlap[phonIndex:]], dim = 0)
                 self.trackList[self.activeTrack].loopOffset = torch.cat([self.trackList[self.activeTrack].loopOffset[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOffset[phonIndex:]], dim = 0)
                 for j in range(3):
-                    self.trackList[self.activeTrack].borders.insert(phonIndex * 3, 0)
+                    self.trackList[self.activeTrack].borders.insert(phonIndex * 3 + 1, 0)#TODO: fix insertion index
         elif offset < 0:
             for i in range(-offset):
                 self.trackList[self.activeTrack].phonemes.pop(phonIndex)
@@ -392,13 +393,15 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].loopOffset = torch.cat([self.trackList[self.activeTrack].loopOffset[0:phonIndex], self.trackList[self.activeTrack].loopOffset[phonIndex + 1:]], dim = 0)
                 for j in range(3):
                     self.trackList[self.activeTrack].borders.pop(phonIndex * 3)
+        if futurePhonemes:
+            self.trackList[self.activeTrack].phonemes[phonIndex:phonIndex + len(futurePhonemes)] = futurePhonemes
         for i in self.trackList[self.activeTrack].notes[index + 1:]:
             i.phonemeStart += offset
             i.phonemeEnd += offset
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
         self.submitOffset(False, phonIndex, offset)
         #_autopause handling and iterator setup for timing marker calculations
-        autopause = False
+        """autopause = False
         if len(self.trackList[self.activeTrack].phonemes) == 0:
             return
         if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
@@ -509,11 +512,13 @@ class MiddleLayer(Widget):
                 j = i - self.trackList[self.activeTrack].notes[index].phonemeStart + iterationOffset
                 self.trackList[self.activeTrack].borders[3 * i] = start + int((end - start) * (3 * j) / divisor)
                 self.trackList[self.activeTrack].borders[3 * i + 1] = start + int((end - start) * (3 * j + 1) / divisor)
-                self.trackList[self.activeTrack].borders[3 * i + 2] = start + int((end - start) * (3 * j + 2) / divisor)
+                self.trackList[self.activeTrack].borders[3 * i + 2] = start + int((end - start) * (3 * j + 2) / divisor)"""
+                
+        start, end = recalculateBorders(index, self.trackList[self.activeTrack], None)
 
-        for i in range(3 * (iterationStart + iterationOffset), 3 * iterationEndBorder):
+        for i in range(start, end):
             self.repairBorders(i)
-        self.submitNamedPhonParamChange(False, "borders", 3 * (iterationStart + iterationOffset), self.trackList[self.activeTrack].borders[3 * (iterationStart + iterationOffset):3 * iterationEndBorder])
+        self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
 
     def makeAutoPauses(self, index:int) -> None:
         """helper function for calculating the _autopause phonemes required by the note at position index of the active track"""
@@ -576,16 +581,17 @@ class MiddleLayer(Widget):
         self.makeAutoPauses(index + 1)
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, seq2)
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, seq1)
-        self.repairBorders(index + 1)#does not check entire changed border interval
-        self.repairBorders(index)#does not check entire changed border interval
-        self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index].phonemeStart, brd2)
-        self.submitNamedPhonParamChange(False, "borders", 3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart, brd1)
+        start1, end1 = recalculateBorders(index, self.trackList[self.activeTrack], None)
+        start2, end2 = recalculateBorders(index + 1, self.trackList[self.activeTrack], None)
+        for i in range(start1, end2):
+            self.repairBorders(i)
+        self.submitNamedPhonParamChange(False, "borders", start1, self.trackList[self.activeTrack].borders[start1:end2])
 
     def scaleNote(self, index:int, oldLength:int) -> None:
-        """Changes the length of the note at position index of the active track. THe new length is read from its UI representation, the old length must be given as an argument.
+        """Changes the length of the note at position index of the active track. The new length is read from its UI representation, the old length must be given as an argument.
         It does not perform any checks of surrounding notes or other conditions. Therefore, it is recommended to call changeNoteLength instead whenever possible."""
 
-        length = self.trackList[self.activeTrack].notes[index].length
+        """length = self.trackList[self.activeTrack].notes[index].length
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         iterationEndBorder = iterationEnd
         if index + 1 < len(self.trackList[self.activeTrack].notes):
@@ -627,8 +633,11 @@ class MiddleLayer(Widget):
             if i + 1 < 3 * iterationEndBorder:
                 counter += lengthDeltas[i - 3 * iterationStart] * correction
         for i in range(3 * iterationStart, 3 * iterationEndBorder):
+            self.repairBorders(i)"""
+        start, end = recalculateBorders(index, self.trackList[self.activeTrack], oldLength)
+        for i in range(start, end):
             self.repairBorders(i)
-        self.submitNamedPhonParamChange(False, "borders", 3 * iterationStart, self.trackList[self.activeTrack].borders[3 * iterationStart:3 * iterationEndBorder])
+        self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
     
     def adjustNote(self, index:int, oldLength:int, oldPos:int) -> None:
         """Adjusts a note's attributes after it has been moved or scaled with respect to its surrounding notes. The current position and length are read from its UI representation, the old one must be given as arguments."""
