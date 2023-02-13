@@ -378,15 +378,20 @@ class MiddleLayer(Widget):
         #update phoneme list and other phoneme-space lists
         if offset > 0:
             if len(self.trackList[self.activeTrack].phonemes) > phonIndex and self.trackList[self.activeTrack].notes[index].phonemeEnd > phonIndex:
-                if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
-                    phonIndex += 1
+                """if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
+                    phonIndex += 1"""
             for i in range(offset):
                 self.trackList[self.activeTrack].phonemes.insert(phonIndex + i, "_X")
                 self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOverlap[phonIndex:]], dim = 0)
                 self.trackList[self.activeTrack].loopOffset = torch.cat([self.trackList[self.activeTrack].loopOffset[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOffset[phonIndex:]], dim = 0)
                 for j in range(3):
-                    self.trackList[self.activeTrack].borders.insert(phonIndex * 3 + 1, 0)#TODO: fix insertion index
+                    if pause:
+                        addition = 4
+                    else:
+                        addition = 1
+                    self.trackList[self.activeTrack].borders.insert(phonIndex * 3 + addition, 0)
         elif offset < 0:
+            print(self.trackList[self.activeTrack].phonemes, phonIndex)
             for i in range(-offset):
                 self.trackList[self.activeTrack].phonemes.pop(phonIndex)
                 self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], self.trackList[self.activeTrack].loopOverlap[phonIndex + 1:]], dim = 0)
@@ -399,6 +404,9 @@ class MiddleLayer(Widget):
             i.phonemeStart += offset
             i.phonemeEnd += offset
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
+        """if pause:
+            self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"""
+        print(self.trackList[self.activeTrack].phonemes, phonIndex)
         self.submitOffset(False, phonIndex, offset)
         #_autopause handling and iterator setup for timing marker calculations
         """autopause = False
@@ -515,6 +523,7 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].borders[3 * i + 2] = start + int((end - start) * (3 * j + 2) / divisor)"""
                 
         start, end = recalculateBorders(index, self.trackList[self.activeTrack], None)
+        start = min(start, 3 * phonIndex)
 
         for i in range(start, end):
             self.repairBorders(i)

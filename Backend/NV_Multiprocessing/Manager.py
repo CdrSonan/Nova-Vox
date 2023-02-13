@@ -75,7 +75,7 @@ class RenderManager():
                 dataOut.append(i)
         dataOut = tuple(dataOut)
         self.connection.put(InputChange(type, final, *dataOut), True)
-        print("sent packet ", type, final, data)
+        #print("sent packet ", type, final, data)
 
     def restart(self, trackList:list) -> None:
         """Method for restarting the rendering process. The required data is fetched again from the main process. This is to prevent any possible issues with the data held by the rendering process from persisting.

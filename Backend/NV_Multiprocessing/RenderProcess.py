@@ -164,7 +164,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                     if change.data[2] == 0 and len(inputList[change.data[0]].startCaps) > 0:
                         inputList[change.data[0]].startCaps[0] = True
             elif change.data[1] == "borders":
-                print("RENDERER: recv border change", change.data[2], change.data[3], inputList[change.data[0]].borders)
                 start = inputList[change.data[0]].borders[change.data[2]] * global_consts.batchSize
                 end = inputList[change.data[0]].borders[change.data[2] + len(change.data[3]) - 1] * global_consts.batchSize
                 if lastZero == None or lastZero != [change.data[0], start, end - start]:

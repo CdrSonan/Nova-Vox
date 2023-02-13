@@ -15,7 +15,7 @@ def rescaleFromReference(note:Note, reference:tuple, borders:list) -> list:
     borders = [i + note.xPos for i in borders]
     return borders
 
-def recalculateBorders(index:int, track:Track, referenceLength:int) -> tuple:
+def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tuple:
     phonemes = track.phonemes[track.notes[index].phonemeStart:track.notes[index].phonemeEnd]
     if len(phonemes) == 0:
         return (track.notes[index].phonemeStart, track.notes[index].phonemeEnd)
@@ -26,7 +26,7 @@ def recalculateBorders(index:int, track:Track, referenceLength:int) -> tuple:
     else:
         autopause = False
     phonemeLengths = [track.phonemeLengths[i] if i in track.phonemeLengths else None for i in phonemes]
-    if phonemeLengths[0]:
+    if len(phonemeLengths) > 0 and phonemeLengths[0]:
         preutterance = phonemeLengths[0]
         phonemes = phonemes[1:]
         phonemeLengths = phonemeLengths[1:]
@@ -62,8 +62,9 @@ def recalculateBorders(index:int, track:Track, referenceLength:int) -> tuple:
             segmentLengths.extend([transitionLength, i - 2 * transitionLength, transitionLength])
         else:
             segmentLengths.extend([global_consts.refTransitionLength, None, global_consts.refTransitionLength])
-    if index == len(track.notes) - 1:
-        segmentLengths.append(global_consts.refTransitionLength)
+    #if index == len(track.notes) - 1:
+        #segmentLengths.append(global_consts.refTransitionLength)
+    segmentLengths.append(global_consts.refTransitionLength)
 
     """if referenceLength and not compression:
         if index == 0:
@@ -122,6 +123,10 @@ def recalculateBorders(index:int, track:Track, referenceLength:int) -> tuple:
         track.borders[effectiveStart - 3:effectiveStart] = preutterance
         effectiveStart -= 3
     if autopause:
+        start = recalculateBorders(index - 1, track)[0]
         track.borders[effectiveStart - 1] = track.borders[effectiveStart] - autopause
-    print("after", track.borders)
-    return effectiveStart, end
+        track.borders[effectiveStart - 2] = track.borders[effectiveStart - 3] + autopause
+    else:
+        start = track.notes[index].phonemeStart
+    print("after", track.borders, effectiveStart)
+    return start, end

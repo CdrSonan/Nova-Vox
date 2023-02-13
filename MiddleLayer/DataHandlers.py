@@ -108,7 +108,7 @@ class Track():
         if len(self.borders) > 3 * len(self.phonemes) + 3:
             self.borders = self.borders[:3 * len(self.phonemes) + 3]
         elif len(self.borders) < 3 * len(self.phonemes) + 3:
-            self.borders.extend(range(self.borders[-1] + 1, self.borders[-1] + 4 + 3 * len(self.phonemes) - len(self.borders)))
+            self.borders.extend(range(int(self.borders[-1]) + 1, int(self.borders[-1]) + 4 + 3 * len(self.phonemes) - len(self.borders)))
         if len(self.notes) > 0:
             maxBorder = len(self.borders) - 1
             end = self.notes[-1].xPos + self.notes[-1].length
