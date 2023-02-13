@@ -34,7 +34,11 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
         preutterance = None
     length = track.notes[index].length
     if index < len(track.notes) - 1:
-        length = min(length, track.notes[index + 1].xPos - track.notes[index].xPos)
+        length = min(length, track.notes[index + 1].xPos - track.notes[index].xPos, track.borders[3 * track.notes[index].phonemeEnd + 2])
+    if track.notes[index].phonemeEnd < len(track.phonemes):
+        followingAutopause = track.phonemes[track.notes[index].phonemeEnd] == "_autopause"
+    else:
+        followingAutopause = False
     if sum([i for i in phonemeLengths if i]) >= length:
         compression = True
     else:
@@ -52,7 +56,7 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
         transitionLength = min(preutterance * global_consts.refTransitionFrac, global_consts.refTransitionLength)
         preutterance = [transitionLength, preutterance - 2 * transitionLength, transitionLength]
 
-    if index == 0:
+    if index == 0 or autopause:
         segmentLengths = [global_consts.refTransitionLength,]
     else:
         segmentLengths = []
@@ -62,9 +66,8 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
             segmentLengths.extend([transitionLength, i - 2 * transitionLength, transitionLength])
         else:
             segmentLengths.extend([global_consts.refTransitionLength, None, global_consts.refTransitionLength])
-    #if index == len(track.notes) - 1:
-        #segmentLengths.append(global_consts.refTransitionLength)
-    segmentLengths.append(global_consts.refTransitionLength)
+    if index == len(track.notes) - 1 or followingAutopause:
+        segmentLengths.append(global_consts.refTransitionLength)
 
     """if referenceLength and not compression:
         if index == 0:
@@ -108,12 +111,15 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
     
     startPos = track.notes[index].xPos + offset * compression
     segmentLengths.insert(0, startPos)
-    effectiveStart = effectiveStart * 3
-    if index > 0:
-        effectiveStart += 1
-    end = effectiveStart + len(segmentLengths)
     for i in range(1, len(segmentLengths)):
         segmentLengths[i] += segmentLengths[i - 1]
+    effectiveStart = effectiveStart * 3
+    if index > 0 and not autopause:
+        effectiveStart += 1
+    end = effectiveStart + len(segmentLengths)
+    if index < len(track.notes) - 1 and not followingAutopause:
+        end -= 1
+        segmentLengths = segmentLengths[:-1]
     track.borders[effectiveStart:end] = segmentLengths
 
     if preutterance:
@@ -122,11 +128,6 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
         preutterance[0] = preutterance[1] - preutterance[0]
         track.borders[effectiveStart - 3:effectiveStart] = preutterance
         effectiveStart -= 3
-    if autopause:
-        start = recalculateBorders(index - 1, track)[0]
-        track.borders[effectiveStart - 1] = track.borders[effectiveStart] - autopause
-        track.borders[effectiveStart - 2] = track.borders[effectiveStart - 3] + autopause
-    else:
-        start = track.notes[index].phonemeStart
+    start = track.notes[index].phonemeStart
     print("after", track.borders, effectiveStart)
     return start, end

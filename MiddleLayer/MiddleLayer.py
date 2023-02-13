@@ -523,6 +523,8 @@ class MiddleLayer(Widget):
                 self.trackList[self.activeTrack].borders[3 * i + 2] = start + int((end - start) * (3 * j + 2) / divisor)"""
                 
         start, end = recalculateBorders(index, self.trackList[self.activeTrack], None)
+        if index > 0:
+            start = recalculateBorders(index - 1, self.trackList[self.activeTrack], None)[0]
         start = min(start, 3 * phonIndex)
 
         for i in range(start, end):
@@ -532,18 +534,6 @@ class MiddleLayer(Widget):
     def makeAutoPauses(self, index:int) -> None:
         """helper function for calculating the _autopause phonemes required by the note at position index of the active track"""
 
-        if index > 0:
-            offset = 0
-            if self.trackList[self.activeTrack].notes[index].phonemeStart < self.trackList[self.activeTrack].notes[index].phonemeEnd:
-                if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
-                    offset -= 1
-            if self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length > self.trackList[self.activeTrack].pauseThreshold:
-                offset += 1
-            if offset != 0:
-                self.offsetPhonemes(index, offset, True)
-            if offset == 1:
-                self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
-                self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd])
         if index < len(self.trackList[self.activeTrack].notes) - 1 and self.trackList[self.activeTrack].notes[index].phonemeEnd < len(self.trackList[self.activeTrack].phonemes):
             offset = 0
             if self.trackList[self.activeTrack].notes[index + 1].phonemeStart < self.trackList[self.activeTrack].notes[index + 1].phonemeEnd:
@@ -556,6 +546,18 @@ class MiddleLayer(Widget):
             if offset == 1:
                 self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] = "_autopause"
                 self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd])
+        if index > 0:
+            offset = 0
+            if self.trackList[self.activeTrack].notes[index].phonemeStart < self.trackList[self.activeTrack].notes[index].phonemeEnd:
+                if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
+                    offset -= 1
+            if self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length > self.trackList[self.activeTrack].pauseThreshold:
+                offset += 1
+            if offset != 0:
+                self.offsetPhonemes(index, offset, True)
+            if offset == 1:
+                self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
+                self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd])
 
     def recalculatePauses(self, index:int) -> None:
         """recalculates all _autopause phonemes for the track at position index of the track list. Used during startup and repair operations."""
@@ -590,11 +592,11 @@ class MiddleLayer(Widget):
         self.makeAutoPauses(index + 1)
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, seq2)
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, seq1)
-        start1, end1 = recalculateBorders(index, self.trackList[self.activeTrack], None)
-        start2, end2 = recalculateBorders(index + 1, self.trackList[self.activeTrack], None)
-        for i in range(start1, end2):
+        end = recalculateBorders(index + 1, self.trackList[self.activeTrack], None)[1]
+        start = recalculateBorders(index, self.trackList[self.activeTrack], None)[0]
+        for i in range(start, end):
             self.repairBorders(i)
-        self.submitNamedPhonParamChange(False, "borders", start1, self.trackList[self.activeTrack].borders[start1:end2])
+        self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
 
     def scaleNote(self, index:int, oldLength:int) -> None:
         """Changes the length of the note at position index of the active track. The new length is read from its UI representation, the old length must be given as an argument.
