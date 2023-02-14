@@ -8,7 +8,7 @@
 import torch
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl
 
-def trimSequence(index:int, position:int, delta:int, inputList:list, internalStatusControl:SequenceStatusControl) -> tuple([list, list]):
+def trimSequence(index:int, position:int, delta:int, addition:int, inputList:list, internalStatusControl:SequenceStatusControl) -> tuple([list, list]):
     """Function used for adding to or removing phonemes from a VocalSequence. Automatically updates control structures and schedules updates as required
     
     Parameters:
@@ -17,6 +17,8 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, internalSta
         position: When adding phonemes, the index of the phoneme (within the VocalSequence) they are added behind. When removing phonemes, the first index of the portion that is to be removed
         
         delta: The number of phonemes to add/remove. Use positive values for adding phonemes, and negative ones for removing them.
+        
+        addition: offset for the position at which borders are added. Used to compensate for _autopause phonemes present in the sequence.
         
         inputList: list of VocalSequence objects representing all data held by the rendering process
         
@@ -41,7 +43,7 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, internalSta
         phonemes = phonemes[0:position] + ["_0"] * delta + phonemes[position:]
         offsets = torch.cat([offsets[0:position], torch.full([delta,], 0.5), offsets[position:]], 0)
         repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.full([delta,], 0.5), repetititionSpacing[position:]], 0)
-        borders = borders[0:3 * position] + [borders[3 * position] + 1] * (3 * delta) + borders[3 * position:]
+        borders = borders[0:3 * position + addition] + [borders[3 * position + addition] + 1] * (3 * delta) + borders[3 * position + addition:]
         startCaps = startCaps[0:position] + [False] * delta + startCaps[position:]
         endCaps = endCaps[0:position] + [False] * delta + endCaps[position:]
         if position == 0:

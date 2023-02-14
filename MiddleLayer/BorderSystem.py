@@ -16,10 +16,11 @@ def rescaleFromReference(note:Note, reference:tuple, borders:list) -> list:
     return borders
 
 def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tuple:
+    if index < 0:
+        return (0, 0)
     phonemes = track.phonemes[track.notes[index].phonemeStart:track.notes[index].phonemeEnd]
     if len(phonemes) == 0:
-        return (track.notes[index].phonemeStart, track.notes[index].phonemeEnd)
-    print("before", track.borders)
+        return recalculateBorders(index - 1, track, None)
     if phonemes[0] == "_autopause":
         phonemes = phonemes[1:]
         autopause = track.notes[index].xPos - track.notes[index - 1].xPos - track.notes[index - 1].length
@@ -129,5 +130,4 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
         track.borders[effectiveStart - 3:effectiveStart] = preutterance
         effectiveStart -= 3
     start = track.notes[index].phonemeStart
-    print("after", track.borders, effectiveStart)
     return start, end
