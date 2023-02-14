@@ -43,7 +43,10 @@ def trimSequence(index:int, position:int, delta:int, addition:int, inputList:lis
         phonemes = phonemes[0:position] + ["_0"] * delta + phonemes[position:]
         offsets = torch.cat([offsets[0:position], torch.full([delta,], 0.5), offsets[position:]], 0)
         repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.full([delta,], 0.5), repetititionSpacing[position:]], 0)
-        borders = borders[0:3 * position + addition] + [borders[3 * position + addition] + 1] * (3 * delta) + borders[3 * position + addition:]
+        if 3 * position + addition == len(borders):
+            borders = borders[:] + [borders[-1] + 1] * (3 * delta)
+        else:
+            borders = borders[0:3 * position + addition] + [borders[3 * position + addition] + 1] * (3 * delta) + borders[3 * position + addition:]
         startCaps = startCaps[0:position] + [False] * delta + startCaps[position:]
         endCaps = endCaps[0:position] + [False] * delta + endCaps[position:]
         if position == 0:
