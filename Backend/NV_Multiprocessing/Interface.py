@@ -19,6 +19,12 @@ class SequenceStatusControl():
             phonemeLength = sequence.phonemeLength
             self.ai = torch.zeros(phonemeLength)
             self.rs = torch.zeros(phonemeLength)
+            
+    def duplicate(self):
+        duplicate = SequenceStatusControl()
+        duplicate.ai = self.ai.clone()
+        duplicate.rs = self.rs.clone()
+        return duplicate
 
 class StatusChange():
     """Container for messages sent from the rendering process to the main process. Can represent a change of the rendering process of a phoneme, update for the audio buffer or track index offset (after track deletion)"""

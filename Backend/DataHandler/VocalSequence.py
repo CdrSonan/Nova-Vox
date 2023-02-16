@@ -5,6 +5,7 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+from copy import copy, deepcopy
 from torch import Tensor
 
 class VocalSequence():
@@ -33,4 +34,24 @@ class VocalSequence():
         self.useAIBalance = useAIBalance
         self.useVibratoSpeed = useVibratoSpeed
         self.useVibratoStrength = useVibratoStrength
+        
+    def duplicate(self):
+        return VocalSequence(copy(self.length),
+                             self.borders.clone(),
+                             deepcopy(self.phonemes),
+                             deepcopy(self.startCaps),
+                             deepcopy(self.endCaps),
+                             self.offsets.clone(),
+                             self.repetititionSpacing.clone(),
+                             self.pitch.clone(),
+                             self.steadiness.clone(),
+                             self.breathiness.clone(),
+                             self.aiBalance.clone(),
+                             self.vibratoSpeed.clone(),
+                             self.vibratoStrength.clone(),
+                             copy(self.useBreathiness),
+                             copy(self.useSteadiness),
+                             copy(self.useAIBalance),
+                             copy(self.useVibratoSpeed),
+                             copy(self.useVibratoStrength))
         

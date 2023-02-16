@@ -328,6 +328,12 @@ class PianoRoll(ScrollView):
         
         self.updateTimingMarkers()
 
+    def on_xScale(self, instance, xScale:float) -> None:
+        """updates the displayed timing markers, notes and other content when the x axis zoom level is changed"""
+
+        self.updateTimingMarkers()
+        self.updateTrack()
+
     def changePlaybackPos(self, playbackPos:float) -> None:
         """changes the position of the playback head"""
 
@@ -438,6 +444,11 @@ class PianoRoll(ScrollView):
         """sets the x scroll value of the  widget"""
 
         self.scroll_x = scrollValue
+        
+    def applyZoom(self, xScale:float) -> None:
+        """sets the x zoom value of the  widget"""
+
+        self.xScale = xScale
 
     def triggerScroll(self) -> None:
         """signals the middleLayer that the x scroll value of the widget has changed. Used for synchronizing scrolling between the adaptive space and piano roll."""
@@ -446,6 +457,14 @@ class PianoRoll(ScrollView):
         from UI.code.editor.Main import middleLayer
         middleLayer.scrollValue = self.scroll_x
         middleLayer.applyScroll()
+        
+    def triggerZoom(self) -> None:
+        """signals the middleLayer that the x scale value/zoom of the widget has changed. Used for synchronizing zoom level between the adaptive space and piano roll."""
+
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        middleLayer.xScale = self.xScale
+        middleLayer.applyZoom()
 
     def on_touch_down(self, touch) -> bool:
         """Callback function used for processing mouse input on the piano roll"""
@@ -486,8 +505,6 @@ class PianoRoll(ScrollView):
                             self.xScale = newvalue
                         else:
                             self.xScale = 0.1
-                    self.updateTimingMarkers()
-                    self.updateTrack()
                     return True
                 if middleLayer.alt:
                     #vertical zoom

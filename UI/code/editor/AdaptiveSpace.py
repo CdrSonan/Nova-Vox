@@ -30,6 +30,16 @@ class AdaptiveSpace(AnchorLayout):
             root.cursorSource = root
             root.cursorPrio = 0
 
+    def on_children(self, instance, children) -> None:
+        """synchronizes the scroll and zoom value of the widget with the piano roll when it is filled"""
+        
+        if len(children) == 0:
+            return
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        self.applyScroll(middleLayer.scrollValue)
+        self.applyZoom(middleLayer.xScale)
+
     def redraw(self) -> None:
         """redraws the currently widget currently displayed by the adaptive space. Used during several update procedures."""
 
@@ -44,12 +54,37 @@ class AdaptiveSpace(AnchorLayout):
             return
         self.children[0].scroll_x = scrollValue
 
+    def applyZoom(self, xScale) -> None:
+        """sets the zoom level of the widget currently displayed by the adaptive space. Used for keeping scrolling synchronized between adaptive space and piano roll."""
+
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        if middleLayer.activeTrack == None:
+            return
+        self.children[0].xScale = xScale
+
+    def applyLength(self, length) -> None:
+        """adjusts the displayed information to account for a change of track length"""
+
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        if middleLayer.activeTrack == None:
+            return
+        self.children[0].seqLength = length
+
     def triggerScroll(self) -> None:
         """sends the scroll value of the widget currently displayed by the adaptive space to the middle layer, for updating the piano roll scroll accordingly."""
         global middleLayer
         from UI.code.editor.Main import middleLayer
         middleLayer.scrollValue = self.children[0].scroll_x
         middleLayer.applyScroll()
+
+    def triggerZoom(self) -> None:
+        """sends the scroll value of the widget currently displayed by the adaptive space to the middle layer, for updating the piano roll scroll accordingly."""
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        middleLayer.xScale = self.children[0].xScale
+        middleLayer.applyZoom()
 
 class ParamCurve(ScrollView):
     """Widget displaying a single, editable curve used for controlling a tuning parameter"""
@@ -60,7 +95,7 @@ class ParamCurve(ScrollView):
     line = Line()
 
     def redraw(self) -> None:
-        """redraws the bar diagram, using data fetched from the middleLayer."""
+        """redraws the parameter curve, using data fetched from the middleLayer."""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
@@ -82,6 +117,16 @@ class ParamCurve(ScrollView):
         with self.children[0].canvas:
             Color(1, 0, 0, 1)
             self.line = Line(points = points)
+
+    def on_xScale(self, instance, xScale:float) -> None:
+        """updates the displayed curve when the x axis zoom level is changed"""
+
+        self.redraw()
+
+    def on_seqLength(self, instance, length:float) -> None:
+        """updates the displayed curve when the track length is changed"""
+
+        self.redraw()
 
     def on_touch_down(self, touch) -> bool:
         """Callback function used for editing the curve"""
@@ -245,6 +290,16 @@ class TimingOptns(ScrollView):
             for i in self.points2:
                 self.rectangles2.append(ObjectProperty())
                 self.rectangles2[-1] = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
+
+    def on_xScale(self, instance, xScale:float) -> None:
+        """updates the displayed bar diagrams when the x axis zoom level is changed"""
+
+        self.redraw()
+
+    def on_seqLength(self, instance, length:float) -> None:
+        """updates the displayed bar diagrams when the track length is changed"""
+
+        self.redraw()
 
     def on_touch_down(self, touch) -> bool:
         """Callback function used for editing the timing parameters"""
@@ -459,7 +514,7 @@ class PitchOptns(ScrollView):
             self.line2 = Line()
 
     def redraw(self) -> None:
-        """redraws the curve using data fetched from the middleLayer"""
+        """redraws the curves using data fetched from the middleLayer"""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
@@ -481,6 +536,16 @@ class PitchOptns(ScrollView):
             Color(1, 0, 0, 1)
             self.line1 = Line(points = points1)
             self.line2 = Line(points = points2)
+
+    def on_xScale(self, instance, xScale:float) -> None:
+        """updates the displayed curves when the x axis zoom level is changed"""
+
+        self.redraw()
+
+    def on_seqLength(self, instance, length:float) -> None:
+        """updates the displayed curves when the track length is changed"""
+
+        self.redraw()
 
     def on_touch_down(self, touch) -> bool:
         """Callback function used for editing the curve"""

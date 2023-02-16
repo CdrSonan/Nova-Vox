@@ -28,6 +28,12 @@ class DenseCache():
         else:
             self.tensor[start:end] = value
 
+    def duplicate(self):
+        """duplicates self, returning a new cache with identical content, but de-linked storage from self"""
+        
+        duplicate = DenseCache(self.tensor.size(), self.tensor.device, self.tensor.dtype)
+        duplicate.tensor = self.tensor.clone()
+
 class SparseCache():
     """Cache holding a Tensor of arbitrary size and dtype, with index- or slice-based accessing and saving. Internally, only elements between the first and the last non-zero element are saved, reducing memory usage."""
 

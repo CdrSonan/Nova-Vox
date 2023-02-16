@@ -87,15 +87,15 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 del pitchCache[change.data[0]]
             remoteConnection.put(StatusChange(None, None, None, "deletion"))
         elif change.type == "duplicateTrack":
-            statusControl.append(copy(statusControl[change.data[0]]))
-            voicebankList.append(copy(voicebankList[change.data[0]]))
+            statusControl.append(statusControl[change.data[0]].duplicate())
+            voicebankList.append(voicebankList[change.data[0]])
             nodeGraphList.append(copy(nodeGraphList[change.data[0]]))
-            inputList.append(copy(inputList[change.data[0]]))
+            inputList.append(inputList[change.data[0]].duplicate())
             if settings["cachingMode"] == "best rendering speed":
-                spectrumCache.append(copy(spectrumCache[change.data[0]]))
-                processedSpectrumCache.append(copy(processedSpectrumCache[change.data[0]]))
-                excitationCache.append(copy(excitationCache[change.data[0]]))
-                pitchCache.append(copy(pitchCache[change.data[0]]))
+                spectrumCache.append(spectrumCache[change.data[0]].duplicate())
+                processedSpectrumCache.append(processedSpectrumCache[change.data[0]].duplicate())
+                excitationCache.append(excitationCache[change.data[0]].duplicate())
+                pitchCache.append(pitchCache[change.data[0]].duplicate())
         elif change.type == "changeVB":
             del voicebankList[change.data[0]]
             voicebankList.insert(change.data[0], LiteVoicebank(change.data[1], device = device_ai))

@@ -56,6 +56,7 @@ class MiddleLayer(Widget):
         self.ctrl = BooleanProperty()
         self.ctrl = False
         self.scrollValue = 0.
+        self.xScale = 1.
         self.audioBuffer = []
         self.mainAudioBufferPos = 0
         self.deletions = []
@@ -357,6 +358,12 @@ class MiddleLayer(Widget):
 
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
+
+    def applyZoom(self) -> None:
+        """helper function for synchromizing zoom between the piano roll and adaptive space"""
+
+        self.ids["pianoRoll"].applyZoom(self.xScale)
+        self.ids["adaptiveSpace"].applyZoom(self.xScale)
 
     def offsetPhonemes(self, index:int, offset:int, pause:bool = False, futurePhonemes:list = None) -> None:
         """adds or deletes phonemes from the active track, and recalculates timing markers to fit the new sequence.
@@ -735,6 +742,7 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].vibratoSpeed = ensureTensorLength(self.trackList[self.activeTrack].vibratoSpeed, length, 0)
         self.trackList[self.activeTrack].vibratoStrength = ensureTensorLength(self.trackList[self.activeTrack].vibratoStrength, length, 0)
         self.audioBuffer[self.activeTrack] = ensureTensorLength(self.audioBuffer[self.activeTrack], length * global_consts.batchSize, 0)
+        self.ids["adaptiveSpace"].applyLength(length)
         self.submitChangeLength(True, length)
 
     def validate(self) -> None:
