@@ -5,7 +5,7 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-from Backend.DataHandler.AudioSample import AudioSample
+from Backend.DataHandler.AudioSample import AudioSample, AISample
 from global_consts import sampleRate
 from os import path
 
@@ -17,7 +17,7 @@ class UtauSample():
         
         updateHandle: updates the handle of the sample, which is used to represent it in the devkit UI
         
-        convert: returns a Nova-Vox compatible AudioSample object of the sample"""
+        convert: returns a Nova-Vox compatible AudioSample or AISample object of the sample"""
 
 
     def __init__(self, filepath:str, _type:int, key:str, start:float, end:float, offset:float, fixed:float, blank:float, preuttr:float, overlap:float, isVoiced:bool = True, isPlosive:bool = False) -> None:
@@ -52,7 +52,7 @@ class UtauSample():
             None"""
             
 
-        self.audioSample = AudioSample(filepath)
+        self.audioSample = AISample(filepath)
         self._type = _type
         if self._type == 0:
             self.key = key
@@ -81,12 +81,14 @@ class UtauSample():
 
         self.handle = path.split(self.audioSample.filepath)[1] + ", " + str(self.start) + " - " + str(self.end)
 
-    def convert(self) -> AudioSample:
+    def convert(self, ai:bool = False) -> AudioSample or AISample:
         """returns a Nova-Vox compatible AudioSample object of the sample.
-        The waveform is trimmed to the area between start and end, and all UTAU-specific data is discarded"""
+        The waveform is trimmed to the area between start and end, and all UTAU-specific data is discarded. the ai flag indicates whether an AISample instance is produced instead of an AudioSample instance."""
 
         start = int(self.start * sampleRate / 1000)
         end = int(self.end * sampleRate / 1000)
         self.audioSample.waveform = self.audioSample.waveform[start:end]
-        return self.audioSample
-        
+        if ai:
+            return self.audioSample
+        else:
+            return self.audioSample.convert(False)

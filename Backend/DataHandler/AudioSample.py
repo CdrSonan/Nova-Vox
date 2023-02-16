@@ -82,6 +82,86 @@ class AudioSample():
         self.specDepth = global_consts.defaultSpecDepth
         self.tempWidth = global_consts.defaultTempWidth
         self.tempDepth = global_consts.defaultTempDepth
+
+class AISample():
+    """class for holding a single recording audio sample and relevant settings. Saves memory compared to an AudioSample, but must be converted to one before use. Mainly used as a container for AI training samples.
+    
+    Attributes:
+        filepath: original filepath of the audio sample. used for reloading files.
+        
+        waveform: original audio waveform
+
+        isVoiced: flag indicating whether the sample is voiced (voicedExcitation is muted for unvoiced samples during ESPER processing)
+
+        isPlosive: flag indicating whether the sample is considered a plosive sound (if possible, plosives retain their original length after border creation during synthesis)
+        
+        expectedPitch: estimated pitch of the sample in Hz. Must be manually filled and is used during ESPER.calculatePitch() calls.
+        
+        searchRange: pitch frequency search range relative to expectedPitch. Should be a value between 0 and 1. Must be manually filled and is used during ESPER.calculatePitch() calls.
+        
+        specWidth, specDepth, tempWidth, tempDepth: width and depth used for spectral smoothing when calling ESPER.calculateSpectra(), along the frequency dimension of each stft batch, and the time dimension between the batches, respectively.
+    
+    Methods:
+        __init__: Constructor for initialising an AudioSample based on an audio file"""
+        
+        
+    def __init__(self, filepath:str) -> None:
+        """Constructor for initialising an AISample based on an audio file and desired sample rate.
+        
+        Arguments:
+            filepath: Expects a String that can be interpreted as a filepath to a .wav audio file. Determines the audio file to be loaded into the object.
+            
+        Returns:
+            None
+        
+        This method initializes the properties used for spectral and excitation calculation to the default values, loads the selected audio file (based on filepath string) into the waveform property, and resamples it to the desired sample rate"""
+
+        
+        loadedData = torchaudio.load(filepath)
+        self.filepath = filepath
+        self.waveform = loadedData[0][0]
+        sampleRate = loadedData[1]
+        del loadedData
+        transform = torchaudio.transforms.Resample(sampleRate, global_consts.sampleRate)
+        self.waveform = transform(self.waveform)
+        del transform
+        del sampleRate
+        self.isVoiced = True
+        self.isPlosive = False
+        
+        self.expectedPitch = global_consts.defaultExpectedPitch
+        self.searchRange = global_consts.defaultSearchRange
+        self.voicedThrh = global_consts.defaultVoicedThrh
+        self.specWidth = global_consts.defaultSpecWidth
+        self.specDepth = global_consts.defaultSpecDepth
+        self.tempWidth = global_consts.defaultTempWidth
+        self.tempDepth = global_consts.defaultTempDepth
+
+    def convert(self, batch:bool = False):
+        """converts the AISample sample to an AudioSample instance. If the batch flag is set, the waveform is divided and the parts are wrapped into individual AUdioSample instances, which are then returned as a list."""
+        def createAudioSample() -> AudioSample:
+            audioSample = AudioSample(self.filepath)
+            audioSample.waveform = self.waveform
+            audioSample.isVoiced = self.isVoiced
+            audioSample.isPlosive = self.isPlosive
+            audioSample.expectedPitch = self.expectedPitch
+            audioSample.searchRange = self.searchRange
+            audioSample.voicedThrh = self.voicedThrh
+            audioSample.specWidth = self.specWidth
+            audioSample.specDepth = self.specDepth
+            audioSample.tempWidth = self.tempWidth
+            audioSample.tempDepth = self.tempDepth
+            return audioSample
+        if batch:
+            audioSamples = []
+            while self.waveform.size()[0] > global_consts.LSTMBatchSize:
+                audioSample = createAudioSample()
+                audioSample.waveform = audioSample.waveform[:global_consts.LSTMBatchSize]
+                self.waveform = self.waveform[global_consts.LSTMBatchSize:]
+                audioSamples.append(audioSample)
+            audioSamples.append(createAudioSample())
+            return audioSamples
+        return createAudioSample()
         
 class LiteAudioSample():
     """A stripped down version of AudioSample only holding the data required for synthesis.

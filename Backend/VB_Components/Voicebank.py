@@ -200,7 +200,7 @@ class Voicebank():
 
     def addPhonemeUtau(self, sample:UtauSample) -> None:
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
-            self.phonemeDict[sample.key] = [sample.convert(),]
+            self.phonemeDict[sample.key] = [sample.convert(False),]
             calculatePitch(self.phonemeDict[sample.key][0])
             calculateSpectra(self.phonemeDict[sample.key][0])
         else:
@@ -236,7 +236,7 @@ class Voicebank():
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
 
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
-            self.stagedCrfTrainSamples.append(sample.convert())
+            self.stagedCrfTrainSamples.append(sample.convert(True))
         else:
             logging.warning("skipped one or several samples below the size threshold")
     
@@ -259,7 +259,7 @@ class Voicebank():
         """stages an audio sample the prediction Ai is to be trained with"""
 
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 4 * global_consts.tripleBatchSize:
-            self.stagedPredTrainSamples.append(sample.convert())
+            self.stagedPredTrainSamples.append(sample.convert(True))
         else:
             logging.warning("skipped one or several samples below the size threshold")
     
@@ -286,15 +286,16 @@ class Voicebank():
 
         print("sample preprocessing started")
         sampleCount = len(self.stagedCrfTrainSamples)
+        stagedCrfTrainSamples = []
         for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            #tqdm.write("processing sample [", i + 1, "/", sampleCount, "]")
-            calculatePitch(self.stagedCrfTrainSamples[i], True)
-            calculateSpectra(self.stagedCrfTrainSamples[i], False)
-            avgSpecharm = torch.cat((self.stagedCrfTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedCrfTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-            self.stagedCrfTrainSamples[i] = (avgSpecharm + self.stagedCrfTrainSamples[i].specharm).to(device = self.device)
+            sample = self.stagedCrfTrainSamples.pop().convert(False)
+            calculatePitch(sample, True)
+            calculateSpectra(sample, False)
+            avgSpecharm = torch.cat((sample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), sample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+            stagedCrfTrainSamples.append((avgSpecharm + sample.specharm).to(device = self.device))
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainCrf(self.stagedCrfTrainSamples, epochs = epochs, logging = logging, reset = not additive)
+        self.ai.trainCrf(stagedCrfTrainSamples, epochs = epochs, logging = logging, reset = not additive)
         print("AI training complete")
 
     def trainPredAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
@@ -310,15 +311,17 @@ class Voicebank():
 
         print("sample preprocessing started")
         sampleCount = len(self.stagedPredTrainSamples)
+        stagedPredTrainSamples = []
         for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            #tqdm.write("processing sample [", i + 1, "/", sampleCount, "]")
-            calculatePitch(self.stagedPredTrainSamples[i], False)
-            calculateSpectra(self.stagedPredTrainSamples[i], False)
-            avgSpecharm = torch.cat((self.stagedPredTrainSamples[i].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), self.stagedPredTrainSamples[i].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-            self.stagedPredTrainSamples[i] = (avgSpecharm + self.stagedPredTrainSamples[i].specharm).to(device = self.device)
+            samples = self.stagedPredTrainSamples.pop().convert(True)
+            for j in samples:
+                calculatePitch(j, False)
+                calculateSpectra(j, False)
+                avgSpecharm = torch.cat((j.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), j.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+                stagedPredTrainSamples.append((avgSpecharm + j.specharm).to(device = self.device))
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainPred(self.stagedPredTrainSamples, epochs = epochs, logging = logging, reset = not additive)
+        self.ai.trainPred(stagedPredTrainSamples, epochs = epochs, logging = logging, reset = not additive)
         print("AI training complete")
 
 class LiteVoicebank():

@@ -18,6 +18,7 @@ tickRate = 250
 batchSize = 192
 tripleBatchSize = 576
 halfTripleBatchSize = 288
+LSTMBatchSize = 480000
 
 #analysis spectral processing
 filterBSMult = 2
