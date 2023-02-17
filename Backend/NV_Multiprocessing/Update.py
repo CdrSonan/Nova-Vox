@@ -8,7 +8,7 @@
 import torch
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl
 
-def trimSequence(index:int, position:int, delta:int, addition:int, inputList:list, internalStatusControl:SequenceStatusControl) -> tuple([list, list]):
+def trimSequence(index:int, position:int, delta:int, addition:int, inputList:list, statusControl:list) -> tuple([list, list]):
     """Function used for adding to or removing phonemes from a VocalSequence. Automatically updates control structures and schedules updates as required
     
     Parameters:
@@ -56,8 +56,8 @@ def trimSequence(index:int, position:int, delta:int, addition:int, inputList:lis
         if position + delta >= len(endCaps) - 1:
             endCaps[position] = False
             endCaps[-1] = True
-        internalStatusControl.rs = torch.cat([internalStatusControl.rs[0:position], torch.zeros([delta,]), internalStatusControl.rs[position:]], 0)
-        internalStatusControl.ai = torch.cat([internalStatusControl.ai[0:position], torch.zeros([delta,]), internalStatusControl.ai[position:]], 0)
+        statusControl[index].rs = torch.cat([statusControl[index].rs[0:position], torch.zeros([delta,]), statusControl[index].rs[position:]], 0)
+        statusControl[index].ai = torch.cat([statusControl[index].ai[0:position], torch.zeros([delta,]), statusControl[index].ai[position:]], 0)
     elif delta < 0:
         phonemes = phonemes[0:position] + phonemes[position - delta:]
         offsets = torch.cat([offsets[0:position], offsets[position - delta:]], 0)
@@ -70,15 +70,15 @@ def trimSequence(index:int, position:int, delta:int, addition:int, inputList:lis
                 startCaps[0] = True
             if position >= len(endCaps) - 1:
                 endCaps[-1] = True
-        internalStatusControl.rs = torch.cat([internalStatusControl.rs[0:position], internalStatusControl.rs[position - delta:]], 0)
-        internalStatusControl.ai = torch.cat([internalStatusControl.ai[0:position], internalStatusControl.ai[position - delta:]], 0)
+        statusControl[index].rs = torch.cat([statusControl[index].rs[0:position], statusControl[index].rs[position - delta:]], 0)
+        statusControl[index].ai = torch.cat([statusControl[index].ai[0:position], statusControl[index].ai[position - delta:]], 0)
     inputList[index].phonemes = phonemes
     inputList[index].offsets = offsets
     inputList[index].repetititionSpacing = repetititionSpacing
     inputList[index].borders = borders
     inputList[index].startCaps = startCaps
     inputList[index].endCaps = endCaps
-    return inputList, internalStatusControl
+    return inputList, statusControl
 
 def posToSegment(index:int, pos1:float, pos2:float, inputList:list) -> tuple([int, int]):
     """helper function converting the range between two time positions in a VocalSequence to a range between two phoneme indices.

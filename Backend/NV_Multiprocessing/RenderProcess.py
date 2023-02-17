@@ -188,7 +188,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
             print("RENDERER: offset", change.data)
-            inputList, internalStatusControl = trimSequence(change.data[0], change.data[1], change.data[2], change.data[3], inputList, internalStatusControl)
+            inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], change.data[3], inputList, statusControl)
         elif change.type == "changeLength":
             inputList[change.data[0]].length = change.data[1]
             inputList[change.data[0]].pitch = ensureTensorLength(inputList[change.data[0]].pitch, change.data[1], -1.)

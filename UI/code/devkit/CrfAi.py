@@ -306,7 +306,6 @@ class CrfaiUi(tkinter.Frame):
         )
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
-            loadedVB.delCrfTrainSample(0)
             self.phonemeList.list.lb.delete(0)
         self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])
         logging.info("Crfai train button callback completed")

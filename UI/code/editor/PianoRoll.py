@@ -150,10 +150,10 @@ class Note(ManagedToggleButton):
         global middleLayer
         from UI.code.editor.Main import middleLayer
         middleLayer.removeNote(self.index)
-        for i in self.parent.children:
-            if i.__class__.__name__ == "Note":
-                if i.index > self.index:
-                    i.index -= 1
+        for i in self.parent.parent.notes:
+            if i.index > self.index:
+                i.index -= 1
+        self.parent.parent.notes.remove(self)
         self.parent.remove_widget(self)
 
     def changeLyrics(self, text:str, focus = False) -> None:
@@ -224,6 +224,7 @@ class PianoRoll(ScrollView):
         self.tempo = 125
         self.quantization = None
         self.timingMarkers = []
+        self.notes = []
         self.pitchLine = None
         self.basePitchLine = None
         self.generateTimingMarkers()
@@ -238,6 +239,7 @@ class PianoRoll(ScrollView):
             note = Note(index = index, xPos = i.xPos, yPos = i.yPos, length = i.length, height = self.yScale, inputMode = i.phonemeMode)
             note.children[0].text = i.content
             self.children[0].add_widget(note)
+            self.notes.append(note)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].reference = note
             index += 1
 
@@ -413,12 +415,9 @@ class PianoRoll(ScrollView):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        removes = []
-        for i in self.children[0].children:
-            if i.__class__.__name__ == "Note":
-                removes.append(i)
-        for i in removes:
+        for i in self.notes:
             self.children[0].remove_widget(i)
+        del self.notes[:]
         if middleLayer.activeTrack == None:
             for i in self.timingMarkers:
                 self.children[0].canvas.remove(i)
@@ -548,6 +547,7 @@ class PianoRoll(ScrollView):
                     newNote = Note(index = index, xPos = xQuant, yPos = y, length = 100, height = self.yScale)
                     middleLayer.addNote(index, x, y, newNote)
                     self.children[0].add_widget(newNote, index = 5)
+                    self.notes.append(newNote)
                     touch.ud["noteIndex"] = index
                     touch.ud["grabMode"] = "end"
                     touch.ud["initialPos"] = coord

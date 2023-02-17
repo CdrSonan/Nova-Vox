@@ -11,7 +11,7 @@ from tqdm.auto import tqdm
 
 from Backend.VB_Components.VbMetadata import VbMetadata
 from Backend.VB_Components.Ai.Wrapper import AIWrapper
-from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample
+from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample, AISample
 from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import calculateSpectra
 from Backend.DataHandler.UtauSample import UtauSample
@@ -230,7 +230,7 @@ class Voicebank():
     def addCrfTrainSample(self, filepath:str) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
 
-        self.stagedCrfTrainSamples.append(AudioSample(filepath))
+        self.stagedCrfTrainSamples.append(AISample(filepath))
 
     def addCrfTrainSampleUtau(self, sample:UtauSample) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
@@ -248,12 +248,12 @@ class Voicebank():
     def changeCrfTrainSampleFile(self, index:int, filepath:str) -> None:
         """currently unused method that changes the file of a staged phoneme crossfade Ai training sample"""
 
-        self.stagedCrfTrainSamples[index] = AudioSample(filepath)
+        self.stagedCrfTrainSamples[index] = AISample(filepath)
 
     def addPredTrainSample(self, filepath:str) -> None:
         """stages an audio sample the prediction Ai is to be trained with"""
 
-        self.stagedPredTrainSamples.append(AudioSample(filepath))
+        self.stagedPredTrainSamples.append(AISample(filepath))
 
     def addPredTrainSampleUtau(self, sample:UtauSample) -> None:
         """stages an audio sample the prediction Ai is to be trained with"""
@@ -271,7 +271,7 @@ class Voicebank():
     def changePredTrainSampleFile(self, index:int, filepath:str) -> None:
         """currently unused method that changes the file of a staged prediction Ai training sample"""
 
-        self.stagedPredTrainSamples[index] = AudioSample(filepath)
+        self.stagedPredTrainSamples[index] = AISample(filepath)
     
     def trainCrfAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
