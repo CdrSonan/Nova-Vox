@@ -53,7 +53,7 @@ class Note(ManagedToggleButton):
         self.pos = (self.xPos * self.parent.parent.xScale, self.yPos * self.parent.parent.yScale)
         self.width = self.length * self.parent.parent.xScale
         self.height = self.parent.parent.yScale
-        self.redrawStatusBars()
+        self.redrawStatusBars(True)
 
     def updateStatus(self, index, status):
         """updates one of the status bars present on the note"""
@@ -166,7 +166,11 @@ class Note(ManagedToggleButton):
         middleLayer.changeLyrics(self.index, text)
         self.redrawStatusBars()
 
-    def redrawStatusBars(self) -> None:
+    def redrawStatusBars(self, complete = False) -> None:
+        """redraws the statuse bars belonging to the note, updating their number, position, and size as necessary in the process.
+        "complete" is a flag that indicates whether the status bars are to be drawn as if rendering of their respective phonemes had been completed.
+        If the flag is not set, the status bars are instead drawn without any rendering progress."""
+        
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
         if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) <= reference.phonemeStart:
             return
@@ -177,8 +181,12 @@ class Note(ManagedToggleButton):
             self.canvas.remove(self.statusBars[-1])
             del self.statusBars[-1]
         for i in range(phonemeLength):
-            rectanglePos = (self.pos[0] + i / phonemeLength * self.width, self.pos[1])
-            rectangleSize = (self.width / phonemeLength, self.height)
+            if complete:
+                rectanglePos = (self.pos[0] + i / phonemeLength * self.width, self.pos[1] + self.height)
+                rectangleSize = (self.width / phonemeLength,0)
+            else:
+                rectanglePos = (self.pos[0] + i / phonemeLength * self.width, self.pos[1])
+                rectangleSize = (self.width / phonemeLength, self.height)
             group = InstructionGroup()
             group.add(Color(0., 0., 0., 0.5))
             group.add(Rectangle(pos = rectanglePos, size = rectangleSize))
