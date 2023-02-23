@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2023 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -7,6 +7,7 @@
 
 from os import getenv, mkdir, makedirs, path as osPath
 from shutil import copyfile
+import configparser as cp
 
 def readSettings(path:str = None) -> dict:
     """function for reading the Nova-Vox settings file, or arbitrary other .ini settings file.
@@ -28,13 +29,11 @@ def readSettings(path:str = None) -> dict:
         makedirs(osPath.split(path)[0])
     if osPath.isfile(path) == False:
         copyfile("settings.ini", path)
-    with open(path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if line == "" or line.startswith("[")or line.startswith(";"):
-                continue
-            line = line.split("=")
-            settings[line[0].strip()] = line[1].strip()
+    config = cp.ConfigParser()
+    config.read(path)
+    for i in config.sections():
+        for j in config[i].keys():
+            settings[j] = config[i][j]
     return settings
     
 def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDevice, loglevel, dataDir, uiScale, toolColor, accColor, bgColor):
@@ -42,31 +41,22 @@ def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDe
 
     if path == None:
         path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
+    config = cp.ConfigParser()
+    config["lang"] = {"language": lang,}
+    config["perf"] = {"accelerator": accel,
+                      "tensorcores": tcores,
+                      "lowspecmode": lowSpec,
+                      "cachingmode": caching}
+    config["audio"] = {"audioapi": audioApi,
+                       "audiodevice": audioDevice}
+    config["log"] = {"loglevel": loglevel,}
+    config["dirs"] = {"datadir": dataDir,}
+    config["ui"] = {"uiscale": str(uiScale),
+                    "toolcolor": str(toolColor),
+                    "acccolor": str(accColor),
+                    "bgcolor": str(bgColor)}
     with open(path, 'w') as f:
-        f.write("[lang]" + "\n")
-        f.write("language = " + lang + "\n")
-        f.write("\n")
-        f.write("[perf]" + "\n")
-        f.write("accelerator = " + accel + "\n")
-        f.write("tensorCores = " + tcores + "\n")
-        f.write("lowSpecMode = " + lowSpec + "\n")
-        f.write("cachingMode = " + caching + "\n")
-        f.write("\n")
-        f.write("[audio]" + "\n")
-        f.write("audioApi = " + audioApi + "\n")
-        f.write("audioDevice = " + audioDevice + "\n")
-        f.write("\n")
-        f.write("[log]" + "\n")
-        f.write("loglevel = " + loglevel + "\n")
-        f.write("\n")
-        f.write("[dirs]" + "\n")
-        f.write("dataDir = " + dataDir + "\n")
-        f.write("\n")
-        f.write("[ui]" + "\n")
-        f.write("uiScale = " + str(uiScale) + "\n")
-        f.write("toolColor = " + str(toolColor) + "\n")
-        f.write("accColor = " + str(accColor) + "\n")
-        f.write("bgColor = " + str(bgColor) + "\n")
+        config.write(f)
     if dataDir == "None":
         return
     voicePath = osPath.join(dataDir, "Voices")

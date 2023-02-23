@@ -18,14 +18,14 @@ if accel == "CPU":
 if accel == "Hybrid":
     mainDevice = torch.device('cpu')
     aiDevice = torch.device('cuda')
-    tc = settings["tensorCores"]
+    tc = settings["tensorcores"]
     if tc == "enabled":
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
 if accel == "GPU":
     mainDevice = torch.device('cuda')
     aiDevice = torch.device('cuda')
-    tc = settings["tensorCores"]
+    tc = settings["tensorcores"]
     if tc == "disabled":
         torch.backends.cuda.matmul.allow_tf32 = False
         torch.backends.cudnn.allow_tf32 = False

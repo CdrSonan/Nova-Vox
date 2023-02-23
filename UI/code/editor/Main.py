@@ -27,10 +27,10 @@ class NovaVoxUI(Widget):
     """class of the Root UI of the Nova-Vox editor. At program startup or after a reset, a single instance of this class is created, which then creates all UI elements as its children"""
 
     settings = readSettings()
-    uiScale = NumericProperty(float(settings["uiScale"]))
-    toolColor = ColorProperty(eval(settings["toolColor"]))
-    accColor = ColorProperty(eval(settings["accColor"]))
-    bgColor = ColorProperty(eval(settings["bgColor"]))
+    uiScale = NumericProperty(float(settings["uiscale"]))
+    toolColor = ColorProperty(eval(settings["toolcolor"]))
+    accColor = ColorProperty(eval(settings["acccolor"]))
+    bgColor = ColorProperty(eval(settings["bgcolor"]))
     cursorSource = ObjectProperty()
     cursorPrio = NumericProperty()
     

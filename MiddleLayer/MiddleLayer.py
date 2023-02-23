@@ -65,8 +65,8 @@ class MiddleLayer(Widget):
         device = None
         devices = sounddevice.query_devices()
         for i in devices:
-            if i["name"] == settings["audioDevice"]:
-                device = i["name"] + ", " + settings["audioApi"]
+            if i["name"] == settings["audiodevice"]:
+                device = i["name"] + ", " + settings["audioapi"]
         self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback)
         self.scriptCache = ""
 
@@ -695,8 +695,7 @@ class MiddleLayer(Widget):
         """sets the position of the timing marker at index border of the active track to pos"""
 
         self.trackList[self.activeTrack].borders[border] = pos
-        self.repairBorders(border)
-        self.submitBorderChange(True, border, [pos,])
+        self.submitBorderChange(False, border, [pos,])
 
     def changeVB(self, index:int, path:str) -> None:
         """changes the Voicebank of the active track, and performs the necessary checks"""

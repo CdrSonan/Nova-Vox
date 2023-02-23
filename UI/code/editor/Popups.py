@@ -61,7 +61,7 @@ class SingerSettingsPanel(Popup):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        voicePath = os.path.join(readSettings()["dataDir"], "Voices")
+        voicePath = os.path.join(readSettings()["datadir"], "Voices")
         if os.path.isdir(voicePath) == False:
             popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
             popup.open()

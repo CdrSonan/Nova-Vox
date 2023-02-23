@@ -123,7 +123,7 @@ class SingerSidePanel(CursorAwareView):
     def listVoicebanks(self) -> None: 
         """reads a list of available Voicebanks from disk and displays it"""
 
-        voicePath = os.path.join(readSettings()["dataDir"], "Voices")
+        voicePath = os.path.join(readSettings()["datadir"], "Voices")
         if os.path.isdir(voicePath) == False:
             popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
             popup.open()
@@ -305,18 +305,18 @@ class SettingsSidePanel(CursorAwareView):
         settings = readSettings()
         self.ids["settings_lang"].text = settings["language"]
         self.ids["settings_accel"].text = settings["accelerator"]
-        self.ids["settings_tcores"].text = settings["tensorCores"]
-        self.ids["settings_lowSpecMode"].text = settings["lowSpecMode"]
-        self.ids["settings_cachingMode"].text = settings["cachingMode"]
-        self.ids["settings_audioApi"].text = settings["audioApi"]
-        self.refreshAudioDevices(settings["audioApi"])
-        self.ids["settings_audioDevice"].text = settings["audioDevice"]
+        self.ids["settings_tcores"].text = settings["tensorcores"]
+        self.ids["settings_lowSpecMode"].text = settings["lowspecmode"]
+        self.ids["settings_cachingMode"].text = settings["cachingmode"]
+        self.ids["settings_audioApi"].text = settings["audioapi"]
+        self.refreshAudioDevices(settings["audioapi"])
+        self.ids["settings_audioDevice"].text = settings["audiodevice"]
         self.ids["settings_loglevel"].text = settings["loglevel"]
-        self.ids["settings_datadir"].text = settings["dataDir"]
-        self.ids["settings_uiScale"].value = settings["uiScale"]
-        self.ids["settings_toolColor"].color = eval(settings["toolColor"])
-        self.ids["settings_accColor"].color = eval(settings["accColor"])
-        self.ids["settings_bgColor"].color = eval(settings["bgColor"])
+        self.ids["settings_datadir"].text = settings["datadir"]
+        self.ids["settings_uiScale"].value = settings["uiscale"]
+        self.ids["settings_toolColor"].color = eval(settings["toolcolor"])
+        self.ids["settings_accColor"].color = eval(settings["acccolor"])
+        self.ids["settings_bgColor"].color = eval(settings["bgcolor"])
 
     def writeSettings(self) -> None:
         """writes the settings to the settings file"""
@@ -325,4 +325,17 @@ class SettingsSidePanel(CursorAwareView):
             audioDevice = self.ids["settings_audioDevice"].text
         else:
             audioDevice = self.audioDeviceNames[0]
-        writeSettings(None, self.ids["settings_lang"].text, self.ids["settings_accel"].text, self.ids["settings_tcores"].text, self.ids["settings_lowSpecMode"].text, self.ids["settings_cachingMode"].text, self.ids["settings_audioApi"].text, audioDevice, self.ids["settings_loglevel"].text, self.ids["settings_datadir"].text, self.ids["settings_uiScale"].value, self.ids["settings_toolColor"].color, self.ids["settings_accColor"].color, self.ids["settings_bgColor"].color)
+        writeSettings(None,
+                      self.ids["settings_lang"].text,
+                      self.ids["settings_accel"].text,
+                      self.ids["settings_tcores"].text,
+                      self.ids["settings_lowSpecMode"].text,
+                      self.ids["settings_cachingMode"].text,
+                      self.ids["settings_audioApi"].text,
+                      audioDevice,
+                      self.ids["settings_loglevel"].text,
+                      self.ids["settings_datadir"].text,
+                      self.ids["settings_uiScale"].value,
+                      self.ids["settings_toolColor"].color,
+                      self.ids["settings_accColor"].color,
+                      self.ids["settings_bgColor"].color)

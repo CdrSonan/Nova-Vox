@@ -28,9 +28,9 @@ if pyi_splash.is_alive():
     pyi_splash.update_text("reading settings...")
 from MiddleLayer.IniParser import readSettings
 settings = readSettings()
-if settings["tensorCores"] == "enabled":
+if settings["tensorcores"] == "enabled":
     TCORES = True
-elif settings["tensorCores"] == "disabled":
+elif settings["tensorcores"] == "disabled":
     TCORES = False
 else:
     print("could not read tensor core setting. Tensor cores have been disabled by default.")
@@ -82,9 +82,9 @@ if __name__ == '__main__':
     from kivy.config import Config
     from kivy.base import ExceptionManager
     from MiddleLayer.ErrorHandler import ErrorHandler
-    if settings["lowSpecMode"] == "disabled":
+    if settings["lowspecmode"] == "disabled":
         UPDATEINTERVAL = 0.25
-    elif settings["lowSpecMode"] == "enabled":
+    elif settings["lowspecmode"] == "enabled":
         UPDATEINTERVAL = 2.
     else:
         print("could not read low-spec mode setting. low-spec mode has been disabled by default.")

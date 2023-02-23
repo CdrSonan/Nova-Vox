@@ -94,19 +94,27 @@ class ParamCurve(ScrollView):
     line = ObjectProperty()
     line = Line()
 
+    def on_parent(self, instance, parent):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        if middleLayer.activeTrack != None and self.parent:
+            self.seqLength = middleLayer.trackList[middleLayer.activeTrack].length
+
     def redraw(self) -> None:
         """redraws the parameter curve, using data fetched from the middleLayer."""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        if middleLayer.activeParam == "steadiness":
+        if middleLayer.activeParam == "loop" or middleLayer.activeParam == "vibrato":
+            return
+        elif middleLayer.activeParam == "steadiness":
             data = middleLayer.trackList[middleLayer.activeTrack].steadiness
         elif middleLayer.activeParam == "breathiness":
             data = middleLayer.trackList[middleLayer.activeTrack].breathiness
         elif middleLayer.activeParam == "AI balance":
             data = middleLayer.trackList[middleLayer.activeTrack].aiBalance
         else:
-            data = middleLayer.trackList[middleLayer.activeTrack].paramStack[middleLayer.activeParam].curve
+            data = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam].curve
         points = []
         c = 0
         for i in data:
@@ -263,6 +271,12 @@ class TimingOptns(ScrollView):
     points2 = ListProperty()
     rectangles1 = ListProperty()
     rectangles2 = ListProperty()
+    
+    def on_parent(self, instance, parent):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        if middleLayer.activeTrack != None and self.parent:
+            self.seqLength = middleLayer.trackList[middleLayer.activeTrack].length
 
     def redraw(self) -> None:
         """redraws the curve, using data fetched from the middleLayer."""
@@ -280,16 +294,15 @@ class TimingOptns(ScrollView):
         self.points1 = []
         self.points2 = []
         for i in range(data1.size()[0]):
-            self.points1.append((self.parent.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 1], data1[i].item() * self.height / 2))
-            self.points2.append((self.parent.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 1],  (data2[i].item() * self.height) / 2))
+            middle = (middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] + middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 3]) / 2
+            self.points1.append((self.xScale * middle - 5, data1[i].item() * self.height / 2))
+            self.points2.append((self.xScale * middle - 5, data2[i].item() * self.height / 2))
         with self.children[0].canvas:
             Color(1, 0, 0, 1)
             for i in self.points1:
-                self.rectangles1.append(ObjectProperty())
-                self.rectangles1[-1] = Rectangle(pos = (i[0], self.y + 0.5 * self.height), size = (10, i[1]))
+                self.rectangles1.append(Rectangle(pos = (i[0], self.y + 0.5 * self.height), size = (10, i[1])))
             for i in self.points2:
-                self.rectangles2.append(ObjectProperty())
-                self.rectangles2[-1] = Rectangle(pos = (i[0], self.y), size = (10, i[1]))
+                self.rectangles2.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))
 
     def on_xScale(self, instance, xScale:float) -> None:
         """updates the displayed bar diagrams when the x axis zoom level is changed"""
@@ -505,10 +518,14 @@ class PitchOptns(ScrollView):
     xScale = NumericProperty(1)
     seqLength = NumericProperty(5000)
 
+    def on_parent(self, instance, parent):
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        if middleLayer.activeTrack != None and self.parent:
+            self.seqLength = middleLayer.trackList[middleLayer.activeTrack].length
+
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.line1 = ObjectProperty()
-        self.line2 = ObjectProperty()
         with self.children[0].canvas:
             self.line1 = Line()
             self.line2 = Line()
@@ -526,11 +543,11 @@ class PitchOptns(ScrollView):
         points2 = []
         c = 0
         for i in data1:
-            points1.append((self.parent.xScale * c, int((1 + i) * self.height / 4)))
+            points1.append((self.xScale * c, int((1 + i) * self.height / 4)))
             c += 1
         c = 0
         for i in data2:
-            points2.append((self.parent.xScale * c, int((3 + i) * self.height / 4)))
+            points2.append((self.xScale * c, int((3 + i) * self.height / 4)))
             c += 1
         with self.children[0].canvas:
             Color(1, 0, 0, 1)

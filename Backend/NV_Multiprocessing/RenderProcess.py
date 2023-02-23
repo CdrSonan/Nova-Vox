@@ -29,9 +29,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     #reading settings, setting device and interOutput properties accordingly
     logging.info("render process started, reading settings")
     settings = readSettings()
-    if settings["lowSpecMode"] == "enabled":
+    if settings["lowspecmode"] == "enabled":
         interOutput = False
-    elif settings["lowSpecMode"] == "disabled":
+    elif settings["lowspecmode"] == "disabled":
         interOutput = True
     else:
         print("could not read intermediate output setting. Intermediate outputs have been disabled by default.")
@@ -69,7 +69,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             voicebankList.append(LiteVoicebank(change.data[0], device = device_ai))
             nodeGraphList.append(change.data[1])
             inputList.append(change.data[2])
-            if settings["cachingMode"] == "best rendering speed":
+            if settings["cachingmode"] == "best rendering speed":
                 length = inputList[-1].pitch.size()[0]
                 spectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
                 processedSpectrumCache.append(DenseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs))
@@ -80,7 +80,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             del voicebankList[change.data[0]]
             del nodeGraphList[change.data[0]]
             del inputList[change.data[0]]
-            if settings["cachingMode"] == "best rendering speed":
+            if settings["cachingmode"] == "best rendering speed":
                 del spectrumCache[change.data[0]]
                 del processedSpectrumCache[change.data[0]]
                 del excitationCache[change.data[0]]
@@ -91,7 +91,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             voicebankList.append(voicebankList[change.data[0]])
             nodeGraphList.append(copy(nodeGraphList[change.data[0]]))
             inputList.append(inputList[change.data[0]].duplicate())
-            if settings["cachingMode"] == "best rendering speed":
+            if settings["cachingmode"] == "best rendering speed":
                 spectrumCache.append(spectrumCache[change.data[0]].duplicate())
                 processedSpectrumCache.append(processedSpectrumCache[change.data[0]].duplicate())
                 excitationCache.append(excitationCache[change.data[0]].duplicate())
@@ -232,7 +232,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     #setting up caching and other required data that is independent of each individual rendering iteration
     window = torch.hann_window(global_consts.tripleBatchSize, device = device_rs)
     lastZero = None
-    if settings["cachingMode"] == "best rendering speed":
+    if settings["cachingmode"] == "best rendering speed":
         spectrumCache = []
         processedSpectrumCache = []
         excitationCache = []
@@ -275,13 +275,13 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 nextPitch = None
                 
                 aiActive = False
-                if settings["cachingMode"] == "best rendering speed":
+                if settings["cachingmode"] == "best rendering speed":
                     spectrum = spectrumCache[i]
                     processedSpectrum = processedSpectrumCache[i]
                     excitation = excitationCache[i]
                     pitch = pitchCache[i]
                     indicator = -1
-                elif settings["cachingMode"] == "save RAM":
+                elif settings["cachingmode"] == "save RAM":
                     spectrum = SparseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs)
                     processedSpectrum = SparseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs)
                     excitation = SparseCache((length, global_consts.halfTripleBatchSize + 1), device_rs, torch.complex64)
@@ -526,7 +526,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         remoteConnection.put(StatusChange(i, j - 1, 5))
 
                     #update cache with new data, if cache is used
-                    if settings["cachingMode"] == "best rendering speed":
+                    if settings["cachingmode"] == "best rendering speed":
                         spectrumCache[i] = spectrum
                         processedSpectrumCache[i] = processedSpectrum
                         excitationCache[i] = excitation

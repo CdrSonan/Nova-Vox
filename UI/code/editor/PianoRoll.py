@@ -232,6 +232,8 @@ class PianoRoll(ScrollView):
         self.tempo = 125
         self.quantization = None
         self.timingMarkers = []
+        self.timingZones = []
+        self.timingHints = []
         self.notes = []
         self.pitchLine = None
         self.basePitchLine = None
@@ -380,6 +382,29 @@ class PianoRoll(ScrollView):
             self.basePitchLine = Line(points = points2)
             Color(1, 0, 0, 1)
             self.pitchLine = Line(points = points1)
+            
+    def drawTiming(self) -> None:
+        """draws all border/timing markers and related UI elements"""
+
+        with self.children[0].canvas:
+            Color(1, 0, 0)
+            for i in middleLayer.trackList[middleLayer.activeTrack].borders:
+                self.timingMarkers.append(Line(points = [self.xScale * i, 0, self.xScale * i, self.children[0].height]))
+            Color(1, 0, 1, 0.33)
+            for i in range(len(middleLayer.trackList[middleLayer.activeTrack].phonemes) + 1):
+                pos = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i]
+                size = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] - pos
+                self.timingZones.append(Rectangle(pos = (pos, 0), size = (size, self.children[0].height)))
+        
+    def removeTiming(self) -> None:
+        """removes all border/timing markers and related UI elements"""
+
+        for i in self.timingMarkers:
+            self.children[0].canvas.remove(i)
+        del self.timingMarkers[:]
+        for i in self.timingZones:
+            self.children[0].canvas.remove(i)
+        del self.timingZones[:]
 
     def changeMode(self) -> None:
         """prompts all UI changes required when the input mode changes"""
@@ -387,9 +412,7 @@ class PianoRoll(ScrollView):
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if middleLayer.mode == "notes":
-            for i in self.timingMarkers:
-                self.children[0].canvas.remove(i)
-            del self.timingMarkers[:]
+            self.removeTiming()
             if self.pitchLine != None:
                 self.children[0].canvas.remove(self.pitchLine)
                 self.pitchLine = None
@@ -405,17 +428,11 @@ class PianoRoll(ScrollView):
             if self.basePitchLine != None:
                 self.children[0].canvas.remove(self.basePitchLine)
                 self.basePitchLine = None
-            with self.children[0].canvas:
-                Color(1, 0, 0)
-                for i in middleLayer.trackList[middleLayer.activeTrack].borders:
-                    self.timingMarkers.append(ObjectProperty())
-                    self.timingMarkers[-1] = Line(points = [self.xScale * i, 0, self.xScale * i, self.children[0].height])
+            self.drawTiming()
         if middleLayer.mode == "pitch":
             for i in self.children[0].children:
                 i.state = "normal"
-            for i in self.timingMarkers:
-                self.children[0].canvas.remove(i)
-            del self.timingMarkers[:]
+            self.removeTiming()
             self.redrawPitch()
 
     def updateTrack(self) -> None:
@@ -423,27 +440,21 @@ class PianoRoll(ScrollView):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
+        if middleLayer.activeTrack == None:
+            return
         for i in self.notes:
             self.children[0].remove_widget(i)
         del self.notes[:]
-        if middleLayer.activeTrack == None:
-            for i in self.timingMarkers:
-                self.children[0].canvas.remove(i)
-            del self.timingMarkers[:]
-            if self.pitchLine != None:
-                self.children[0].canvas.remove(self.pitchLine)
-                self.pitchLine = None
-            if self.basePitchLine != None:
-                self.children[0].canvas.remove(self.basePitchLine)
-                self.basePitchLine = None
-            return
+        self.removeTiming()
+        if self.pitchLine != None:
+            self.children[0].canvas.remove(self.pitchLine)
+            self.pitchLine = None
+        if self.basePitchLine != None:
+            self.children[0].canvas.remove(self.basePitchLine)
+            self.basePitchLine = None
         self.generate_notes()
         if middleLayer.mode == "timing":
-            with self.children[0].canvas:
-                Color(1, 0, 0)
-                for i in middleLayer.trackList[middleLayer.activeTrack].borders:
-                    self.timingMarkers.append(ObjectProperty())
-                    self.timingMarkers[-1] = Line(points = [self.xScale * i, 0, self.xScale * i, self.children[0].height])
+            self.drawTiming()
         if middleLayer.mode == "pitch":
             self.redrawPitch()
 
@@ -643,13 +654,34 @@ class PianoRoll(ScrollView):
             else:
                 return False
         elif middleLayer.mode == "timing":
-            self.children[0].canvas.remove(self.timingMarkers[touch.ud["border"]])
-            del self.timingMarkers[touch.ud["border"]]
-            self.timingMarkers.insert(touch.ud["border"], ObjectProperty())
+
+            def applyBorder(border, newPos, checkLeft, checkRight):
+                if newPos < border:
+                    return
+                index = self.children[0].canvas.indexof(self.timingMarkers[border])
+                self.children[0].canvas.remove(self.timingMarkers[border])
+                del self.timingMarkers[border]
+                self.timingMarkers.insert(border, Line(points = [self.xScale * newPos, 0, self.xScale * newPos, self.children[0].height]))
+                self.children[0].canvas.insert(index, self.timingMarkers[border])
+                zone = floor(border / 3)
+                index = self.children[0].canvas.indexof(self.timingZones[zone])
+                self.children[0].canvas.remove(self.timingZones[zone])
+                del self.timingZones[zone]
+                pos = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * zone]
+                size = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * zone + 2] - pos
+                self.timingZones.insert(zone, Rectangle(pos = (pos, 0), size = (size, self.children[0].height)))
+                self.children[0].canvas.insert(index, self.timingZones[zone])
+                middleLayer.changeBorder(border, newPos)
+                if checkLeft and border > 0:
+                    if middleLayer.trackList[middleLayer.activeTrack].borders[border - 1] >= middleLayer.trackList[middleLayer.activeTrack].borders[border]:
+                        applyBorder(border - 1, newPos - 1, True, False)
+                if checkRight and border < len(middleLayer.trackList[middleLayer.activeTrack].borders) - 1:
+                    if middleLayer.trackList[middleLayer.activeTrack].borders[border] >= middleLayer.trackList[middleLayer.activeTrack].borders[border + 1]:
+                        applyBorder(border + 1, newPos + 1, False, True)
+
             newPos = x - touch.ud["offset"]
-            with self.children[0].canvas:
-                self.timingMarkers[touch.ud["border"]] = Line(points = [self.xScale * newPos, 0, self.xScale * newPos, self.children[0].height])
-            middleLayer.changeBorder(touch.ud["border"], newPos)
+            applyBorder(touch.ud["border"], newPos, True, True)
+            middleLayer.submitFinalize()
         elif middleLayer.mode == "pitch":
             p = x - int(touch.ud['startPoint'][0] / self.xScale)
             if middleLayer.tool == "draw":
