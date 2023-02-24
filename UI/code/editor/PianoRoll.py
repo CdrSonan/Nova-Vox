@@ -395,6 +395,12 @@ class PianoRoll(ScrollView):
                 pos = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i]
                 size = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] - pos
                 self.timingZones.append(Rectangle(pos = (pos, 0), size = (size, self.children[0].height)))
+        for i, phoneme in enumerate(middleLayer.trackList[middleLayer.activeTrack].phonemes):
+            pos = (middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] * self.xScale, 0)
+            size = ((middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 3] - middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2]) * self.xScale, 30)
+            self.timingHints.append(Label(pos = pos, size = size, text = phoneme, halign = "center"))
+            self.children[0].add_widget(self.timingHints[-1], index = 5)
+            print(self.timingHints[-1].pos, self.timingHints[-1].size)
         
     def removeTiming(self) -> None:
         """removes all border/timing markers and related UI elements"""
@@ -405,6 +411,9 @@ class PianoRoll(ScrollView):
         for i in self.timingZones:
             self.children[0].canvas.remove(i)
         del self.timingZones[:]
+        for i in self.timingHints:
+            self.children[0].remove_widget(i)
+        del self.timingHints[:]
 
     def changeMode(self) -> None:
         """prompts all UI changes required when the input mode changes"""
@@ -554,15 +563,14 @@ class PianoRoll(ScrollView):
                 if middleLayer.mode == "notes":
                     index = 0
                     xQuant = self.quantize(x)
-                    for i in self.children[0].children:
-                        if i.__class__.__name__ == "Note":
-                            if i.xPos < xQuant:
-                                index += 1
-                            elif i.xPos > xQuant:
-                                i.index += 1
-                            else:
-                                index += 1
-                                xQuant += 1
+                    for i in self.notes:
+                        if i.xPos < xQuant:
+                            index += 1
+                        elif i.xPos > xQuant:
+                            i.index += 1
+                        else:
+                            index += 1
+                            xQuant += 1
                     newNote = Note(index = index, xPos = xQuant, yPos = y, length = 100, height = self.yScale)
                     middleLayer.addNote(index, x, y, newNote)
                     self.children[0].add_widget(newNote, index = 5)
@@ -671,6 +679,8 @@ class PianoRoll(ScrollView):
                 size = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * zone + 2] - pos
                 self.timingZones.insert(zone, Rectangle(pos = (pos, 0), size = (size, self.children[0].height)))
                 self.children[0].canvas.insert(index, self.timingZones[zone])
+                self.timingHints[max(floor(border / 3 - 1), 0)].x = pos
+                self.timingHints[max(floor(border / 3 - 1), 0)].width = size
                 middleLayer.changeBorder(border, newPos)
                 if checkLeft and border > 0:
                     if middleLayer.trackList[middleLayer.activeTrack].borders[border - 1] >= middleLayer.trackList[middleLayer.activeTrack].borders[border]:

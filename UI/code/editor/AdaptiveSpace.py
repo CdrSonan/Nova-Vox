@@ -94,6 +94,10 @@ class ParamCurve(ScrollView):
     line = ObjectProperty()
     line = Line()
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.color = Color(1, 0, 0, 1)
+
     def on_parent(self, instance, parent):
         global middleLayer
         from UI.code.editor.Main import middleLayer
@@ -121,9 +125,10 @@ class ParamCurve(ScrollView):
             points.append(c * self.xScale)
             points.append((i.item() + 1) * self.height / 2)
             c += 1
+        self.children[0].canvas.remove(self.color)
         self.children[0].canvas.remove(self.line)
         with self.children[0].canvas:
-            Color(1, 0, 0, 1)
+            self.color = Color(1, 0, 0, 1)
             self.line = Line(points = points)
 
     def on_xScale(self, instance, xScale:float) -> None:
@@ -272,6 +277,10 @@ class TimingOptns(ScrollView):
     rectangles1 = ListProperty()
     rectangles2 = ListProperty()
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.color = Color(1, 0, 0, 1)
+
     def on_parent(self, instance, parent):
         global middleLayer
         from UI.code.editor.Main import middleLayer
@@ -283,6 +292,7 @@ class TimingOptns(ScrollView):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
+        self.children[0].canvas.remove(self.color)
         for i in self.rectangles1:
             self.children[0].canvas.remove(i)
         del self.rectangles1[:]
@@ -298,7 +308,7 @@ class TimingOptns(ScrollView):
             self.points1.append((self.xScale * middle - 5, data1[i].item() * self.height / 2))
             self.points2.append((self.xScale * middle - 5, data2[i].item() * self.height / 2))
         with self.children[0].canvas:
-            Color(1, 0, 0, 1)
+            self.color = Color(1, 0, 0, 1)
             for i in self.points1:
                 self.rectangles1.append(Rectangle(pos = (i[0], self.y + 0.5 * self.height), size = (10, i[1])))
             for i in self.points2:
@@ -529,12 +539,14 @@ class PitchOptns(ScrollView):
         with self.children[0].canvas:
             self.line1 = Line()
             self.line2 = Line()
+            self.color = Color(1, 0, 0, 1)
 
     def redraw(self) -> None:
         """redraws the curves using data fetched from the middleLayer"""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
+        self.children[0].canvas.remove(self.color)
         self.children[0].canvas.remove(self.line1)
         self.children[0].canvas.remove(self.line2)
         data1 = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength
@@ -550,7 +562,7 @@ class PitchOptns(ScrollView):
             points2.append((self.xScale * c, int((3 + i) * self.height / 4)))
             c += 1
         with self.children[0].canvas:
-            Color(1, 0, 0, 1)
+            self.color = Color(1, 0, 0, 1)
             self.line1 = Line(points = points1)
             self.line2 = Line(points = points2)
 
