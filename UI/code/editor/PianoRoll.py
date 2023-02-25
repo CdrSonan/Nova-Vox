@@ -346,6 +346,10 @@ class PianoRoll(ScrollView):
         self.updateTimingMarkers()
         self.updateTrack()
 
+    def on_scroll_y(self, instance, scroll_y:float) -> None:
+        for i in self.timingHints:
+            i.y = (self.children[0].height - self.height) * scroll_y
+
     def changePlaybackPos(self, playbackPos:float) -> None:
         """changes the position of the playback head"""
 
@@ -396,9 +400,13 @@ class PianoRoll(ScrollView):
                 size = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] - pos
                 self.timingZones.append(Rectangle(pos = (pos, 0), size = (size, self.children[0].height)))
         for i, phoneme in enumerate(middleLayer.trackList[middleLayer.activeTrack].phonemes):
-            pos = (middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] * self.xScale, 0)
-            size = ((middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 3] - middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2]) * self.xScale, 30)
-            self.timingHints.append(Label(pos = pos, size = size, text = phoneme, halign = "center"))
+            self.timingHints.append(Label(size_hint = (None, None),
+                                           x = middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] * self.xScale,
+                                           y = (self.children[0].height - self.height) * self.scroll_y,
+                                           width = (middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 3] - middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2]) * self.xScale,
+                                           height = 30,
+                                           text = phoneme,
+                                           halign = "center"))
             self.children[0].add_widget(self.timingHints[-1], index = 5)
             print(self.timingHints[-1].pos, self.timingHints[-1].size)
         
