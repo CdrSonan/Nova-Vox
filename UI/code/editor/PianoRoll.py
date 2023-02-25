@@ -687,8 +687,11 @@ class PianoRoll(ScrollView):
                 size = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * zone + 2] - pos
                 self.timingZones.insert(zone, Rectangle(pos = (pos, 0), size = (size, self.children[0].height)))
                 self.children[0].canvas.insert(index, self.timingZones[zone])
-                self.timingHints[max(floor(border / 3 - 1), 0)].x = pos
-                self.timingHints[max(floor(border / 3 - 1), 0)].width = size
+                if border % 3 == 2 and border < len(middleLayer.trackList[middleLayer.activeTrack].borders) - 1:
+                    self.timingHints[int((border - 2) / 3)].x = self.xScale * newPos
+                    self.timingHints[int((border - 2) / 3)].width = self.xScale * (middleLayer.trackList[middleLayer.activeTrack].borders[border + 1] - newPos)
+                elif border % 3 == 0 and border > 0:
+                    self.timingHints[int(border / 3) - 1].width = self.xScale * (newPos - middleLayer.trackList[middleLayer.activeTrack].borders[border - 1])
                 middleLayer.changeBorder(border, newPos)
                 if checkLeft and border > 0:
                     if middleLayer.trackList[middleLayer.activeTrack].borders[border - 1] >= middleLayer.trackList[middleLayer.activeTrack].borders[border]:

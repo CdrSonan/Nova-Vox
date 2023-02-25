@@ -86,6 +86,10 @@ class AdaptiveSpace(AnchorLayout):
         middleLayer.xScale = self.children[0].xScale
         middleLayer.applyZoom()
 
+    def updateFromBorder(self, border:int, pos:float) -> None:
+        if self.children[0].__class__ == TimingOptns:
+            self.children[0].updateFromBorder(border, pos)
+
 class ParamCurve(ScrollView):
     """Widget displaying a single, editable curve used for controlling a tuning parameter"""
 
@@ -288,7 +292,7 @@ class TimingOptns(ScrollView):
             self.seqLength = middleLayer.trackList[middleLayer.activeTrack].length
 
     def redraw(self) -> None:
-        """redraws the curve, using data fetched from the middleLayer."""
+        """redraws the bar diagram, using data fetched from the middleLayer."""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
@@ -313,6 +317,32 @@ class TimingOptns(ScrollView):
                 self.rectangles1.append(Rectangle(pos = (i[0], self.y + 0.5 * self.height), size = (10, i[1])))
             for i in self.points2:
                 self.rectangles2.append(Rectangle(pos = (i[0], self.y), size = (10, i[1])))
+
+    def updateFromBorder(self, border:int, pos:float) -> None:
+        """when in timing mode, updates the bars for a single phoneme after a change of a border on the piano roll"""
+
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
+        if border % 3 == 2 and border < len(middleLayer.trackList[middleLayer.activeTrack].borders) - 1:
+            middle = (middleLayer.trackList[middleLayer.activeTrack].borders[border + 1] + pos) / 2
+            index1 = self.children[0].canvas.indexof(self.rectangles1[int((border - 2) / 3)])
+            index2 = self.children[0].canvas.indexof(self.rectangles2[int((border - 2) / 3)])
+            self.children[0].canvas.remove(self.rectangles1[int((border - 2) / 3)])
+            self.children[0].canvas.remove(self.rectangles2[int((border - 2) / 3)])
+            self.rectangles1[int((border - 2) / 3)] = Rectangle(pos = (self.xScale * middle - 5, self.y + 0.5 * self.height), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int((border - 2) / 3)].item() * self.height / 2))
+            self.rectangles2[int((border - 2) / 3)] = Rectangle(pos = (self.xScale * middle - 5, self.y), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int((border - 2) / 3)].item() * self.height / 2))
+            self.children[0].canvas.insert(index1, self.rectangles1[int((border - 2) / 3)])
+            self.children[0].canvas.insert(index2, self.rectangles2[int((border - 2) / 3)])
+        elif border % 3 == 0 and border > 0:
+            middle = (middleLayer.trackList[middleLayer.activeTrack].borders[border - 1] + pos) / 2
+            index1 = self.children[0].canvas.indexof(self.rectangles1[int(border / 3) - 1])
+            index2 = self.children[0].canvas.indexof(self.rectangles2[int(border / 3) - 1])
+            self.children[0].canvas.remove(self.rectangles1[int(border / 3) - 1])
+            self.children[0].canvas.remove(self.rectangles2[int(border / 3) - 1])
+            self.rectangles1[int(border / 3) - 1] = Rectangle(pos = (self.xScale * middle - 5, self.y + 0.5 * self.height), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int(border / 3) - 1].item() * self.height / 2))
+            self.rectangles2[int(border / 3) - 1] = Rectangle(pos = (self.xScale * middle - 5, self.y), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int(border / 3) - 1].item() * self.height / 2))
+            self.children[0].canvas.insert(index1, self.rectangles1[int(border / 3) - 1])
+            self.children[0].canvas.insert(index2, self.rectangles2[int(border / 3) - 1])
 
     def on_xScale(self, instance, xScale:float) -> None:
         """updates the displayed bar diagrams when the x axis zoom level is changed"""

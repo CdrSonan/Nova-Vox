@@ -122,7 +122,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 statusControl[change.data[0]].rs *= 0
             else:
                 nodeGraphList[change.data[1]].enableParam(change.data[2])
-            statusControl[change.data[1]].ai *= 0
+            statusControl[change.data[0]].ai *= 0
         elif change.type == "disableParam":
             if change.data[1] == "breathiness":
                 inputList[change.data[0]].useBreathiness = False

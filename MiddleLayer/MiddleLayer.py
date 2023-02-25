@@ -695,6 +695,8 @@ class MiddleLayer(Widget):
         """sets the position of the timing marker at index border of the active track to pos"""
 
         self.trackList[self.activeTrack].borders[border] = pos
+        if self.mode == "timing":
+            self.ids["adaptiveSpace"].updateFromBorder(border, pos)
         self.submitBorderChange(False, border, [pos,])
 
     def changeVB(self, index:int, path:str) -> None:
