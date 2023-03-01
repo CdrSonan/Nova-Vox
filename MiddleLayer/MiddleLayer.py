@@ -24,7 +24,7 @@ from MiddleLayer.IniParser import readSettings
 import MiddleLayer.DataHandlers as dh
 from MiddleLayer.BorderSystem import recalculateBorders
 
-from Backend.Util import ensureTensorLength, noteToPitch
+from Util import ensureTensorLength, noteToPitch
 from Backend.VB_Components.Voicebank import LiteVoicebank
 
 from UI.code.editor.AdaptiveSpace import ParamCurve, TimingOptns, PitchOptns
@@ -381,7 +381,6 @@ class MiddleLayer(Widget):
         phonemes before submitting the change to the rendering process with the final flag set."""
 
         #TODO: refactor timing calculations to dedicated function and add callback in switchNote
-        print("offset, future phonemes:", futurePhonemes)
         phonIndex = self.trackList[self.activeTrack].notes[index].phonemeStart
         #update phoneme list and other phoneme-space lists
         addition = 0
@@ -403,7 +402,6 @@ class MiddleLayer(Widget):
                 for j in range(3):
                     self.trackList[self.activeTrack].borders.insert(phonIndex * 3 + addition, 0)
         elif offset < 0:
-            print(self.trackList[self.activeTrack].phonemes, phonIndex)
             for i in range(-offset):
                 self.trackList[self.activeTrack].phonemes.pop(phonIndex)
                 self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], self.trackList[self.activeTrack].loopOverlap[phonIndex + 1:]], dim = 0)
@@ -418,7 +416,6 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
         if pause and offset > 0:
             self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
-        print(self.trackList[self.activeTrack].phonemes, phonIndex)
         self.submitOffset(False, phonIndex, offset, addition)
                 
         start, end = recalculateBorders(index, self.trackList[self.activeTrack], None)
@@ -501,49 +498,6 @@ class MiddleLayer(Widget):
         """Changes the length of the note at position index of the active track. The new length is read from its UI representation, the old length must be given as an argument.
         It does not perform any checks of surrounding notes or other conditions. Therefore, it is recommended to call changeNoteLength instead whenever possible."""
 
-        """length = self.trackList[self.activeTrack].notes[index].length
-        iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
-        iterationEndBorder = iterationEnd
-        if index + 1 < len(self.trackList[self.activeTrack].notes):
-            length = max(min(length, self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos), 1)
-        else:
-            iterationEndBorder += 1
-        iterationStart = self.trackList[self.activeTrack].notes[index].phonemeStart
-        lengthDeltas = []
-        if iterationEnd > iterationStart:
-            if self.trackList[self.activeTrack].phonemes[iterationStart] == "_autopause":
-                iterationStart += 1
-        for i in range(3 * iterationStart, 3 * iterationEndBorder - 1):
-            lengthDeltas.append(None)
-        for i in range(iterationStart, iterationEnd):
-            if self.trackList[self.activeTrack].phonemeLengths[self.trackList[self.activeTrack].phonemes[i]] != None:
-                lengthDeltas[3 * (i - iterationStart) + 2] = self.trackList[self.activeTrack].borders[3 * i + 3] - self.trackList[self.activeTrack].borders[3 * i + 2]
-                lengthDeltas[3 * (i - iterationStart) + 3] = self.trackList[self.activeTrack].borders[3 * i + 4] - self.trackList[self.activeTrack].borders[3 * i + 3]
-                lengthDeltas[3 * (i - iterationStart) + 4] = self.trackList[self.activeTrack].borders[3 * i + 5] - self.trackList[self.activeTrack].borders[3 * i + 4]
-                if lengthDeltas[3 * (i - iterationStart)] == None:
-                    lengthDeltas[3 * (i - iterationStart)] = self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].borders[3 * i]
-                    lengthDeltas[3 * (i - iterationStart) + 1] = self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].borders[3 * i + 1]
-                else:
-                    lengthDeltas[3 * (i - iterationStart)] = min(lengthDeltas[3 * i], self.trackList[self.activeTrack].borders[3 * i + 1] - self.trackList[self.activeTrack].borders[3 * i])
-                    lengthDeltas[3 * (i - iterationStart) + 1] = min(lengthDeltas[3 * i + 1], self.trackList[self.activeTrack].borders[3 * i + 2] - self.trackList[self.activeTrack].borders[3 * i + 1])
-        staticLength = 0.
-        for i in lengthDeltas:
-            if i != None:
-                staticLength += i
-        for i in range(len(lengthDeltas)):
-            if lengthDeltas[i] == None:
-                lengthDeltas[i] = (self.trackList[self.activeTrack].borders[3 * iterationStart + i + 1] - self.trackList[self.activeTrack].borders[3 * iterationStart + i]) * ((length - staticLength) / (oldLength - staticLength))
-        counter = 0
-        if len(lengthDeltas) > 0:
-            correction = min(length / sum(lengthDeltas), 1.)
-        else:
-            correction = 1.
-        for i in range(3 * iterationStart, 3 * iterationEndBorder):
-            self.trackList[self.activeTrack].borders[i] = self.trackList[self.activeTrack].notes[index].xPos + counter
-            if i + 1 < 3 * iterationEndBorder:
-                counter += lengthDeltas[i - 3 * iterationStart] * correction
-        for i in range(3 * iterationStart, 3 * iterationEndBorder):
-            self.repairBorders(i)"""
         start, end = recalculateBorders(index, self.trackList[self.activeTrack], oldLength)
         for i in range(start, end):
             self.repairBorders(i)

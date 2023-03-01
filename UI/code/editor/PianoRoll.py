@@ -17,7 +17,7 @@ from UI.code.editor.Util import ManagedToggleButton
 
 from kivy.clock import mainthread
 
-from math import floor
+from math import floor, ceil
 
 import global_consts
 
@@ -211,7 +211,9 @@ class PlaybackHead(Widget):
 class TimingBar(FloatLayout):
     """header of the piano roll, displaying the current measures and other timing information"""
 
-    pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.markers = []
 
 class TimingLabel(Label):
     """A label for a time on the timing bar and piano roll"""
@@ -326,19 +328,41 @@ class PianoRoll(ScrollView):
     def updateTimingMarkers(self) -> None:
         """plots all timing markers that are currently in view"""
 
-        self.ids["timingBar"].clear_widgets()
         i = floor(self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width / self.tempo)
-        t = i * self.tempo
-        while t <= self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width + self.width:
+        while len(self.ids["timingBar"].markers) > 0 and self.ids["timingBar"].markers[0].index < i:
+            self.ids["timingBar"].remove_widget(self.ids["timingBar"].markers[0])
+            self.ids["timingBar"].markers = self.ids["timingBar"].markers[1:]
+        i = ceil(self.length * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / self.tempo)
+        while len(self.ids["timingBar"].markers) > 0 and self.ids["timingBar"].markers[-1].index > i:
+            self.ids["timingBar"].remove_widget(self.ids["timingBar"].markers[-1])
+            self.ids["timingBar"].markers = self.ids["timingBar"].markers[:-1]
+
+        if len(self.ids["timingBar"].markers) > 0:
+            i = self.ids["timingBar"].markers[-1].index + 1
+        else:
+            i = floor(self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width / self.tempo) + 1
+        while i <= self.length * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / self.tempo:
             modulo = i % self.measureSize
-            self.ids["timingBar"].add_widget(TimingLabel(index = i, reference = self.ids["timingBar"], modulo = modulo))
-            t += self.tempo * self.xScale
+            self.ids["timingBar"].markers.append(TimingLabel(index = i, reference = self.ids["timingBar"], modulo = modulo))
+            self.ids["timingBar"].add_widget(self.ids["timingBar"].markers[-1])
             i += 1
+
+        if len(self.ids["timingBar"].markers) > 0:
+            i = self.ids["timingBar"].markers[0].index - 1
+        else:
+            i = floor(self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width / self.tempo)
+        while i >= self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width / self.tempo:
+            modulo = i % self.measureSize
+            self.ids["timingBar"].markers.insert(0, TimingLabel(index = i, reference = self.ids["timingBar"], modulo = modulo))
+            self.ids["timingBar"].add_widget(self.ids["timingBar"].markers[0])
+            i -= 1
 
     def on_scroll_x(self, instance, scroll_x:float) -> None:
         """updates the displayed timing markers when the view is scrolled"""
         
         self.updateTimingMarkers()
+        if middleLayer.mode == "pitch":
+            self.redrawPitch()
 
     def on_xScale(self, instance, xScale:float) -> None:
         """updates the displayed timing markers, notes and other content when the x axis zoom level is changed"""
@@ -366,17 +390,17 @@ class PianoRoll(ScrollView):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
+        start = floor(self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width * 0.9)
+        end = min(ceil(self.length * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / 0.9), self.length)
         data1 = middleLayer.trackList[middleLayer.activeTrack].pitch
         data2 = middleLayer.trackList[middleLayer.activeTrack].basePitch
         points1 = []
         points2 = []
-        c = 0
-        for i in range(len(data1)):
-            points1.append(c * self.xScale)
+        for i in range(start, end):
+            points1.append(i * self.xScale)
             points1.append((data1[i].item() + 0.5) * self.yScale)
-            points2.append(c * self.xScale)
+            points2.append(i * self.xScale)
             points2.append((data2[i].item() + 0.5) * self.yScale)
-            c += 1
         if self.pitchLine != None:
             self.children[0].canvas.remove(self.pitchLine)
         if self.basePitchLine != None:
@@ -408,7 +432,16 @@ class PianoRoll(ScrollView):
                                            text = phoneme,
                                            halign = "center"))
             self.children[0].add_widget(self.timingHints[-1], index = 5)
-            print(self.timingHints[-1].pos, self.timingHints[-1].size)
+
+    """def updateTiming(self) -> None:
+        draws and/or removes timing-related UI elements, so that the entire viewport is covered, but the regions beyond it are left unrendered
+
+        start = floor(self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width)
+        end = min(ceil(self.length * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width), self.length)
+        while len(self.timingMarkers) > 0 and self.timingMarkers[0] < start:
+            self.timingMarkers = self.timingMarkers[1:]
+        while len(self.timingMarkers) > 0 and self.timingMarkers[-1] > end:
+            self.timingMarkers = self.timingMarkers[:-1]"""
         
     def removeTiming(self) -> None:
         """removes all border/timing markers and related UI elements"""

@@ -5,6 +5,7 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+from math import floor, ceil
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty
 from kivy.graphics import Color, Line, Rectangle
 from kivy.uix.anchorlayout import AnchorLayout
@@ -123,12 +124,12 @@ class ParamCurve(ScrollView):
             data = middleLayer.trackList[middleLayer.activeTrack].aiBalance
         else:
             data = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam].curve
+        start = floor(self.seqLength * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width * 0.9)
+        end = min(ceil(self.seqLength * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / 0.9), self.seqLength)
         points = []
-        c = 0
-        for i in data:
-            points.append(c * self.xScale)
-            points.append((i.item() + 1) * self.height / 2)
-            c += 1
+        for i in range(start, end):
+            points.append(i * self.xScale)
+            points.append((data[i].item() + 1) * self.height / 2)
         self.children[0].canvas.remove(self.color)
         self.children[0].canvas.remove(self.line)
         with self.children[0].canvas:
@@ -137,6 +138,11 @@ class ParamCurve(ScrollView):
 
     def on_xScale(self, instance, xScale:float) -> None:
         """updates the displayed curve when the x axis zoom level is changed"""
+
+        self.redraw()
+
+    def on_scroll_x(self, instance, xScale:float) -> None:
+        """updates the displayed curves when the x axis scroll value is changed"""
 
         self.redraw()
 
@@ -308,9 +314,13 @@ class TimingOptns(ScrollView):
         self.points1 = []
         self.points2 = []
         for i in range(data1.size()[0]):
-            middle = (middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] + middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 3]) / 2
-            self.points1.append((self.xScale * middle - 5, data1[i].item() * self.height / 2))
-            self.points2.append((self.xScale * middle - 5, data2[i].item() * self.height / 2))
+            middle = self.xScale * (middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] + middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 3]) / 2
+            if middle < floor(self.scroll_x * (self.children[0].width - self.width) * 0.9):
+                continue
+            elif middle > ceil((self.scroll_x * (self.children[0].width - self.width) + self.width) / 0.9):
+                break
+            self.points1.append((middle - 5, data1[i].item() * self.height / 2))
+            self.points2.append((middle - 5, data2[i].item() * self.height / 2))
         with self.children[0].canvas:
             self.color = Color(1, 0, 0, 1)
             for i in self.points1:
@@ -346,6 +356,11 @@ class TimingOptns(ScrollView):
 
     def on_xScale(self, instance, xScale:float) -> None:
         """updates the displayed bar diagrams when the x axis zoom level is changed"""
+
+        self.redraw()
+
+    def on_scroll_x(self, instance, xScale:float) -> None:
+        """updates the displayed curves when the x axis scroll value is changed"""
 
         self.redraw()
 
@@ -579,18 +594,15 @@ class PitchOptns(ScrollView):
         self.children[0].canvas.remove(self.color)
         self.children[0].canvas.remove(self.line1)
         self.children[0].canvas.remove(self.line2)
+        start = floor(self.seqLength * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width * 0.9)
+        end = min(ceil(self.seqLength * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / 0.9), self.seqLength)
         data1 = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength
         data2 = middleLayer.trackList[middleLayer.activeTrack].vibratoSpeed
         points1 = []
         points2 = []
-        c = 0
-        for i in data1:
-            points1.append((self.xScale * c, int((1 + i) * self.height / 4)))
-            c += 1
-        c = 0
-        for i in data2:
-            points2.append((self.xScale * c, int((3 + i) * self.height / 4)))
-            c += 1
+        for i in range(start, end):
+            points1.append((self.xScale * i, int((1 + data1[i]) * self.height / 4)))
+            points2.append((self.xScale * i, int((3 + data2[i]) * self.height / 4)))
         with self.children[0].canvas:
             self.color = Color(1, 0, 0, 1)
             self.line1 = Line(points = points1)
@@ -598,6 +610,11 @@ class PitchOptns(ScrollView):
 
     def on_xScale(self, instance, xScale:float) -> None:
         """updates the displayed curves when the x axis zoom level is changed"""
+
+        self.redraw()
+
+    def on_scroll_x(self, instance, xScale:float) -> None:
+        """updates the displayed curves when the x axis scroll value is changed"""
 
         self.redraw()
 

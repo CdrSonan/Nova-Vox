@@ -19,7 +19,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
     from Backend.NV_Multiprocessing.Caching import DenseCache, SparseCache
     from Backend.NV_Multiprocessing.Update import trimSequence, posToSegment
-    from Backend.Util import ensureTensorLength
+    from Util import ensureTensorLength
     from MiddleLayer.IniParser import readSettings
     from Backend.Resampler.CubicSplineInter import interp
     from Backend.Resampler.PhaseShift import phaseShift
@@ -164,7 +164,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                     if change.data[2] == 0 and len(inputList[change.data[0]].startCaps) > 0:
                         inputList[change.data[0]].startCaps[0] = True
             elif change.data[1] == "borders":
-                print("RENDERER: borders", change.data)
                 start = inputList[change.data[0]].borders[change.data[2]] * global_consts.batchSize
                 end = inputList[change.data[0]].borders[change.data[2] + len(change.data[3]) - 1] * global_consts.batchSize
                 if lastZero == None or lastZero != [change.data[0], start, end - start]:
@@ -187,7 +186,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].aiParamInputs[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
-            print("RENDERER: offset", change.data)
             inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], change.data[3], inputList, statusControl)
         elif change.type == "changeLength":
             inputList[change.data[0]].length = change.data[1]

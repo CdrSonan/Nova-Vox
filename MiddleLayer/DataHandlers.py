@@ -8,7 +8,7 @@
 import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.VB_Components.Voicebank import LiteVoicebank
-from Backend.Util import ensureTensorLength, noteToPitch
+from Util import ensureTensorLength, noteToPitch
 
 class Nodegraph():
     def __init__(self) -> None:

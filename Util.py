@@ -5,6 +5,7 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+from math import floor
 import torch
 import global_consts
 
@@ -23,3 +24,17 @@ def noteToPitch(data:torch.Tensor) -> torch.Tensor:
 
     #return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
     return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 36)) / torch.full_like(data, 12)) * 440)
+
+def binarySearch(array, expression, length) -> int:
+    """performs a binary search across array, returning the index of the first element where expression evaluates to True.
+    length is the highest index that will be checked, exclusive."""
+    
+    low = 0
+    high = length
+    while low < high - 1:
+        mid = floor((low + high) / 2)
+        if expression(array, mid):
+            high = mid
+        else:
+            low = mid
+    return high
