@@ -4,7 +4,6 @@
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 # Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
-
 try:
     import pyi_splash
     # pyi_splash is only available when the program is packaged and launched through the PyInstaller Bootstrapper.
@@ -103,6 +102,7 @@ if __name__ == '__main__':
     Config.set('graphics', 'window_state', 'maximized')
     Config.set('input', 'mouse', 'mouse,disable_multitouch')
     Config.set('kivy', 'window_icon','icon/nova-vox-logo-2-color.png' )
+    Config.set('kivy', 'default_font', ['MSGothic', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc'])
     Config.write()
 
     Builder.load_file("UI/kv/ImageButton.kv")

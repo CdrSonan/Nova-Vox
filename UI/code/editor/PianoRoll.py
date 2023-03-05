@@ -16,8 +16,10 @@ from kivy.uix.bubble import Bubble
 from UI.code.editor.Util import ManagedToggleButton
 
 from kivy.clock import mainthread
+from kivy.core.window import Window
 
 from math import floor, ceil
+from copy import copy
 
 import global_consts
 
@@ -196,12 +198,31 @@ class Note(ManagedToggleButton):
 class PianoRollOctave(FloatLayout):
     """header of a one octave region on the piano roll"""
 
-    pass
+    octave = NumericProperty()
 
 class PianoRollOctaveBackground(FloatLayout):
     """background of the piano roll spanning one octave"""
 
-    pass
+    index = NumericProperty()
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(mouse_pos=self.on_mouseover)
+        self.tooltip = None
+
+    def on_mouseover(self, window, pos):
+        if self.parent.collide_point(*self.to_parent(*pos)):
+            if self.tooltip != None:
+                self.remove_widget(self.tooltip)
+            index = floor((self.to_widget(pos[0], pos[1])[1] - self.y) * 12 / self.height)
+            if (index < 0) or (index > 11):
+                return
+            text = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+            self.tooltip = Label(pos = self.to_widget(pos[0] - 20, pos[1] - 15), size_hint = (None, None), size = [10, 10], text = text[index] + str(self.index))
+            self.add_widget(self.tooltip)
+        elif (not self.parent.parent.collide_point(*self.to_parent(*pos))) and self.tooltip != None:
+            self.remove_widget(self.tooltip)
+            self.tooltip = None
 
 class PlaybackHead(Widget):
     """playback head widget for the piano roll"""
@@ -312,6 +333,8 @@ class PianoRoll(ScrollView):
             self.quantization = None
         else:
             self.quantization = self.tempo * quantMultipliers[measureType] / quantFactors[quantization]
+        while len(self.ids["timingBar"].markers) > 0:
+            self.ids["timingBar"].remove_widget(self.ids["timingBar"].markers.pop())
         self.updateTimingMarkers()
 
     def quantize(self, x:float, y:float = None) -> tuple:

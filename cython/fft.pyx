@@ -101,7 +101,7 @@ def stft(float[:, 2] sequence, bool hannWin, int winSize, int overlap):
     for i in range(sequence.shape[0]):
         inputBuffer[paddingLeft + i, 0] = sequence[i, 0]
         inputBuffer[paddingLeft + i, 1] = sequence[i, 1]
-    for i in range(1, paddingRight):
+    for i in range(1, paddingRight + 1):
         inputBuffer[-i, 0] = sequence[i - paddingRight - 1, 0]
         inputBuffer[-i, 1] = sequence[i - paddingRight - 1, 1]
     for i in range(batches):
@@ -133,7 +133,7 @@ def rstft(float[:] sequence, bool hannWin, int winSize, int overlap):
         inputBuffer[i] = sequence[paddingLeft - i]
     for i in range(sequence.shape[0]):
         inputBuffer[paddingLeft + i] = sequence[i]
-    for i in range(1, paddingRight):
+    for i in range(1, paddingRight + 1):
         inputBuffer[-i] = sequence[i - paddingRight - 1]
     for i in range(batches):
         for j in range(winSize):
@@ -190,32 +190,59 @@ cpdef ifft(float[:, 2] sequence):
     return result
 
 cdef irdft(float[:, 2] sequence, float length):
-    cdef Py_ssize_t length = sequence.shape[0]
-    cdef Py_ssize_t halfLen = ceil(length / 2) + 1
-    cdef float[halfLen, 2] result
+    cdef Py_ssize_t length = length
+    cdef Py_ssize_t halfLen = sequence.shape[0]
+    cdef float[length, 2] inputBuffer
+    cdef float[length] result
     cdef float sine
     cdef float cosine
     for i in range(halfLen):
+        inputBuffer[i, 0] = sequence[i, 0]
+        inputBuffer[i, 1] = sequence[i, 1]
+    for i in range(1, length - halfLen + 1):
+        inputBuffer[-i, 0] = sequence[halfLen - i + 1, 0]
+        inputBuffer[-i, 1] = -1. * sequence[halfLen - i + 1, 1]
+    for i in range(length):
         result[i] = 0
         for j in range(length):
             sine = sin(2 * pi * i * j / length)
             cosine = cos(2 * pi * i * j / length)
-            result[i, 0] += sequence[j] * cosine
-            result[i, 1] -= sequence[j] * sine
+            result[i] += inputBuffer[j, 0] * cosine
+            result[i] -= inputBuffer[j, 1] * sine
     return result
 
 cpdef irfft(float[:, 2] sequence, float length):
-    cdef Py_ssize_t length = sequence.shape[0]
-    cdef Py_ssize_t halfLen = ceil(length / 2) + 1
+    cdef Py_ssize_t length = length
+    cdef Py_ssize_t halfLen = sequence.shape[0]
     cdef float[length, 2] compSeq
-    cdef float[halfLen, 2] result
+    cdef float[length] result
     if length % 4 != 0:
-        return rdft(sequence)
-    for i in range(length):
-        compSeq[i, 0] = sequence[i]
-        compSeq[i, 1] = 0
-    compSeq = fft(compSeq)
+        return irdft(sequence, length)
     for i in range(halfLen):
-        result[i, 0] = compSeq[i, 0]
-        result[i, 1] = compSeq[i, 1]
+        compSeq[i, 0] = sequence[i, 0]
+        compSeq[i, 1] = sequence[i, 1]
+    for i in range(1, length - halfLen + 1):
+        compSeq[-i, 0] = sequence[halfLen - i + 1, 0]
+        compSeq[-i, 1] = -1. * sequence[halfLen - i + 1, 1]
+    compSeq = ifft(compSeq)
+    for i in range(length):
+        result[i] = compSeq[i, 0]
     return result
+
+cpdef istft(float[:, :, 2] sequence, float length):
+    cdef Py_ssize_t batches = sequence.shape[0]
+    cdef Py_ssize_t winSize = sequence.shape[1]
+    cdef Py_ssize_t length = length
+    cdef float[winSize, 2] inputBuffer
+    cdef float[winSize, 2] outputBuffer
+    cdef float[batches, winSize, 2] intermediate
+    for i in range(batches):
+        for j in range(winSize):
+            inputBuffer[j, 0] = sequence[i, j, 0]
+            inputBuffer[j, 1] = sequence[i, j, 1]
+        outputBuffer = ifft(inputBuffer)
+        for j in range(winSize):
+            intermediate[i, j, 0] = outputBuffer[j, 0]
+            intermediate[i, j, 1] = outputBuffer[j, 1]
+
+cpdef irstft()
