@@ -22,18 +22,19 @@ from UI.code.devkit.CrfAi import CrfaiUi
 from UI.code.devkit.PredAi import PredaiUi
 from UI.code.devkit.UtauImport import UtauImportUi
 from UI.code.devkit.AdvSettings import AdvSettingsUi
+from UI.code.devkit.Widgets import Frame, Label, Button
 
 global loadedVB
 loadedVB = None
 
-class RootUi(tkinter.Frame):
+class RootUi(Frame):
     """Class of the Devkit main window"""
 
     def __init__(self, master=tkinter.Tk()) -> None:
         """Initialize a new main window. Called once during devkit startup"""
 
         logging.info("initializing Root UI")
-        tkinter.Frame.__init__(self, master)
+        Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
         self.master.wm_title(loc["no_vb"])
@@ -57,64 +58,64 @@ class RootUi(tkinter.Frame):
     def createWidgets(self) -> None:
         """Initialize all widgets of the main window. Called once during main window initialization."""
 
-        self.infoDisplay = tkinter.Label(self)
+        self.infoDisplay = Label(self)
         self.infoDisplay["text"] = loc["version_label"] + global_consts.version
         self.infoDisplay.pack(side = "top", fill = "x", padx = 20, pady = 20)
         
-        self.metadataButton = tkinter.Button(self)
+        self.metadataButton = Button(self)
         self.metadataButton["text"] = loc["metadat_btn"]
         self.metadataButton["command"] = self.onMetadataPress
         self.metadataButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.metadataButton["state"] = "disabled"
         
-        self.phonemedictButton = tkinter.Button(self)
+        self.phonemedictButton = Button(self)
         self.phonemedictButton["text"] = loc["phon_btn"]
         self.phonemedictButton["command"] = self.onPhonemedictPress
         self.phonemedictButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.phonemedictButton["state"] = "disabled"
         
-        self.crfaiButton = tkinter.Button(self)
+        self.crfaiButton = Button(self)
         self.crfaiButton["text"] = loc["crfai_btn"]
         self.crfaiButton["command"] = self.onCrfaiPress
         self.crfaiButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.crfaiButton["state"] = "disabled"
         
-        self.predaiButton = tkinter.Button(self)
+        self.predaiButton = Button(self)
         self.predaiButton["text"] = loc["predai_btn"]
         self.predaiButton["command"] = self.onPredaiPress
         self.predaiButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.predaiButton["state"] = "disabled"
         
-        self.worddictButton = tkinter.Button(self)
+        self.worddictButton = Button(self)
         self.worddictButton["text"] = loc["dict_btn"]
         self.worddictButton["command"] = self.onWorddictPress
         self.worddictButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.worddictButton["state"] = "disabled"
 
-        self.utauimportButton = tkinter.Button(self)
+        self.utauimportButton = Button(self)
         self.utauimportButton["text"] = loc["utau_btn"]
         self.utauimportButton["command"] = self.onUtauimportPress
         self.utauimportButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.utauimportButton["state"] = "disabled"
 
-        self.advSettingsButton = tkinter.Button(self)
+        self.advSettingsButton = Button(self)
         self.advSettingsButton["text"] = loc["advsettings"]
         self.advSettingsButton["command"] = self.onAdvSettingsPress
         self.advSettingsButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.advSettingsButton["state"] = "disabled"
         
-        self.saveButton = tkinter.Button(self)
+        self.saveButton = Button(self)
         self.saveButton["text"] = loc["save_as"]
         self.saveButton["command"] = self.onSavePress
         self.saveButton.pack(side = "right", expand = True)
         self.saveButton["state"] = "disabled"
         
-        self.openButton = tkinter.Button(self)
+        self.openButton = Button(self)
         self.openButton["text"] = loc["open"]
         self.openButton["command"] = self.onOpenPress
         self.openButton.pack(side = "right", expand = True)
         
-        self.newButton = tkinter.Button(self)
+        self.newButton = Button(self)
         self.newButton["text"] = loc["new"]
         self.newButton["command"] = self.onNewPress
         self.newButton.pack(side = "right", expand = True)

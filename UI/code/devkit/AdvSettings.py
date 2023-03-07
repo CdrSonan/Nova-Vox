@@ -15,16 +15,17 @@ import torch
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
 from Backend.VB_Components.Ai.PredAi import SpecPredAi, HarmPredAi
 from Localization.devkit_localization import getLanguage
+from UI.code.devkit.Widgets import *
 loc = getLanguage()
 
-class AdvSettingsUi(tkinter.Frame):
+class AdvSettingsUi(Frame):
     """class of the advanced AI settings UI window"""
 
     def __init__(self, master=None) -> None:
         logging.info("Initializing adv. AI settings UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
-        tkinter.Frame.__init__(self, master)
+        Frame.__init__(self, master)
         self.pack(ipadx = 20)
         self.createWidgets()
         self.master.wm_title(loc["advsettings"])
@@ -36,157 +37,157 @@ class AdvSettingsUi(tkinter.Frame):
 
         global loadedVB
 
-        self.hparams = tkinter.LabelFrame(self, text = loc["hparams"])
+        self.hparams = LabelFrame(self, text = loc["hparams"])
 
-        self.hparams.crf_lr = tkinter.Frame(self.hparams)
+        self.hparams.crf_lr = Frame(self.hparams)
         self.hparams.crf_lr.variable = tkinter.DoubleVar(self.hparams.crf_lr)
         self.hparams.crf_lr.variable.set(loadedVB.ai.hparams["crf_lr"])
-        self.hparams.crf_lr.entry = tkinter.Entry(self.hparams.crf_lr)
+        self.hparams.crf_lr.entry = Entry(self.hparams.crf_lr)
         self.hparams.crf_lr.entry["textvariable"] = self.hparams.crf_lr.variable
         self.hparams.crf_lr.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_lr.display = tkinter.Label(self.hparams.crf_lr)
+        self.hparams.crf_lr.display = Label(self.hparams.crf_lr)
         self.hparams.crf_lr.display["text"] = loc["crf_lr"]
         self.hparams.crf_lr.display.pack(side = "right", fill = "x")
         self.hparams.crf_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.crf_reg = tkinter.Frame(self.hparams)
+        self.hparams.crf_reg = Frame(self.hparams)
         self.hparams.crf_reg.variable = tkinter.DoubleVar(self.hparams.crf_reg)
         self.hparams.crf_reg.variable.set(loadedVB.ai.hparams["crf_reg"])
-        self.hparams.crf_reg.entry = tkinter.Entry(self.hparams.crf_reg)
+        self.hparams.crf_reg.entry = Entry(self.hparams.crf_reg)
         self.hparams.crf_reg.entry["textvariable"] = self.hparams.crf_reg.variable
         self.hparams.crf_reg.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_reg.display = tkinter.Label(self.hparams.crf_reg)
+        self.hparams.crf_reg.display = Label(self.hparams.crf_reg)
         self.hparams.crf_reg.display["text"] = loc["crf_reg"]
         self.hparams.crf_reg.display.pack(side = "right", fill = "x")
         self.hparams.crf_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.crf_hlc = tkinter.Frame(self.hparams)
+        self.hparams.crf_hlc = Frame(self.hparams)
         self.hparams.crf_hlc.variable = tkinter.IntVar(self.hparams.crf_hlc)
         self.hparams.crf_hlc.variable.set(loadedVB.ai.hparams["crf_hlc"])
-        self.hparams.crf_hlc.entry = tkinter.Spinbox(self.hparams.crf_hlc, from_ = 0, to = 128)
+        self.hparams.crf_hlc.entry = Spinbox(self.hparams.crf_hlc, from_ = 0, to = 128)
         self.hparams.crf_hlc.entry["textvariable"] = self.hparams.crf_hlc.variable
         self.hparams.crf_hlc.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_hlc.display = tkinter.Label(self.hparams.crf_hlc)
+        self.hparams.crf_hlc.display = Label(self.hparams.crf_hlc)
         self.hparams.crf_hlc.display["text"] = loc["crf_hlc"]
         self.hparams.crf_hlc.display.pack(side = "right", fill = "x")
         self.hparams.crf_hlc.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.crf_hls = tkinter.Frame(self.hparams)
+        self.hparams.crf_hls = Frame(self.hparams)
         self.hparams.crf_hls.variable = tkinter.IntVar(self.hparams.crf_hls)
         self.hparams.crf_hls.variable.set(loadedVB.ai.hparams["crf_hls"])
-        self.hparams.crf_hls.entry = tkinter.Spinbox(self.hparams.crf_hls, from_ = 16, to = 4096)
+        self.hparams.crf_hls.entry = Spinbox(self.hparams.crf_hls, from_ = 16, to = 4096)
         self.hparams.crf_hls.entry["textvariable"] = self.hparams.crf_hls.variable
         self.hparams.crf_hls.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_hls.display = tkinter.Label(self.hparams.crf_hls)
+        self.hparams.crf_hls.display = Label(self.hparams.crf_hls)
         self.hparams.crf_hls.display["text"] = loc["crf_hls"]
         self.hparams.crf_hls.display.pack(side = "right", fill = "x")
         self.hparams.crf_hls.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.crf_def_thrh = tkinter.Frame(self.hparams)
+        self.hparams.crf_def_thrh = Frame(self.hparams)
         self.hparams.crf_def_thrh.variable = tkinter.DoubleVar(self.hparams.crf_def_thrh)
         self.hparams.crf_def_thrh.variable.set(loadedVB.ai.hparams["crf_def_thrh"])
-        self.hparams.crf_def_thrh.entry = tkinter.Entry(self.hparams.crf_def_thrh)
+        self.hparams.crf_def_thrh.entry = Entry(self.hparams.crf_def_thrh)
         self.hparams.crf_def_thrh.entry["textvariable"] = self.hparams.crf_def_thrh.variable
         self.hparams.crf_def_thrh.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_def_thrh.display = tkinter.Label(self.hparams.crf_def_thrh)
+        self.hparams.crf_def_thrh.display = Label(self.hparams.crf_def_thrh)
         self.hparams.crf_def_thrh.display["text"] = loc["crf_def_thrh"]
         self.hparams.crf_def_thrh.display.pack(side = "right", fill = "x")
         self.hparams.crf_def_thrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.pred_lr = tkinter.Frame(self.hparams)
+        self.hparams.pred_lr = Frame(self.hparams)
         self.hparams.pred_lr.variable = tkinter.DoubleVar(self.hparams.pred_lr)
         self.hparams.pred_lr.variable.set(loadedVB.ai.hparams["pred_lr"])
-        self.hparams.pred_lr.entry = tkinter.Entry(self.hparams.pred_lr)
+        self.hparams.pred_lr.entry = Entry(self.hparams.pred_lr)
         self.hparams.pred_lr.entry["textvariable"] = self.hparams.pred_lr.variable
         self.hparams.pred_lr.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.pred_lr.display = tkinter.Label(self.hparams.pred_lr)
+        self.hparams.pred_lr.display = Label(self.hparams.pred_lr)
         self.hparams.pred_lr.display["text"] = loc["pred_lr"]
         self.hparams.pred_lr.display.pack(side = "right", fill = "x")
         self.hparams.pred_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.pred_reg = tkinter.Frame(self.hparams)
+        self.hparams.pred_reg = Frame(self.hparams)
         self.hparams.pred_reg.variable = tkinter.DoubleVar(self.hparams.pred_reg)
         self.hparams.pred_reg.variable.set(loadedVB.ai.hparams["pred_reg"])
-        self.hparams.pred_reg.entry = tkinter.Entry(self.hparams.pred_reg)
+        self.hparams.pred_reg.entry = Entry(self.hparams.pred_reg)
         self.hparams.pred_reg.entry["textvariable"] = self.hparams.pred_reg.variable
         self.hparams.pred_reg.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.pred_reg.display = tkinter.Label(self.hparams.pred_reg)
+        self.hparams.pred_reg.display = Label(self.hparams.pred_reg)
         self.hparams.pred_reg.display["text"] = loc["pred_reg"]
         self.hparams.pred_reg.display.pack(side = "right", fill = "x")
         self.hparams.pred_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.pred_rlc = tkinter.Frame(self.hparams)
+        self.hparams.pred_rlc = Frame(self.hparams)
         self.hparams.pred_rlc.variable = tkinter.IntVar(self.hparams.pred_rlc)
         self.hparams.pred_rlc.variable.set(loadedVB.ai.hparams["pred_rlc"])
-        self.hparams.pred_rlc.entry = tkinter.Entry(self.hparams.pred_rlc)
+        self.hparams.pred_rlc.entry = Entry(self.hparams.pred_rlc)
         self.hparams.pred_rlc.entry["textvariable"] = self.hparams.pred_rlc.variable
         self.hparams.pred_rlc.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.pred_rlc.display = tkinter.Label(self.hparams.pred_rlc)
+        self.hparams.pred_rlc.display = Label(self.hparams.pred_rlc)
         self.hparams.pred_rlc.display["text"] = loc["pred_rlc"]
         self.hparams.pred_rlc.display.pack(side = "right", fill = "x")
         self.hparams.pred_rlc.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.pred_rs = tkinter.Frame(self.hparams)
+        self.hparams.pred_rs = Frame(self.hparams)
         self.hparams.pred_rs.variable = tkinter.IntVar(self.hparams.pred_rs)
         self.hparams.pred_rs.variable.set(loadedVB.ai.hparams["pred_rs"])
-        self.hparams.pred_rs.entry = tkinter.Spinbox(self.hparams.pred_rs, from_ = 16, to = 4096)
+        self.hparams.pred_rs.entry = Spinbox(self.hparams.pred_rs, from_ = 16, to = 4096)
         self.hparams.pred_rs.entry["textvariable"] = self.hparams.pred_rs.variable
         self.hparams.pred_rs.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.pred_rs.display = tkinter.Label(self.hparams.pred_rs)
+        self.hparams.pred_rs.display = Label(self.hparams.pred_rs)
         self.hparams.pred_rs.display["text"] = loc["pred_rs"]
         self.hparams.pred_rs.display.pack(side = "right", fill = "x")
         self.hparams.pred_rs.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.predh_lr = tkinter.Frame(self.hparams)
+        self.hparams.predh_lr = Frame(self.hparams)
         self.hparams.predh_lr.variable = tkinter.DoubleVar(self.hparams.predh_lr)
         self.hparams.predh_lr.variable.set(loadedVB.ai.hparams["predh_lr"])
-        self.hparams.predh_lr.entry = tkinter.Entry(self.hparams.predh_lr)
+        self.hparams.predh_lr.entry = Entry(self.hparams.predh_lr)
         self.hparams.predh_lr.entry["textvariable"] = self.hparams.predh_lr.variable
         self.hparams.predh_lr.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.predh_lr.display = tkinter.Label(self.hparams.predh_lr)
+        self.hparams.predh_lr.display = Label(self.hparams.predh_lr)
         self.hparams.predh_lr.display["text"] = loc["predh_lr"]
         self.hparams.predh_lr.display.pack(side = "right", fill = "x")
         self.hparams.predh_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.predh_reg = tkinter.Frame(self.hparams)
+        self.hparams.predh_reg = Frame(self.hparams)
         self.hparams.predh_reg.variable = tkinter.DoubleVar(self.hparams.predh_reg)
         self.hparams.predh_reg.variable.set(loadedVB.ai.hparams["predh_reg"])
-        self.hparams.predh_reg.entry = tkinter.Entry(self.hparams.predh_reg)
+        self.hparams.predh_reg.entry = Entry(self.hparams.predh_reg)
         self.hparams.predh_reg.entry["textvariable"] = self.hparams.predh_reg.variable
         self.hparams.predh_reg.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.predh_reg.display = tkinter.Label(self.hparams.predh_reg)
+        self.hparams.predh_reg.display = Label(self.hparams.predh_reg)
         self.hparams.predh_reg.display["text"] = loc["predh_reg"]
         self.hparams.predh_reg.display.pack(side = "right", fill = "x")
         self.hparams.predh_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.predh_rlc = tkinter.Frame(self.hparams)
+        self.hparams.predh_rlc = Frame(self.hparams)
         self.hparams.predh_rlc.variable = tkinter.IntVar(self.hparams.predh_rlc)
         self.hparams.predh_rlc.variable.set(loadedVB.ai.hparams["predh_rlc"])
-        self.hparams.predh_rlc.entry = tkinter.Entry(self.hparams.predh_rlc)
+        self.hparams.predh_rlc.entry = Entry(self.hparams.predh_rlc)
         self.hparams.predh_rlc.entry["textvariable"] = self.hparams.predh_rlc.variable
         self.hparams.predh_rlc.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.predh_rlc.display = tkinter.Label(self.hparams.predh_rlc)
+        self.hparams.predh_rlc.display = Label(self.hparams.predh_rlc)
         self.hparams.predh_rlc.display["text"] = loc["predh_rlc"]
         self.hparams.predh_rlc.display.pack(side = "right", fill = "x")
         self.hparams.predh_rlc.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.predh_rs = tkinter.Frame(self.hparams)
+        self.hparams.predh_rs = Frame(self.hparams)
         self.hparams.predh_rs.variable = tkinter.IntVar(self.hparams.predh_rs)
         self.hparams.predh_rs.variable.set(loadedVB.ai.hparams["predh_rs"])
-        self.hparams.predh_rs.entry = tkinter.Spinbox(self.hparams.predh_rs, from_ = 16, to = 4096)
+        self.hparams.predh_rs.entry = Spinbox(self.hparams.predh_rs, from_ = 16, to = 4096)
         self.hparams.predh_rs.entry["textvariable"] = self.hparams.predh_rs.variable
         self.hparams.predh_rs.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.predh_rs.display = tkinter.Label(self.hparams.predh_rs)
+        self.hparams.predh_rs.display = Label(self.hparams.predh_rs)
         self.hparams.predh_rs.display["text"] = loc["predh_rs"]
         self.hparams.predh_rs.display.pack(side = "right", fill = "x")
         self.hparams.predh_rs.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.hparams.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.resamp = tkinter.LabelFrame(self, text = loc["advResamp"])
+        self.resamp = LabelFrame(self, text = loc["advResamp"])
         self.resamp.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.okButton = tkinter.Button(self)
+        self.okButton = Button(self)
         self.okButton["text"] = loc["ok"]
         self.okButton["command"] = self.onOkPress
         self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)

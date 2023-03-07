@@ -10,18 +10,19 @@ import tkinter
 import sys
 from PIL import Image, ImageTk
 
+from UI.code.devkit.Widgets import *
 import global_consts
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
-class MetadataUi(tkinter.Frame):
+class MetadataUi(Frame):
     """Class of the Metadata window"""
 
     def __init__(self, master=None) -> None:
         logging.info("Initializing Metadata UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
-        tkinter.Frame.__init__(self, master)
+        Frame.__init__(self, master)
         self.pack(ipadx = 20)
         self.createWidgets()
         self.master.wm_title(loc["metadat_lbl"])
@@ -33,71 +34,71 @@ class MetadataUi(tkinter.Frame):
 
         global loadedVB
 
-        self.name = tkinter.Frame(self)
+        self.name = Frame(self)
         self.name.variable = tkinter.StringVar(self.name)
         self.name.variable.set(loadedVB.metadata.name)
-        self.name.entry = tkinter.Entry(self.name)
+        self.name.entry = Entry(self.name)
         self.name.entry["textvariable"] = self.name.variable
         self.name.entry.pack(side = "right", fill = "x", expand = True)
-        self.name.display = tkinter.Label(self.name)
+        self.name.display = Label(self.name)
         self.name.display["text"] = loc["name"]
         self.name.display.pack(side = "right", fill = "x")
         self.name.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.image = tkinter.Frame(self)
+        self.image = Frame(self)
         self.image.variable = tkinter.StringVar(self.image)
         self.image.variable.set("UI/assets/TrackList/SingerGrey04.png")
-        self.image.entry = tkinter.Button(self.image)
+        self.image.entry = Button(self.image)
         self.image.entry["text"] = loc["change"]
         self.image.entry["command"] = self.onImagePress
         self.image.entry.pack(side = "bottom", fill = "x", expand = True)
         self.image.display = tkinter.Canvas(self.image,width=200,height=200)
         self.image.display.pack(side = "right", fill = "x")
-        self.image.label = tkinter.Label(self.image)
+        self.image.label = Label(self.image)
         self.image.label["text"] = loc["image"]
         self.image.label.pack(side = "left", fill = "x")
         self.image.pack(side = "top", fill = "x", padx = 5, pady = 2)
         self.applyImage()
 
-        self.version = tkinter.Frame(self)
+        self.version = Frame(self)
         self.version.variable = tkinter.StringVar(self.version)
         self.version.variable.set(loadedVB.metadata.version)
-        self.version.entry = tkinter.Entry(self.version)
+        self.version.entry = Entry(self.version)
         self.version.entry["textvariable"] = self.version.variable
         self.version.entry.pack(side = "right", fill = "x", expand = True)
-        self.version.display = tkinter.Label(self.version)
+        self.version.display = Label(self.version)
         self.version.display["text"] = loc["version"]
         self.version.display.pack(side = "right", fill = "x")
         self.version.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.description = tkinter.Frame(self)
+        self.description = Frame(self)
         self.description.variable = tkinter.StringVar(self.description)
         self.description.variable.set(loadedVB.metadata.description)
-        self.description.entry = tkinter.Entry(self.description)
+        self.description.entry = Entry(self.description)
         self.description.entry["textvariable"] = self.description.variable
         self.description.entry.pack(side = "right", fill = "x", expand = True)
-        self.description.display = tkinter.Label(self.description)
+        self.description.display = Label(self.description)
         self.description.display["text"] = loc["description"]
         self.description.display.pack(side = "right", fill = "x")
         self.description.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.license = tkinter.Frame(self)
+        self.license = Frame(self)
         self.license.variable = tkinter.StringVar(self.license)
         self.license.variable.set(loadedVB.metadata.license)
-        self.license.entry = tkinter.Entry(self.license)
+        self.license.entry = Entry(self.license)
         self.license.entry["textvariable"] = self.license.variable
         self.license.entry.pack(side = "right", fill = "x", expand = True)
-        self.license.display = tkinter.Label(self.license)
+        self.license.display = Label(self.license)
         self.license.display["text"] = loc["license"]
         self.license.display.pack(side = "right", fill = "x")
         self.license.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.okButton = tkinter.Button(self)
+        self.okButton = Button(self)
         self.okButton["text"] = loc["ok"]
         self.okButton["command"] = self.onOkPress
         self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
-        self.loadButton = tkinter.Button(self)
+        self.loadButton = Button(self)
         self.loadButton["text"] = loc["load_other_VB"]
         self.loadButton["command"] = self.onLoadPress
         self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)

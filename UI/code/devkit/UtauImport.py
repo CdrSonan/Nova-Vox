@@ -22,6 +22,7 @@ matplotlib.rcParams['path.simplify_threshold'] = 1.
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+from UI.code.devkit.Widgets import *
 from Backend.DataHandler.UtauSample import UtauSample
 from Backend.UtauImport import fetchSamples
 import global_consts
@@ -29,16 +30,16 @@ from MiddleLayer.IniParser import readSettings
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
-class UtauImportUi(tkinter.Frame):
+class UtauImportUi(Frame):
     """Class of the UTAU import UI window"""
 
     def __init__(self, master=None) -> None:
         logging.info("Initializing UTAU import UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
-        tkinter.Frame.__init__(self, master)
+        Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
-        self.phoneticsPath = os.path.join(readSettings()["dataDir"], "Devkit_Phonetics")
+        self.phoneticsPath = os.path.join(readSettings()["datadir"], "Devkit_Phonetics")
         self.createWidgets()
         self.master.wm_title(loc["utau_lbl"])
         if (sys.platform.startswith('win')): 
@@ -52,7 +53,7 @@ class UtauImportUi(tkinter.Frame):
         global loadedVB
 
         #Audio file waveform diagram
-        self.diagram = tkinter.LabelFrame(self, text = loc["utau_diag_lbl"])
+        self.diagram = LabelFrame(self, text = loc["utau_diag_lbl"])
         self.diagram.fig = Figure(figsize=(4, 4))
         self.diagram.ax = self.diagram.fig.add_axes([0.1, 0.1, 0.8, 0.8])
         self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
@@ -60,7 +61,7 @@ class UtauImportUi(tkinter.Frame):
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
         self.diagram.canvas = FigureCanvasTkAgg(self.diagram.fig, self.diagram)
         self.diagram.canvas.get_tk_widget().pack(side = "top", fill = "both", expand = True)
-        self.diagram.playButton = tkinter.Button(self.diagram)
+        self.diagram.playButton = Button(self.diagram)
         self.diagram.playButton["text"] = loc["play"]
         self.diagram.playButton["command"] = self.play
         self.diagram.playButton.config(width = 20)
@@ -68,11 +69,11 @@ class UtauImportUi(tkinter.Frame):
         self.diagram.pack(side = "right", fill = "y", padx = 5, pady = 2)
         
         #UTAU phoneme list and related controls
-        self.phonemeList = tkinter.LabelFrame(self, text = loc["smp_list"])
-        self.phonemeList.list = tkinter.Frame(self.phonemeList)
-        self.phonemeList.list.lb = tkinter.Listbox(self.phonemeList.list)
+        self.phonemeList = LabelFrame(self, text = loc["smp_list"])
+        self.phonemeList.list = Frame(self.phonemeList)
+        self.phonemeList.list.lb = Listbox(self.phonemeList.list)
         self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
-        self.phonemeList.list.sb = tkinter.Scrollbar(self.phonemeList.list)
+        self.phonemeList.list.sb = Scrollbar(self.phonemeList.list)
         self.phonemeList.list.sb.pack(side = "left", fill = "y")
         self.phonemeList.list.lb["selectmode"] = "single"
         self.phonemeList.list.lb["yscrollcommand"] = self.phonemeList.list.sb.set
@@ -80,177 +81,177 @@ class UtauImportUi(tkinter.Frame):
         self.phonemeList.list.lb.bind("<FocusOut>", self.onListFocusOut)
         self.phonemeList.list.sb["command"] = self.phonemeList.list.lb.yview
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
-        self.phonemeList.removeButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.removeButton = Button(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]
         self.phonemeList.removeButton["command"] = self.onRemovePress
         self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
-        self.phonemeList.addButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.addButton = Button(self.phonemeList)
         self.phonemeList.addButton["text"] = loc["add"]
         self.phonemeList.addButton["command"] = self.onAddPress
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         #per-sample settings panel
-        self.sideBar = tkinter.LabelFrame(self, text = loc["per_smp_set"])
+        self.sideBar = LabelFrame(self, text = loc["per_smp_set"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
         #sample type selection
-        self.sideBar._type = tkinter.Frame(self.sideBar)
+        self.sideBar._type = Frame(self.sideBar)
         self.sideBar._type.variable = tkinter.BooleanVar(self.sideBar._type)
-        self.sideBar._type.entry = tkinter.Frame(self.sideBar._type)
-        self.sideBar._type.entry.button1 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["smp_phoneme"], value = 0, variable = self.sideBar._type.variable, command = self.onTypeChange)
+        self.sideBar._type.entry = Frame(self.sideBar._type)
+        self.sideBar._type.entry.button1 = Radiobutton(self.sideBar._type.entry, text = loc["smp_phoneme"], value = 0, variable = self.sideBar._type.variable, command = self.onTypeChange)
         self.sideBar._type.entry.button1.pack(side = "right", fill = "x")
-        self.sideBar._type.entry.button2 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["smp_transition"], value = 1, variable = self.sideBar._type.variable, command = self.onTypeChange)
+        self.sideBar._type.entry.button2 = Radiobutton(self.sideBar._type.entry, text = loc["smp_transition"], value = 1, variable = self.sideBar._type.variable, command = self.onTypeChange)
         self.sideBar._type.entry.button2.pack(side = "right", fill = "x")
-        self.sideBar._type.entry.button3 = tkinter.Radiobutton(self.sideBar._type.entry, text = loc["smp_sequence"], value = 2, variable = self.sideBar._type.variable, command = self.onTypeChange)
+        self.sideBar._type.entry.button3 = Radiobutton(self.sideBar._type.entry, text = loc["smp_sequence"], value = 2, variable = self.sideBar._type.variable, command = self.onTypeChange)
         self.sideBar._type.entry.button3.pack(side = "right", fill = "x")
         self.sideBar._type.entry.pack(side = "right", fill = "x")
-        self.sideBar._type.display = tkinter.Label(self.sideBar._type)
+        self.sideBar._type.display = Label(self.sideBar._type)
         self.sideBar._type.display["text"] = loc["smpl_type"]
         self.sideBar._type.display.pack(side = "right", fill = "x")
         self.sideBar._type.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         #key selection for phoneme samples
-        self.sideBar.key = tkinter.Frame(self.sideBar)
+        self.sideBar.key = Frame(self.sideBar)
         self.sideBar.key.variable = tkinter.StringVar(self.sideBar.key)
-        self.sideBar.key.entry = tkinter.Entry(self.sideBar.key)
+        self.sideBar.key.entry = Entry(self.sideBar.key)
         self.sideBar.key.entry["textvariable"] = self.sideBar.key.variable
         self.sideBar.key.entry.bind("<FocusOut>", self.onKeyChange)
         self.sideBar.key.entry.bind("<KeyRelease-Return>", self.onKeyChange)
         self.sideBar.key.entry.pack(side = "right", fill = "x")
-        self.sideBar.key.display = tkinter.Label(self.sideBar.key)
+        self.sideBar.key.display = Label(self.sideBar.key)
         self.sideBar.key.display["text"] = loc["phon_key"]
         self.sideBar.key.display.pack(side = "right", fill = "x")
         self.sideBar.key.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         #start point selection
-        self.sideBar.start = tkinter.Frame(self.sideBar)
+        self.sideBar.start = Frame(self.sideBar)
         self.sideBar.start.variable = tkinter.DoubleVar(self.sideBar.start)
-        self.sideBar.start.entry = tkinter.Spinbox(self.sideBar.start, from_ = 0, increment = 0.05)
+        self.sideBar.start.entry = Spinbox(self.sideBar.start, from_ = 0, to = None, increment = 0.05)
         self.sideBar.start.entry["textvariable"] = self.sideBar.start.variable
         self.sideBar.start.entry.bind("<FocusOut>", self.onFrameUpdateTrigger)
         self.sideBar.start.entry.bind("<KeyRelease-Return>", self.onFrameUpdateTrigger)
         self.sideBar.start.entry.pack(side = "right", fill = "x")
-        self.sideBar.start.display = tkinter.Label(self.sideBar.start)
+        self.sideBar.start.display = Label(self.sideBar.start)
         self.sideBar.start.display["text"] = loc["start"]
         self.sideBar.start.display.pack(side = "right", fill = "x")
         self.sideBar.start.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         #end point selection
-        self.sideBar.end = tkinter.Frame(self.sideBar)
+        self.sideBar.end = Frame(self.sideBar)
         self.sideBar.end.variable = tkinter.DoubleVar(self.sideBar.end)
-        self.sideBar.end.entry = tkinter.Spinbox(self.sideBar.end, from_ = 0, increment = 0.05)
+        self.sideBar.end.entry = Spinbox(self.sideBar.end, from_ = 0, to = None, increment = 0.05)
         self.sideBar.end.entry["textvariable"] = self.sideBar.end.variable
         self.sideBar.end.entry.bind("<FocusOut>", self.onFrameUpdateTrigger)
         self.sideBar.end.entry.bind("<KeyRelease-Return>", self.onFrameUpdateTrigger)
         self.sideBar.end.entry.pack(side = "right", fill = "x")
-        self.sideBar.end.display = tkinter.Label(self.sideBar.end)
+        self.sideBar.end.display = Label(self.sideBar.end)
         self.sideBar.end.display["text"] = loc["end"]
         self.sideBar.end.display.pack(side = "right", fill = "x")
         self.sideBar.end.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         #sample import button
-        self.sideBar.importButton = tkinter.Button(self.sideBar)
+        self.sideBar.importButton = Button(self.sideBar)
         self.sideBar.importButton["text"] = loc["smp_import"]
         self.sideBar.importButton["command"] = self.onImportPress
         self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
         #oto.ini parser settings panel
-        self.otoSettings = tkinter.LabelFrame(self, text = loc["oto_set"])
+        self.otoSettings = LabelFrame(self, text = loc["oto_set"])
         self.otoSettings.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
 
         #prefix selection
-        self.otoSettings.stripPrefix = tkinter.Frame(self.otoSettings)
+        self.otoSettings.stripPrefix = Frame(self.otoSettings)
         self.otoSettings.stripPrefix.variable = tkinter.StringVar(self.otoSettings.stripPrefix)
-        self.otoSettings.stripPrefix.entry = tkinter.Entry(self.otoSettings.stripPrefix)
+        self.otoSettings.stripPrefix.entry = Entry(self.otoSettings.stripPrefix)
         self.otoSettings.stripPrefix.entry["textvariable"] = self.otoSettings.stripPrefix.variable
         self.otoSettings.stripPrefix.entry.pack(side = "right", fill = "x")
-        self.otoSettings.stripPrefix.display = tkinter.Label(self.otoSettings.stripPrefix)
+        self.otoSettings.stripPrefix.display = Label(self.otoSettings.stripPrefix)
         self.otoSettings.stripPrefix.display["text"] = loc["stripPrefix"]
         self.otoSettings.stripPrefix.display.pack(side = "right", fill = "x")
         self.otoSettings.stripPrefix.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         #postfix selection
-        self.otoSettings.stripPostfix = tkinter.Frame(self.otoSettings)
+        self.otoSettings.stripPostfix = Frame(self.otoSettings)
         self.otoSettings.stripPostfix.variable = tkinter.StringVar(self.otoSettings.stripPostfix)
-        self.otoSettings.stripPostfix.entry = tkinter.Entry(self.otoSettings.stripPostfix)
+        self.otoSettings.stripPostfix.entry = Entry(self.otoSettings.stripPostfix)
         self.otoSettings.stripPostfix.entry["textvariable"] = self.otoSettings.stripPostfix.variable
         self.otoSettings.stripPostfix.entry.pack(side = "right", fill = "x")
-        self.otoSettings.stripPostfix.display = tkinter.Label(self.otoSettings.stripPostfix)
+        self.otoSettings.stripPostfix.display = Label(self.otoSettings.stripPostfix)
         self.otoSettings.stripPostfix.display["text"] = loc["stripPostfix"]
         self.otoSettings.stripPostfix.display.pack(side = "right", fill = "x")
         self.otoSettings.stripPostfix.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         #NV expression selection
-        self.otoSettings.addExpr = tkinter.Frame(self.otoSettings)
+        self.otoSettings.addExpr = Frame(self.otoSettings)
         self.otoSettings.addExpr.variable = tkinter.StringVar(self.otoSettings.addExpr)
-        self.otoSettings.addExpr.entry = tkinter.Entry(self.otoSettings.addExpr)
+        self.otoSettings.addExpr.entry = Entry(self.otoSettings.addExpr)
         self.otoSettings.addExpr.entry["textvariable"] = self.otoSettings.addExpr.variable
         self.otoSettings.addExpr.entry.pack(side = "right", fill = "x")
-        self.otoSettings.addExpr.display = tkinter.Label(self.otoSettings.addExpr)
+        self.otoSettings.addExpr.display = Label(self.otoSettings.addExpr)
         self.otoSettings.addExpr.display["text"] = loc["addExpr"]
         self.otoSettings.addExpr.display.pack(side = "right", fill = "x")
         self.otoSettings.addExpr.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         #language selection
         languages = os.listdir(os.path.join(self.phoneticsPath, "Lists"))
-        self.otoSettings.language = tkinter.Frame(self.otoSettings)
+        self.otoSettings.language = Frame(self.otoSettings)
         self.otoSettings.language.variable = tkinter.StringVar(self.otoSettings.language)
-        self.otoSettings.language.entry = tkinter.OptionMenu(self.otoSettings.language, self.otoSettings.language.variable, *languages)
+        self.otoSettings.language.entry = OptionMenu(self.otoSettings.language, self.otoSettings.language.variable, *languages)
         self.otoSettings.language.entry.pack(side = "right", fill = "x")
-        self.otoSettings.language.display = tkinter.Label(self.otoSettings.language)
+        self.otoSettings.language.display = Label(self.otoSettings.language)
         self.otoSettings.language.display["text"] = loc["phon_def"]
         self.otoSettings.language.display.pack(side = "right", fill = "x")
         self.otoSettings.language.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         #shift-JIS decoder flag
-        self.otoSettings.forceJIS = tkinter.Frame(self.otoSettings)
+        self.otoSettings.forceJIS = Frame(self.otoSettings)
         self.otoSettings.forceJIS.variable = tkinter.BooleanVar(self.otoSettings.forceJIS, True)
-        self.otoSettings.forceJIS.entry = tkinter.Checkbutton(self.otoSettings.forceJIS)
+        self.otoSettings.forceJIS.entry = Checkbutton(self.otoSettings.forceJIS)
         self.otoSettings.forceJIS.entry["variable"] = self.otoSettings.forceJIS.variable
         self.otoSettings.forceJIS.entry.pack(side = "right", fill = "x")
-        self.otoSettings.forceJIS.display = tkinter.Label(self.otoSettings.forceJIS)
+        self.otoSettings.forceJIS.display = Label(self.otoSettings.forceJIS)
         self.otoSettings.forceJIS.display["text"] = loc["force_jis"]
         self.otoSettings.forceJIS.display.pack(side = "right", fill = "x")
         self.otoSettings.forceJIS.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         #per-type sample exclusions
-        self.otoSettings.typeSelector = tkinter.Frame(self.otoSettings)
+        self.otoSettings.typeSelector = Frame(self.otoSettings)
         self.otoSettings.typeSelector.variablePhon = tkinter.BooleanVar(self.otoSettings.typeSelector, True)
-        self.otoSettings.typeSelector.entryPhon = tkinter.Checkbutton(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.entryPhon = Checkbutton(self.otoSettings.typeSelector)
         self.otoSettings.typeSelector.entryPhon["variable"] = self.otoSettings.typeSelector.variablePhon
         self.otoSettings.typeSelector.entryPhon.pack(side = "right", fill = "x")
-        self.otoSettings.typeSelector.displayPhon = tkinter.Label(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.displayPhon = Label(self.otoSettings.typeSelector)
         self.otoSettings.typeSelector.displayPhon["text"] = loc["sample_phoneme"]
         self.otoSettings.typeSelector.displayPhon.pack(side = "right", fill = "x")
         self.otoSettings.typeSelector.variableTrans = tkinter.BooleanVar(self.otoSettings.typeSelector, True)
-        self.otoSettings.typeSelector.entryTrans = tkinter.Checkbutton(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.entryTrans = Checkbutton(self.otoSettings.typeSelector)
         self.otoSettings.typeSelector.entryTrans["variable"] = self.otoSettings.typeSelector.variableTrans
         self.otoSettings.typeSelector.entryTrans.pack(side = "right", fill = "x")
-        self.otoSettings.typeSelector.displayTrans = tkinter.Label(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.displayTrans = Label(self.otoSettings.typeSelector)
         self.otoSettings.typeSelector.displayTrans["text"] = loc["sample_transition"]
         self.otoSettings.typeSelector.displayTrans.pack(side = "right", fill = "x")
         self.otoSettings.typeSelector.variableSeq = tkinter.BooleanVar(self.otoSettings.typeSelector, True)
-        self.otoSettings.typeSelector.entrySeq = tkinter.Checkbutton(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.entrySeq = Checkbutton(self.otoSettings.typeSelector)
         self.otoSettings.typeSelector.entrySeq["variable"] = self.otoSettings.typeSelector.variableSeq
         self.otoSettings.typeSelector.entrySeq.pack(side = "right", fill = "x")
-        self.otoSettings.typeSelector.displaySeq = tkinter.Label(self.otoSettings.typeSelector)
+        self.otoSettings.typeSelector.displaySeq = Label(self.otoSettings.typeSelector)
         self.otoSettings.typeSelector.displaySeq["text"] = loc["sample_sequence"]
         self.otoSettings.typeSelector.displaySeq.pack(side = "right", fill = "x")
         self.otoSettings.typeSelector.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         #window controls
-        self.okButton = tkinter.Button(self)
+        self.okButton = Button(self)
         self.okButton["text"] = loc["ok"]
         self.okButton["command"] = self.onOkPress
         self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
-        self.loadButton = tkinter.Button(self)
+        self.loadButton = Button(self)
         self.loadButton["text"] = loc["load_oto"]
         self.loadButton["command"] = self.onLoadPress
         self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
-        self.importButton = tkinter.Button(self)
+        self.importButton = Button(self)
         self.importButton["text"] = loc["all_import"]
         self.importButton["command"] = self.onImportAllPress
         self.importButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)

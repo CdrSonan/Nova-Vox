@@ -15,20 +15,21 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+from UI.code.devkit.Widgets import *
 import global_consts
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import calculateSpectra
 
-class PhonemedictUi(tkinter.Frame):
+class PhonemedictUi(Frame):
     """Class of the phoneme dictionnary UI window"""
 
     def __init__(self, master=None) -> None:
         logging.info("Initializing Phonemedict UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
-        tkinter.Frame.__init__(self, master)
+        Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
         self.master.wm_title(loc["phon_lbl"])
@@ -40,7 +41,7 @@ class PhonemedictUi(tkinter.Frame):
 
         global loadedVB
 
-        self.diagram = tkinter.LabelFrame(self, text = loc["diag_lbl"])
+        self.diagram = LabelFrame(self, text = loc["diag_lbl"])
         self.diagram.fig = Figure(figsize=(4, 4))
         self.diagram.ax = self.diagram.fig.add_axes([0.1, 0.1, 0.8, 0.8])
         self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
@@ -48,15 +49,15 @@ class PhonemedictUi(tkinter.Frame):
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
         self.diagram.canvas = FigureCanvasTkAgg(self.diagram.fig, self.diagram)
         self.diagram.canvas.get_tk_widget().pack(side = "top", fill = "both", expand = True)
-        self.diagram.timeSlider = tkinter.Scale(self.diagram, from_ = 0, to = 0, orient = "horizontal", length = 600, command = self.onSliderMove)
+        self.diagram.timeSlider = Scale(self.diagram, from_ = 0, to = 0, orient = "horizontal", length = 600, command = self.onSliderMove)
         self.diagram.timeSlider.pack(side = "left", fill = "both", expand = True, padx = 5, pady = 2)
         self.diagram.pack(side = "right", fill = "y", padx = 5, pady = 2)
         
-        self.phonemeList = tkinter.LabelFrame(self, text = loc["phon_list"])
-        self.phonemeList.list = tkinter.Frame(self.phonemeList)
-        self.phonemeList.list.lb = tkinter.Listbox(self.phonemeList.list)
+        self.phonemeList = LabelFrame(self, text = loc["phon_list"])
+        self.phonemeList.list = Frame(self.phonemeList)
+        self.phonemeList.list.lb = Listbox(self.phonemeList.list)
         self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
-        self.phonemeList.list.sb = tkinter.Scrollbar(self.phonemeList.list)
+        self.phonemeList.list.sb = Scrollbar(self.phonemeList.list)
         self.phonemeList.list.sb.pack(side = "left", fill = "y")
         self.phonemeList.list.lb["selectmode"] = "single"
         self.phonemeList.list.lb["yscrollcommand"] = self.phonemeList.list.sb.set
@@ -66,151 +67,151 @@ class PhonemedictUi(tkinter.Frame):
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
         for i in loadedVB.phonemeDict.keys():
             self.phonemeList.list.lb.insert("end", i)
-        self.phonemeList.removeButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.removeButton = Button(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]
         self.phonemeList.removeButton["command"] = self.onRemovePress
         self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
-        self.phonemeList.addButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.addButton = Button(self.phonemeList)
         self.phonemeList.addButton["text"] = loc["add"]
         self.phonemeList.addButton["command"] = self.onAddPress
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar = tkinter.LabelFrame(self, text = loc["per_ph_set"])
+        self.sideBar = LabelFrame(self, text = loc["per_ph_set"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
-        self.sideBar.key = tkinter.Frame(self.sideBar)
+        self.sideBar.key = Frame(self.sideBar)
         self.sideBar.key.variable = tkinter.StringVar(self.sideBar.key)
-        self.sideBar.key.entry = tkinter.Entry(self.sideBar.key)
+        self.sideBar.key.entry = Entry(self.sideBar.key)
         self.sideBar.key.entry["textvariable"] = self.sideBar.key.variable
         self.sideBar.key.entry.bind("<FocusOut>", self.onKeyChange)
         self.sideBar.key.entry.bind("<KeyRelease-Return>", self.onKeyChange)
         self.sideBar.key.entry.pack(side = "right", fill = "x")
-        self.sideBar.key.display = tkinter.Label(self.sideBar.key)
+        self.sideBar.key.display = Label(self.sideBar.key)
         self.sideBar.key.display["text"] = loc["phon_key"]
         self.sideBar.key.display.pack(side = "right", fill = "x")
         self.sideBar.key.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar.expPitch = tkinter.Frame(self.sideBar)
+        self.sideBar.expPitch = Frame(self.sideBar)
         self.sideBar.expPitch.variable = tkinter.DoubleVar(self.sideBar.expPitch, global_consts.defaultExpectedPitch)
-        self.sideBar.expPitch.entry = tkinter.Entry(self.sideBar.expPitch)
+        self.sideBar.expPitch.entry = Entry(self.sideBar.expPitch)
         self.sideBar.expPitch.entry["textvariable"] = self.sideBar.expPitch.variable
         self.sideBar.expPitch.entry.bind("<FocusOut>", self.onPitchUpdateTrigger)
         self.sideBar.expPitch.entry.bind("<KeyRelease-Return>", self.onPitchUpdateTrigger)
         self.sideBar.expPitch.entry.pack(side = "right", fill = "x")
-        self.sideBar.expPitch.display = tkinter.Label(self.sideBar.expPitch)
+        self.sideBar.expPitch.display = Label(self.sideBar.expPitch)
         self.sideBar.expPitch.display["text"] = loc["est_pit"]
         self.sideBar.expPitch.display.pack(side = "right", fill = "x")
         self.sideBar.expPitch.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar.pSearchRange = tkinter.Frame(self.sideBar)
+        self.sideBar.pSearchRange = Frame(self.sideBar)
         self.sideBar.pSearchRange.variable = tkinter.DoubleVar(self.sideBar.pSearchRange, global_consts.defaultSearchRange)
-        self.sideBar.pSearchRange.entry = tkinter.Spinbox(self.sideBar.pSearchRange, from_ = 0.35, to = 0.95, increment = 0.05)
+        self.sideBar.pSearchRange.entry = Spinbox(self.sideBar.pSearchRange, from_ = 0.35, to = 0.95, increment = 0.05)
         self.sideBar.pSearchRange.entry["textvariable"] = self.sideBar.pSearchRange.variable
         self.sideBar.pSearchRange.entry.bind("<FocusOut>", self.onPitchUpdateTrigger)
         self.sideBar.pSearchRange.entry.bind("<KeyRelease-Return>", self.onPitchUpdateTrigger)
         self.sideBar.pSearchRange.entry.pack(side = "right", fill = "x")
-        self.sideBar.pSearchRange.display = tkinter.Label(self.sideBar.pSearchRange)
+        self.sideBar.pSearchRange.display = Label(self.sideBar.pSearchRange)
         self.sideBar.pSearchRange.display["text"] = loc["psearchr"]
         self.sideBar.pSearchRange.display.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.pBroadcastButton = tkinter.Button(self.sideBar)
+        self.sideBar.pBroadcastButton = Button(self.sideBar)
         self.sideBar.pBroadcastButton["text"] = loc["pit_brdc"]
         self.sideBar.pBroadcastButton["command"] = self.onPitBrdcPress
         self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        self.sideBar.voicedThrh = tkinter.Frame(self.sideBar)
+        self.sideBar.voicedThrh = Frame(self.sideBar)
         self.sideBar.voicedThrh.variable = tkinter.DoubleVar(self.sideBar.voicedThrh, global_consts.defaultVoicedThrh)
-        self.sideBar.voicedThrh.entry = tkinter.Spinbox(self.sideBar.voicedThrh, from_ = 0.35, to = 0.95, increment = 0.05)
+        self.sideBar.voicedThrh.entry = Spinbox(self.sideBar.voicedThrh, from_ = 0.35, to = 0.95, increment = 0.05)
         self.sideBar.voicedThrh.entry["textvariable"] = self.sideBar.voicedThrh.variable
         self.sideBar.voicedThrh.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.voicedThrh.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.voicedThrh.entry.pack(side = "right", fill = "x")
-        self.sideBar.voicedThrh.display = tkinter.Label(self.sideBar.voicedThrh)
+        self.sideBar.voicedThrh.display = Label(self.sideBar.voicedThrh)
         self.sideBar.voicedThrh.display["text"] = loc["voicedThrh"]
         self.sideBar.voicedThrh.display.pack(side = "right", fill = "x")
         self.sideBar.voicedThrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.specSmooth = tkinter.Frame(self.sideBar)
+        self.sideBar.specSmooth = Frame(self.sideBar)
         self.sideBar.specSmooth.widthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecWidth)
-        self.sideBar.specSmooth.widthEntry = tkinter.Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
+        self.sideBar.specSmooth.widthEntry = Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
         self.sideBar.specSmooth.widthEntry["textvariable"] = self.sideBar.specSmooth.widthVariable
         self.sideBar.specSmooth.widthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.specSmooth.widthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.specSmooth.widthEntry.pack(side = "right", fill = "x")
         self.sideBar.specSmooth.depthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecDepth)
-        self.sideBar.specSmooth.depthEntry = tkinter.Spinbox(self.sideBar.specSmooth, from_ = 0, to = 100)
+        self.sideBar.specSmooth.depthEntry = Spinbox(self.sideBar.specSmooth, from_ = 0, to = 100)
         self.sideBar.specSmooth.depthEntry["textvariable"] = self.sideBar.specSmooth.depthVariable
         self.sideBar.specSmooth.depthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.specSmooth.depthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.specSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.display = tkinter.Label(self.sideBar.specSmooth)
+        self.sideBar.specSmooth.display = Label(self.sideBar.specSmooth)
         self.sideBar.specSmooth.display["text"] = loc["specSmooth"]
         self.sideBar.specSmooth.display.pack(side = "right", fill = "x")
         self.sideBar.specSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.tempSmooth = tkinter.Frame(self.sideBar)
+        self.sideBar.tempSmooth = Frame(self.sideBar)
         self.sideBar.tempSmooth.widthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempWidth)
-        self.sideBar.tempSmooth.widthEntry = tkinter.Spinbox(self.sideBar.tempSmooth, from_ = 1, to = 100)
+        self.sideBar.tempSmooth.widthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 1, to = 100)
         self.sideBar.tempSmooth.widthEntry["textvariable"] = self.sideBar.tempSmooth.widthVariable
         self.sideBar.tempSmooth.widthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.tempSmooth.widthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.tempSmooth.widthEntry.pack(side = "right", fill = "x")
         self.sideBar.tempSmooth.depthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempDepth)
-        self.sideBar.tempSmooth.depthEntry = tkinter.Spinbox(self.sideBar.tempSmooth, from_ = 0, to = 100)
+        self.sideBar.tempSmooth.depthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 0, to = 100)
         self.sideBar.tempSmooth.depthEntry["textvariable"] = self.sideBar.tempSmooth.depthVariable
         self.sideBar.tempSmooth.depthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
         self.sideBar.tempSmooth.depthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
         self.sideBar.tempSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.display = tkinter.Label(self.sideBar.tempSmooth)
+        self.sideBar.tempSmooth.display = Label(self.sideBar.tempSmooth)
         self.sideBar.tempSmooth.display["text"] = loc["tempSmooth"]
         self.sideBar.tempSmooth.display.pack(side = "right", fill = "x")
         self.sideBar.tempSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.sBroadcastButton = tkinter.Button(self.sideBar)
+        self.sideBar.sBroadcastButton = Button(self.sideBar)
         self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
         self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
         self.sideBar.sBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        self.sideBar.isVoiced = tkinter.Frame(self.sideBar)
+        self.sideBar.isVoiced = Frame(self.sideBar)
         self.sideBar.isVoiced.variable = tkinter.BooleanVar(self.sideBar.isVoiced, True)
-        self.sideBar.isVoiced.entry = tkinter.Checkbutton(self.sideBar.isVoiced)
+        self.sideBar.isVoiced.entry = Checkbutton(self.sideBar.isVoiced)
         self.sideBar.isVoiced.entry["variable"] = self.sideBar.isVoiced.variable
         self.sideBar.isVoiced.entry["command"] = self.onVoicedUpdateTrigger
         self.sideBar.isVoiced.entry.pack(side = "right", fill = "x")
-        self.sideBar.isVoiced.display = tkinter.Label(self.sideBar.isVoiced)
+        self.sideBar.isVoiced.display = Label(self.sideBar.isVoiced)
         self.sideBar.isVoiced.display["text"] = loc["voiced"]
         self.sideBar.isVoiced.display.pack(side = "right", fill = "x")
         self.sideBar.isVoiced.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.isPlosive = tkinter.Frame(self.sideBar)
+        self.sideBar.isPlosive = Frame(self.sideBar)
         self.sideBar.isPlosive.variable = tkinter.BooleanVar(self.sideBar.isPlosive, True)
-        self.sideBar.isPlosive.entry = tkinter.Checkbutton(self.sideBar.isPlosive)
+        self.sideBar.isPlosive.entry = Checkbutton(self.sideBar.isPlosive)
         self.sideBar.isPlosive.entry["variable"] = self.sideBar.isPlosive.variable
         self.sideBar.isPlosive.entry["command"] = self.onPlosiveUpdateTrigger
         self.sideBar.isPlosive.entry.pack(side = "right", fill = "x")
-        self.sideBar.isPlosive.display = tkinter.Label(self.sideBar.isPlosive)
+        self.sideBar.isPlosive.display = Label(self.sideBar.isPlosive)
         self.sideBar.isPlosive.display["text"] = loc["plosive"]
         self.sideBar.isPlosive.display.pack(side = "right", fill = "x")
         self.sideBar.isPlosive.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar.fileButton = tkinter.Button(self.sideBar)
+        self.sideBar.fileButton = Button(self.sideBar)
         self.sideBar.fileButton["text"] = loc["cng_file"]
         self.sideBar.fileButton["command"] = self.onFilechangePress
         self.sideBar.fileButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
-        self.sideBar.finalizeButton = tkinter.Button(self.sideBar)
+        self.sideBar.finalizeButton = Button(self.sideBar)
         self.sideBar.finalizeButton["text"] = loc["finalize"]
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
-        self.okButton = tkinter.Button(self)
+        self.okButton = Button(self)
         self.okButton["text"] = loc["ok"]
         self.okButton["command"] = self.onOkPress
         self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
-        self.loadButton = tkinter.Button(self)
+        self.loadButton = Button(self)
         self.loadButton["text"] = loc["load_other_VB"]
         self.loadButton["command"] = self.onLoadPress
         self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)

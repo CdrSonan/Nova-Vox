@@ -10,18 +10,19 @@ import tkinter
 import torch
 import sys
 
+from UI.code.devkit.Widgets import *
 import global_consts
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
-class PredaiUi(tkinter.Frame):
+class PredaiUi(Frame):
     """Class of the Spectral Prediction AI UI window"""
 
     def __init__(self, master=None) -> None:
         logging.info("Initializing Predai UI")
         global loadedVB
         from UI.code.devkit.Main import loadedVB
-        tkinter.Frame.__init__(self, master)
+        Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
         self.master.wm_title(loc["predai_lbl"])
@@ -33,11 +34,11 @@ class PredaiUi(tkinter.Frame):
 
         global loadedVB
         
-        self.phonemeList = tkinter.LabelFrame(self, text = loc["ai_samp_list"])
-        self.phonemeList.list = tkinter.Frame(self.phonemeList)
-        self.phonemeList.list.lb = tkinter.Listbox(self.phonemeList.list)
+        self.phonemeList = LabelFrame(self, text = loc["ai_samp_list"])
+        self.phonemeList.list = Frame(self.phonemeList)
+        self.phonemeList.list.lb = Listbox(self.phonemeList.list)
         self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
-        self.phonemeList.list.sb = tkinter.Scrollbar(self.phonemeList.list)
+        self.phonemeList.list.sb = Scrollbar(self.phonemeList.list)
         self.phonemeList.list.sb.pack(side = "left", fill = "y")
         self.phonemeList.list.lb["selectmode"] = "single"
         self.phonemeList.list.lb["yscrollcommand"] = self.phonemeList.list.sb.set
@@ -47,133 +48,133 @@ class PredaiUi(tkinter.Frame):
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
         for i in loadedVB.stagedPredTrainSamples:
             self.phonemeList.list.lb.insert("end", i.filepath)
-        self.phonemeList.removeButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.removeButton = Button(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]
         self.phonemeList.removeButton["command"] = self.onRemovePress
         self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
-        self.phonemeList.addButton = tkinter.Button(self.phonemeList)
+        self.phonemeList.addButton = Button(self.phonemeList)
         self.phonemeList.addButton["text"] = loc["add"]
         self.phonemeList.addButton["command"] = self.onAddPress
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar = tkinter.LabelFrame(self, text = loc["ai_settings"])
+        self.sideBar = LabelFrame(self, text = loc["ai_settings"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
         
-        self.sideBar.expPitch = tkinter.Frame(self.sideBar)
+        self.sideBar.expPitch = Frame(self.sideBar)
         self.sideBar.expPitch.variable = tkinter.DoubleVar(self.sideBar.expPitch, global_consts.defaultExpectedPitch)
-        self.sideBar.expPitch.entry = tkinter.Entry(self.sideBar.expPitch)
+        self.sideBar.expPitch.entry = Entry(self.sideBar.expPitch)
         self.sideBar.expPitch.entry["textvariable"] = self.sideBar.expPitch.variable
         self.sideBar.expPitch.entry.pack(side = "right", fill = "x")
-        self.sideBar.expPitch.display = tkinter.Label(self.sideBar.expPitch)
+        self.sideBar.expPitch.display = Label(self.sideBar.expPitch)
         self.sideBar.expPitch.display["text"] = loc["est_pit"]
         self.sideBar.expPitch.display.pack(side = "right", fill = "x")
         self.sideBar.expPitch.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar.pSearchRange = tkinter.Frame(self.sideBar)
+        self.sideBar.pSearchRange = Frame(self.sideBar)
         self.sideBar.pSearchRange.variable = tkinter.DoubleVar(self.sideBar.pSearchRange, global_consts.defaultSearchRange)
-        self.sideBar.pSearchRange.entry = tkinter.Spinbox(self.sideBar.pSearchRange, from_ = 0.35, to = 0.95, increment = 0.05)
+        self.sideBar.pSearchRange.entry = Spinbox(self.sideBar.pSearchRange, from_ = 0.35, to = 0.95, increment = 0.05)
         self.sideBar.pSearchRange.entry["textvariable"] = self.sideBar.pSearchRange.variable
         self.sideBar.pSearchRange.entry.pack(side = "right", fill = "x")
-        self.sideBar.pSearchRange.display = tkinter.Label(self.sideBar.pSearchRange)
+        self.sideBar.pSearchRange.display = Label(self.sideBar.pSearchRange)
         self.sideBar.pSearchRange.display["text"] = loc["psearchr"]
         self.sideBar.pSearchRange.display.pack(side = "right", fill = "x")
         self.sideBar.pSearchRange.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.pBroadcastButton = tkinter.Button(self.sideBar)
+        self.sideBar.pBroadcastButton = Button(self.sideBar)
         self.sideBar.pBroadcastButton["text"] = loc["pit_brdc"]
         self.sideBar.pBroadcastButton["command"] = self.onPitBrdcPress
         self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        self.sideBar.voicedThrh = tkinter.Frame(self.sideBar)
+        self.sideBar.voicedThrh = Frame(self.sideBar)
         self.sideBar.voicedThrh.variable = tkinter.DoubleVar(self.sideBar.voicedThrh, global_consts.defaultVoicedThrh)
-        self.sideBar.voicedThrh.entry = tkinter.Spinbox(self.sideBar.voicedThrh, from_ = 0.35, to = 0.95, increment = 0.05)
+        self.sideBar.voicedThrh.entry = Spinbox(self.sideBar.voicedThrh, from_ = 0.35, to = 0.95, increment = 0.05)
         self.sideBar.voicedThrh.entry["textvariable"] = self.sideBar.voicedThrh.variable
         self.sideBar.voicedThrh.entry.pack(side = "right", fill = "x")
-        self.sideBar.voicedThrh.display = tkinter.Label(self.sideBar.voicedThrh)
+        self.sideBar.voicedThrh.display = Label(self.sideBar.voicedThrh)
         self.sideBar.voicedThrh.display["text"] = loc["voicedThrh"]
         self.sideBar.voicedThrh.display.pack(side = "right", fill = "x")
         self.sideBar.voicedThrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.specSmooth = tkinter.Frame(self.sideBar)
+        self.sideBar.specSmooth = Frame(self.sideBar)
         self.sideBar.specSmooth.widthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecWidth)
-        self.sideBar.specSmooth.widthEntry = tkinter.Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
+        self.sideBar.specSmooth.widthEntry = Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
         self.sideBar.specSmooth.widthEntry["textvariable"] = self.sideBar.specSmooth.widthVariable
         self.sideBar.specSmooth.widthEntry.pack(side = "right", fill = "x")
         self.sideBar.specSmooth.depthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecDepth)
-        self.sideBar.specSmooth.depthEntry = tkinter.Spinbox(self.sideBar.specSmooth, from_ = 0, to = 100)
+        self.sideBar.specSmooth.depthEntry = Spinbox(self.sideBar.specSmooth, from_ = 0, to = 100)
         self.sideBar.specSmooth.depthEntry["textvariable"] = self.sideBar.specSmooth.depthVariable
         self.sideBar.specSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.display = tkinter.Label(self.sideBar.specSmooth)
+        self.sideBar.specSmooth.display = Label(self.sideBar.specSmooth)
         self.sideBar.specSmooth.display["text"] = loc["specSmooth"]
         self.sideBar.specSmooth.display.pack(side = "right", fill = "x")
         self.sideBar.specSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.tempSmooth = tkinter.Frame(self.sideBar)
+        self.sideBar.tempSmooth = Frame(self.sideBar)
         self.sideBar.tempSmooth.widthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempWidth)
-        self.sideBar.tempSmooth.widthEntry = tkinter.Spinbox(self.sideBar.tempSmooth, from_ = 1, to = 100)
+        self.sideBar.tempSmooth.widthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 1, to = 100)
         self.sideBar.tempSmooth.widthEntry["textvariable"] = self.sideBar.tempSmooth.widthVariable
         self.sideBar.tempSmooth.widthEntry.pack(side = "right", fill = "x")
         self.sideBar.tempSmooth.depthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempDepth)
-        self.sideBar.tempSmooth.depthEntry = tkinter.Spinbox(self.sideBar.tempSmooth, from_ = 0, to = 100)
+        self.sideBar.tempSmooth.depthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 0, to = 100)
         self.sideBar.tempSmooth.depthEntry["textvariable"] = self.sideBar.tempSmooth.depthVariable
         self.sideBar.tempSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.display = tkinter.Label(self.sideBar.tempSmooth)
+        self.sideBar.tempSmooth.display = Label(self.sideBar.tempSmooth)
         self.sideBar.tempSmooth.display["text"] = loc["tempSmooth"]
         self.sideBar.tempSmooth.display.pack(side = "right", fill = "x")
         self.sideBar.tempSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.sBroadcastButton = tkinter.Button(self.sideBar)
+        self.sideBar.sBroadcastButton = Button(self.sideBar)
         self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
         self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
         self.sideBar.sBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
-        self.sideBar.epochs = tkinter.Frame(self.sideBar)
+        self.sideBar.epochs = Frame(self.sideBar)
         self.sideBar.epochs.variable = tkinter.IntVar(self.sideBar.epochs, 1)
-        self.sideBar.epochs.entry = tkinter.Spinbox(self.sideBar.epochs, from_ = 1, to = 100)
+        self.sideBar.epochs.entry = Spinbox(self.sideBar.epochs, from_ = 1, to = 100)
         self.sideBar.epochs.entry["textvariable"] = self.sideBar.epochs.variable
         self.sideBar.epochs.entry.pack(side = "right", fill = "x")
-        self.sideBar.epochs.display = tkinter.Label(self.sideBar.epochs)
+        self.sideBar.epochs.display = Label(self.sideBar.epochs)
         self.sideBar.epochs.display["text"] = loc["epochs"]
         self.sideBar.epochs.display.pack(side = "right", fill = "x")
         self.sideBar.epochs.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.additive = tkinter.Frame(self.sideBar)
+        self.sideBar.additive = Frame(self.sideBar)
         self.sideBar.additive.variable = tkinter.BooleanVar(self.sideBar.additive, True)
-        self.sideBar.additive.entry = tkinter.Checkbutton(self.sideBar.additive)
+        self.sideBar.additive.entry = Checkbutton(self.sideBar.additive)
         self.sideBar.additive.entry["variable"] = self.sideBar.additive.variable
         self.sideBar.additive.entry.pack(side = "right", fill = "x")
-        self.sideBar.additive.display = tkinter.Label(self.sideBar.additive)
+        self.sideBar.additive.display = Label(self.sideBar.additive)
         self.sideBar.additive.display["text"] = loc["additive"]
         self.sideBar.additive.display.pack(side = "right", fill = "x")
         self.sideBar.additive.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.logging = tkinter.Frame(self.sideBar)
+        self.sideBar.logging = Frame(self.sideBar)
         self.sideBar.logging.variable = tkinter.BooleanVar(self.sideBar.logging, False)
-        self.sideBar.logging.entry = tkinter.Checkbutton(self.sideBar.logging)
+        self.sideBar.logging.entry = Checkbutton(self.sideBar.logging)
         self.sideBar.logging.entry["variable"] = self.sideBar.logging.variable
         self.sideBar.logging.entry.pack(side = "right", fill = "x")
-        self.sideBar.logging.display = tkinter.Label(self.sideBar.logging)
+        self.sideBar.logging.display = Label(self.sideBar.logging)
         self.sideBar.logging.display["text"] = loc["logging"]
         self.sideBar.logging.display.pack(side = "right", fill = "x")
         self.sideBar.logging.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.sideBar.exportButton = tkinter.Button(self.sideBar)
+        self.sideBar.exportButton = Button(self.sideBar)
         self.sideBar.exportButton["text"] = loc["ai_smp_export"]
         self.sideBar.exportButton["command"] = self.onExportPress
         self.sideBar.exportButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        self.sideBar.importButton = tkinter.Button(self.sideBar)
+        self.sideBar.importButton = Button(self.sideBar)
         self.sideBar.importButton["text"] = loc["ai_smp_import"]
         self.sideBar.importButton["command"] = self.onImportPress
         self.sideBar.importButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
-        self.sideBar.trainButton = tkinter.Button(self.sideBar)
+        self.sideBar.trainButton = Button(self.sideBar)
         self.sideBar.trainButton["text"] = loc["train"]
         self.sideBar.trainButton["command"] = self.onTrainPress
         self.sideBar.trainButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
-        self.sideBar.finalizeButton = tkinter.Button(self.sideBar)
+        self.sideBar.finalizeButton = Button(self.sideBar)
         self.sideBar.finalizeButton["text"] = loc["finalize"]
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
@@ -183,15 +184,15 @@ class PredaiUi(tkinter.Frame):
         else:
             epoch = str(loadedVB.ai.predAi.epoch)
         self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.predAi.sampleCount) + loc["AI_stat_3"])
-        self.statusLabel = tkinter.Label(self, textvariable = self.statusVar)
+        self.statusLabel = Label(self, textvariable = self.statusVar)
         self.statusLabel.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        self.okButton = tkinter.Button(self)
+        self.okButton = Button(self)
         self.okButton["text"] = loc["ok"]
         self.okButton["command"] = self.onOkPress
         self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
-        self.loadButton = tkinter.Button(self)
+        self.loadButton = Button(self)
         self.loadButton["text"] = loc["load_other_VB"]
         self.loadButton["command"] = self.onLoadPress
         self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
