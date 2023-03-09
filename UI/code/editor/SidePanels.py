@@ -286,8 +286,18 @@ class SettingsSidePanel(CursorAwareView):
     def applyColors(self) -> None:
         """applies a new set of colors to the UI when one of the available color settings is changed"""
 
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         app = App.get_running_app()
-        app.root.uiScale = self.ids["settings_uiScale"].value
+        if self.ids["settings_uiScale"].text == "":
+            uiScale = 1.
+        else:
+            uiScale = float(self.ids["settings_uiScale"].text)
+        uiScale = max(min(uiScale, 5), 0.1)
+        app.root.ids["pianoRoll"].xScale = app.root.ids["pianoRoll"].xScale * uiScale / app.root.uiScale
+        app.root.ids["pianoRoll"].yScale = app.root.ids["pianoRoll"].yScale * uiScale / app.root.uiScale
+        app.root.ids["pianoRoll"].updateTrack()
+        app.root.uiScale = uiScale
         app.root.toolColor = self.ids["settings_toolColor"].color
         app.root.accColor = self.ids["settings_accColor"].color
         app.root.bgColor = self.ids["settings_bgColor"].color

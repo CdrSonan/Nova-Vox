@@ -11,12 +11,12 @@
 
 <ListElement>:
     size_hint_y: None
-    height: 30
+    height: 30 * app.root.uiScale
     on_press: self.parent.parent.parent.parent.detailElement(self.index)
 
 <FileSidePanel>:
-    size_hint: (0.4, None)
-    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
@@ -26,25 +26,25 @@
         orientation: "vertical"
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "save"
             on_press: self.parent.parent.save()
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "load"
             on_press: self.parent.parent.load()
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "import"
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "export"
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "render"
             on_press: self.parent.parent.openRenderPopup()
 
@@ -66,22 +66,22 @@
             spacing: 10
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "format:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "bitdepth:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "sample rate:"
             ManagedSpinner:
                 #file format dropdown menu
                 sync_height: True
                 text_autoupdate: True
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 values: soundfile.available_formats().keys()
                 text: "WAV"
                 on_text: self.parent.parent.parent.parent.parent.reloadBitdepths(self.text)
@@ -90,7 +90,7 @@
                 sync_height: True
                 text_autoupdate: True
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 values: soundfile.available_subtypes("WAV").keys()
                 text: "PCM_24"
                 on_text: self.parent.parent.parent.parent.parent.bitdepth = self.text
@@ -99,19 +99,19 @@
                 sync_height: True
                 text_autoupdate: True
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 values: ["44100", "48000", "96000", "192000"]
                 text: "48000"
                 on_text: self.parent.parent.parent.parent.parent.sampleRate = self.text
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "render"
             on_press: self.parent.parent.parent.parent.finalisingClose()
 
 <SingerSidePanel>:
-    size_hint: (0.4, None)
-    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
@@ -139,55 +139,55 @@
             orientation: "tb-lr"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "Name:"
             Label:
                 size_hint_y: None
-                height: 80
+                height: 80 * app.root.uiScale
                 text: "Image:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "Version:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "Description:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "License:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: singer_name
             Image:
                 size_hint_y: None
-                height: 80
+                height: 80 * app.root.uiScale
                 id: singer_image
                 source: "UI/assets/TrackList/SingerGrey04.png"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: singer_version
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: singer_description
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: singer_license
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "import"
             on_press: root.importVoicebank(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.voicebanks[self.parent.parent.selectedIndex].name, self.parent.parent.voicebanks[self.parent.parent.selectedIndex].image) if (self.parent.parent.selectedIndex != None) else None
         
 
 <ParamSidePanel>:
-    size_hint: (0.4, None)
-    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
@@ -215,61 +215,61 @@
             orientation: "tb-lr"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "Name:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "Type:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "Capacity:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "Recurrency:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "Version:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "License:"
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: param_name
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: param_type
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: param_capacity
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: param_recurrency
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: param_version
             Label:
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 id: param_license
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "import"
             on_press: root.importParam(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.parameters[self.parent.parent.selectedIndex].name)
 
 <ScriptingSidePanel>:
-    size_hint: (0.4, None)
-    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
@@ -283,18 +283,18 @@
             id: scripting_editor
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "run"
             on_press: self.parent.parent.runScript()
         ManagedButton:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "open Devkit"
             on_press: self.parent.parent.openDevkit()
 
 <SettingsSidePanel>:
-    size_hint: (0.4, None)
-    pos_hint:{"x": 0.6 - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "UI/assets/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
@@ -307,7 +307,7 @@
         spacing: 10
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "Language:"
         ManagedSpinner:
             #language dropdown menu
@@ -315,11 +315,11 @@
             sync_height: True
             text_autoupdate: True
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             values: ["en", "ja"]
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "Accelerator:"
         ManagedSpinner:
             #accelerator dropdown menu
@@ -327,12 +327,12 @@
             sync_height: True
             text_autoupdate: True
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             values: ["CPU", "GPU", "Hybrid"]
             on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "Tensor Cores:"
         ManagedSpinner:
             #tensor core dropdown menu
@@ -340,12 +340,12 @@
             sync_height: True
             text_autoupdate: True
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             values: ["disabled", "enabled"]
             on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "low-spec mode:"
         ManagedSpinner:
             #performance mode dropdown menu
@@ -353,11 +353,11 @@
             sync_height: True
             text_autoupdate: True
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             values: ["disabled", "enabled"]
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "caching mode:"
         ManagedSpinner:
             #caching mode dropdown menu
@@ -365,12 +365,12 @@
             sync_height: True
             text_autoupdate: True
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             values: ["save RAM", "default", "best rendering speed"]
             on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "audio API:"
         ManagedSpinner:
             #audio driver dropdown menu
@@ -378,12 +378,12 @@
             sync_height: True
             text_autoupdate: True
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             values: self.parent.parent.audioApiNames
             on_text: self.parent.parent.refreshAudioDevices(self.text)
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "audio device:"
         ManagedSpinner:
             #audio device dropdown menu
@@ -391,12 +391,12 @@
             sync_height: True
             text_autoupdate: True
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             values: self.parent.parent.audioDeviceNames
             on_text: self.parent.parent.restartAudioStream()
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "Logging level:"
         ManagedSpinner:
             #logging level dropdown menu
@@ -404,64 +404,67 @@
             sync_height: True
             text_autoupdate: True
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             values: ["debug", "info", "warning", "error", "critical"]
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "Data directory:"
         ManagedButton:
             #data directory selection button
             id: settings_datadir
             sync_height: True
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: ""
             on_press: self.parent.parent.changeDataDir()
         Label:
             size_hint_y: None
-            height: 30
+            height: 30 * app.root.uiScale
             text: "UI Scale:"
-        Slider:
-            #UI scale slider
+        FloatInput:
+            #UI scale input
             id: settings_uiScale
             size_hint_y: None
-            height: 30
-            min: 0.25
-            max: 4.
-            step: 0.05
-            orientation: 'horizontal'
-            on_value: self.parent.parent.applyColors()
+            height: 30 * app.root.uiScale
+            on_text_validate: self.parent.parent.applyColors()
+            background_normal: "UI/assets/Toolbar/Adaptive07new.png"
+            background_active: "UI/assets/Toolbar/Adaptive07new.png"
+            background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
+            foreground_color: (1., 1., 1., 1.)
+            halign: "center"
+            multiline: False
+            text: str(app.root.uiScale)
         Label:
             size_hint_y: None
-            height: 200
+            height: 200 * app.root.uiScale
             valign: "middle"
             text: "Toolbar Color:"
         ColorWheel:
             #tool bar color wheel
             id: settings_toolColor
             size_hint_y: None
-            height: 200
+            height: 200 * app.root.uiScale
             on_color: self.parent.parent.applyColors()
         Label:
             size_hint_y: None
-            height: 200
+            height: 200 * app.root.uiScale
             valign: "middle"
             text: "Accent Color:"
         ColorWheel:
             #accent color wheel
             id: settings_accColor
             size_hint_y: None
-            height: 200
+            height: 200 * app.root.uiScale
             on_color: self.parent.parent.applyColors()
         Label:
             size_hint_y: None
-            height: 200
+            height: 200 * app.root.uiScale
             valign: "middle"
             text: "Background Color:"
         ColorWheel:
             #background color wheel
             id: settings_bgColor
             size_hint_y: None
-            height: 200
+            height: 200 * app.root.uiScale
             on_color: self.parent.parent.applyColors()

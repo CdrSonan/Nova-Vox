@@ -5,6 +5,8 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+import re
+
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
 from kivy.properties import ObjectProperty, NumericProperty
@@ -223,6 +225,20 @@ class NumberInput(TextInput):
     def insert_text(self, substring:str, from_undo:bool=False) -> None:
         s = ""
         s += "".join(char for char in substring if char.isdigit())
+        return super().insert_text(s, from_undo=from_undo)
+
+class FloatInput(TextInput):
+
+    pat = re.compile('[^0-9]')
+    def insert_text(self, substring, from_undo=False):
+        pat = self.pat
+        if '.' in self.text:
+            s = re.sub(pat, '', substring)
+        else:
+            s = '.'.join(
+                re.sub(pat, '', s)
+                for s in substring.split('.', 1)
+            )
         return super().insert_text(s, from_undo=from_undo)
 
 class ReferencingButton(ManagedButton):
