@@ -1,5 +1,5 @@
 from tkinter import Frame as TkFrame, Label as TkLabel, Button as TkButton, LabelFrame as TkLabelFrame, Listbox as TkListbox, Scale as TkScale, Entry as TkEntry, Spinbox as TkSpinbox, Checkbutton as TkCheckbutton, Radiobutton as TkRadiobutton
-from tkinter.ttk import Style, Scrollbar as TkScrollbar, OptionMenu as TkOptionMenu
+from tkinter.ttk import Scrollbar as TkScrollbar, OptionMenu as TkOptionMenu
 
 class Frame(TkFrame):
     def __init__(self, master) -> None:
@@ -19,7 +19,7 @@ class LabelFrame(TkLabelFrame):
 
 class Listbox(TkListbox):
     def __init__(self, master) -> None:
-        super().__init__(master, background="#23202c", disabledforeground="#666", foreground="#FFF", selectbackground="#2d0033", selectforeground="#FFF")
+        super().__init__(master, background="#23202c", disabledforeground="#666", foreground="#FFF", selectbackground="#2d0033", selectforeground="#FFF", borderwidth=0, relief="solid")
 
 class Entry(TkEntry):
     def __init__(self, master) -> None:
@@ -40,14 +40,3 @@ class Radiobutton(TkRadiobutton):
 class Scale(TkScale):
     def __init__(self, master, from_, to, orient, length, command) -> None:
         super().__init__(master, activebackground="#2d0033", background="#333333", borderwidth=0, foreground="#FFF", relief="solid", sliderrelief="solid", troughcolor="#23202c", from_=from_, to=to, orient=orient, length=length, command=command)
-
-class Scrollbar(TkScrollbar):
-    def __init__(self, master) -> None:
-        super().__init__(master)
-
-class OptionMenu(TkOptionMenu):
-    def __init__(self, master, *options) -> None:
-        super().__init__(master, *options)
-
-style = Style()
-style.configure("TMenubutton", "Horizontal.Scale.trough")

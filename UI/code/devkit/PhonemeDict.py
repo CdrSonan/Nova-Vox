@@ -49,7 +49,7 @@ class PhonemedictUi(Frame):
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
         self.diagram.canvas = FigureCanvasTkAgg(self.diagram.fig, self.diagram)
         self.diagram.canvas.get_tk_widget().pack(side = "top", fill = "both", expand = True)
-        self.diagram.timeSlider = Scale(self.diagram, from_ = 0, to = 0, orient = "horizontal", length = 600, command = self.onSliderMove)
+        self.diagram.timeSlider = tkinter.ttk.Scale(self.diagram, from_ = 0, to = 0, orient = "horizontal", length = 600, command = self.onSliderMove)
         self.diagram.timeSlider.pack(side = "left", fill = "both", expand = True, padx = 5, pady = 2)
         self.diagram.pack(side = "right", fill = "y", padx = 5, pady = 2)
         
@@ -57,7 +57,7 @@ class PhonemedictUi(Frame):
         self.phonemeList.list = Frame(self.phonemeList)
         self.phonemeList.list.lb = Listbox(self.phonemeList.list)
         self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
-        self.phonemeList.list.sb = Scrollbar(self.phonemeList.list)
+        self.phonemeList.list.sb = tkinter.ttk.Scrollbar(self.phonemeList.list)
         self.phonemeList.list.sb.pack(side = "left", fill = "y")
         self.phonemeList.list.lb["selectmode"] = "single"
         self.phonemeList.list.lb["yscrollcommand"] = self.phonemeList.list.sb.set
@@ -355,7 +355,7 @@ class PhonemedictUi(Frame):
         key = self.phonemeList.list.lb.get(index)
         maxValue = loadedVB.phonemeDict[key][0].specharm.size()[0] - 2
         self.diagram.timeSlider.destroy()
-        self.diagram.timeSlider = tkinter.Scale(self.diagram, from_ = 0, to = maxValue, orient = "horizontal", length = 600, command = self.onSliderMove)
+        self.diagram.timeSlider = tkinter.ttk.Scale(self.diagram, from_ = 0, to = maxValue, orient = "horizontal", length = 600, command = self.onSliderMove)
         self.diagram.timeSlider.pack(side = "left", fill = "both", expand = True, padx = 5, pady = 2)
             
     def onKeyChange(self, event) -> None:

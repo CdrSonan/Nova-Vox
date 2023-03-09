@@ -82,14 +82,11 @@ def stylename_elements_options(stylename):
               .format(stylename))
 
 root = tk.Frame(None)
-widget = ttk.OptionMenu(root, tk.StringVar(None, "abc"))
+widget = ttk.Listbox(root, tk.StringVar(None, "abc"))
 class_ = widget.winfo_class()
-#class_ = "Vertical.TScrollbar"
+class_ = "Vertical.TScrollbar"
 stylename_elements_options_wgt(class_, widget)
 print("")
 print("")
 print("")
 stylename_elements_options(class_)
-
-style = ttk.Style()
-print(style.lookup("Horizontal.TScale", "Horizontal.Scale.trough.background"))

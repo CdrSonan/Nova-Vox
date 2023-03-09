@@ -38,7 +38,7 @@ class CrfaiUi(Frame):
         self.phonemeList.list = Frame(self.phonemeList)
         self.phonemeList.list.lb = Listbox(self.phonemeList.list)
         self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
-        self.phonemeList.list.sb = Scrollbar(self.phonemeList.list)
+        self.phonemeList.list.sb = tkinter.ttk.Scrollbar(self.phonemeList.list)
         self.phonemeList.list.sb.pack(side = "left", fill = "y")
         self.phonemeList.list.lb["selectmode"] = "single"
         self.phonemeList.list.lb["yscrollcommand"] = self.phonemeList.list.sb.set

@@ -73,7 +73,7 @@ class UtauImportUi(Frame):
         self.phonemeList.list = Frame(self.phonemeList)
         self.phonemeList.list.lb = Listbox(self.phonemeList.list)
         self.phonemeList.list.lb.pack(side = "left",fill = "both", expand = True)
-        self.phonemeList.list.sb = Scrollbar(self.phonemeList.list)
+        self.phonemeList.list.sb = tkinter.ttk.Scrollbar(self.phonemeList.list)
         self.phonemeList.list.sb.pack(side = "left", fill = "y")
         self.phonemeList.list.lb["selectmode"] = "single"
         self.phonemeList.list.lb["yscrollcommand"] = self.phonemeList.list.sb.set
@@ -197,7 +197,7 @@ class UtauImportUi(Frame):
         languages = os.listdir(os.path.join(self.phoneticsPath, "Lists"))
         self.otoSettings.language = Frame(self.otoSettings)
         self.otoSettings.language.variable = tkinter.StringVar(self.otoSettings.language)
-        self.otoSettings.language.entry = OptionMenu(self.otoSettings.language, self.otoSettings.language.variable, *languages)
+        self.otoSettings.language.entry = tkinter.ttk.OptionMenu(self.otoSettings.language, self.otoSettings.language.variable, *languages)
         self.otoSettings.language.entry.pack(side = "right", fill = "x")
         self.otoSettings.language.display = Label(self.otoSettings.language)
         self.otoSettings.language.display["text"] = loc["phon_def"]
