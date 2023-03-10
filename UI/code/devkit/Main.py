@@ -127,28 +127,28 @@ class RootUi(Frame):
         """opens Metadata UI window when Metadata button in the main window is pressed"""
 
         logging.info("Metadata button callback")
-        self.metadataUi = MetadataUi(ThemedTk(theme = "black"))
+        self.metadataUi = MetadataUi(tkinter.Toplevel())
         self.metadataUi.mainloop()
     
     def onPhonemedictPress(self) -> None:
         """opens Phoneme Dict UI window when Phoneme Dict button in the main window is pressed"""
 
         logging.info("PhonemeDict button callback")
-        self.phonemedictUi = PhonemedictUi(ThemedTk(theme = "black"))
+        self.phonemedictUi = PhonemedictUi(tkinter.Toplevel())
         self.phonemedictUi.mainloop()
     
     def onCrfaiPress(self) -> None:
         """opens Phoneme Crossfade AI UI window when Phoneme Crossfade AI button in the main window is pressed"""
 
         logging.info("Crfai button callback")
-        self.crfaiUi = CrfaiUi(ThemedTk(theme = "black"))
+        self.crfaiUi = CrfaiUi(tkinter.Toplevel())
         self.crfaiUi.mainloop()
     
     def onPredaiPress(self) -> None:
         """opens Spectral Prediction AI UI window when Spectral Prediction AI button in the main window is pressed"""
         
         logging.info("Predai button callback")
-        self.crfaiUi = PredaiUi(ThemedTk(theme = "black"))
+        self.crfaiUi = PredaiUi(tkinter.Toplevel())
         self.crfaiUi.mainloop()
     
     def onWorddictPress(self) -> None:
@@ -158,14 +158,14 @@ class RootUi(Frame):
         """opens the UTAU import tool when the UTAU import tool button in the main window is pressed"""
 
         logging.info("UTAU import button callback")
-        self.utauImportUi = UtauImportUi(ThemedTk(theme = "black"))
+        self.utauImportUi = UtauImportUi(tkinter.Toplevel())
         self.utauImportUi.mainloop()
 
     def onAdvSettingsPress(self) -> None:
         """opens the UTAU import tool when the UTAU import tool button in the main window is pressed"""
 
         logging.info("UTAU import button callback")
-        self.advSettingsUi = AdvSettingsUi(ThemedTk(theme = "black"))
+        self.advSettingsUi = AdvSettingsUi(tkinter.Toplevel())
         self.advSettingsUi.mainloop()
 
     def onDestroy(self, event) -> None:

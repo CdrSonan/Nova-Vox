@@ -213,15 +213,28 @@ class PianoRollOctaveBackground(FloatLayout):
     def on_mouseover(self, window, pos):
         if self.parent.collide_point(*self.to_parent(*pos)):
             if self.tooltip != None:
-                self.remove_widget(self.tooltip)
+                self.parent.remove_widget(self.tooltip)
             index = floor((self.to_widget(pos[0], pos[1])[1] - self.y) * 12 / self.height)
             if (index < 0) or (index > 11):
                 return
             text = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-            self.tooltip = Label(pos = self.to_widget(pos[0] - 20, pos[1] - 15), size_hint = (None, None), size = [10, 10], text = text[index] + str(self.index))
-            self.add_widget(self.tooltip)
+            if index == 0:
+                return
+            if index in (1, 3, 6, 8, 10):
+                self.tooltip = Label(pos = (self.to_widget(self.parent.parent.x + 25, 0)[0], self.y + self.height * (index + 0.5) / 12 - 5),
+                                    size_hint = (None, None),
+                                    size = [10, 10],
+                                    text = text[index] + str(self.index),
+                                    color = (1, 1, 1, 1))
+            else:
+                self.tooltip = Label(pos = (self.to_widget(self.parent.parent.x + 80, 0)[0], self.y + self.height * ([0, 2, 4, 5, 7, 9, 11].index(index) + 0.5) / 7 - 5),
+                                    size_hint = (None, None),
+                                    size = [10, 10],
+                                    text = text[index] + str(self.index),
+                                    color = (0, 0, 0, 1))
+            self.parent.add_widget(self.tooltip)
         elif (not self.parent.parent.collide_point(*self.to_parent(*pos))) and self.tooltip != None:
-            self.remove_widget(self.tooltip)
+            self.parent.remove_widget(self.tooltip)
             self.tooltip = None
 
 class PlaybackHead(Widget):
