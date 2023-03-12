@@ -105,7 +105,7 @@ if __name__ == '__main__':
     Config.set('kivy', 'default_font', ['MSGothic', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc'])
     Config.write()
 
-    Builder.load_file("UI/kv/ImageButton.kv")
+    Builder.load_file("UI/kv/Util.kv")
     Builder.load_file("UI/kv/SingerPanel.kv")
     Builder.load_file("UI/kv/ParamPanel.kv")
     Builder.load_file("UI/kv/Note.kv")

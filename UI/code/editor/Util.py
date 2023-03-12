@@ -16,7 +16,9 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner, SpinnerOption
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
+from kivy.uix.label import Label
 from kivy.core.window import Window
+from kivy.clock import Clock
 from kivy.app import App
 
 def fullRoot(widget):
@@ -25,7 +27,51 @@ def fullRoot(widget):
         root = root.parent
     return root
 
-class ImageButton(ButtonBehavior, Image):
+class Tooltip(Label):
+    pass
+
+class TooltipBehavior(object):
+    tooltip_txt = StringProperty('')
+    tooltip_cls = ObjectProperty(Tooltip)
+    
+    def __init__(self, **kwargs):
+        self._tooltip = None
+        super(TooltipBehavior, self).__init__(**kwargs)
+        self.fbind('tooltip_cls', self._build_tooltip)
+        self.fbind('tooltip_txt', self._update_tooltip)
+        Window.bind(mouse_pos=self.on_mouse_pos)
+        self._build_tooltip()
+    
+    def _build_tooltip(self, *largs):
+        if self._tooltip:
+            self._tooltip = None
+        self._tooltip = self.tooltip_cls()
+        self._update_tooltip()
+    
+    def _update_tooltip(self, *largs):
+        txt = self.tooltip_txt
+        if txt:
+            self._tooltip.text = txt
+        else:
+            self._tooltip.text = ''
+    
+    def on_mouse_pos(self, *args):
+        if not self.get_root_window() or self._tooltip.text == '':
+            return
+        pos = args[1]
+        self._tooltip.pos = pos
+        Clock.unschedule(self.display_tooltip) # cancel scheduled event since I moved the cursor
+        self.close_tooltip() # close if it's opened
+        if self.collide_point(*self.to_widget(*pos)):
+            Clock.schedule_once(self.display_tooltip, 1)
+
+    def close_tooltip(self, *args):
+        Window.remove_widget(self._tooltip)
+
+    def display_tooltip(self, *args):
+        Window.add_widget(self._tooltip)
+
+class ImageButton(ButtonBehavior, Image, TooltipBehavior):
     """a "managed" button that displays an image instead of text, automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 
     function = ObjectProperty(None)
@@ -50,7 +96,7 @@ class ImageButton(ButtonBehavior, Image):
     def on_release(self) -> None:
         self.on_mouseover(self, Window.mouse_pos)
 
-class ImageToggleButton(ToggleButtonBehavior, Image):
+class ImageToggleButton(ToggleButtonBehavior, Image, TooltipBehavior):
     """a "managed" toggle button that displays an image instead of text, automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 
     function = ObjectProperty(None)
@@ -76,7 +122,7 @@ class ImageToggleButton(ToggleButtonBehavior, Image):
     def on_state(self, widget, value) -> None:
         self.on_mouseover(widget, Window.mouse_pos)
 
-class ManagedButton(Button):
+class ManagedButton(Button, TooltipBehavior):
     """a "managed" button that automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 
     function = ObjectProperty(None)
@@ -101,7 +147,7 @@ class ManagedButton(Button):
     def on_release(self) -> None:
         self.on_mouseover(self, Window.mouse_pos)
 
-class ManagedToggleButton(ToggleButton):
+class ManagedToggleButton(ToggleButton, TooltipBehavior):
     """a "managed" toggle button that automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 
     function = ObjectProperty(None)
@@ -148,7 +194,7 @@ class ManagedSpinnerOptn(SpinnerOption):
     def on_release(self) -> None:
         self.on_mouseover(self, Window.mouse_pos)
 
-class ManagedSpinner(Spinner):
+class ManagedSpinner(Spinner, TooltipBehavior):
     """a "managed" spinner that automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 
     def __init__(self, **kwargs):
@@ -220,7 +266,7 @@ class CursorAwareView(ModalView):
             root.cursorSource = root
             root.cursorPrio = 0
 
-class NumberInput(TextInput):
+class NumberInput(TextInput, TooltipBehavior):
     """A modified text input field that sanitizes the input, ensuring it is always an integer number"""
 
     def insert_text(self, substring:str, from_undo:bool=False) -> None:
@@ -228,7 +274,7 @@ class NumberInput(TextInput):
         s += "".join(char for char in substring if char.isdigit())
         return super().insert_text(s, from_undo=from_undo)
 
-class FloatInput(TextInput):
+class FloatInput(TextInput, TooltipBehavior):
 
     pat = re.compile('[^0-9]')
     def insert_text(self, substring, from_undo=False):
@@ -242,12 +288,12 @@ class FloatInput(TextInput):
             )
         return super().insert_text(s, from_undo=from_undo)
 
-class ReferencingButton(ManagedButton):
+class ReferencingButton(ManagedButton, TooltipBehavior):
     """A button with an additional property for keeping a reference to a different, arbitrary object"""
 
     reference = ObjectProperty()
 
-class ListElement(ManagedButton):
+class ListElement(ManagedButton, TooltipBehavior):
     """A button with an additional integer property representing its position in a list"""
 
     index = NumericProperty()
