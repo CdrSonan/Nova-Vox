@@ -67,7 +67,7 @@ class MiddleLayer(Widget):
         for i in devices:
             if i["name"] == settings["audiodevice"]:
                 device = i["name"] + ", " + settings["audioapi"]
-        self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback)
+        self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback, latency = float(settings["audiolatency"]))
         self.scriptCache = ""
 
     def importVoicebank(self, path:str, name:str, inImage) -> None:
@@ -819,9 +819,10 @@ class MiddleLayer(Widget):
                 i.children[0].children[0].children[0].children[0].value = volumes[i.index]
             buffer = mainAudioBuffer.expand(2, -1).transpose(0, 1).numpy()
             self.mainAudioBufferPos = newBufferPos
-            self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
+            self.movePlayhead(int((self.mainAudioBufferPos - self.audioStream.latency * self.audioStream.samplerate) / global_consts.batchSize))
         else:
             buffer = torch.zeros([global_consts.audioBufferSize, 2], dtype = torch.float32).expand(-1, 2).numpy()
+            self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
         outdata[:] = buffer.copy()
 
     def posToNote(self, pos1:int, pos2:int) -> tuple:

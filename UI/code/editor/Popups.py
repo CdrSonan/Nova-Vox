@@ -10,7 +10,6 @@ import os
 from io import BytesIO
 
 from kivy.uix.popup import Popup
-from kivy.uix.label import Label
 from kivy.uix.button import ButtonBehavior
 from kivy.uix.treeview import TreeViewLabel
 from kivy.core.image import Image as CoreImage
@@ -20,6 +19,7 @@ import torch
 
 from Backend import NodeLib
 from MiddleLayer.IniParser import readSettings
+from UI.code.editor.Util import ManagedPopup
 
 class TreeViewButton(ButtonBehavior, TreeViewLabel):
     """basic class implementing a tree view node with button behavior"""
@@ -63,7 +63,7 @@ class SingerSettingsPanel(Popup):
         from UI.code.editor.Main import middleLayer
         voicePath = os.path.join(readSettings()["datadir"], "Voices")
         if os.path.isdir(voicePath) == False:
-            popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
+            popup = ManagedPopup(title = "error", message = "no valid data directory")
             popup.open()
             return
         files = os.listdir(voicePath)

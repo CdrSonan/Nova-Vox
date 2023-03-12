@@ -9,12 +9,13 @@ import re
 
 from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.image import Image
-from kivy.properties import ObjectProperty, NumericProperty
+from kivy.properties import ObjectProperty, NumericProperty, StringProperty
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner, SpinnerOption
 from kivy.uix.modalview import ModalView
+from kivy.uix.popup import Popup
 from kivy.core.window import Window
 from kivy.app import App
 
@@ -250,3 +251,7 @@ class ListElement(ManagedButton):
     """A button with an additional integer property representing its position in a list"""
 
     index = NumericProperty()
+
+class ManagedPopup(Popup):
+
+    message = StringProperty()

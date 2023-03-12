@@ -393,7 +393,21 @@
             size_hint_y: None
             height: 30 * app.root.uiScale
             values: self.parent.parent.audioDeviceNames
-            on_text: self.parent.parent.restartAudioStream()
+        Label:
+            size_hint_y: None
+            height: 30 * app.root.uiScale
+            text: "target audio latency:"
+        FloatInput:
+            #audio latency input
+            id: settings_audioLatency
+            size_hint_y: None
+            height: max(30 * app.root.uiScale, self.minimum_height)
+            background_normal: "UI/assets/Toolbar/Adaptive07new.png"
+            background_active: "UI/assets/Toolbar/Adaptive07new.png"
+            background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
+            foreground_color: (1., 1., 1., 1.)
+            halign: "center"
+            multiline: False
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
@@ -426,7 +440,7 @@
             #UI scale input
             id: settings_uiScale
             size_hint_y: None
-            height: 30 * app.root.uiScale
+            height: max(30 * app.root.uiScale, self.minimum_height)
             on_text_validate: self.parent.parent.applyColors()
             background_normal: "UI/assets/Toolbar/Adaptive07new.png"
             background_active: "UI/assets/Toolbar/Adaptive07new.png"
@@ -434,7 +448,6 @@
             foreground_color: (1., 1., 1., 1.)
             halign: "center"
             multiline: False
-            text: str(app.root.uiScale)
         Label:
             size_hint_y: None
             height: 200 * app.root.uiScale

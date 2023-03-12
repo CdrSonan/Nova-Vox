@@ -17,9 +17,9 @@ from UI.code.editor.Util import ManagedToggleButton
 
 from kivy.clock import mainthread
 from kivy.core.window import Window
+from kivy.app import App
 
 from math import floor, ceil
-from copy import copy
 
 import global_consts
 
@@ -258,6 +258,7 @@ class TimingLabel(Label):
 
 class PianoRoll(ScrollView):
     """Class for the editor piano roll"""
+
     length = NumericProperty(5000)
     xScale = NumericProperty(1)
     yScale = NumericProperty(10)

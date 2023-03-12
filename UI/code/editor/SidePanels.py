@@ -8,7 +8,6 @@
 from kivy.core.image import Image as CoreImage
 
 from kivy.uix.popup import Popup
-from kivy.uix.label import Label
 from kivy.app import App
 
 from tkinter import Tk, filedialog
@@ -27,7 +26,7 @@ import global_consts
 from MiddleLayer.IniParser import readSettings, writeSettings
 from MiddleLayer.FileIO import saveNVX, loadNVX
 
-from UI.code.editor.Util import ListElement, CursorAwareView
+from UI.code.editor.Util import ListElement, CursorAwareView, ManagedPopup
 
 
 class FileSidePanel(CursorAwareView):
@@ -125,7 +124,7 @@ class SingerSidePanel(CursorAwareView):
 
         voicePath = os.path.join(readSettings()["datadir"], "Voices")
         if os.path.isdir(voicePath) == False:
-            popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
+            popup = ManagedPopup(title = "error", message = "no valid data directory")
             popup.open()
             return
         files = os.listdir(voicePath)
@@ -175,7 +174,7 @@ class ParamSidePanel(CursorAwareView):
 
         paramPath = os.path.join(readSettings()["dataDir"], "Parameters")
         if os.path.isdir(paramPath) == False:
-            popup = Popup(title = "error", content = Label(text = "no valid data directory"), size_hint = (None, None), size = (400, 400))
+            popup = ManagedPopup(title = "error", message = "no valid data directory")
             popup.open()
             return
         files = os.listdir(paramPath)
@@ -216,7 +215,7 @@ class ScriptingSidePanel(CursorAwareView):
         try:
             subprocess.Popen("Devkit.exe")
         except:
-            popup = Popup(title = "error", content = Label(text = "Devkit not installed"), size_hint = (None, None), size = (400, 400))
+            popup = ManagedPopup(title = "error", message = "Devkit not installed")
             popup.open()
 
     def runScript(self) -> None:
@@ -225,7 +224,7 @@ class ScriptingSidePanel(CursorAwareView):
         try:
             exec(self.ids["scripting_editor"].text)
         except Exception as e:
-            popup = Popup(title = "script error", content = Label(text = repr(e)), size_hint = (None, None), size = (400, 400))
+            popup = ManagedPopup(title = "script error", message = repr(e))
             popup.open()
 
     def saveCache(self) -> None:
@@ -270,8 +269,14 @@ class SettingsSidePanel(CursorAwareView):
         global middleLayer
         from UI.code.editor.Main import middleLayer
         middleLayer.audioStream.close()
+        latency = float(self.ids["settings_audioLatency"].text)
         identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
-        middleLayer.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, identifier, callback = middleLayer.playCallback)
+        deviceinfo = sounddevice.query_devices(identifier)
+        if deviceinfo["default_low_output_latency"] > latency:
+            text = "The selected audio device is designed to operate at a latency between " + str(deviceinfo["default_low_output_latency"]) + " and " + str(deviceinfo["default_high_output_latency"]) + " seconds. Setting a lower latency may make the audio stream unstable or lead to artifacting."
+            popup = ManagedPopup(title = "audio latency", message = text)
+            popup.open()
+        middleLayer.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, identifier, callback = middleLayer.playCallback, latency = latency)
 
     def changeDataDir(self) -> None:
         """Changes the directory that is searched for Voicebanks, Parameters etc."""
@@ -321,9 +326,10 @@ class SettingsSidePanel(CursorAwareView):
         self.ids["settings_audioApi"].text = settings["audioapi"]
         self.refreshAudioDevices(settings["audioapi"])
         self.ids["settings_audioDevice"].text = settings["audiodevice"]
+        self.ids["settings_audioLatency"].text = settings["audiolatency"]
         self.ids["settings_loglevel"].text = settings["loglevel"]
         self.ids["settings_datadir"].text = settings["datadir"]
-        self.ids["settings_uiScale"].value = settings["uiscale"]
+        self.ids["settings_uiScale"].text = settings["uiscale"]
         self.ids["settings_toolColor"].color = eval(settings["toolcolor"])
         self.ids["settings_accColor"].color = eval(settings["acccolor"])
         self.ids["settings_bgColor"].color = eval(settings["bgcolor"])
@@ -343,9 +349,11 @@ class SettingsSidePanel(CursorAwareView):
                       self.ids["settings_cachingMode"].text,
                       self.ids["settings_audioApi"].text,
                       audioDevice,
+                      self.ids["settings_audioLatency"].text,
                       self.ids["settings_loglevel"].text,
                       self.ids["settings_datadir"].text,
-                      self.ids["settings_uiScale"].value,
+                      self.ids["settings_uiScale"].text,
                       self.ids["settings_toolColor"].color,
                       self.ids["settings_accColor"].color,
                       self.ids["settings_bgColor"].color)
+        self.restartAudioStream()
