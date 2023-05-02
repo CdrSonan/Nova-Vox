@@ -48,7 +48,7 @@ class RootUi(Frame):
         accelerator = readSettings()["accelerator"]
         if accelerator == "CPU":
             self.device = torch.device("cpu")
-        elif accelerator == "Hybrid":
+        elif accelerator == "hybrid":
             self.device = torch.device("cuda")
         elif accelerator == "GPU":
             self.device = torch.device("cuda")

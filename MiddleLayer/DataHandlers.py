@@ -182,6 +182,6 @@ class Note():
         self.xPos = xPos
         self.yPos = yPos
         self.phonemeMode = True
-        self.content = ""
+        self.content = "pau"
         self.phonemeStart = start
         self.phonemeEnd = end

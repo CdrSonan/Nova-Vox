@@ -289,7 +289,7 @@
                                 foreground_color: (1., 1., 1., 1.)
                                 halign: "center"
                                 multiline: False
-                                hint_text: "tempo"
+                                hint_text: app.root.loc["tempo"]
                                 text: "120"
                                 on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, self.text, root.ids["quantSelector"].text)
                             ManagedSpinner:
@@ -299,8 +299,8 @@
                                 pos: (self.parent.x + self.parent.width - 360 * root.uiScale, self.parent.y)
                                 size_hint: (None, None)
                                 size: (120 * root.uiScale, 40 * root.uiScale)
-                                text: "Q: off"
-                                values: ["Q: 1/1", "Q: 1/2", "Q: 1/4", "Q: 1/8", "Q: 1/16", "Q: 1/32", "Q: off"]
+                                text: app.root.loc["quant_off"]
+                                values: ["Q: 1/1", "Q: 1/2", "Q: 1/4", "Q: 1/8", "Q: 1/16", "Q: 1/32", app.root.loc["quant_off"]]
                                 on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, root.ids["tempoSelector"].text, self.text)
                         PianoRoll:
                             x: self.parent.x

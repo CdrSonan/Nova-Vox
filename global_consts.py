@@ -12,6 +12,8 @@
 # Changes can easily cause incompatibility with .nvx, .nvvb or other files,
 # program instability or various other issues.
 
+from C_Bridge import engineCfg
+
 #data batching
 sampleRate = 48000
 tickRate = 250
@@ -86,3 +88,22 @@ controlPhonemes = (
     ("_X", "R"),
     ("_autopause", "R")
 )
+
+config = engineCfg(sampleRate = sampleRate,
+                   tickRate = tickRate,
+                   batchSize = batchSize,
+                   tripleBatchSize = tripleBatchSize,
+                   halfTripleBatchSize = halfTripleBatchSize,
+                   filterBSMult = filterBSMult,
+                   DIOBias = DIOBias,
+                   DIOBias2 = DIOBias2,
+                   DIOTolerance = DIOTolerance,
+                   DIOLastWinTolerance = DIOLastWinTolerance,
+                   filterTEEMult = filterTEEMult,
+                   filterHRSSMult = filterHRSSMult,
+                   nHarmonics = nHarmonics,
+                   halfHarmonics = int(nHarmonics / 2) + 1,
+                   frameSize = nHarmonics + halfTripleBatchSize + 3,
+                   ampContThreshold = ampContThreshold,
+                   spectralRolloff1 = spectralRolloff1,
+                   spectralRolloff2 = spectralRolloff2)

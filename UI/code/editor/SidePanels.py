@@ -28,6 +28,8 @@ from MiddleLayer.FileIO import saveNVX, loadNVX
 
 from UI.code.editor.Util import ListElement, CursorAwareView, ManagedPopup
 
+from Localization.editor_localization import getLanguage
+loc = getLanguage()
 
 class FileSidePanel(CursorAwareView):
     """Side panel for saving, loading, importing, exporting and rendering files"""
@@ -39,7 +41,7 @@ class FileSidePanel(CursorAwareView):
         from UI.code.editor.Main import middleLayer
         tkui = Tk()
         tkui.withdraw()
-        dir = filedialog.asksaveasfilename(filetypes = (("NVX", "nvx"), ("all files", "*")))
+        dir = filedialog.asksaveasfilename(filetypes = (("NVX", "nvx"), (loc["all_files"], "*")))
         tkui.destroy()
         saveNVX(dir, middleLayer)
 
@@ -50,7 +52,7 @@ class FileSidePanel(CursorAwareView):
         from UI.code.editor.Main import middleLayer
         tkui = Tk()
         tkui.withdraw()
-        dir = filedialog.askopenfilename(filetypes = (("NVX", "nvx"), ("all files", "*")))
+        dir = filedialog.askopenfilename(filetypes = (("NVX", "nvx"), (loc["all_files"], "*")))
         tkui.destroy()
         loadNVX(dir, middleLayer)
 
@@ -102,7 +104,7 @@ class FileRenderPopup(Popup):
             return False
         tkui = Tk()
         tkui.withdraw()
-        dir = filedialog.asksaveasfilename(filetypes = ((self.format, self.format.lower()), ("all files", "*")))
+        dir = filedialog.asksaveasfilename(filetypes = ((self.format, self.format.lower()), (loc["all_files"], "*")))
         tkui.destroy()
         if dir == "":
             self.final = False
@@ -124,7 +126,7 @@ class SingerSidePanel(CursorAwareView):
 
         voicePath = os.path.join(readSettings()["datadir"], "Voices")
         if os.path.isdir(voicePath) == False:
-            popup = ManagedPopup(title = "error", message = "no valid data directory")
+            popup = ManagedPopup(title = loc["error"], message = loc["dataDir_err"])
             popup.open()
             return
         files = os.listdir(voicePath)
@@ -174,7 +176,7 @@ class ParamSidePanel(CursorAwareView):
 
         paramPath = os.path.join(readSettings()["dataDir"], "Parameters")
         if os.path.isdir(paramPath) == False:
-            popup = ManagedPopup(title = "error", message = "no valid data directory")
+            popup = ManagedPopup(title = loc["error"], message = loc["dataDir_err"])
             popup.open()
             return
         files = os.listdir(paramPath)
@@ -215,7 +217,7 @@ class ScriptingSidePanel(CursorAwareView):
         try:
             subprocess.Popen("Devkit.exe")
         except:
-            popup = ManagedPopup(title = "error", message = "Devkit not installed")
+            popup = ManagedPopup(title = loc["error"], message = loc["devkit_inst_err"])
             popup.open()
 
     def runScript(self) -> None:
@@ -224,7 +226,7 @@ class ScriptingSidePanel(CursorAwareView):
         try:
             exec(self.ids["scripting_editor"].text)
         except Exception as e:
-            popup = ManagedPopup(title = "script error", message = repr(e))
+            popup = ManagedPopup(title = loc["script_err"], message = repr(e))
             popup.open()
 
     def saveCache(self) -> None:
@@ -273,7 +275,7 @@ class SettingsSidePanel(CursorAwareView):
         identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
         deviceinfo = sounddevice.query_devices(identifier)
         if deviceinfo["default_low_output_latency"] > latency:
-            text = "The selected audio device is designed to operate at a latency between " + str(deviceinfo["default_low_output_latency"]) + " and " + str(deviceinfo["default_high_output_latency"]) + " seconds. Setting a lower latency may make the audio stream unstable or lead to artifacting."
+            text = loc["latency_warn_1"] + str(deviceinfo["default_low_output_latency"]) + loc["latency_warn_2"] + str(deviceinfo["default_high_output_latency"]) + loc["latency_warn_1"]
             popup = ManagedPopup(title = "audio latency", message = text)
             popup.open()
         middleLayer.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, identifier, callback = middleLayer.playCallback, latency = latency)
@@ -319,10 +321,24 @@ class SettingsSidePanel(CursorAwareView):
 
         settings = readSettings()
         self.ids["settings_lang"].text = settings["language"]
-        self.ids["settings_accel"].text = settings["accelerator"]
-        self.ids["settings_tcores"].text = settings["tensorcores"]
-        self.ids["settings_lowSpecMode"].text = settings["lowspecmode"]
-        self.ids["settings_cachingMode"].text = settings["cachingmode"]
+        if settings["accelerator"] == loc["hybrid"]:
+            self.ids["settings_accel"].text = "hybrid"
+        else:
+            self.ids["settings_accel"].text = settings["accelerator"]
+        if settings["tensorcores"] == "disabled":
+            self.ids["settings_tcores"].text = loc["disabled"]
+        else:
+            self.ids["settings_tcores"].text = loc["enabled"]
+        if settings["lowspecmode"] == "disabled":
+            self.ids["settings_lowSpecMode"].text = loc["disabled"]
+        else:
+            self.ids["settings_lowSpecMode"].text = loc["enabled"]
+        if settings["cachingmode"] == "save RAM":
+            self.ids["settings_cachingMode"].text = loc["save_ram"]
+        elif settings["cachingmode"] == "default":
+            self.ids["settings_cachingMode"].text = loc["default"]
+        else:
+            self.ids["settings_cachingMode"].text = loc["render_speed"]
         self.ids["settings_audioApi"].text = settings["audioapi"]
         self.refreshAudioDevices(settings["audioapi"])
         self.ids["settings_audioDevice"].text = settings["audiodevice"]
@@ -341,12 +357,31 @@ class SettingsSidePanel(CursorAwareView):
             audioDevice = self.ids["settings_audioDevice"].text
         else:
             audioDevice = self.audioDeviceNames[0]
+            
+        if self.ids["settings_accel"].text == loc["hybrid"]:
+            accel = "hybrid"
+        else:
+            accel = self.ids["settings_accel"].text
+        if self.ids["settings_tcores"].text == loc["disabled"]:
+            tcores = "disabled"
+        else:
+            tcores = "enabled"
+        if self.ids["settings_lowSpecMode"].text == loc["disabled"]:
+            lowspec = "disabled"
+        else:
+            lowspec = "enabled"
+        if self.ids["settings_cachingMode"].text == loc["save_ram"]:
+            caching = "save RAM"
+        elif self.ids["settings_cachingMode"].text == loc["default"]:
+            caching = "default"
+        else:
+            caching = "best rendering speed"
         writeSettings(None,
                       self.ids["settings_lang"].text,
-                      self.ids["settings_accel"].text,
-                      self.ids["settings_tcores"].text,
-                      self.ids["settings_lowSpecMode"].text,
-                      self.ids["settings_cachingMode"].text,
+                      accel,
+                      tcores,
+                      lowspec,
+                      caching,
                       self.ids["settings_audioApi"].text,
                       audioDevice,
                       self.ids["settings_audioLatency"].text,

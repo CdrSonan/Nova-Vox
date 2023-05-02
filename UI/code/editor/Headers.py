@@ -57,18 +57,23 @@ class SingerPanel(AnchorLayout):
 class ParamPanel(ManagedToggleButton):
     """Header widget for a resampler parameter, or tuning curve used for audio processing"""
 
-    def __init__(self, name:str, switchable:bool, sortable:bool, deletable:bool, index:int, switchState:bool = True, **kwargs) -> None:
+    def __init__(self, name:str, switchable:bool, sortable:bool, deletable:bool, index:int, switchState:bool = True, visualName:str = None, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.name = StringProperty()
-        self.switchable = BooleanProperty()
-        self.sortable = BooleanProperty()
-        self.index = NumericProperty()
-        self.deletable = BooleanProperty()
+        #self.name = StringProperty()
+        #self.visualName = StringProperty()
+        #self.switchable = BooleanProperty()
+        #self.sortable = BooleanProperty()
+        #self.index = NumericProperty()
+        #self.deletable = BooleanProperty()
         self.name = name
         self.switchable = switchable
         self.sortable = sortable
         self.deletable = deletable
         self.index = index
+        if visualName:
+            self.visualName = visualName
+        else:
+            self.visualName = name
         self.background_color = (1, 1, 1, 0.3)
         self.makeWidgets(switchState)
 
@@ -76,7 +81,7 @@ class ParamPanel(ManagedToggleButton):
     def makeWidgets(self, switchState:bool = True) -> None:
         """Initialises all sub-widgets of the header widget"""
 
-        self.add_widget(Label(size_hint = (None, None), size = (self.width - 106, 30), pos = (self.x + 103, self.y + 3), text = self.name))
+        self.add_widget(Label(size_hint = (None, None), size = (self.width - 106, 30), pos = (self.x + 103, self.y + 3), text = self.visualName))
         if self.sortable:
             self.add_widget(ImageButton(size_hint = (None, None), size = (40, 30), pos = (self.x + 33, self.y + 3), source = "UI/assets/ParamList/Adaptive03.png", on_release = self.moveParam))
         if self.deletable:

@@ -6,8 +6,10 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import torch
-from math import floor
+from math import floor, ceil
+import ctypes
 
+import C_Bridge
 import global_consts
 from Backend.DataHandler.AudioSample import AudioSample
 from Backend.ESPER.SpecCalcComponents import finalizeSpectra, separateVoicedUnvoiced, lowRangeSmooth, highRangeSmooth, averageSpectra
@@ -35,6 +37,18 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     """
 
 
+    esper = ctypes.CDLL("lib/Release/esper.dll", use_errno=True, use_last_error=True)
+    batches = ceil(audioSample.waveform.size()[0] / global_consts.batchSize)
+    audioSample.excitation = torch.zeros([2 * batches * (global_consts.halfTripleBatchSize + 1)], dtype = torch.float)
+    audioSample.specharm = torch.zeros([batches, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3], dtype = torch.float)
+    audioSample.avgSpecharm = torch.zeros([int(global_consts.nHarmonics / 2) + global_consts.halfTripleBatchSize + 2], dtype = torch.float)
+    cSample = C_Bridge.makeCSample(audioSample, useVariance)
+    esper.specCalc(cSample, global_consts.config)
+    audioSample.excitation = torch.complex(audioSample.excitation[:batches * (global_consts.halfTripleBatchSize + 1)], audioSample.excitation[batches * (global_consts.halfTripleBatchSize + 1):])
+    audioSample.excitation = audioSample.excitation.reshape((batches, global_consts.halfTripleBatchSize + 1))
+
+#def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) -> None:
+def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     length = floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     audioSample.excitation = torch.empty((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
     audioSample.specharm = torch.empty((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3))

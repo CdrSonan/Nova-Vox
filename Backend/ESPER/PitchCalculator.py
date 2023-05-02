@@ -6,9 +6,11 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import math
+import ctypes
 import torch
 from tqdm.auto import tqdm
 from torchaudio.functional import detect_pitch_frequency
+import C_Bridge
 from Backend.DataHandler.AudioSample import AudioSample
 import global_consts
 from Backend.Resampler.CubicSplineInter import interp
@@ -60,6 +62,11 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
     signal-to-noise ratio."""
     
     
+    esper = ctypes.CDLL("lib/Release/esper.dll")
+    cSample = C_Bridge.makeCSample(audioSample, False)
+    esper.pitchCalcFallback(cSample, global_consts.config)
+
+def calculatePitchFallback_legacy(audioSample:AudioSample) -> None:
     batchSize = math.floor((1. + audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
     lowerSearchLimit = math.floor((1. - audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
     batchStart = 0

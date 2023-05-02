@@ -15,7 +15,7 @@ accel = settings["accelerator"]
 if accel == "CPU":
     mainDevice = torch.device('cpu')
     aiDevice = torch.device('cpu')
-if accel == "Hybrid":
+if accel == "hybrid":
     mainDevice = torch.device('cpu')
     aiDevice = torch.device('cuda')
     tc = settings["tensorcores"]

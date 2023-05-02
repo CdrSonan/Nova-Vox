@@ -27,25 +27,25 @@
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "save"
+            text: app.root.loc["save"]
             on_press: self.parent.parent.save()
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "load"
+            text: app.root.loc["load"]
             on_press: self.parent.parent.load()
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "import"
+            text: app.root.loc["import"]
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "export"
+            text: app.root.loc["export"]
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "render"
+            text: app.root.loc["render"]
             on_press: self.parent.parent.openRenderPopup()
 
 <FileRenderPopup>:
@@ -67,15 +67,15 @@
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "format:"
+                text: app.root.loc["format"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "bitdepth:"
+                text: app.root.loc["bitdepth"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "sample rate:"
+                text: app.root.loc["samplerate"]
             ManagedSpinner:
                 #file format dropdown menu
                 sync_height: True
@@ -106,7 +106,7 @@
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "render"
+            text: app.root.loc["render"]
             on_press: self.parent.parent.parent.parent.finalisingClose()
 
 <SingerSidePanel>:
@@ -140,23 +140,23 @@
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "Name:"
+                text: app.root.loc["name"]
             Label:
                 size_hint_y: None
                 height: 80 * app.root.uiScale
-                text: "Image:"
+                text: app.root.loc["image"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "Version:"
+                text: app.root.loc["version"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "Description:"
+                text: app.root.loc["description"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "License:"
+                text: app.root.loc["license"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -181,7 +181,7 @@
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "import"
+            text: app.root.loc["import"]
             on_press: root.importVoicebank(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.voicebanks[self.parent.parent.selectedIndex].name, self.parent.parent.voicebanks[self.parent.parent.selectedIndex].image) if (self.parent.parent.selectedIndex != None) else None
         
 
@@ -216,11 +216,11 @@
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "Name:"
+                text: app.root.loc["name"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "Type:"
+                text: app.root.loc["type"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -232,11 +232,11 @@
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "Version:"
+                text: app.root.loc["version"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                text: "License:"
+                text: app.root.loc["license"]
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -264,7 +264,7 @@
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "import"
+            text: app.root.loc["import"]
             on_press: root.importParam(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.parameters[self.parent.parent.selectedIndex].name)
 
 <ScriptingSidePanel>:
@@ -284,12 +284,12 @@
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "run"
+            text: app.root.loc["run"]
             on_press: self.parent.parent.runScript()
         ManagedButton:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "open Devkit"
+            text: app.root.loc["SDK_open"]
             on_press: self.parent.parent.openDevkit()
 
 <SettingsSidePanel>:
@@ -308,7 +308,7 @@
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "Language:"
+            text: app.root.loc["language"]
         ManagedSpinner:
             #language dropdown menu
             id: settings_lang
@@ -320,7 +320,7 @@
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "Accelerator:"
+            text: app.root.loc["accelerator"]
         ManagedSpinner:
             #accelerator dropdown menu
             id: settings_accel
@@ -328,12 +328,12 @@
             text_autoupdate: True
             size_hint_y: None
             height: 30 * app.root.uiScale
-            values: ["CPU", "GPU", "Hybrid"]
+            values: ["CPU", "GPU", app.root.loc["hybrid"]]
             on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "Tensor Cores:"
+            text: app.root.loc["TPU"]
         ManagedSpinner:
             #tensor core dropdown menu
             id: settings_tcores
@@ -341,12 +341,12 @@
             text_autoupdate: True
             size_hint_y: None
             height: 30 * app.root.uiScale
-            values: ["disabled", "enabled"]
+            values: [app.root.loc["disabled"], app.root.loc["enabled"]]
             on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "low-spec mode:"
+            text: app.root.loc["lowspec_mode"]
         ManagedSpinner:
             #performance mode dropdown menu
             id: settings_lowSpecMode
@@ -354,11 +354,11 @@
             text_autoupdate: True
             size_hint_y: None
             height: 30 * app.root.uiScale
-            values: ["disabled", "enabled"]
+            values: [app.root.loc["disabled"], app.root.loc["enabled"]]
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "caching mode:"
+            text: app.root.loc["caching_mode"]
         ManagedSpinner:
             #caching mode dropdown menu
             id: settings_cachingMode
@@ -366,12 +366,12 @@
             text_autoupdate: True
             size_hint_y: None
             height: 30 * app.root.uiScale
-            values: ["save RAM", "default", "best rendering speed"]
+            values: [app.root.loc["save_ram"], app.root.loc["default"], app.root.loc["render_speed"]]
             on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "audio API:"
+            text: app.root.loc["audio_api"]
         ManagedSpinner:
             #audio driver dropdown menu
             id: settings_audioApi
@@ -384,7 +384,7 @@
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "audio device:"
+            text: app.root.loc["audio_device"]
         ManagedSpinner:
             #audio device dropdown menu
             id: settings_audioDevice
@@ -396,7 +396,7 @@
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "target audio latency:"
+            text: app.root.loc["tgt_audio_lat"]
         FloatInput:
             #audio latency input
             id: settings_audioLatency
@@ -411,7 +411,7 @@
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "Logging level:"
+            text: app.root.loc["loglevel"]
         ManagedSpinner:
             #logging level dropdown menu
             id: settings_loglevel
@@ -423,7 +423,7 @@
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "Data directory:"
+            text: app.root.loc["datadir"]
         ManagedButton:
             #data directory selection button
             id: settings_datadir
@@ -435,7 +435,7 @@
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
-            text: "UI Scale:"
+            text: app.root.loc["uiscale"]
         FloatInput:
             #UI scale input
             id: settings_uiScale
@@ -452,7 +452,7 @@
             size_hint_y: None
             height: 200 * app.root.uiScale
             valign: "middle"
-            text: "Toolbar Color:"
+            text: app.root.loc["tool_color"]
         ColorWheel:
             #tool bar color wheel
             id: settings_toolColor
@@ -463,7 +463,7 @@
             size_hint_y: None
             height: 200 * app.root.uiScale
             valign: "middle"
-            text: "Accent Color:"
+            text: app.root.loc["acc_color"]
         ColorWheel:
             #accent color wheel
             id: settings_accColor
@@ -474,7 +474,7 @@
             size_hint_y: None
             height: 200 * app.root.uiScale
             valign: "middle"
-            text: "Background Color:"
+            text: app.root.loc["bg_color"]
         ColorWheel:
             #background color wheel
             id: settings_bgColor

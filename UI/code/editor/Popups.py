@@ -21,6 +21,9 @@ from Backend import NodeLib
 from MiddleLayer.IniParser import readSettings
 from UI.code.editor.Util import ManagedPopup
 
+from Localization.editor_localization import getLanguage
+loc = getLanguage()
+
 class TreeViewButton(ButtonBehavior, TreeViewLabel):
     """basic class implementing a tree view node with button behavior"""
     node = ObjectProperty(None)
@@ -63,7 +66,7 @@ class SingerSettingsPanel(Popup):
         from UI.code.editor.Main import middleLayer
         voicePath = os.path.join(readSettings()["datadir"], "Voices")
         if os.path.isdir(voicePath) == False:
-            popup = ManagedPopup(title = "error", message = "no valid data directory")
+            popup = ManagedPopup(title = loc["error"], message = loc["dataDir_err"])
             popup.open()
             return
         files = os.listdir(voicePath)

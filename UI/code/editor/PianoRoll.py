@@ -17,11 +17,13 @@ from UI.code.editor.Util import ManagedToggleButton
 
 from kivy.clock import mainthread
 from kivy.core.window import Window
-from kivy.app import App
 
 from math import floor, ceil
 
 import global_consts
+
+from Localization.editor_localization import getLanguage
+loc = getLanguage()
 
 class NoteProperties(Bubble):
     """class for the context menu of a note"""
@@ -338,7 +340,7 @@ class PianoRoll(ScrollView):
             "Q: 1/8": 8.,
             "Q: 1/16": 16.,
             "Q: 1/32": 32.,
-            "Q: off": None
+            loc["quant_off"]: None
         }
         self.measureSize = measureSizes[measureType]
         if tempo != "":

@@ -28,7 +28,10 @@ def readSettings(path:str = None) -> dict:
     if osPath.exists(osPath.split(path)[0]) == False:
         makedirs(osPath.split(path)[0])
     if osPath.isfile(path) == False:
-        copyfile("settings.ini", path)
+        try:
+            copyfile("settings.ini", path)
+        except PermissionError:
+            path = "settings.ini"
     config = cp.ConfigParser()
     config.read(path)
     for i in config.sections():

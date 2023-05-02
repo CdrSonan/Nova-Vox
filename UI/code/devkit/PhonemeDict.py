@@ -302,8 +302,6 @@ class PhonemedictUi(Frame):
             filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
             if filepath != "":
                 loadedVB.addPhoneme(key, filepath)
-                calculatePitch(loadedVB.phonemeDict[key][0], True)
-                calculateSpectra(loadedVB.phonemeDict[key][0], True)
                 self.phonemeList.list.lb.insert("end", key)
         
     def onRemovePress(self) -> None:
@@ -328,15 +326,18 @@ class PhonemedictUi(Frame):
 
         logging.info("Phonemedict slider movement callback")
         global loadedVB
-        value = int(value)
+        value = int(float(value))
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
         spectrum = loadedVB.phonemeDict[key][0].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + loadedVB.phonemeDict[key][0].specharm[value, global_consts.nHarmonics + 2:]
         harmonics = loadedVB.phonemeDict[key][0].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1] + loadedVB.phonemeDict[key][0].specharm[value, :int(global_consts.nHarmonics / 2) + 1]
         excitation = torch.abs(loadedVB.phonemeDict[key][0].excitation[value]) * spectrum
+        #excitation = torch.real(loadedVB.phonemeDict[key][0].excitation[value])
+        #test = torch.imag(loadedVB.phonemeDict[key][0].excitation[value])
         xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
         harmScale = torch.linspace(0, global_consts.nHarmonics / 2 * global_consts.sampleRate / loadedVB.phonemeDict[key][0].pitchDeltas[value], int(global_consts.nHarmonics / 2) + 1)
         self.diagram.ax.plot(xScale, excitation, label = loc["excitation"], color = "red")
+        #self.diagram.ax.plot(xScale, test, label = "test", color = "purple")
         self.diagram.ax.vlines(harmScale, 0., torch.sqrt(harmonics), label = loc["vExcitation"], color = "blue")
         self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"], color = "orange")
         self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])

@@ -30,6 +30,9 @@ from Backend.VB_Components.Voicebank import LiteVoicebank
 from UI.code.editor.AdaptiveSpace import ParamCurve, TimingOptns, PitchOptns
 from UI.code.editor.Headers import SingerPanel, ParamPanel
 
+from Localization.editor_localization import getLanguage
+loc = getLanguage()
+
 class MiddleLayer(Widget):
     """Central class of the program. Contains data handlers for all data on the main process, and callbacks for modifying it, which are triggered from the UI.
     Through its manager attribute, it indirectly also handles communication between the main and rendering process.
@@ -263,9 +266,9 @@ class MiddleLayer(Widget):
         self.ids["paramList"].clear_widgets()
         self.ids["adaptiveSpace"].clear_widgets()
         if self.mode == "notes":
-            self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useSteadiness, state = "down"))
-            self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useBreathiness))
-            self.ids["paramList"].add_widget(ParamPanel(name = "AI balance", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useAIBalance))
+            self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useSteadiness, visualName = loc["steadiness"], state = "down"))
+            self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useBreathiness, visualName = loc["breathiness"]))
+            self.ids["paramList"].add_widget(ParamPanel(name = "AI balance", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useAIBalance, visualName = loc["ai_balance"]))
             self.ids["adaptiveSpace"].add_widget(ParamCurve())
             counter = 0
             for i in self.trackList[self.activeTrack].nodegraph.params:
@@ -273,13 +276,13 @@ class MiddleLayer(Widget):
                 counter += 1
             self.changeParam(-1, "steadiness")
         if self.mode == "timing":
-            self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", switchable = False, sortable = False, deletable = False, index = -1, state = "down"))
-            self.ids["paramList"].add_widget(ParamPanel(name = "loop offset", switchable = False, sortable = False, deletable = False, index = -1))
+            self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", switchable = False, sortable = False, deletable = False, index = -1, visualName = loc["loop_overlap"], state = "down"))
+            self.ids["paramList"].add_widget(ParamPanel(name = "loop offset", switchable = False, sortable = False, deletable = False, index = -1, visualName = loc["loop_offset"]))
             self.ids["adaptiveSpace"].add_widget(TimingOptns())
             self.changeParam(-1, "loop overlap")
         if self.mode == "pitch":
-            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoSpeed, state = "down"))
-            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoStrength))
+            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoSpeed, visualName = loc["vibrato_speed"], state = "down"))
+            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoStrength, visualName = loc["vibrato_strength"]))
             self.ids["adaptiveSpace"].add_widget(PitchOptns())
             self.changeParam(-1, "vibrato speed")
 
@@ -627,7 +630,7 @@ class MiddleLayer(Widget):
             if i in self.trackList[self.activeTrack].phonemeLengths:
                 phonemes.append(i)
         if phonemes == [""]:
-            phonemes = []
+            phonemes = ["pau"]
         offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
         self.offsetPhonemes(index, offset, futurePhonemes = phonemes)
         self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = phonemes
@@ -848,15 +851,15 @@ class MiddleLayer(Widget):
         currentHeight = self.trackList[self.activeTrack].notes[index].yPos
         transitionPoint1 = self.trackList[self.activeTrack].notes[index].xPos
         transitionPoint2 = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
-        if index == 0:
+        if index == 0 or (len(self.trackList[self.activeTrack].phonemes) > self.trackList[self.activeTrack].notes[index].phonemeStart and self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause"):
             previousHeight = None
         else:
             previousHeight = self.trackList[self.activeTrack].notes[index - 1].yPos
             transitionLength1 = min(transitionLength1, self.trackList[self.activeTrack].notes[index - 1].length)
             if self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length < transitionPoint1:
                 transitionLength1 += transitionPoint1 - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length
-                transitionPoint1 = (transitionPoint1 + self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length) / 2  
-        if index + 1 == len(self.trackList[self.activeTrack].notes):
+                transitionPoint1 = (transitionPoint1 + self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length) / 2
+        if index == len(self.trackList[self.activeTrack].notes) - 1 or (len(self.trackList[self.activeTrack].phonemes) > self.trackList[self.activeTrack].notes[index + 1].phonemeStart and self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] == "_autopause"):
             nextHeight = None
         else:
             transitionPoint2 = self.trackList[self.activeTrack].notes[index + 1].xPos

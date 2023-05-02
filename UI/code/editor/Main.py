@@ -9,11 +9,13 @@ import torch
 
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
-from kivy.properties import NumericProperty, ColorProperty, ObjectProperty
+from kivy.properties import NumericProperty, ColorProperty, ObjectProperty, DictProperty
 
 from MiddleLayer.MiddleLayer import MiddleLayer
 from MiddleLayer.IniParser import readSettings
 from MiddleLayer.ErrorHandler import handleMainException, handleRendererException
+
+from Localization.editor_localization import getLanguage
 
 from UI.code.editor.AdaptiveSpace import *
 from UI.code.editor.Headers import *
@@ -33,6 +35,7 @@ class NovaVoxUI(Widget):
     bgColor = ColorProperty(eval(settings["bgcolor"]))
     cursorSource = ObjectProperty()
     cursorPrio = NumericProperty()
+    loc = DictProperty(getLanguage())
     
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)

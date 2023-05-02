@@ -5,6 +5,9 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+from Localization.editor_localization import getLanguage
+loc = getLanguage()
+
 from API.Node import *
 
 class addFloatNode(Node):
@@ -17,4 +20,8 @@ class addFloatNode(Node):
 
     @staticmethod
     def name() -> str:
-        return ["Math", "Float", "Add"]
+        if loc["lang"] == "en":
+            name = "Add"
+        else:
+            name = "Add"
+        return [loc["n_math"], name]
