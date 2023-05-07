@@ -89,5 +89,83 @@ def getLanguage():
         #license panel
         locale["NV_license_title"] = "Nova-Vox Contributors and Licenses"
             #omitted placeholder text
+
+    if lang == "jp":
+        #API interface
+        locale["lang"] = "jp"
+        #general
+        locale["render_process_name"] = "Nova-Voxレンダリング方法"
+        locale["all_files"] = "全てのファイル"
+        #error messages and warnings
+        locale["error"] = "エラー"
+        locale["dataDir_err"] = "妥当のデータ登録簿がありません。"
+        locale["devkit_inst_err"] = "Devkitがインストールしませんでした。"
+        locale["script_err"] = "スクリプトエラー"
+        locale["latency_warn_1"] = "選びオーディオデバイスは"
+        locale["latency_warn_2"] = "と"
+        locale["latency_warn_3"] = " 秒間の遅延の働きを図ります。下遅延を選んでければ、オーディオストリームは不安定状態になれますかアーティファクトが起きられます。"
+        #builtin parameters
+        locale["steadiness"] = "剛健"
+        locale["breathiness"] = "ブレス"
+        locale["ai_balance"] = "AIバランス"
+        locale["loop_overlap"] = "ループのオバーラップ"
+        locale["loop_offset"] = "ループの相殺"
+        locale["vibrato_speed"] = "ヴィブラート速度"
+        locale["vibrato_strength"] = "ヴィブラート強度"
+        #node categories
+        locale["n_math"] = "数理"
+        #main UI
+        locale["tempo"] = "テンポ"
+        locale["quant_off"] = "Q:オフ"
+        #singer settings panel
+        locale["main_voice"] = "メイン声:"
+        locale["mixin_voice"] = "ミックス声:"
+        locale["pause_thrh"] = "間の敷居:"
+        #file side panel
+        locale["save"] = "保存（S)"
+        locale["load"] = "開く(O)"
+        locale["import"] = "取り込み(I)"
+        locale["export"] = "書き出し(E)"
+        locale["render"] = "レンダー"
+        #file render popup
+        locale["format"] = "フォーマット:"
+        locale["bitdepth"] = "ビット深度:"
+        locale["samplerate"] = "サンプリング周波数:"
+        #singer side panel
+        locale["name"] = "名:"
+        locale["image"] = "画像:"
+        locale["version"] = "バージョン:"
+        locale["description"] = "叙事:"
+        locale["license"] = "ライセンス:"
+        #parameter side panel
+        locale["type"] = "的:"
+            #deprecated capacity and recurrency symbols omitted here
+        #scripting side panel
+        locale["run"] = "実行する"
+        locale["SDK_open"] = "Devkitを開く"
+        #settings side panel
+        locale["language"] = "言語:"
+        locale["accelerator"] = "アクセラレータ:"
+        locale["hybrid"] = "ハイブリッド"
+        locale["TPU"] = "Tensorのコーア:"
+        locale["enabled"] = "使用可能"
+        locale["disabled"] = "使用無効"
+        locale["lowspec_mode"] = "低仕様のモード:"
+        locale["caching_mode"] = "キャッシュのモード:"
+        locale["save_ram"] = "RAMを保つ"
+        locale["default"] = "デフォルト"
+        locale["render_speed"] = "最良のレンダリング速度"
+        locale["audio_api"] = "音声のAPI:"
+        locale["audio_device"] = "音声再生デバイス:"
+        locale["tgt_audio_lat"] = "的の音声遅延:"
+        locale["loglevel"] = "ログ記録の強度レベル:"
+        locale["datadir"] = "データの所在地:"
+        locale["uiscale"] = "UI尺度:"
+        locale["tool_color"] = "ツールバーの色:"
+        locale["acc_color"] = "アックセントの色:"
+        locale["bg_color"] = "背景の色:"
+        #license panel
+        locale["NV_license_title"] = "Nova-Voxの投稿者そして免許"
+            #omitted placeholder text
         
     return locale

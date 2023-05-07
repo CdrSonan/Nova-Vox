@@ -141,7 +141,7 @@ def getLanguage():
         locale["crf_optim_warn"] = "changing crossfade optimizer Hyperparameters is going to reset the phoneme crossfade AI optimizer, possibly reducing future training performance. Continue?"
         locale["pred_optim_warn"] = "changing the predictor optimizer Hyperparameters is going to reset the spectral predictor AI optimizer, possibly reducing future training performance. Continue?"
 
-    elif lang == "ja":
+    elif lang == "jp":
         locale["version_label"] = "NovaVoxのSDK"
         locale["no_vb"] = "音源ライブラリー無し"
         locale["unsaved_vb"] = "保存されないな音源ライブラリー"
