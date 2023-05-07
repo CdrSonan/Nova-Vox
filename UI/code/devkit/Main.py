@@ -202,14 +202,14 @@ class RootUi(Frame):
             if filepath != "":
                 loadedVBPath = filepath
                 loadedVB = Voicebank(filepath, self.device)
-                self.metadataButton["state"] = "active"
-                self.phonemedictButton["state"] = "active"
-                self.crfaiButton["state"] = "active"
-                self.predaiButton["state"] = "active"
-                self.worddictButton["state"] = "active"
-                self.utauimportButton["state"] = "active"
-                self.advSettingsButton["state"] = "active"
-                self.saveButton["state"] = "active"
+                self.metadataButton["state"] = "normal"
+                self.phonemedictButton["state"] = "normal"
+                self.crfaiButton["state"] = "normal"
+                self.predaiButton["state"] = "normal"
+                self.worddictButton["state"] = "normal"
+                self.utauimportButton["state"] = "normal"
+                self.advSettingsButton["state"] = "normal"
+                self.saveButton["state"] = "normal"
                 self.master.wm_title(loadedVBPath)
     
     def onNewPress(self) -> None:
@@ -219,12 +219,12 @@ class RootUi(Frame):
         global loadedVB
         if tkinter.messagebox.askokcancel(loc["warning"], loc["vb_discard_msg"], icon = "warning"):
             loadedVB = Voicebank(None, self.device)
-            self.metadataButton["state"] = "active"
-            self.phonemedictButton["state"] = "active"
-            self.crfaiButton["state"] = "active"
-            self.predaiButton["state"] = "active"
-            self.worddictButton["state"] = "active"
-            self.utauimportButton["state"] = "active"
-            self.advSettingsButton["state"] = "active"
-            self.saveButton["state"] = "active"
+            self.metadataButton["state"] = "normal"
+            self.phonemedictButton["state"] = "normal"
+            self.crfaiButton["state"] = "normal"
+            self.predaiButton["state"] = "normal"
+            self.worddictButton["state"] = "normal"
+            self.utauimportButton["state"] = "normal"
+            self.advSettingsButton["state"] = "normal"
+            self.saveButton["state"] = "normal"
             self.master.wm_title(loc["unsaved_vb"])

@@ -34,9 +34,9 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
         tqdm.write("nonfatal pitch calculation error:")
         tqdm.write(repr(e))
         tqdm.write("using fallback method for current sample")
-        calculatePitchFallback(audioSample)
+        calculatePitchFallback_legacy(audioSample)
     if audioSample.pitchDeltas.size()[0] < 2:
-        calculatePitchFallback(audioSample)
+        calculatePitchFallback_legacy(audioSample)
     if limiter:
         mul1 = torch.maximum(torch.floor(audioSample.pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate + 0.5), torch.ones([1,]))
         mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / audioSample.pitchDeltas + 0.5), torch.ones([1,]))

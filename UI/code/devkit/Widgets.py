@@ -12,6 +12,10 @@ class Label(TkLabel):
 class Button(TkButton):
     def __init__(self, master) -> None:
         super().__init__(master, activebackground="#2d0033", activeforeground="#FFF", background="#333333", borderwidth=3, disabledforeground="#666", foreground="#FFF", overrelief="ridge", relief="solid")
+        
+class SlimButton(TkButton):
+    def __init__(self, master) -> None:
+        super().__init__(master, activebackground="#2d0033", activeforeground="#FFF", background="#333333", borderwidth=1, disabledforeground="#666", foreground="#FFF", overrelief="ridge", relief="solid")
 
 class LabelFrame(TkLabelFrame):
     def __init__(self, master, text) -> None:

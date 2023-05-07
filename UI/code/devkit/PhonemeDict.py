@@ -67,11 +67,11 @@ class PhonemedictUi(Frame):
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
         for i in loadedVB.phonemeDict.keys():
             self.phonemeList.list.lb.insert("end", i)
-        self.phonemeList.removeButton = Button(self.phonemeList)
+        self.phonemeList.removeButton = SlimButton(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]
         self.phonemeList.removeButton["command"] = self.onRemovePress
         self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
-        self.phonemeList.addButton = Button(self.phonemeList)
+        self.phonemeList.addButton = SlimButton(self.phonemeList)
         self.phonemeList.addButton["text"] = loc["add"]
         self.phonemeList.addButton["command"] = self.onAddPress
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)

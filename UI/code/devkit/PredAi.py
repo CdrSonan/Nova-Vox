@@ -48,11 +48,11 @@ class PredaiUi(Frame):
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
         for i in loadedVB.stagedPredTrainSamples:
             self.phonemeList.list.lb.insert("end", i.filepath)
-        self.phonemeList.removeButton = Button(self.phonemeList)
+        self.phonemeList.removeButton = SlimButton(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]
         self.phonemeList.removeButton["command"] = self.onRemovePress
         self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
-        self.phonemeList.addButton = Button(self.phonemeList)
+        self.phonemeList.addButton = SlimButton(self.phonemeList)
         self.phonemeList.addButton["text"] = loc["add"]
         self.phonemeList.addButton["command"] = self.onAddPress
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
@@ -184,7 +184,8 @@ class PredaiUi(Frame):
         else:
             epoch = str(loadedVB.ai.predAi.epoch)
         self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.predAi.sampleCount) + loc["AI_stat_3"])
-        self.statusLabel = Label(self, textvariable = self.statusVar)
+        self.statusLabel = Label(self)
+        self.statusLabel["textvariable"] = self.statusVar
         self.statusLabel.pack(side = "top", fill = "x", expand = True, padx = 5)
 
         self.okButton = Button(self)
