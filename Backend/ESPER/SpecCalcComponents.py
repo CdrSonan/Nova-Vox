@@ -387,23 +387,21 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             harmFunction *= audioSample.voicedThrh
             harmFunction += interpolatedWave * (1. - audioSample.voicedThrh)
             if i == 0:
-                print("harmFunction:", harmFunction)
+                print("realHarmFunction:", harmFunction)
             space = torch.linspace(global_consts.halfTripleBatchSize * (global_consts.filterBSMult - 1), global_consts.halfTripleBatchSize * (global_consts.filterBSMult + 1) - 1, global_consts.tripleBatchSize)
             harmFunction = extrap(interpolationPoints, harmFunction, space)
+            if i == 0:
+                print("extrapolated:", harmFunction)
             globalHarmFunction[i] = torch.fft.rfft(harmFunction)
             phases = phaseShift(phases, -phases[1], torch.device("cpu"))
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] = torch.cat((amplitudes, phases), 0)
         else:
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] *= 0.
         counter += 1
+    print("global harm function:", globalHarmFunction[0])
     globalHarmFunction = torch.istft(globalHarmFunction.transpose(0, 1), global_consts.tripleBatchSize , global_consts.batchSize, global_consts.tripleBatchSize, length = audioSample.waveform.size()[0], onesided = True)
     audioSample.excitation = audioSample.waveform - globalHarmFunction
-    print(audioSample.excitation[:100])
+    print("altWave:", audioSample.excitation[:100])
     audioSample.excitation = torch.stft(audioSample.excitation, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), onesided = True, return_complex = True)
     audioSample.excitation = audioSample.excitation.transpose(0, 1)[:length]
-    import matplotlib.pyplot as plt
-    plt.plot(audioSample.waveform)
-    plt.plot(globalHarmFunction)
-    plt.plot(audioSample.waveform - globalHarmFunction)
-    plt.show()
     return audioSample

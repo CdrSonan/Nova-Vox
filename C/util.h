@@ -9,7 +9,10 @@
 
 #include "lib/fftw/fftw3.h"
 
-typedef struct {
+//struct holding parameters related to data batching and spectral filtering shared across the entire engine.
+//essentially a wrapper around relevant elements of global_consts.py
+typedef struct
+{
     unsigned int sampleRate;
     unsigned short tickRate;
     unsigned int batchSize;
@@ -28,9 +31,12 @@ typedef struct {
     unsigned int ampContThreshold;
     unsigned int spectralRolloff1;
     unsigned int spectralRolloff2;
-} engineCfg;
+}
+engineCfg;
 
-typedef struct {
+//struct holding all sample-specific information and settings required by ESPER for a single audio sample
+typedef struct
+{
     unsigned int length;
     unsigned int batches;
     unsigned int pitchLength;
@@ -45,18 +51,24 @@ typedef struct {
     unsigned short specDepth;
     unsigned short tempWidth;
     unsigned short tempDepth;
-} cSampleCfg;
+}
+cSampleCfg;
 
-typedef struct {
+//struct holding an audio sample, and its settings
+typedef struct
+{
     float* waveform;
     int* pitchDeltas;
     float* specharm;
     float* avgSpecharm;
     float* excitation;
     cSampleCfg config;
-} cSample;
+}
+cSample;
 
-typedef struct {
+//struct containing all timing markers for a vocalSegment object. Used for resampling.
+typedef struct
+{
     unsigned int start1;
     unsigned int start2;
     unsigned int start3;
@@ -66,13 +78,17 @@ typedef struct {
     unsigned int windowStart;
     unsigned int windowEnd;
     unsigned int offset;
-} segmentTiming;
+}
+segmentTiming;
 
-typedef struct {
+//struct for a dynamic integer array, usable for arbitrary purposes
+typedef struct
+{
     int* content;
     unsigned int length;
     unsigned int maxlen;
-} dynIntArray;
+}
+dynIntArray;
 
 void dynIntArray_init(dynIntArray* array);
 

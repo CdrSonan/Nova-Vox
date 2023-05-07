@@ -12,13 +12,12 @@ import torchaudio
 torchaudio.set_audio_backend("soundfile")
 import global_consts
 import Backend.Resampler.Loop as Loop
-from Backend.Resampler.CubicSplineInter import interp as interpolate
 from Backend.DataHandler.VocalSegment import VocalSegment
 
 def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the unvoiced excitation of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
-    if vocalSegment.phonemeKey == "_autopause":
+    if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         premul = 1
     else:
         premul = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].excitation.size()[0] / (vocalSegment.end3 - vocalSegment.start1 + 1)
@@ -34,7 +33,7 @@ def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tenso
     else:
         windowEnd = math.ceil((vocalSegment.end2 - vocalSegment.start1) * premul)
         length += vocalSegment.end2
-    if vocalSegment.phonemeKey == "_autopause":
+    if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return torch.zeros([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], dtype = torch.complex64, device = device)
     excitation = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].excitation.to(device = device)[windowStart:windowEnd]
     excitation = torch.transpose(excitation, 0, 1)
@@ -47,7 +46,7 @@ def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tenso
 def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the specharm of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
-    if vocalSegment.phonemeKey == "_autopause":
+    if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         offset = 0
     else:
         offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm.size()[0] / 2)
@@ -59,7 +58,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         windowEnd = vocalSegment.end3 - vocalSegment.start1 + offset
     else:
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + offset
-    if vocalSegment.phonemeKey == "_autopause":
+    if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], 0.001, device = device)
     spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].avgSpecharm.to(device = device)
     specharm = Loop.loopSamplerSpecharm(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
@@ -84,7 +83,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
 def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the pitch curve of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
-    if vocalSegment.phonemeKey == "_autopause":
+    if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,], device = device)
     pitchDeltas = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].pitchDeltas
     requiredSize = math.ceil(torch.max(pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize

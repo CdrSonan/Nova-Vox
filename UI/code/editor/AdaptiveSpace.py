@@ -96,12 +96,12 @@ class ParamCurve(ScrollView):
 
     xScale = NumericProperty(1)
     seqLength = NumericProperty(5000)
-    line = ObjectProperty()
-    line = Line()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.color = Color(1, 0, 0, 1)
+        with self.children[0].canvas:
+            self.line = Line()
 
     def on_parent(self, instance, parent):
         global middleLayer

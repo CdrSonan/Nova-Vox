@@ -556,6 +556,7 @@ class MiddleLayer(Widget):
             self.repairBorders(3 * len(self.trackList[self.activeTrack].phonemes))
         else:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart, reference))
+        self.changeLyrics(index, self.trackList[self.activeTrack].notes[index].content)
         self.adjustNote(index, 100, x)
 
     def removeNote(self, index:int) -> None:
@@ -629,7 +630,7 @@ class MiddleLayer(Widget):
         for i in text:
             if i in self.trackList[self.activeTrack].phonemeLengths:
                 phonemes.append(i)
-        if phonemes == [""]:
+        if phonemes == [""]or phonemes == []:
             phonemes = ["pau"]
         offset = len(phonemes) - self.trackList[self.activeTrack].notes[index].phonemeEnd + self.trackList[self.activeTrack].notes[index].phonemeStart
         self.offsetPhonemes(index, offset, futurePhonemes = phonemes)
@@ -637,7 +638,7 @@ class MiddleLayer(Widget):
         self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, phonemes)
         offsets = torch.tensor([], dtype = torch.half)
         for i in phonemes:
-            if i == "_autopause":
+            if i == "_autopause" or i == "pau":
                 offsets = torch.cat((offsets, torch.tensor([0.,], dtype = torch.half)), 0)
             elif self.trackList[self.activeTrack].phonemeLengths[i] == None:
                 offsets = torch.cat((offsets, torch.tensor([0.5,], dtype = torch.half)), 0)
@@ -851,16 +852,22 @@ class MiddleLayer(Widget):
         currentHeight = self.trackList[self.activeTrack].notes[index].yPos
         transitionPoint1 = self.trackList[self.activeTrack].notes[index].xPos
         transitionPoint2 = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
-        if index == 0 or (len(self.trackList[self.activeTrack].phonemes) > self.trackList[self.activeTrack].notes[index].phonemeStart and self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause"):
+        if index == 0:
             previousHeight = None
+        elif self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
+            previousHeight = None
+            oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart + 2]))
         else:
             previousHeight = self.trackList[self.activeTrack].notes[index - 1].yPos
             transitionLength1 = min(transitionLength1, self.trackList[self.activeTrack].notes[index - 1].length)
             if self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length < transitionPoint1:
                 transitionLength1 += transitionPoint1 - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length
                 transitionPoint1 = (transitionPoint1 + self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length) / 2
-        if index == len(self.trackList[self.activeTrack].notes) - 1 or (len(self.trackList[self.activeTrack].phonemes) > self.trackList[self.activeTrack].notes[index + 1].phonemeStart and self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] == "_autopause"):
+        if index == len(self.trackList[self.activeTrack].notes) - 1:
             nextHeight = None
+        elif self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] == "_autopause":
+            nextHeight = None
+            oldEnd = max(oldEnd, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd]))
         else:
             transitionPoint2 = self.trackList[self.activeTrack].notes[index + 1].xPos
             nextHeight = self.trackList[self.activeTrack].notes[index + 1].yPos

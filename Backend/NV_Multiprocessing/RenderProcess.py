@@ -205,7 +205,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 return False
 
     def pitchAdjust(spectrumInput, j, k, internalInputs, voicebank, previousShift, pitchOffset, device):
-        if internalInputs.phonemes[j] == "_autopause":
+        if internalInputs.phonemes[j] == "_autopause" or internalInputs.phonemes[j] == "pau":
             return spectrumInput, 0.
         steadiness = torch.pow(1. - internalInputs.steadiness[k], 2)
         targetPitch = global_consts.tripleBatchSize / (internalInputs.pitch[k] + pitchOffset * steadiness)

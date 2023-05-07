@@ -275,7 +275,7 @@ class SettingsSidePanel(CursorAwareView):
         identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
         deviceinfo = sounddevice.query_devices(identifier)
         if deviceinfo["default_low_output_latency"] > latency:
-            text = loc["latency_warn_1"] + str(deviceinfo["default_low_output_latency"]) + loc["latency_warn_2"] + str(deviceinfo["default_high_output_latency"]) + loc["latency_warn_1"]
+            text = loc["latency_warn_1"] + str(deviceinfo["default_low_output_latency"]) + loc["latency_warn_2"] + str(deviceinfo["default_high_output_latency"]) + loc["latency_warn_3"]
             popup = ManagedPopup(title = "audio latency", message = text)
             popup.open()
         middleLayer.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, identifier, callback = middleLayer.playCallback, latency = latency)
