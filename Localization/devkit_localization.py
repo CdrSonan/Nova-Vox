@@ -142,7 +142,7 @@ def getLanguage():
         locale["pred_optim_warn"] = "changing the predictor optimizer Hyperparameters is going to reset the spectral predictor AI optimizer, possibly reducing future training performance. Continue?"
 
     elif lang == "jp":
-        locale["version_label"] = "NovaVoxのSDK"
+        locale["version_label"] = "NovaVoxのSDK "
         locale["no_vb"] = "音源ライブラリー無し"
         locale["unsaved_vb"] = "保存されないな音源ライブラリー"
         locale["metadat_btn"] = "メタデータを編集する"

@@ -539,8 +539,6 @@ class PianoRoll(ScrollView):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        if middleLayer.activeTrack == None:
-            return
         for i in self.notes:
             self.children[0].remove_widget(i)
         del self.notes[:]
@@ -551,6 +549,8 @@ class PianoRoll(ScrollView):
         if self.basePitchLine != None:
             self.children[0].canvas.remove(self.basePitchLine)
             self.basePitchLine = None
+        if middleLayer.activeTrack == None:
+            return
         self.generate_notes()
         if middleLayer.mode == "timing":
             self.drawTiming()

@@ -63,7 +63,7 @@ octaves = 4
 
 #self-identification
 language = "en"
-version = "Closed Beta 0.7.5"
+version = "0.7.6 (Open Beta release candidate)"
 
 #devkit default values
 defaultExpectedPitch = 249.

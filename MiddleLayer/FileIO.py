@@ -66,6 +66,8 @@ def saveNVX(path:str, middleLayer:MiddleLayer) -> None:
 def loadNVX(path:str, middleLayer:MiddleLayer) -> None:
     """backend function for loading a .nvx file"""
 
+    if path == "":
+        return
     data = torch.load(path, map_location = torch.device("cpu"))
     tracks = data["tracks"]
     for i in range(len(middleLayer.trackList)):

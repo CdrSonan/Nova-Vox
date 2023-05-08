@@ -15,7 +15,18 @@ common_excludes = ["torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
 common_imports = ["torch", "torchaudio", "soundfile"]
 
-common_datas = [("settings.ini", "."), ("icon/*", "icon"), ("UI/kv/*", "UI/kv"), ("UI/assets/ParamList/*", "UI/assets/ParamList"), ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"), ("UI/assets/SideBar/*", "UI/assets/SideBar"), ("UI/assets/Toolbar/*", "UI/assets/Toolbar"), ("UI/assets/TopBar/*", "UI/assets/TopBar"), ("UI/assets/TrackList/*", "UI/assets/TrackList"), ("./lib/torchaudio", "./torchaudio"), ("./lib/ttkthemes", "./ttkthemes")]
+common_datas = [("settings.ini", "."),
+    ("icon/*", "icon"),
+    ("UI/kv/*", "UI/kv"),
+    ("UI/assets/ParamList/*","UI/assets/ParamList"),
+    ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"),
+    ("UI/assets/SideBar/*", "UI/assets/SideBar"),
+    ("UI/assets/Toolbar/*", "UI/assets/Toolbar"),
+    ("UI/assets/TopBar/*", "UI/assets/TopBar"),
+    ("UI/assets/TrackList/*", "UI/assets/TrackList"),
+    ("./lib/torchaudio", "./torchaudio"),
+    ("./lib/ttkthemes", "./ttkthemes"),
+    ("./lib/release", "./lib/release")]
 # !!! IMPORTANT !!!
 #the folder in ./lib must be set up to contain the same files as the respective folders in the site_packages dir of your Python installation.
 #THey must be added manually here because the PyInstaller hooks for these packages don't exist or are currently broken.
