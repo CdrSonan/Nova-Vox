@@ -23,8 +23,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{680531A2-5B3C-47B5-8380-CA6D7033BF13}
 AppName="Nova-Vox"
-AppVersion="0.7.6 (Open Beta release candidate)"
-AppVerName="Nova-Vox 0.7.6 (Open Beta release candidate)"
+AppVersion="0.8.0 (Open Beta release candidate)"
+AppVerName="Nova-Vox 0.8.0 (Open Beta release candidate)"
 AppPublisher="Nova-Vox development team"
 AppPublisherURL="https://nova-vox.org/"
 AppSupportURL="https://nova-vox.org/"
