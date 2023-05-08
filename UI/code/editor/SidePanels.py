@@ -41,7 +41,7 @@ class FileSidePanel(CursorAwareView):
         from UI.code.editor.Main import middleLayer
         tkui = Tk()
         tkui.withdraw()
-        dir = filedialog.asksaveasfilename(filetypes = (("NVX", "nvx"), (loc["all_files"], "*")))
+        dir = filedialog.asksaveasfilename(defaultextension = "nvx", filetypes = (("NVX", "nvx"), (loc["all_files"], "*")))
         tkui.destroy()
         saveNVX(dir, middleLayer)
 
@@ -104,7 +104,7 @@ class FileRenderPopup(Popup):
             return False
         tkui = Tk()
         tkui.withdraw()
-        dir = filedialog.asksaveasfilename(filetypes = ((self.format, self.format.lower()), (loc["all_files"], "*")))
+        dir = filedialog.asksaveasfilename(defaultextension = self.format.lower(), filetypes = ((self.format, self.format.lower()), (loc["all_files"], "*")))
         tkui.destroy()
         if dir == "":
             self.final = False

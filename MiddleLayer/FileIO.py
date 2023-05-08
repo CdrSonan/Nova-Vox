@@ -49,7 +49,7 @@ def saveNVX(path:str, middleLayer:MiddleLayer) -> None:
             "useBreathiness": track.useBreathiness,
             "useSteadiness": track.useSteadiness,
             "useAIBalance": track.useAIBalance,
-            "useVibratoSpeed": track.useVIbratoSpeed,
+            "useVibratoSpeed": track.useVibratoSpeed,
             "useVibratoStrength": track.useVibratoStrength,
             "pauseThreshold": track.pauseThreshold,
             "mixinVB": track.mixinVB,
@@ -72,14 +72,14 @@ def loadNVX(path:str, middleLayer:MiddleLayer) -> None:
         middleLayer.deleteTrack(0)
     for trackData in tracks:
         track = validateTrackData(trackData)
-        vbData = torch.load(track.vbPath, map_location = torch.device("cpu"))["metadata"]
-        middleLayer.importVoicebankNoSubmit(track.vbPath, vbData.name, vbData.image)
+        vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
+        middleLayer.importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
         middleLayer.trackList[-1].volume = track["volume"]
         for note in track["notes"]:
-            middleLayer.trackList[-1].notes.append(Note(note.xPos, note.yPos, note.phonemeStart, note.phonemeEnd))
-            middleLayer.trackList[-1].notes[-1].length = note.length
-            middleLayer.trackList[-1].notes[-1].phonemeMode = note.phonemeMode
-            middleLayer.trackList[-1].notes[-1].content = note.content
+            middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], note["phonemeStart"], note["phonemeEnd"]))
+            middleLayer.trackList[-1].notes[-1].length = note["length"]
+            middleLayer.trackList[-1].notes[-1].phonemeMode = note["phonemeMode"]
+            middleLayer.trackList[-1].notes[-1].content = note["content"]
         middleLayer.trackList[-1].phonemes = track["phonemes"]
         middleLayer.trackList[-1].pitch = track["pitch"]
         middleLayer.trackList[-1].basePitch = track["basePitch"]

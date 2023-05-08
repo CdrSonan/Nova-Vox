@@ -121,8 +121,8 @@ void stft_inpl(float* input, int length, engineCfg config, float* output)
     fftwf_complex* buffer = stft(input, length, config);
     for (int i = 0; i < batches * (config.halfTripleBatchSize + 1); i++)
     {
-        *(output + i) = (*(buffer + i))[0] * 2 / 3;
-        *(output + batches * (config.halfTripleBatchSize + 1) + i) = (*(buffer + i))[1] * 2 / 3;
+        *(output + i) = (*(buffer + i))[0];
+        *(output + batches * (config.halfTripleBatchSize + 1) + i) = (*(buffer + i))[1];
     }
     free(buffer);
 }

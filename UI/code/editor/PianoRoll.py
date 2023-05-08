@@ -450,18 +450,28 @@ class PianoRoll(ScrollView):
             Color(1, 0, 0, 1)
             self.pitchLine = Line(points = points1)
             
+    def timingMarkerGroup(self, pos):
+        group = InstructionGroup()
+        group.add(Color(1, 0, 0))
+        group.add(Line(points = [self.xScale * pos, 0, self.xScale * pos, self.children[0].height]))
+        return group
+    
+    def timingZoneGroup(self, pos, size):
+        group = InstructionGroup()
+        group.add(Color(1, 0, 1, 0.33))
+        group.add(Rectangle(pos = (pos, 0), size = (size, self.children[0].height)))
+        return group
+    
     def drawTiming(self) -> None:
         """draws all border/timing markers and related UI elements"""
-
-        with self.children[0].canvas:
-            Color(1, 0, 0)
-            for i in middleLayer.trackList[middleLayer.activeTrack].borders:
-                self.timingMarkers.append(Line(points = [self.xScale * i, 0, self.xScale * i, self.children[0].height]))
-            Color(1, 0, 1, 0.33)
-            for i in range(len(middleLayer.trackList[middleLayer.activeTrack].phonemes) + 1):
-                pos = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i]
-                size = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] - pos
-                self.timingZones.append(Rectangle(pos = (pos, 0), size = (size, self.children[0].height)))
+        for i in middleLayer.trackList[middleLayer.activeTrack].borders:
+            self.timingMarkers.append(self.timingMarkerGroup(i))
+            self.children[0].canvas.add(self.timingMarkers[-1])
+        for i in range(len(middleLayer.trackList[middleLayer.activeTrack].phonemes) + 1):
+            pos = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i]
+            size = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] - pos
+            self.timingZones.append(self.timingZoneGroup(pos, size))
+            self.children[0].canvas.add(self.timingZones[-1])
         for i, phoneme in enumerate(middleLayer.trackList[middleLayer.activeTrack].phonemes):
             self.timingHints.append(Label(size_hint = (None, None),
                                            x = middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] * self.xScale,
@@ -746,19 +756,24 @@ class PianoRoll(ScrollView):
             def applyBorder(border, newPos, checkLeft, checkRight):
                 if newPos < border:
                     return
+                
                 index = self.children[0].canvas.indexof(self.timingMarkers[border])
                 self.children[0].canvas.remove(self.timingMarkers[border])
                 del self.timingMarkers[border]
-                self.timingMarkers.insert(border, Line(points = [self.xScale * newPos, 0, self.xScale * newPos, self.children[0].height]))
+                self.timingMarkers.insert(border, self.timingMarkerGroup(newPos))
                 self.children[0].canvas.insert(index, self.timingMarkers[border])
+                
+                #TODO: fix color mismatch
+                
                 zone = floor(border / 3)
                 index = self.children[0].canvas.indexof(self.timingZones[zone])
                 self.children[0].canvas.remove(self.timingZones[zone])
                 del self.timingZones[zone]
                 pos = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * zone]
                 size = self.xScale * middleLayer.trackList[middleLayer.activeTrack].borders[3 * zone + 2] - pos
-                self.timingZones.insert(zone, Rectangle(pos = (pos, 0), size = (size, self.children[0].height)))
+                self.timingZones.insert(zone, self.timingZoneGroup(pos, size))
                 self.children[0].canvas.insert(index, self.timingZones[zone])
+                
                 if border % 3 == 2 and border < len(middleLayer.trackList[middleLayer.activeTrack].borders) - 1:
                     self.timingHints[int((border - 2) / 3)].x = self.xScale * newPos
                     self.timingHints[int((border - 2) / 3)].width = self.xScale * (middleLayer.trackList[middleLayer.activeTrack].borders[border + 1] - newPos)

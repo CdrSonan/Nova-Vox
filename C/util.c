@@ -96,7 +96,7 @@ float cpxAbsf(fftwf_complex input)
 //calculates the phase angle of a complex number
 float cpxArgf(fftwf_complex input)
 {
-    return atan2f(input[0], input[1]);
+    return atan2f(input[1], input[0]);
 }
 
 //the number pi
