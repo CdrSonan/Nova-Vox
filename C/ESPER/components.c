@@ -635,8 +635,23 @@ void separateVoicedUnvoiced(cSample sample, engineCfg config)
     //Get DIO Pitch markers
     PitchMarkerStruct markers = calculatePitchMarkers(sample, wave, waveLength, config);
     //Loop over each window
+
     for (int i = 0; i < batches; i++)
     {
+        //separation calculations are only necessary if the sample is voiced
+        if (sample.config.isVoiced == 0)
+        {
+            for (int j = 0; j < config.nHarmonics + 2; j++)
+            {
+                *(sample.specharm + i * config.frameSize + j) = 0.;
+            }
+            for (int j = 0; j < config.halfTripleBatchSize + 1; j++)
+            {
+                (*(globalHarmFunction + i * (config.halfTripleBatchSize + 1) + j))[0] = 0.;
+                (*(globalHarmFunction + i * (config.halfTripleBatchSize + 1) + j))[1] = 0.;
+            }
+            continue;
+        }
         float* window = wave + i * config.batchSize;
         //get fitting segment of marker array
         unsigned int localMarkerStart = findIndex_double(markers.markers, markers.markerLength, i * config.batchSize);
@@ -721,15 +736,6 @@ void separateVoicedUnvoiced(cSample sample, engineCfg config)
         free(markerSpace);
         free(harmonicsSpace);
         free(windowSpace);
-        //separation calculations are only necessary if the sample is voiced
-        if (sample.config.isVoiced == 0)
-        {
-            for (int j = 0; j < config.nHarmonics + 2; j++)
-            {
-                *(sample.specharm + i * config.frameSize + j) = 0.;
-            }
-            continue;
-        }
         //perform rfft on each window
         fftwf_complex* harmFunction = (fftwf_complex*) malloc((markerLength - 1) * config.halfHarmonics * sizeof(fftwf_complex));
         for (int j = 0; j < (markerLength - 1); j++)
