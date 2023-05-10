@@ -16,7 +16,7 @@
 ;#define nvprAssocKey "NovaVox" + nvprAssocExt
 
 #define nvvbAssocKeyDK "NovaVoxDK" + nvvbAssocExt
-#define nvprAssocKeyDK "NovaVoxDK" + nvprAssocExt
+;#define nvprAssocKeyDK "NovaVoxDK" + nvprAssocExt
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.

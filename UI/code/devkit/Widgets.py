@@ -1,5 +1,4 @@
 from tkinter import Frame as TkFrame, Label as TkLabel, Button as TkButton, LabelFrame as TkLabelFrame, Listbox as TkListbox, Scale as TkScale, Entry as TkEntry, Spinbox as TkSpinbox, Checkbutton as TkCheckbutton, Radiobutton as TkRadiobutton
-from tkinter.ttk import Scrollbar as TkScrollbar, OptionMenu as TkOptionMenu
 
 class Frame(TkFrame):
     def __init__(self, master) -> None:

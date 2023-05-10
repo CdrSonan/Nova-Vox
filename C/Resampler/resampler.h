@@ -11,4 +11,4 @@
 
 __declspec(dllexport) void __cdecl resampleSpecharm(float* avgSpecharm, float* specharm, int length, float* steadiness, float spacing, short flags, float* output, segmentTiming timings, engineCfg config);
 
-__declspec(dllexport) void __cdecl resamplePitch(int* pitchDeltas, int length, float* pitch, float spacing, short flags, float* output, segmentTiming timings, engineCfg config);
+__declspec(dllexport) void __cdecl resamplePitch(int* pitchDeltas, int length, float pitch, float spacing, short flags, float* output, int requiredSize, segmentTiming timings);
