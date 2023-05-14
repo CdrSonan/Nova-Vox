@@ -41,25 +41,38 @@ float* lowRangeSmooth(cSample sample, float* signalsAbs, engineCfg config)
     {
         *(spectra + i) = *(signalsAbs + i);
     }
-    //repeatedly apply fft, lowpass filter, and max function between smoothed and original spectrum
-    for (int i = 0; i < sample.config.specDepth; i++)
+
+    fftwf_complex* f_spectra = (fftwf_complex*)malloc(sample.config.batches * (config.halfTripleBatchSize / 2 + 1) * sizeof(fftwf_complex));
+    #pragma omp parallel for
+    for (int i = 0; i < sample.config.batches; i++)
     {
-        for (int j = 0; j < sample.config.batches; j++)
+        fftwf_plan plan_fwd = fftwf_plan_dft_r2c_1d(config.halfTripleBatchSize, spectra + i * (config.halfTripleBatchSize + 1), f_spectra + i * (config.halfTripleBatchSize / 2 + 1), FFTW_ESTIMATE);
+        fftwf_plan plan_bwd = fftwf_plan_dft_c2r_1d(config.halfTripleBatchSize, f_spectra + i * (config.halfTripleBatchSize / 2 + 1), spectra + i * (config.halfTripleBatchSize + 1), FFTW_ESTIMATE);
+        for (int j = 0; j < sample.config.specDepth; j++)
         {
-            fftwf_complex* f_spectra = rfft(spectra + j * (config.halfTripleBatchSize + 1), config.halfTripleBatchSize);
+            for (int k = 0; k < config.halfTripleBatchSize + 1; k++)
+            {
+                if (*(signalsAbs + i * (config.halfTripleBatchSize + 1) + k) > *(spectra + i * (config.halfTripleBatchSize + 1) + k))
+                {
+                    *(spectra + i * (config.halfTripleBatchSize + 1) + k) = *(signalsAbs + i * (config.halfTripleBatchSize + 1) + k);
+                }
+            }
+            fftwf_execute(plan_fwd);
             for (int k = 0; k < config.halfTripleBatchSize / 2 + 1; k++)
             {
-                (*(f_spectra + k))[0] *= *(cutoffWindow + k);
-                (*(f_spectra + k))[1] *= *(cutoffWindow + k);
+                (*(f_spectra + i * (config.halfTripleBatchSize / 2 + 1) + k))[0] *= *(cutoffWindow + k);
+                (*(f_spectra + i * (config.halfTripleBatchSize / 2 + 1) + k))[1] *= *(cutoffWindow + k);
             }
-            irfft_inpl(f_spectra, config.halfTripleBatchSize, spectra + j * (config.halfTripleBatchSize + 1));
-            free(f_spectra);
+            fftwf_execute(plan_bwd);
+            for (int k = 0; k < config.halfTripleBatchSize + 1; k++)
+            {
+                *(spectra + i * (config.halfTripleBatchSize + 1) + k) /= config.halfTripleBatchSize;
+            }
         }
-        for (int j = 0; j < sample.config.batches * (config.halfTripleBatchSize + 1); j++)
-        {
-            *(spectra + j) /= config.halfTripleBatchSize;
-        }
+        fftwf_destroy_plan(plan_fwd);
+        fftwf_destroy_plan(plan_bwd);
     }
+    free(f_spectra);
     free(cutoffWindow);
     return(spectra);
 }
@@ -635,7 +648,6 @@ void separateVoicedUnvoiced(cSample sample, engineCfg config)
     //Get DIO Pitch markers
     PitchMarkerStruct markers = calculatePitchMarkers(sample, wave, waveLength, config);
     //Loop over each window
-
     for (int i = 0; i < batches; i++)
     {
         //separation calculations are only necessary if the sample is voiced
@@ -663,14 +675,14 @@ void separateVoicedUnvoiced(cSample sample, engineCfg config)
             //not enough markers found; use fallback
             fftwf_complex* harmFunction;
             //determine number of sub-windows possible within window
-            int localBatches = config.tripleBatchSize / config.nHarmonics;//TODO: check if BSMult and Hanning windowing are necessary here
+            int localBatches = config.tripleBatchSize * config.filterBSMult / config.nHarmonics;//TODO: check if BSMult and Hanning windowing are necessary here
             //fill specharm
             harmFunction = (fftwf_complex*) malloc(config.halfHarmonics * localBatches * sizeof(fftwf_complex));
             for (int j = 0; j < localBatches; j++)
             {
-                rfft_inpl(window + j * config.nHarmonics, config.nHarmonics, harmFunction + j * config.nHarmonics);
+                rfft_inpl(window + j * config.nHarmonics, config.nHarmonics, harmFunction + j * config.halfHarmonics);
             }
-            for (int j = 0; j < config.nHarmonics; j++)
+            for (int j = 0; j < config.halfHarmonics; j++)
             {
                 //average amplitudes and calculate vector-based phase mean of sub-windows
                 float amplitude = 0.;
@@ -678,9 +690,9 @@ void separateVoicedUnvoiced(cSample sample, engineCfg config)
                 double cosine = 0.;
                 for (int k = 0; k < localBatches; k++)
                 {
-                    amplitude += cpxAbsf(*(harmFunction + k * config.nHarmonics + j));
-                    sine += (*(harmFunction + k * config.nHarmonics + j))[1];
-                    cosine += (*(harmFunction + k * config.nHarmonics + j))[0];
+                    amplitude += cpxAbsf(*(harmFunction + k * config.halfHarmonics + j));
+                    sine += (*(harmFunction + k * config.halfHarmonics + j))[1];
+                    cosine += (*(harmFunction + k * config.halfHarmonics + j))[0];
                 }
                 amplitude /= localBatches;
                 *(sample.specharm + i * config.frameSize + j) = amplitude;

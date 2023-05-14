@@ -4,74 +4,75 @@
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 # Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
-try:
-    import pyi_splash
-    # pyi_splash is only available when the program is packaged and launched through the PyInstaller Bootstrapper.
-    # to avoid issues when running the program prior to packaging, pyi_splash is replaced with the PseudoSplash dummy class, which implements all relevant methods, in that case.
-except ImportError:
-    class PseudoSplash:
-        """Dummy class replacing pyi_splash if the program is not run through PyInstaller"""
-
-        def __init__(self):
-            pass
-        def is_alive(self):
-            return False
-        def close(self):
-            del(self)
-    pyi_splash = PseudoSplash()
-if pyi_splash.is_alive():
-    pyi_splash.update_text("loading PyTorch libraries...")
-import torch
-import torch.multiprocessing as mp
-if pyi_splash.is_alive():
-    pyi_splash.update_text("reading settings...")
-from MiddleLayer.IniParser import readSettings
-settings = readSettings()
-if settings["tensorcores"] == "enabled":
-    TCORES = True
-elif settings["tensorcores"] == "disabled":
-    TCORES = False
-else:
-    print("could not read tensor core setting. Tensor cores have been disabled by default.")
-    TCORES = False
-torch.backends.cuda.matmul.allow_tf32 = TCORES
-torch.backends.cudnn.allow_tf32 = TCORES
-
-if pyi_splash.is_alive():
-    pyi_splash.update_text("importing utility libraries...")
-import sys
-from os import getenv, path, makedirs
-from traceback import print_exc
-if pyi_splash.is_alive():
-    pyi_splash.update_text("starting logging process...")
-import logging
-if settings["loglevel"] == "debug":
-    LOGLEVEL = logging.DEBUG
-elif settings["loglevel"] == "info":
-    LOGLEVEL = logging.INFO
-elif settings["loglevel"] == "warning":
-    LOGLEVEL = logging.WARNING
-elif settings["loglevel"] == "error":
-    LOGLEVEL = logging.ERROR
-elif settings["loglevel"] == "critical":
-    LOGLEVEL = logging.CRITICAL
-else:
-    print("could not read loglevel setting. Loglevel has been set to \"info\" by default.")
-    LOGLEVEL = logging.INFO
-
-logPath = path.join(getenv("APPDATA"), "Nova-Vox", "Logs")
-try:
-    makedirs(logPath)
-except FileExistsError:
-    pass
-
-logPath = path.join(logPath, "editor.log")
-
-logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename=logPath, filemode = "w", force = True, level=LOGLEVEL)
-logging.info("logging service started")
 
 if __name__ == '__main__':
+    try:
+        import pyi_splash
+        # pyi_splash is only available when the program is packaged and launched through the PyInstaller Bootstrapper.
+        # to avoid issues when running the program prior to packaging, pyi_splash is replaced with the PseudoSplash dummy class, which implements all relevant methods, in that case.
+    except ImportError:
+        class PseudoSplash:
+            """Dummy class replacing pyi_splash if the program is not run through PyInstaller"""
+
+            def __init__(self):
+                pass
+            def is_alive(self):
+                return False
+            def close(self):
+                del(self)
+        pyi_splash = PseudoSplash()
+    if pyi_splash.is_alive():
+        pyi_splash.update_text("loading PyTorch libraries...")
+    import torch
+    import torch.multiprocessing as mp
     mp.freeze_support()
+    if pyi_splash.is_alive():
+        pyi_splash.update_text("reading settings...")
+    from MiddleLayer.IniParser import readSettings
+    settings = readSettings()
+    if settings["tensorcores"] == "enabled":
+        TCORES = True
+    elif settings["tensorcores"] == "disabled":
+        TCORES = False
+    else:
+        print("could not read tensor core setting. Tensor cores have been disabled by default.")
+        TCORES = False
+    torch.backends.cuda.matmul.allow_tf32 = TCORES
+    torch.backends.cudnn.allow_tf32 = TCORES
+
+    if pyi_splash.is_alive():
+        pyi_splash.update_text("importing utility libraries...")
+    import sys
+    from os import getenv, path, makedirs
+    from traceback import print_exc
+    if pyi_splash.is_alive():
+        pyi_splash.update_text("starting logging process...")
+    import logging
+    if settings["loglevel"] == "debug":
+        LOGLEVEL = logging.DEBUG
+    elif settings["loglevel"] == "info":
+        LOGLEVEL = logging.INFO
+    elif settings["loglevel"] == "warning":
+        LOGLEVEL = logging.WARNING
+    elif settings["loglevel"] == "error":
+        LOGLEVEL = logging.ERROR
+    elif settings["loglevel"] == "critical":
+        LOGLEVEL = logging.CRITICAL
+    else:
+        print("could not read loglevel setting. Loglevel has been set to \"info\" by default.")
+        LOGLEVEL = logging.INFO
+
+    logPath = path.join(getenv("APPDATA"), "Nova-Vox", "Logs")
+    try:
+        makedirs(logPath)
+    except FileExistsError:
+        pass
+
+    logPath = path.join(logPath, "editor.log")
+
+    logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s', filename=logPath, filemode = "w", force = True, level=LOGLEVEL)
+    logging.info("logging service started")
+
     if pyi_splash.is_alive():
         pyi_splash.update_text("loading UI libraries...")
     from kivy.app import App
@@ -127,7 +128,8 @@ if __name__ == '__main__':
 
     ExceptionManager.add_handler(ErrorHandler())
 
-    pyi_splash.close()
+    if pyi_splash.is_alive():
+        pyi_splash.close()
     try:
         loop.run_until_complete(NovaVoxApp().async_run(async_lib='asyncio'))
     except Exception as e:

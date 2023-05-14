@@ -332,14 +332,11 @@ class PhonemedictUi(Frame):
         spectrum = loadedVB.phonemeDict[key][0].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + loadedVB.phonemeDict[key][0].specharm[value, global_consts.nHarmonics + 2:]
         harmonics = loadedVB.phonemeDict[key][0].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1] + loadedVB.phonemeDict[key][0].specharm[value, :int(global_consts.nHarmonics / 2) + 1]
         excitation = torch.abs(loadedVB.phonemeDict[key][0].excitation[value]) * spectrum
-        #excitation = torch.real(loadedVB.phonemeDict[key][0].excitation[value])
-        #test = torch.imag(loadedVB.phonemeDict[key][0].excitation[value])
         xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
         harmScale = torch.linspace(0, global_consts.nHarmonics / 2 * global_consts.sampleRate / loadedVB.phonemeDict[key][0].pitchDeltas[value], int(global_consts.nHarmonics / 2) + 1)
-        self.diagram.ax.plot(xScale, excitation, label = loc["excitation"], color = "red")
-        #self.diagram.ax.plot(xScale, test, label = "test", color = "purple")
-        self.diagram.ax.vlines(harmScale, 0., torch.sqrt(harmonics), label = loc["vExcitation"], color = "blue")
-        self.diagram.ax.plot(xScale, spectrum, label = loc["spectrum"], color = "orange")
+        self.diagram.ax.plot(xScale, excitation.cpu(), label = loc["excitation"], color = "red")
+        self.diagram.ax.vlines(harmScale, 0., torch.sqrt(harmonics).cpu(), label = loc["vExcitation"], color = "blue")
+        self.diagram.ax.plot(xScale, spectrum.cpu(), label = loc["spectrum"], color = "orange")
         self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
         self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)

@@ -200,7 +200,6 @@ def DIOPitchMarkers(audioSample:AudioSample, wave:torch.Tensor) -> list:
         downTransitionMarkers = deque([downTransitionCandidates[torch.argmin(derrs)].item(),])
 
     while downTransitionMarkers[-1] < wave.size()[0] - audioSample.pitchDeltas[-1] * global_consts.DIOLastWinTolerance:
-        #print("1", downTransitionMarkers[-1], "/", (wave.size()[0] - audioSample.pitchDeltas[-1] * global_consts.DIOLastWinTolerance).item())
         lastPitch = pitch(upTransitionMarkers[-1])
         lastDown = downTransitionMarkers[-1]
         lastUp = upTransitionMarkers[-1]
@@ -335,7 +334,6 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
     counter = 0
     markers = DIOPitchMarkers(audioSample, wave)
     for i in range(length):
-        #print("4", counter, "/", length)
         window = wave[i * global_consts.batchSize:i * global_consts.batchSize + global_consts.tripleBatchSize * global_consts.filterBSMult]
         localMarkers = markers[torch.searchsorted(markers, i * global_consts.batchSize, right = True):torch.searchsorted(markers, i * global_consts.batchSize + global_consts.tripleBatchSize * global_consts.filterBSMult - 1, right = False)] - i * global_consts.batchSize
         markerLength = len(localMarkers)
@@ -362,8 +360,6 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             continue
         interpolationPoints = interp(torch.linspace(0, markerLength - 1, markerLength), localMarkers, torch.linspace(0, markerLength - 1, (markerLength - 1) * global_consts.nHarmonics + 1))
         interpolatedWave = interp(torch.linspace(0, global_consts.tripleBatchSize * global_consts.filterBSMult - 1, global_consts.tripleBatchSize * global_consts.filterBSMult), window, interpolationPoints)
-        if i == 0:
-            print("interp. wave:", interpolatedWave)
         """if markerLength > 2:
             interpolatedWave[:global_consts.nHarmonics + 1] *= torch.linspace(0, 1, global_consts.nHarmonics + 1)
             interpolatedWave[-global_consts.nHarmonics - 1:] *= torch.linspace(1, 0, global_consts.nHarmonics + 1)
@@ -374,34 +370,23 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
         harmFunction = torch.reshape(interpolatedWave[:-1], (markerLength - 1, global_consts.nHarmonics))
         if audioSample.isVoiced:
             harmFunction = torch.fft.rfft(harmFunction, dim = 1)
-            if i == 0:
-                print("fft:", harmFunction)
             amplitudes = torch.sum(harmFunction.abs(), dim = 0) / (markerLength - 1)
             phases = torch.sum(harmFunction, dim = 0).angle()
-            if i == 0:
-                print("amplitudes:", amplitudes)
-                print("phases:", phases)
             harmFunction = torch.polar(amplitudes, phases)
             harmFunction = torch.fft.irfft(harmFunction, n = global_consts.nHarmonics)
             harmFunction = torch.tile(harmFunction, (markerLength,))[:(markerLength - 1) * global_consts.nHarmonics + 1]
             harmFunction *= audioSample.voicedThrh
             harmFunction += interpolatedWave * (1. - audioSample.voicedThrh)
-            if i == 0:
-                print("realHarmFunction:", harmFunction)
             space = torch.linspace(global_consts.halfTripleBatchSize * (global_consts.filterBSMult - 1), global_consts.halfTripleBatchSize * (global_consts.filterBSMult + 1) - 1, global_consts.tripleBatchSize)
             harmFunction = extrap(interpolationPoints, harmFunction, space)
-            if i == 0:
-                print("extrapolated:", harmFunction)
             globalHarmFunction[i] = torch.fft.rfft(harmFunction)
             phases = phaseShift(phases, -phases[1], torch.device("cpu"))
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] = torch.cat((amplitudes, phases), 0)
         else:
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] *= 0.
         counter += 1
-    print("global harm function:", globalHarmFunction[0])
     globalHarmFunction = torch.istft(globalHarmFunction.transpose(0, 1), global_consts.tripleBatchSize , global_consts.batchSize, global_consts.tripleBatchSize, length = audioSample.waveform.size()[0], onesided = True)
     audioSample.excitation = audioSample.waveform - globalHarmFunction
-    print("altWave:", audioSample.excitation[:100])
     audioSample.excitation = torch.stft(audioSample.excitation, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize), onesided = True, return_complex = True)
     audioSample.excitation = audioSample.excitation.transpose(0, 1)[:length]
     return audioSample

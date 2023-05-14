@@ -12,6 +12,7 @@
 # Changes can easily cause incompatibility with .nvx, .nvvb or other files,
 # program instability or various other issues.
 
+from ctypes import CDLL
 from C_Bridge import engineCfg
 
 #data batching
@@ -89,6 +90,7 @@ controlPhonemes = (
     ("_autopause", "R")
 )
 
+#C bindings
 config = engineCfg(sampleRate = sampleRate,
                    tickRate = tickRate,
                    batchSize = batchSize,

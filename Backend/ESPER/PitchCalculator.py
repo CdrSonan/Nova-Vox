@@ -30,10 +30,10 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
 
     try:
         audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
-    except Exception as e:
-        tqdm.write("nonfatal pitch calculation error:")
-        tqdm.write(repr(e))
-        tqdm.write("using fallback method for current sample")
+    except RuntimeError as e:
+        #tqdm.write("nonfatal pitch calculation error:")
+        #tqdm.write(repr(e))
+        #tqdm.write("using fallback method for current sample")
         calculatePitchFallback_legacy(audioSample)
     if audioSample.pitchDeltas.size()[0] < 2:
         calculatePitchFallback_legacy(audioSample)
@@ -44,8 +44,11 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
         audioSample.pitchDeltas *= mul2
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
-    audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0]), audioSample.pitchDeltas, torch.linspace(0., 1., length))
-    audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
+    if (audioSample.pitchDeltas.size()[0] < 1):
+        audioSample.pitchDeltas = torch.tensor([audioSample.expectedPitch,], device = audioSample.pitchDeltas.device)
+    if (audioSample.pitchDeltas.size()[0] > 1):
+        audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0]), audioSample.pitchDeltas, torch.linspace(0., 1., length))
+        audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
 
 def calculatePitchFallback(audioSample:AudioSample) -> None:
     """Fallback method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.
@@ -62,9 +65,8 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
     signal-to-noise ratio."""
     
     
-    esper = ctypes.CDLL("lib/Release/esper.dll")
     cSample = C_Bridge.makeCSample(audioSample, False)
-    esper.pitchCalcFallback(cSample, global_consts.config)
+    C_Bridge.esper.pitchCalcFallback(cSample, global_consts.config)
 
 def calculatePitchFallback_legacy(audioSample:AudioSample) -> None:
     batchSize = math.floor((1. + audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)

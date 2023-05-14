@@ -679,12 +679,12 @@ class PianoRoll(ScrollView):
                         return len(middleLayer.trackList[middleLayer.activeTrack].borders) - 1
                     border = getNearestBorder(x)
                     touch.ud["border"] = border
-                    touch.ud["offset"] = self.quantize(x) - middleLayer.trackList[middleLayer.activeTrack].borders[border]
+                    touch.ud["offset"] = x - middleLayer.trackList[middleLayer.activeTrack].borders[border]
                 elif middleLayer.mode == "pitch":
                     with self.children[0].canvas:
                         Color(0, 0, 1)
-                        touch.ud['line'] = Line(points=self.quantize(*self.to_local(touch.x, touch.y)))
-                        touch.ud['startPoint'] = self.quantize(*self.to_local(touch.x, touch.y))
+                        touch.ud['line'] = Line(points=self.to_local(touch.x, touch.y))
+                        touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
                         touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
                         touch.ud['lastPoint'] = touch.ud['startPoint'][0]
                         touch.ud['startPointOffset'] = 0
@@ -704,11 +704,11 @@ class PianoRoll(ScrollView):
             return False
         if middleLayer.activeTrack == None:
             return
-        coord = self.quantize(*self.to_local(touch.x, touch.y))
-        x = int(coord[0] / self.xScale)
-        y = int(coord[1] / self.yScale)
-        yMod = coord[1]
         if middleLayer.mode == "notes":
+            coord = self.quantize(*self.to_local(touch.x, touch.y))
+            x = int(coord[0] / self.xScale)
+            y = int(coord[1] / self.yScale)
+            yMod = coord[1]
             if "noteIndex" in touch.ud:
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
                 if abs(touch.ud["initialPos"][0] - coord[0]) < 4 and abs(touch.ud["initialPos"][1] - coord[1]) < 4:
@@ -751,7 +751,12 @@ class PianoRoll(ScrollView):
                 return True
             else:
                 return False
-        elif middleLayer.mode == "timing":
+        else:
+            coord = self.to_local(touch.x, touch.y)
+            x = int(coord[0] / self.xScale)
+            y = int(coord[1] / self.yScale)
+            yMod = coord[1]
+        if middleLayer.mode == "timing":
 
             def applyBorder(border, newPos, checkLeft, checkRight):
                 if newPos < border:

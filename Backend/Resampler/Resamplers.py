@@ -47,7 +47,6 @@ def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tenso
     return excitation.transpose(0, 1)
 
 def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
-    output = torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], 0.001, device = device)
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         offset = 0
     else:
@@ -60,9 +59,10 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         windowEnd = vocalSegment.end3 - vocalSegment.start1 + offset
     else:
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + offset
+    output = torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], 0.001, device = device)
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return output
-    resampler = ctypes.CDLL("lib/Release/resampler.dll", use_errno=True, use_last_error=True)
+    vocalSegment.steadiness = vocalSegment.steadiness.contiguous()
     timings = C_Bridge.segmentTiming(start1 = vocalSegment.start1,
                                      start2 = vocalSegment.start2,
                                      start3 = vocalSegment.start3,
@@ -73,12 +73,12 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                      windowEnd = windowEnd,
                                      offset = offset)
     phoneme = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0]
-    resampler.resampleSpecharm(ctypes.cast(phoneme.avgSpecharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+    C_Bridge.resampler.resampleSpecharm(ctypes.cast(phoneme.avgSpecharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                ctypes.cast(phoneme.specharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.specharm.size()[0]),
-                               ctypes.cast(vocalSegment.steadiness.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
-                               vocalSegment.repetititionSpacing,
-                               int(vocalSegment.startCap) + 2 * int(vocalSegment.endCap),
+                               ctypes.cast(vocalSegment.steadiness.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+                               ctypes.c_float(vocalSegment.repetititionSpacing.item()),
+                               ctypes.c_short(int(vocalSegment.startCap) + 2 * int(vocalSegment.endCap)),
                                ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                timings,
                                global_consts.config)
@@ -126,7 +126,6 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     phoneme = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0]
     requiredSize = math.ceil(torch.max(phoneme.pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize
     output = torch.zeros([requiredSize,], device = device)
-    resampler = ctypes.CDLL("lib/Release/resampler.dll", use_errno=True, use_last_error=True)
     timings = C_Bridge.segmentTiming(start1 = vocalSegment.start1,
                                      start2 = vocalSegment.start2,
                                      start3 = vocalSegment.start3,
@@ -137,7 +136,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                      windowEnd = 0,
                                      offset = 0)
     phoneme = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0]
-    resampler.resampleSpecharm(ctypes.cast(phoneme.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+    C_Bridge.resampler.resampleSpecharm(ctypes.cast(phoneme.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.pitchDeltas.size()[0]),
                                phoneme.pitch,
                                vocalSegment.repetititionSpacing,
