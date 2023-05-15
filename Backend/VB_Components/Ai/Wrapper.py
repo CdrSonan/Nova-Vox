@@ -117,34 +117,28 @@ class AIWrapper():
             reset: indicates whether the NNs and their optimizers should be reset before applying changed weights to them. Must be True when the dictionary contains weights
             for a NN using different hyperparameters than the currently active one."""
 
-        
-        if aiState["final"]:
-            self.final = True
-        else:
-            self.final = False
-
         if (mode == None) or (mode == "crf"):
             if reset:
                 self.crfAi = SpecCrfAi(device = self.device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
-                if self.final:
+                if aiState["final"]:
                     self.crfAiOptimizer = torch.optim.NAdam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
             self.crfAi.epoch = aiState['crfAi_epoch']
             self.crfAi.sampleCount = aiState["crfAi_sampleCount"]
             self.crfAi.load_state_dict(aiState['crfAi_model_state_dict'])
-            if not self.final:
+            if not aiState["final"]:
                 self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
         if (mode == None) or (mode == "pred"):
             if reset:
                 self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
                 self.predAiHarm = HarmPredAi(device = self.device, learningRate=self.hparams["predh_lr"], regularization=self.hparams["predh_reg"], recSize=self.hparams["predh_rs"])
-                if self.final:
+                if aiState["final"]:
                     self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
                     self.predAiHarmOptimizer = torch.optim.Adadelta(self.predAiHarm.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
             self.predAi.epoch = aiState["predAi_epoch"]
             self.predAi.sampleCount = aiState["predAi_sampleCount"]
             self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
             self.predAiHarm.load_state_dict(aiState['predAiHarm_model_state_dict'])
-            if not self.final:
+            if not aiState["final"]:
                 self.predAiOptimizer.load_state_dict(aiState['predAi_optimizer_state_dict'])
                 self.predAiHarmOptimizer.load_state_dict(aiState['predAiHarm_optimizer_state_dict'])
         self.crfAi.eval()
