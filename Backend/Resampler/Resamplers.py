@@ -78,10 +78,12 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                int(phoneme.specharm.size()[0]),
                                ctypes.cast(vocalSegment.steadiness.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                ctypes.c_float(vocalSegment.repetititionSpacing.item()),
-                               ctypes.c_short(int(vocalSegment.startCap) + 2 * int(vocalSegment.endCap)),
+                               int(vocalSegment.startCap),
+                               int(vocalSegment.endCap),
                                ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                timings,
                                global_consts.config)
+    return output
     
 def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the specharm of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
@@ -125,7 +127,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,], device = device)
     phoneme = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0]
     requiredSize = math.ceil(torch.max(phoneme.pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize
-    output = torch.zeros([requiredSize,], device = device)
+    output = torch.zeros([requiredSize,], device = device, dtype = torch.float32)
     timings = C_Bridge.segmentTiming(start1 = vocalSegment.start1,
                                      start2 = vocalSegment.start2,
                                      start3 = vocalSegment.start3,
@@ -136,15 +138,16 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                      windowEnd = 0,
                                      offset = 0)
     phoneme = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0]
-    C_Bridge.resampler.resampleSpecharm(ctypes.cast(phoneme.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+    C_Bridge.resampler.resamplePitch(ctypes.cast(phoneme.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_short)),
                                int(phoneme.pitchDeltas.size()[0]),
-                               phoneme.pitch,
-                               vocalSegment.repetititionSpacing,
-                               int(vocalSegment.startCap) + 2 * int(vocalSegment.endCap),
+                               phoneme.pitch.item(),
+                               ctypes.c_float(vocalSegment.repetititionSpacing.item()),
+                               int(vocalSegment.startCap),
+                               int(vocalSegment.endCap),
                                ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                requiredSize,
-                               timings,
-                               global_consts.config)
+                               timings)
+    return output
     
 
 def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:

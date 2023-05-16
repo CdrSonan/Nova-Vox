@@ -71,7 +71,6 @@ class AudioSample():
         self.specharm = torch.tensor([[]], dtype = float)
         self.avgSpecharm = torch.tensor([], dtype = float)
         self.excitation = torch.tensor([], dtype = float)
-        self.harmonics = torch.tensor([], dtype = float)
         self.isVoiced = True
         self.isPlosive = False
         
@@ -198,3 +197,5 @@ class LiteAudioSample():
         self.specharm = audioSample.specharm
         self.avgSpecharm = audioSample.avgSpecharm
         self.excitation = audioSample.excitation
+        self.isVoiced = audioSample.isVoiced
+        self.isPlosive = audioSample.isPlosive

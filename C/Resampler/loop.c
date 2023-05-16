@@ -52,7 +52,7 @@ void loopSamplerSpecharm(float* input, int length, float* output, int targetLeng
             }
         }
         //add mid windows from buffer to output
-        for (int i = 1; i < requiredInstances * config.frameSize; i++)
+        for (int i = 1; i < requiredInstances; i++)
         {
             for (int j = 0; j < (length - effSpacing) * config.frameSize; j++)
             {
@@ -77,10 +77,9 @@ void loopSamplerSpecharm(float* input, int length, float* output, int targetLeng
         free(buffer);
     }
 }
-//output???????
 
 //loops pitch data with configurable overlap between instances
-void loopSamplerPitch(int* input, int length, float* output, int targetLength, float spacing)
+void loopSamplerPitch(short* input, int length, float* output, int targetLength, float spacing)
 {
     int effSpacing = ceildiv(spacing * length,  2);
     int requiredInstances = targetLength / (length - effSpacing);
@@ -111,7 +110,7 @@ void loopSamplerPitch(int* input, int length, float* output, int targetLength, f
         //add mid windows from buffer to output
         for (int i = 1; i < requiredInstances; i++)
         {
-            for (int j = 0; j < length; j++)
+            for (int j = 0; j < (length - effSpacing); j++)
             {
                 *(output + i * (length - effSpacing) + j) = *(buffer + j);
             }
@@ -128,10 +127,9 @@ void loopSamplerPitch(int* input, int length, float* output, int targetLength, f
         {
             for (int i = 0; i < lastWin; i++)
             {
-                *(output + requiredInstances * (length - effSpacing) + i) = *(input + length - effSpacing + i);
+                *(output + requiredInstances * (length - effSpacing) + i) = (float)*(input + length - effSpacing + i);
             }
         }
         free(buffer);
     }
 }
-//output???

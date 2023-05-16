@@ -13,8 +13,9 @@
 #include "C/Resampler/loop.h"
 
 //C implementation of the ESPER specharm resampler. Respects loop spacing setting and start/end fading flags.
-__declspec(dllexport) void __cdecl resampleSpecharm(float* avgSpecharm, float* specharm, int length, float* steadiness, float spacing, short flags, float* output, segmentTiming timings, engineCfg config)
+__declspec(dllexport) void __cdecl resampleSpecharm(float* avgSpecharm, float* specharm, int length, float* steadiness, float spacing, int startCap, int endCap, float* output, segmentTiming timings, engineCfg config)
 {
+    printf("flags: %i, %i\n", startCap, endCap);
     float* buffer = (float*) malloc(timings.windowEnd * config.frameSize * sizeof(float));
     //loop specharm
     loopSamplerSpecharm(specharm, length, buffer, timings.windowEnd, spacing, config);
@@ -33,8 +34,9 @@ __declspec(dllexport) void __cdecl resampleSpecharm(float* avgSpecharm, float* s
         }
     }
     //fade in sample if required
-    if (flags % 2 == 0)
+    if (startCap == 0)
     {
+        printf("fade in\n");
         float factor = -log2f((float)(timings.start2 - timings.start1) / (float)(timings.start3 - timings.start1));
         for (int i = timings.windowStart; i < timings.windowStart + timings.start3 - timings.start1; i++)
         {
@@ -49,8 +51,9 @@ __declspec(dllexport) void __cdecl resampleSpecharm(float* avgSpecharm, float* s
         }
     }
     //fade out sample if required
-    if ((flags / 2) % 2 == 0)
+    if (endCap == 0)
     {
+        printf("fade out\n");
         float factor = -log2f((float)(timings.end3 - timings.end2) / (float)(timings.end3 - timings.end1));
         for (int i = timings.windowEnd + timings.end1 - timings.end3; i < timings.windowEnd; i++)
         {
@@ -73,7 +76,7 @@ __declspec(dllexport) void __cdecl resampleSpecharm(float* avgSpecharm, float* s
 }
 
 //C implementation of the ESPER pitch resampler. Respects loop spacing setting and start/end fading flags.
-__declspec(dllexport) void __cdecl resamplePitch(int* pitchDeltas, int length, float pitch, float spacing, short flags, float* output, int requiredSize, segmentTiming timings)
+__declspec(dllexport) void __cdecl resamplePitch(short* pitchDeltas, int length, float pitch, float spacing, int startCap, int endCap, float* output, int requiredSize, segmentTiming timings)
 {
     //loop pitch
     loopSamplerPitch(pitchDeltas, length, output, requiredSize, spacing);
@@ -83,7 +86,7 @@ __declspec(dllexport) void __cdecl resamplePitch(int* pitchDeltas, int length, f
         *(output + i) -= pitch;
     }
     //fade in if required
-    if (flags % 2 == 0)
+    if (startCap == 0)
     {
         float factor = -log2f((float)(timings.start2 - timings.start1) / (float)(timings.start3 - timings.start1));
         for (int i = 0; i < timings.start3 - timings.start1; i++)
@@ -92,7 +95,7 @@ __declspec(dllexport) void __cdecl resamplePitch(int* pitchDeltas, int length, f
         }
     }
     //fade out if required
-    if ((flags / 2) % 2 == 0)
+    if (endCap == 0)
     {
         float factor = -log2f((float)(timings.end3 - timings.end2) / (float)(timings.end3 - timings.end1));
         for (int i = requiredSize - timings.end3 + timings.end1; i < requiredSize; i++)

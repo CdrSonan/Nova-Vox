@@ -11,4 +11,4 @@
 
 void loopSamplerSpecharm(float* input, int length, float* output, int targetLength, float spacing, engineCfg config);
 
-void loopSamplerPitch(int* input, int length, float* output, int targetLength, float spacing);
+void loopSamplerPitch(short* input, int length, float* output, int targetLength, float spacing);
