@@ -69,6 +69,8 @@ class NovaVoxUI(Widget):
                 middleLayer.updateAudioBuffer(change.track, change.index, torch.zeros([change.value,]))
             elif change.type == "deletion":
                 middleLayer.deletions.pop(0)
+            elif change.type == "noteDeletion":
+                middleLayer.trackList[change.track].offsets.pop(0)
             elif change.type == "error":
                 handleRendererException(change.value)
         except Exception as e:

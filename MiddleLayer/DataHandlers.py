@@ -72,6 +72,7 @@ class Track():
         self.mixinVB = None
         self.nodegraph = Nodegraph()
         self.borders = [0, 1, 2]
+        self.offsets = []
         self.length = 5000
         self.phonemeLengths = dict()
         tmpVb = LiteVoicebank(self.vbPath)

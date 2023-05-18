@@ -419,6 +419,7 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
         if pause and offset > 0:
             self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
+        self.trackList[self.activeTrack].offsets.append((phonIndex, offset))
         self.submitOffset(False, phonIndex, offset, addition)
                 
         start, end = recalculateBorders(index, self.trackList[self.activeTrack], None)
@@ -768,9 +769,14 @@ class MiddleLayer(Widget):
                 return None
             elif i < track:
                 track -= 1
+        for i in self.trackList[track].offsets:
+            if i[0] <= index:
+                index += i[1]
         for i in self.trackList[track].notes:
             if i.phonemeEnd > index:
                 break
+        else:
+            return
         if i.reference:
             i.reference.updateStatus(index, value)
     
