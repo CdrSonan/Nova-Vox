@@ -39,11 +39,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     if settings["accelerator"] == "CPU":
         device_rs = torch.device("cpu")
         device_ai = torch.device("cpu")
-    elif settings["accelerator"] == "Hybrid":
-        device_rs = torch.device("cpu")
-        device_ai = torch.device("cuda")
     elif settings["accelerator"] == "GPU":
-        device_rs = torch.device("cuda")
+        device_rs = torch.device("cpu")
         device_ai = torch.device("cuda")
     else:
         print("could not read accelerator setting. Accelerator has been set to CPU by default.")

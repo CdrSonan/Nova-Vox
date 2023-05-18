@@ -68,7 +68,7 @@ def getLanguage():
         #settings side panel
         locale["language"] = "Language:"
         locale["accelerator"] = "Accelerator:"
-        locale["hybrid"] = "hybrid"
+        #locale["hybrid"] = "hybrid"
         locale["TPU"] = "Tensor Cores:"
         locale["enabled"] = "enabled"
         locale["disabled"] = "disabled"
@@ -146,7 +146,7 @@ def getLanguage():
         #settings side panel
         locale["language"] = "言語:"
         locale["accelerator"] = "アクセラレータ:"
-        locale["hybrid"] = "ハイブリッド"
+        #locale["hybrid"] = "ハイブリッド"
         locale["TPU"] = "Tensorのコーア:"
         locale["enabled"] = "使用可能"
         locale["disabled"] = "使用無効"

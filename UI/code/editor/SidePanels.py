@@ -321,10 +321,7 @@ class SettingsSidePanel(CursorAwareView):
 
         settings = readSettings()
         self.ids["settings_lang"].text = settings["language"]
-        if settings["accelerator"] == loc["hybrid"]:
-            self.ids["settings_accel"].text = "hybrid"
-        else:
-            self.ids["settings_accel"].text = settings["accelerator"]
+        self.ids["settings_accel"].text = settings["accelerator"]
         if settings["tensorcores"] == "disabled":
             self.ids["settings_tcores"].text = loc["disabled"]
         else:
@@ -358,10 +355,7 @@ class SettingsSidePanel(CursorAwareView):
         else:
             audioDevice = self.audioDeviceNames[0]
             
-        if self.ids["settings_accel"].text == loc["hybrid"]:
-            accel = "hybrid"
-        else:
-            accel = self.ids["settings_accel"].text
+        accel = self.ids["settings_accel"].text
         if self.ids["settings_tcores"].text == loc["disabled"]:
             tcores = "disabled"
         else:

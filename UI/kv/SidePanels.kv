@@ -328,7 +328,7 @@
             text_autoupdate: True
             size_hint_y: None
             height: 30 * app.root.uiScale
-            values: ["CPU", "GPU", app.root.loc["hybrid"]]
+            values: ["CPU", "GPU"]
             on_text: self.parent.parent.restartRenderProcess()
         Label:
             size_hint_y: None
