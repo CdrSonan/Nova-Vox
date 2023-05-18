@@ -117,6 +117,7 @@ class HarmPredAi(nn.Module):
     def forward(self, harm:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next harmonics batch in a sequence"""
         
+        print("pred fwd")
         print(torch.isnan(harm).sum().item())
         x = harm.float().to(self.device)
         print(torch.isnan(x).sum().item())

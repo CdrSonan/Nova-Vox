@@ -47,10 +47,12 @@ def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tenso
     return excitation.transpose(0, 1)
 
 def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+    print("resampling specharm")
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         offset = 0
     else:
         offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm.size()[0] / 2)
+        print(torch.isnan(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm).sum().item())
     if vocalSegment.startCap:
         windowStart = offset
     else:
@@ -83,9 +85,12 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                timings,
                                global_consts.config)
+    print(torch.isnan(output).sum().item())
+    print(output[0], output[-1], output[:, 0], output[:, -1])
+    print("resampling done")
     return output
     
-def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the specharm of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
@@ -120,13 +125,14 @@ def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.
         slope = torch.pow(slope, factor)
         specharm[vocalSegment.end1 - vocalSegment.end3:, global_consts.nHarmonics + 2:] *= slope.unsqueeze(1)
         specharm[vocalSegment.end1 - vocalSegment.end3:, :int(global_consts.nHarmonics / 2) + 1] *= slope.unsqueeze(1)
+    print(specharm[0], specharm[-1], specharm[:, 0], specharm[:, -1])
     return specharm
 
 def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,], device = device)
     phoneme = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0]
-    requiredSize = math.ceil(torch.max(phoneme.pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize
+    requiredSize = math.ceil(torch.max(phoneme.pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1)
     output = torch.zeros([requiredSize,], device = device, dtype = torch.float32)
     timings = C_Bridge.segmentTiming(start1 = vocalSegment.start1,
                                      start2 = vocalSegment.start2,
@@ -140,7 +146,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     phoneme = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0]
     C_Bridge.resampler.resamplePitch(ctypes.cast(phoneme.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_short)),
                                int(phoneme.pitchDeltas.size()[0]),
-                               phoneme.pitch.item(),
+                               ctypes.c_float(phoneme.pitch.item()),
                                ctypes.c_float(vocalSegment.repetititionSpacing.item()),
                                int(vocalSegment.startCap),
                                int(vocalSegment.endCap),
@@ -148,7 +154,6 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                requiredSize,
                                timings)
     return output
-    
 
 def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the pitch curve of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
@@ -169,5 +174,5 @@ def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Ten
         factor = math.log(0.5, (vocalSegment.end3 - vocalSegment.end2) / (vocalSegment.end3 - vocalSegment.end1))
         slope = torch.linspace(1, 0, (vocalSegment.end3 - vocalSegment.end1), device = device)
         slope = torch.pow(slope, factor)
-        pitchDeltas[vocalSegment.end1 - vocalSegment.start1:vocalSegment.end3 - vocalSegment.start1] *= slope
+        pitchDeltas[vocalSegment.end1 - vocalSegment.start1:] *= slope
     return pitchDeltas

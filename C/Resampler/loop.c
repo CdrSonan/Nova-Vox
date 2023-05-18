@@ -60,7 +60,7 @@ void loopSamplerSpecharm(float* input, int length, float* output, int targetLeng
             }
         }
         //add final window, which has a length below the buffer size. Use buffer data if the window is still long enough to require a transition, otherwise fall back to input data
-        if (lastWin > effSpacing)
+        if (lastWin >= effSpacing)
         {
             for (int i = 0; i < lastWin * config.frameSize; i++)
             {
