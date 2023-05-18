@@ -85,6 +85,7 @@
         background_normal: "UI/assets/TrackList/SingerBGNew.png"
         background_down: "UI/assets/TrackList/SingerBGNew.png"
         group: "SingerPanels"
+        allow_no_selection: False
         on_state: if self.state == 'down': self.parent.changeTrack()
         Label:
             size_hint: (1, None)

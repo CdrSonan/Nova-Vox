@@ -85,6 +85,7 @@ class MiddleLayer(Widget):
 
 
         self.importVoicebankNoSubmit(path, name, inImage)
+        self.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
         self.submitAddTrack(self.trackList[-1])
 
     def importVoicebankNoSubmit(self, path:str, name:str, inImage) -> None:
@@ -167,6 +168,7 @@ class MiddleLayer(Widget):
         image = inImage
         self.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
         self.audioBuffer.append(deepcopy(self.audioBuffer[index]))
+        self.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
         self.submitDuplicateTrack(index)
 
     def deleteTrack(self, index:int) -> None:
@@ -174,14 +176,16 @@ class MiddleLayer(Widget):
 
         self.trackList.pop(index)
         self.audioBuffer.pop(index)
-        if self.activeTrack != None:
-            if index <= self.activeTrack and index > 0:
-                self.changeTrack(self.activeTrack - 1)
+        toRemove = None
         for i in self.ids["singerList"].children:
-            if i.index == index:
-                i.parent.remove_widget(i)
             if i.index > index:
-                i.index = i.index - 1
+                i.index -= 1
+            elif i.index == index:
+                toRemove = i
+            elif i.index == index - 1:
+                i.children[0].trigger_action(duration = 0)
+        if toRemove != None:
+            self.ids["singerList"].remove_widget(toRemove)
         self.deletions.append(index)
         self.submitRemoveTrack(index)
         if len(self.trackList) == 0:
