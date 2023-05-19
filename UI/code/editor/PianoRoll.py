@@ -661,13 +661,7 @@ class PianoRoll(ScrollView):
                         else:
                             index += 1
                             xQuant += 1
-                    newNote = Note(index = index, xPos = xQuant, yPos = y, length = 100, height = self.yScale)
-                    middleLayer.addNote(index, x, y, newNote)
-                    self.children[0].add_widget(newNote, index = 5)
-                    self.notes.append(newNote)
-                    touch.ud["noteIndex"] = index
-                    touch.ud["grabMode"] = "end"
-                    touch.ud["initialPos"] = coord
+                    touch.ud["newNote"] = (index, xQuant, y, coord)
                 elif middleLayer.mode == "timing":
                     def getNearestBorder(x):
                         nextBorder = 0
@@ -709,6 +703,15 @@ class PianoRoll(ScrollView):
             x = int(coord[0] / self.xScale)
             y = int(coord[1] / self.yScale)
             yMod = coord[1]
+            if "newNote" in touch.ud and self.to_local(touch.x, touch.y) != touch.ud["newNote"][3]:
+                newNote = Note(index = touch.ud["newNote"][0], xPos = touch.ud["newNote"][1], yPos = touch.ud["newNote"][2], length = 100, height = self.yScale)
+                middleLayer.addNote(touch.ud["newNote"][0], touch.ud["newNote"][1], touch.ud["newNote"][2], newNote)
+                self.children[0].add_widget(newNote, index = 5)
+                self.notes.append(newNote)
+                touch.ud["noteIndex"] = touch.ud["newNote"][0]
+                touch.ud["grabMode"] = "end"
+                touch.ud["initialPos"] = touch.ud["newNote"][3]
+                del touch.ud["newNote"]
             if "noteIndex" in touch.ud:
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
                 if abs(touch.ud["initialPos"][0] - coord[0]) < 4 and abs(touch.ud["initialPos"][1] - coord[1]) < 4:
