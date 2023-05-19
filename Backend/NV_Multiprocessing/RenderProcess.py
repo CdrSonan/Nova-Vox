@@ -15,6 +15,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     import Backend.Resampler.Resamplers as rs
     from copy import copy
     from Backend.DataHandler.VocalSegment import VocalSegment
+    from Backend.DataHandler.VoicebankManager import VoicebankManager
     from Backend.VB_Components.Voicebank import LiteVoicebank
     from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
     from Backend.NV_Multiprocessing.Caching import DenseCache, SparseCache
@@ -49,21 +50,22 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
 
     #setting up initial data structures
     statusControl = statusControlIn
+    voicebankManager = VoicebankManager()
     voicebankList = []
     for vbPath in voicebankListIn:
-        voicebankList.append(LiteVoicebank(vbPath, device = device_ai))
+        voicebankList.append(voicebankManager.getVoicebank(vbPath, device_ai))
     nodeGraphList = nodeGraphListIn#TODO: add node unwrapping
     inputList = inputListIn
     connection = connectionIn
     remoteConnection = remoteConnectionIn
 
     def updateFromMain(change, lastZero):
-        global statusControl, voicebankList, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
+        global statusControl, voicebankList, voicebankManager, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
             statusControl.append(SequenceStatusControl(change.data[2]))
-            voicebankList.append(LiteVoicebank(change.data[0], device = device_ai))
+            voicebankList.append(voicebankManager.getVoicebank(change.data[0], device_ai))
             nodeGraphList.append(change.data[1])
             inputList.append(change.data[2])
             if settings["cachingmode"] == "best rendering speed":
@@ -75,6 +77,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         elif change.type == "removeTrack":
             del statusControl[change.data[0]]
             del voicebankList[change.data[0]]
+            voicebankManager.clean()
             del nodeGraphList[change.data[0]]
             del inputList[change.data[0]]
             if settings["cachingmode"] == "best rendering speed":
@@ -95,7 +98,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 pitchCache.append(pitchCache[change.data[0]].duplicate())
         elif change.type == "changeVB":
             del voicebankList[change.data[0]]
-            voicebankList.insert(change.data[0], LiteVoicebank(change.data[1], device = device_ai))
+            voicebankList.insert(change.data[0], voicebankManager.getVoicebank(change.data[1], device_ai))
+            voicebankManager.clean()
             statusControl[change.data[0]].rs *= 0
             statusControl[change.data[0]].ai *= 0
         elif change.type == "nodeUpdate":
