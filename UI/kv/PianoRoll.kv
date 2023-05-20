@@ -10,7 +10,7 @@
 #:import fullRoot UI.code.editor.Util.fullRoot
 
 <PianoRollOctaveBackground>:
-    size_hint: (None, 0.25)
+    size_hint: (None, 0.125)
     width : 100
     canvas:
         #piano roll background with darker background for semitone keys
@@ -44,7 +44,7 @@
 
 <PianoRollOctave>:
     #tilable keyboard graphic for the left side of the piano roll
-    size_hint: (None, 0.25)
+    size_hint: (None, 0.125)
     width : 100
     Image:
         x: self.parent.x + self.parent.parent.parent.scroll_x * (self.parent.parent.width - self.parent.parent.parent.width)
@@ -287,40 +287,72 @@
         x: self.parent.x
         y: self.parent.y
         size_hint: (None, None)
-        size: (self.parent.length * self.parent.xScale, 48 * self.parent.yScale)
+        size: (self.parent.length * self.parent.xScale, 96 * self.parent.yScale)
         PianoRollOctaveBackground:
             x: self.parent.x
             y: self.parent.y
-            index: 2
+            index: 0
         PianoRollOctaveBackground:
             x: self.parent.x
             y: self.parent.y + 12 * self.parent.parent.yScale
-            index: 3
+            index: 1
         PianoRollOctaveBackground:
             x: self.parent.x
             y: self.parent.y + 24 * self.parent.parent.yScale
-            index: 4
+            index: 2
         PianoRollOctaveBackground:
             x: self.parent.x
             y: self.parent.y + 36 * self.parent.parent.yScale
+            index: 3
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 48 * self.parent.parent.yScale
+            index: 4
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 60 * self.parent.parent.yScale
             index: 5
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 72 * self.parent.parent.yScale
+            index: 6
+        PianoRollOctaveBackground:
+            x: self.parent.x
+            y: self.parent.y + 84 * self.parent.parent.yScale
+            index: 7
         TimingBar:
             id: timingBar
         PianoRollOctave:
             x: self.parent.x
             y: self.parent.y
-            octave: 2
+            octave: 0
         PianoRollOctave:
             x: self.parent.x
             y: self.parent.y + 12 * self.parent.parent.yScale
-            octave: 3
+            octave: 1
         PianoRollOctave:
             x: self.parent.x
             y: self.parent.y + 24 * self.parent.parent.yScale
-            octave: 4
+            octave: 2
         PianoRollOctave:
             x: self.parent.x
             y: self.parent.y + 36 * self.parent.parent.yScale
+            octave: 3
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 48 * self.parent.parent.yScale
+            octave: 4
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 60 * self.parent.parent.yScale
             octave: 5
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 72 * self.parent.parent.yScale
+            octave: 6
+        PianoRollOctave:
+            x: self.parent.x
+            y: self.parent.y + 84 * self.parent.parent.yScale
+            octave: 7
         PlaybackHead:
             id: playbackHead

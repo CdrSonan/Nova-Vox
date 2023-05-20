@@ -23,7 +23,7 @@ def noteToPitch(data:torch.Tensor) -> torch.Tensor:
     """Utility function for converting the y position of a note to its corresponding pitch, following the MIDI standard."""
 
     #return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
-    return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 36)) / torch.full_like(data, 12)) * 440)
+    return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 12)) / torch.full_like(data, 12)) * 440)
 
 def binarySearch(array, expression, length) -> int:
     """performs a binary search across array, returning the index of the first element where expression evaluates to True.
