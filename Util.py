@@ -6,6 +6,7 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 from math import floor
+from numpy import array as nparray
 import torch
 import global_consts
 
@@ -38,3 +39,21 @@ def binarySearch(array, expression, length) -> int:
         else:
             low = mid
     return high
+
+def convertToFormat(array, arrayFormat:str = "list") -> list:
+    """converts a torch tensor or list to a different format. Can be "list", "numpy" or "torch"."""
+    
+    if array.__class__ == list:
+        if arrayFormat == "list":
+            return array
+        if arrayFormat == "numpy":
+            return nparray(array)
+        if arrayFormat == "torch":
+            return torch.tensor(array)
+    else:
+        if arrayFormat == "list":
+            return array.cpu().tolist()
+        if arrayFormat == "numpy":
+            return array.cpu().numpy()
+        if arrayFormat == "torch":
+            return array
