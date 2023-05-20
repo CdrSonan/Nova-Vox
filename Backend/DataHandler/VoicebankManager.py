@@ -19,7 +19,6 @@ class VoicebankManager():
 
         if path not in self.voicebanks.keys():
             self.voicebanks[path] = LiteVoicebank(path, device)
-        print(self.voicebanks)
         return self.voicebanks[path]
     
     def clean(self) -> None:
@@ -27,8 +26,7 @@ class VoicebankManager():
 
         toDelete = []
         for i in self.voicebanks:
-            if getrefcount(i) == 2:
+            if getrefcount(self.voicebanks[i]) == 3:
                 toDelete.append(i)
         while len(toDelete) > 0:
             self.voicebanks.pop(toDelete.pop())
-        print(self.voicebanks)

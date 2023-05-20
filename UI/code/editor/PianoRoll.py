@@ -674,6 +674,7 @@ class PianoRoll(ScrollView):
                     border = getNearestBorder(x)
                     touch.ud["border"] = border
                     touch.ud["offset"] = x - middleLayer.trackList[middleLayer.activeTrack].borders[border]
+                    touch.ud["shift"] = middleLayer.shift
                 elif middleLayer.mode == "pitch":
                     with self.children[0].canvas:
                         Color(0, 0, 1)
@@ -795,8 +796,17 @@ class PianoRoll(ScrollView):
                     if middleLayer.trackList[middleLayer.activeTrack].borders[border] >= middleLayer.trackList[middleLayer.activeTrack].borders[border + 1]:
                         applyBorder(border + 1, newPos + 1, False, True)
 
-            newPos = x - touch.ud["offset"]
-            applyBorder(touch.ud["border"], newPos, True, True)
+            if touch.ud["shift"]:
+                baseBorder = floor(touch.ud["border"] / 3) * 3
+                offsets = []
+                for i in range(3):
+                    offsets.append(middleLayer.trackList[middleLayer.activeTrack].borders[baseBorder + i] - middleLayer.trackList[middleLayer.activeTrack].borders[touch.ud["border"]])
+                for i in range(3):
+                    newPos = x - touch.ud["offset"] + offsets[i]
+                    applyBorder(baseBorder + i, newPos, True, True)
+            else:
+                newPos = x - touch.ud["offset"]
+                applyBorder(touch.ud["border"], newPos, True, True)
             middleLayer.submitFinalize()
         elif middleLayer.mode == "pitch":
             p = x - int(touch.ud['startPoint'][0] / self.xScale)

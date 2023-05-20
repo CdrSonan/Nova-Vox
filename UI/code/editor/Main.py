@@ -81,9 +81,9 @@ class NovaVoxUI(Widget):
         """signals the middleLAyer a change of the input mode and prompts the required UI updates"""
 
         global middleLayer
-        middleLayer.mode = mode
-        if middleLayer.activeTrack == None:
+        if middleLayer.activeTrack == None or middleLayer.mode == mode:
             return
+        middleLayer.mode = mode
         middleLayer.updateParamPanel()
         middleLayer.changePianoRollMode()
 

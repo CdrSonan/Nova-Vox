@@ -60,7 +60,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     remoteConnection = remoteConnectionIn
 
     def updateFromMain(change, lastZero):
-        global statusControl, voicebankList, voicebankManager, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
+        global statusControl, voicebankList, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
