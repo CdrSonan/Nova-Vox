@@ -44,6 +44,17 @@ class Note(ManagedToggleButton):
     length = NumericProperty()
     inputMode = BooleanProperty()
     statusBars = ListProperty()
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(mouse_pos=self.on_mouseover)
+        self.propertiesOpen = False
+
+    def on_mouseover(self, window, pos):
+        super().on_mouseover(window, pos)
+        if self.propertiesOpen and not (self.collide_point(*self.to_widget(*pos)) or self.children[0].collide_point(*self.children[0].to_widget(*pos))):
+            self.remove_widget(self.children[0])
+            self.propertiesOpen = False
 
     def on_parent(self, note, parent) -> None:
         """redraw call during initial note creation"""
@@ -134,10 +145,12 @@ class Note(ManagedToggleButton):
         """creates or removes the note's context menu when it is selected or deselected"""
 
         super().on_state(screen, state)
-        if state == "normal":
+        if state == "normal" and self.propertiesOpen:
             self.remove_widget(self.children[0])
-        else:
+            self.propertiesOpen = False
+        elif state == "down" and not self.propertiesOpen:
             self.add_widget(NoteProperties(reference = self))
+            self.propertiesOpen = True
 
     def changeInputMode(self) -> None:
         """switches the note's input mode between text and phonemes"""
@@ -704,15 +717,19 @@ class PianoRoll(ScrollView):
             x = int(coord[0] / self.xScale)
             y = int(coord[1] / self.yScale)
             yMod = coord[1]
-            if "newNote" in touch.ud and self.to_local(touch.x, touch.y) != touch.ud["newNote"][3]:
-                newNote = Note(index = touch.ud["newNote"][0], xPos = touch.ud["newNote"][1], yPos = touch.ud["newNote"][2], length = 100, height = self.yScale)
-                middleLayer.addNote(touch.ud["newNote"][0], touch.ud["newNote"][1], touch.ud["newNote"][2], newNote)
-                self.children[0].add_widget(newNote, index = 5)
-                self.notes.append(newNote)
-                touch.ud["noteIndex"] = touch.ud["newNote"][0]
-                touch.ud["grabMode"] = "end"
-                touch.ud["initialPos"] = touch.ud["newNote"][3]
-                del touch.ud["newNote"]
+            if "newNote" in touch.ud:
+                if self.to_local(touch.x, touch.y) != touch.ud["newNote"][3]:
+                    newNote = Note(index = touch.ud["newNote"][0], xPos = touch.ud["newNote"][1], yPos = touch.ud["newNote"][2], length = 100, height = self.yScale)
+                    middleLayer.addNote(touch.ud["newNote"][0], touch.ud["newNote"][1], touch.ud["newNote"][2], newNote)
+                    self.children[0].add_widget(newNote, index = 5)
+                    self.notes.append(newNote)
+                    touch.ud["noteIndex"] = touch.ud["newNote"][0]
+                    touch.ud["grabMode"] = "end"
+                    touch.ud["initialPos"] = touch.ud["newNote"][3]
+                    del touch.ud["newNote"]
+                else:
+                    for i in self.notes:
+                        i.state = "normal"
             if "noteIndex" in touch.ud:
                 note = middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference
                 if abs(touch.ud["initialPos"][0] - coord[0]) < 4 and abs(touch.ud["initialPos"][1] - coord[1]) < 4:
