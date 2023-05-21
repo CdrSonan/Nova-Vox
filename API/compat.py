@@ -13,7 +13,27 @@ def getPerNoteData(arrayFormat:str = "list", useNominalTimings:bool = False) -> 
     Arguments:
         arrayFormat {str} -- The format of the returned arrays. Can be "list", "numpy" or "torch".
         
-        useNominalTimings {bool} -- Whether to use the nominal timings of the notes instead of the actual timing markers."""
+        useNominalTimings {bool} -- Whether to use the nominal timings of the notes instead of the actual timing markers.
+        
+    Returns:
+        list -- A list of tracks. Each track is a dictionary with the following keys:
+            volume {float} -- The volume of the track. Between 0 and 1.2.
+            voicebank {str} -- The path to the voicebank used by the track.
+            mixinVoicebank {str} -- The path to the voicebank used for the mix-in feature by the track.
+            notes {list} -- A list of notes. Each note is a dictionary with the following keys:
+                start {int} -- The start time of the note in engine ticks. Each tick equals 4ms.
+                end {int} -- The end time of the note in engine ticks. Each tick equals 4ms.
+                pitch {int} -- The MIDI pitch of the note in semitones, lowered by one octave.
+                phonemes {list} -- A list of the phonemes the note contains. Each phoneme is a string.
+                pitchCurve {array} -- The pitch curve of the note. The format depends on the arrayFormat argument.
+                breathiness {array} -- The breathiness curve of the note. The format depends on the arrayFormat argument.
+                steadiness {array} -- The steadiness curve of the note. The format depends on the arrayFormat argument.
+                aiBalance {array} -- The AI balance curve of the note. The format depends on the arrayFormat argument.
+                loopOverlap {array} -- The loop overlap of each phoneme of the note. The format depends on the arrayFormat argument.
+                loopOffset {array} -- The loop offset of each phoneme of the note. The format depends on the arrayFormat argument.
+                vibratoSpeed {array} -- The vibrato speed curve of the note. The format depends on the arrayFormat argument.
+                vibratoStrength {array} -- The vibrato strength curve of the note. The format depends on the arrayFormat argument.
+        Unless otherwise specified above, all arrays contain one element per engine tick, or 4ms, and are between -1 and 1 (inclusive)."""
     
     global middleLayer
     from UI.code.editor.Main import middleLayer

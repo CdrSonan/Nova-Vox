@@ -97,7 +97,7 @@ class Track():
             self.vibratoStrength.size()[0]
         )
         self.volume = max(self.volume, 0.)
-        self.volume = min(self.volume, 2.)
+        self.volume = min(self.volume, 1.2)
         self.pauseThreshold = max(self.pauseThreshold, 0)
         self.pitch = ensureTensorLength(self.pitch, self.length, -1)
         self.basePitch = ensureTensorLength(self.basePitch, self.length, -1)
