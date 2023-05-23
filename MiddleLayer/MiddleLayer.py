@@ -710,7 +710,7 @@ class MiddleLayer(Widget):
         self.submitChangeLength(True, length)
 
     def validate(self) -> None:
-        """validates the data held by the middle layer, and fixes any errors encountered"""
+        """validates the data held by the middle layer, fixes any errors encountered, and restarts the renderer"""
 
         for index, track in enumerate(self.trackList):
             track.validate()

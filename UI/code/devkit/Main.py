@@ -21,6 +21,7 @@ from UI.code.devkit.Metadata import MetadataUi
 from UI.code.devkit.PhonemeDict import PhonemedictUi
 from UI.code.devkit.CrfAi import CrfaiUi
 from UI.code.devkit.PredAi import PredaiUi
+from UI.code.devkit.WordDict import WorddictUi
 from UI.code.devkit.UtauImport import UtauImportUi
 from UI.code.devkit.AdvSettings import AdvSettingsUi
 from UI.code.devkit.Widgets import Frame, Label, Button
@@ -151,6 +152,8 @@ class RootUi(Frame):
     
     def onWorddictPress(self) -> None:
         logging.info("Worddict button callback")
+        self.worddictUi = WorddictUi(tkinter.Toplevel())
+        self.worddictUi.mainloop()
 
     def onUtauimportPress(self) -> None:
         """opens the UTAU import tool when the UTAU import tool button in the main window is pressed"""

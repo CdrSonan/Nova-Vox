@@ -338,7 +338,9 @@ class LiteVoicebank():
         
         parameters: currently a placeholder. Will contain the Voicebank's Ai-driven parameters.
         
-        wordDict: a Dictionary containing overrides for NovaVox's default dictionary
+        wordDict: a tuple of a Dictionary containing overrides for the pronunciation of individual words,
+                  and a list containing dictionaries of syllable mappings used when no override is present.
+                  Within this list, the dictionaries are ordered by syllable length.
         
         stagedCrfTrainSamples: a List object containing the samples staged to be used in phoneme crossfade Ai training
 
@@ -377,7 +379,7 @@ class LiteVoicebank():
         self.device = device
         self.ai = AIWrapper(device, torch.load(filepath, map_location = self.device)["hparams"])
         self.parameters = []
-        self.wordDict = dict()
+        self.wordDict = (dict(), [])
         self.stagedCrfTrainSamples = []
         self.stagedPredTrainSamples = []
         if filepath != None:
