@@ -174,9 +174,9 @@ class ParamSidePanel(CursorAwareView):
     def listParams(self) -> None:
         """reads a list of available parameters from disk and displays it"""
 
-        paramPath = os.path.join(readSettings()["dataDir"], "Parameters")
+        paramPath = os.path.join(readSettings()["datadir"], "Parameters")
         if os.path.isdir(paramPath) == False:
-            popup = ManagedPopup(title = loc["error"], message = loc["dataDir_err"])
+            popup = ManagedPopup(title = loc["error"], message = loc["datadir_err"])
             popup.open()
             return
         files = os.listdir(paramPath)

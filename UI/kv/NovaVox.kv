@@ -126,7 +126,8 @@
             size: root.width - 50 * root.uiScale, root.height - 50 * root.uiScale
             Splitter:
                 #vertical splitter between singer + parameter lists, and piano roll + parameter curve(s)
-                size_hint: (0.25, 1)
+                id: mainSplitter
+                size_hint: (root.uiCfg["mainSplitter"], 1)
                 strip_cls: Factory.get("ManagedSplitterStrip")
                 sizable_from: "right"
                 rescale_with_parent: True
@@ -137,7 +138,8 @@
                     orientation: "vertical"
                     Splitter:
                         #horizontal splitter between singer list and parameter list
-                        size_hint: (1, 0.75)
+                        id: sideSplitter
+                        size_hint: (1, root.uiCfg["sideSplitter"])
                         strip_cls: Factory.get("ManagedSplitterStrip")
                         sizable_from: "bottom"
                         rescale_with_parent: True
@@ -191,7 +193,8 @@
                 size_hint: (0.75, 1)
                 Splitter:
                     #horizontal splitter between piano roll and parameter curve(s)
-                    size_hint: (1, 0.75)
+                    id: pianoSplitter
+                    size_hint: (1, root.uiCfg["pianoSplitter"])
                     strip_cls: Factory.get("ManagedSplitterStrip")
                     sizable_from: "bottom"
                     rescale_with_parent: True

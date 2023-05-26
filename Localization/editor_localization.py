@@ -89,6 +89,9 @@ def getLanguage():
         #license panel
         locale["NV_license_title"] = "Nova-Vox Contributors and Licenses"
             #omitted placeholder text
+        #unsaved changes warning
+        locale["unsaved_changes"] = "Unsaved Changes"
+        locale["unsaved_changes_msg"] = "You have unsaved changes. Do you want to save them before exiting?"
 
     if lang == "jp":
         #API interface
@@ -167,5 +170,8 @@ def getLanguage():
         #license panel
         locale["NV_license_title"] = "Nova-Voxの投稿者そして免許"
             #omitted placeholder text
+        #unsaved changes warning
+        locale["unsaved_changes"] = ""
+        locale["unsaved_changes_msg"] = ""
         
     return locale

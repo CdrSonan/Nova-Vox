@@ -7,12 +7,19 @@
 
 import torch
 
+from csv import reader, writer
+from tkinter.messagebox import askyesno
+
+from os import path
+from ast import literal_eval
+
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 from kivy.properties import NumericProperty, ColorProperty, ObjectProperty, DictProperty
 
 from MiddleLayer.MiddleLayer import MiddleLayer
 from MiddleLayer.IniParser import readSettings
+from MiddleLayer.FileIO import saveNVX
 from MiddleLayer.ErrorHandler import handleMainException, handleRendererException
 
 from Localization.editor_localization import getLanguage
@@ -29,6 +36,16 @@ class NovaVoxUI(Widget):
     """class of the Root UI of the Nova-Vox editor. At program startup or after a reset, a single instance of this class is created, which then creates all UI elements as its children"""
 
     settings = readSettings()
+    uiCfg = {}
+    try:
+        with open(path.join(settings["datadir"], "ui.cfg"), "r") as f:
+            uiCfgReader = reader(f)
+            for line in uiCfgReader:
+                uiCfg[line[0]] = literal_eval(line[1])
+    except FileNotFoundError:
+        uiCfg = {"mainSplitter": 0.25,
+                 "sideSplitter": 0.75,
+                 "pianoSplitter": 0.75}
     uiScale = NumericProperty(float(settings["uiscale"]))
     toolColor = ColorProperty(eval(settings["toolcolor"]))
     accColor = ColorProperty(eval(settings["acccolor"]))
@@ -47,6 +64,7 @@ class NovaVoxUI(Widget):
         self._keyboard.bind(on_key_down = self._on_keyboard_down)
         self._keyboard.bind(on_key_up = self._on_keyboard_up)
         self._keyboard.target = None
+        Window.on_request_close = self._on_request_close
 
     def update(self, deltatime:float) -> None:
         """periodically called update function tied to UI updates that reads changes from the rendering process and passes them to the middleLayer"""
@@ -164,3 +182,26 @@ class NovaVoxUI(Widget):
         if keycode[0] == 307 or keycode[0] == 308: 
             middleLayer.alt = False
         return True
+
+    def _on_request_close(self, *args) -> None:
+        """called when the window is closed. Prompts the middleLayer to stop the rendering process, saves the current project, and asks the user for confirmation if there are unsaved changes."""
+
+        middleLayer.manager.stop()
+        tkui = Tk()
+        tkui.withdraw()
+        if middleLayer.unsavedChanges:
+            if askyesno(loc["unsaved_changes"], loc["unsaved_changes_msg"]):
+                dir = filedialog.asksaveasfilename(defaultextension = "nvx", filetypes = (("NVX", "nvx"), (loc["all_files"], "*")))
+                if dir != "":
+                    saveNVX(dir, middleLayer)
+        tkui.destroy()
+        uiCfg = {"windowWidth":Window.width,
+                 "windowHeight":Window.height,
+                 "windowState": Window.fullscreen,
+                 "mainSplitter": self.ids["mainSplitter"].width / self.ids["mainSplitter"].parent.width,
+                 "sideSplitter": self.ids["sideSplitter"].height / self.ids["sideSplitter"].parent.height,
+                 "pianoSplitter": self.ids["pianoSplitter"].height / self.ids["pianoSplitter"].parent.height}
+        with open(path.join(readSettings()["datadir"], "ui.cfg"), "w") as f:
+            cfgWriter = writer(f)
+            cfgWriter.writerows(uiCfg.items())
+        return False

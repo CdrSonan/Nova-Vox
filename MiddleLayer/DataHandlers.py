@@ -51,6 +51,7 @@ class Track():
 
         self.volume = 1.
         self.vbPath = path
+        self.wordDict = (dict(), [])
         self.notes = []
         self.phonemes = []
         self.pitch = torch.full((5000,), -1., dtype = torch.half)
@@ -81,6 +82,7 @@ class Track():
                 self.phonemeLengths[i] = tmpVb.phonemeDict[i][0].specharm.size()[0]
             else:
                 self.phonemeLengths[i] = None
+            self.wordDict = tmpVb.wordDict
 
     def validate(self) -> None:
         """validates the data of the track, ensuring there are no inconsistencies capable of causing crashes"""

@@ -98,9 +98,24 @@ if __name__ == '__main__':
             return ui
     Window.minimum_height = 500
     Window.minimum_width = 800
-    Config.set('graphics', 'width', '1900')
-    Config.set('graphics', 'height', '1060')
-    Config.set('graphics', 'window_state', 'maximized')
+    from csv import reader
+    uiCfg = {}
+    try:
+        with open(path.join(settings["datadir"], "ui.cfg"), "r") as f:
+            uiCfgReader = reader(f)
+            for line in uiCfgReader:
+                uiCfg[line[0]] = line[1]
+    except FileNotFoundError:
+        uiCfg = {"windowHeight": "1060",
+                 "windowWidth": "1900",
+                 "windowState": "False"}
+    Config.set('graphics', 'width', uiCfg["windowWidth"])
+    Config.set('graphics', 'height', uiCfg["windowHeight"])
+    if uiCfg["windowState"] == "True":
+        windowState = "maximized"
+    else:
+        windowState = "visible"
+    Config.set('graphics', 'window_state', windowState)
     Config.set('input', 'mouse', 'mouse,disable_multitouch')
     Config.set('kivy', 'window_icon','icon/nova-vox-logo-2-color.png' )
     Config.set('kivy', 'default_font', ['MSGothic', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc'])

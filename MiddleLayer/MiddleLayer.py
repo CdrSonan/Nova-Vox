@@ -46,6 +46,7 @@ class MiddleLayer(Widget):
         from Backend.NV_Multiprocessing.Manager import RenderManager
         self.manager = RenderManager(self.trackList)
         self.ids = ids
+        self.unsavedChanges = False
         self.activeTrack = None
         self.activeParam = "steadiness"
         self.mode = OptionProperty("notes", options = ["notes", "timing", "pitch"])
@@ -622,15 +623,35 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes[index].xPos = x
         self.trackList[self.activeTrack].notes[index].yPos = y
         return self.adjustNote(index, oldLength, oldPos)
+    
+    def syllableSplit(self, word:str) -> list:
+        """splits a word into syllables using the wordDict of the loaded Voicebank. Returns a list of syllables, or None if the word cannot be split in a valid way."""
+        
+        for i in range(len(self.trackList[self.activeTrack].wordDict[1])):
+            for j in self.trackList[self.activeTrack].wordDict[1][len(self.trackList[self.activeTrack].wordDict[1]) - i - 1].keys():
+                if word.startswith(j):
+                    if len(word) == len(j):
+                        return [j]
+                    append = self.syllableSplit(word[len(j):])
+                    if append == None:
+                        return None
+                    else:
+                        return [j] + append
+        return None
+            
 
-    def changeLyrics(self, index:int, text:str) -> None:
+    def changeLyrics(self, index:int, inputText:str) -> None:
         """changes the lyrics of the note at position index of the active track to text. Performs dictionary lookup and phoneme sanitization, respecting the note's phoneme input mode."""
 
-        self.trackList[self.activeTrack].notes[index].content = text
+        self.trackList[self.activeTrack].notes[index].content = inputText
         if self.trackList[self.activeTrack].notes[index].phonemeMode:
-            text = text.split(" ")
+            text = inputText.split(" ")
+        elif inputText in self.trackList[self.activeTrack].wordDict[0]:
+            text = self.trackList[self.activeTrack].wordDict[0][inputText].split(" ")
         else:
-            text = []#TO DO: Dictionary lookup here
+            text = self.syllableSplit(inputText)
+                
+                
         phonemes = []
         for i in text:
             if i in self.trackList[self.activeTrack].phonemeLengths:

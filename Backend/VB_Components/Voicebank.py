@@ -97,7 +97,7 @@ class Voicebank():
         self.phonemeDict = dict()
         self.ai = AIWrapper(device)
         self.parameters = []
-        self.wordDict = dict()
+        self.wordDict = (dict(), [])
         self.stagedCrfTrainSamples = []
         self.stagedPredTrainSamples = []
         self.device = device
@@ -180,10 +180,7 @@ class Voicebank():
     def loadWordDict(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
 
-        if additive:
-            pass
-        else:
-            pass
+        self.wordDict = torch.load(filepath, map_location = self.device)["wordDict"]
         
     def addPhoneme(self, key:str, filepath:str) -> None:
         """adds a phoneme to the Voicebank's PhonemeDict.
@@ -445,7 +442,4 @@ class LiteVoicebank():
     def loadWordDict(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
 
-        if additive:
-            pass
-        else:
-            pass
+        self.wordDict = torch.load(filepath, map_location = self.device)["wordDict"]
