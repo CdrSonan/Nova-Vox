@@ -738,7 +738,8 @@ class MiddleLayer(Widget):
             self.audioBuffer[index] = ensureTensorLength(self.audioBuffer[index], track.length * global_consts.batchSize, 0)
         del self.deletions[:]
         self.manager.restart(self.trackList)
-        self.ids["pianoRoll"].updateTrack()
+        self.updatePianoRoll()
+        self.updateParamPanel()
 
     def submitTerminate(self) -> None:
         self.manager.sendChange("terminate", True)

@@ -104,6 +104,8 @@ if __name__ == '__main__':
         with open(path.join(settings["datadir"], "ui.cfg"), "r") as f:
             uiCfgReader = reader(f)
             for line in uiCfgReader:
+                if line == []:
+                    continue
                 uiCfg[line[0]] = line[1]
     except FileNotFoundError:
         uiCfg = {"windowHeight": "1060",

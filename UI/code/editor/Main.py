@@ -41,6 +41,8 @@ class NovaVoxUI(Widget):
         with open(path.join(settings["datadir"], "ui.cfg"), "r") as f:
             uiCfgReader = reader(f)
             for line in uiCfgReader:
+                if line == []:
+                    continue
                 uiCfg[line[0]] = literal_eval(line[1])
     except FileNotFoundError:
         uiCfg = {"mainSplitter": 0.25,
