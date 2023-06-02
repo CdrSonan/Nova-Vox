@@ -150,7 +150,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 statusControl[change.data[0]].ai[change.data[2]:change.data[2] + len(change.data[3])] *= 0
                 if change.data[1] == "phonemes":
                     for j in range(len(change.data[3])):
-                        if change.data[3][j] == "_autopause":
+                        if change.data[3][j] in ("_autopause", "pau"):
                             if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
                                 inputList[change.data[0]].startCaps[change.data[2] + j + 1] = True
                             if change.data[2] + j > 0:
@@ -207,7 +207,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 return False
 
     def pitchAdjust(spectrumInput, j, k, internalInputs, voicebank, previousShift, pitchOffset, device):
-        if internalInputs.phonemes[j] == "_autopause" or internalInputs.phonemes[j] == "pau":
+        if internalInputs.phonemes[j] in ("_autopause", "pau"):
             return spectrumInput, 0.
         steadiness = torch.pow(1. - internalInputs.steadiness[k], 2)
         targetPitch = global_consts.tripleBatchSize / (internalInputs.pitch[k] + pitchOffset * steadiness)
@@ -297,19 +297,23 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
 
                 #go through internalStatusControl lists and set all parts required to render a pause-to-pause section to the value of indicator.
                 #when caching is available, this causes them to be loaded from cache, otherwise they are re-computed.
+                print("pre:", internalStatusControl.rs, internalStatusControl.ai)
                 for k in range(1, len(internalStatusControl.rs)):
                     if internalStatusControl.rs[k] == 0 and internalStatusControl.rs[k - 1] > 0:
                         for j in range(k):
-                            if internalInputs.phonemes[k - j] == "_autopause":
+                            if internalInputs.phonemes[k - j] in ("_autopause", "pau"):
                                 break
                             internalStatusControl.rs[k - j] = indicator
                             internalStatusControl.ai[k - j] = indicator
                         for j in range(len(internalStatusControl.ai) - k):
-                            if internalInputs.phonemes[k + j] == "_autopause":
+                            if internalInputs.phonemes[k + j] in ("_autopause", "pau"):
                                 break
                             internalStatusControl.ai[k + j] = indicator
                 firstPoint = len(internalStatusControl.ai) - 1
                 lastPoint = len(internalStatusControl.ai) - 1
+                for k in range(len(internalInputs.phonemes)):
+                    if internalInputs.phonemes[k] in ("_autopause", "pau"):
+                        internalStatusControl.ai[k] = 1
                 for k, flag in enumerate(internalStatusControl.ai):
                     if flag <= 0:
                         firstPoint = k
@@ -319,6 +323,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         lastPoint = len(internalStatusControl.ai) - k - 1
                         break
 
+                print("post:", internalStatusControl.rs, internalStatusControl.ai)
                 voicebank.ai.reset()
                 previousShift = 0.
                 #TODO: reset recurrent AI Tensors
@@ -336,7 +341,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             if internalInputs.endCaps[j - 1]:
                                 processedSpectrum.write(spectrum.read(internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5]), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
                             internalStatusControl.ai[j - 1] = 1
-                            remoteConnection.put(StatusChange(i, j - 1, 4))
+                        remoteConnection.put(StatusChange(i, j - 1, 4))
 
                     #move data to prepare for next sample
                     logging.info("shifting internal data backwards")
@@ -462,9 +467,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
 
                             #apply pitch shift to spectrum
                             logging.info("applying partial pitch shift to spectrum of sample " + str(j) + ", sequence " + str(i))
-                            if internalInputs.phonemes[j] != "_autopause":
+                            if internalInputs.phonemes[j] not in ("_autopause", "pau"):
                                 previousShift = 0.
-                            internalStatusControl.ai[j] = 0
+                                internalStatusControl.ai[j] = 0
                             internalStatusControl.rs[j] = 1
                             remoteConnection.put(StatusChange(i, j, 3))
 
@@ -484,7 +489,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             #newCosines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
                             voicedSignal = torch.empty((internalInputs.borders[3 * (j - 1) + 5] - startPoint, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
                             for k in range(harms.size()[0]):
-                                requiredSize = global_consts.tripleBatchSize / (internalInputs.pitch[k + startPoint].item() + pitchOffset[k] * steadiness[k])
+                                requiredSize = torch.max(global_consts.tripleBatchSize / (internalInputs.pitch[k + startPoint].item() + pitchOffset[k] * steadiness[k]), torch.tensor([1.,], device = device_rs))
                                 harmCurve = torch.tile(torch.fft.irfft(harms[k], global_consts.nHarmonics), (math.ceil(requiredSize),))[:int(requiredSize * global_consts.nHarmonics)]
                                 voicedSignal[k] = torch.fft.rfft(interp(torch.linspace(0, 1, int(requiredSize * global_consts.nHarmonics), device = device_rs), harmCurve, torch.linspace(0, 1, global_consts.tripleBatchSize, device = device_rs)) * window)
                                 #inputFreqs = torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1).unsqueeze(0).tile(global_consts.halfTripleBatchSize + 1, 1) * requiredSize
@@ -517,10 +522,10 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             waveform += excitationSignal.to(device = torch.device("cpu"))
                             lastZero = None
                             remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
-                            remoteConnection.put(StatusChange(i, j - 1, 5))
-                            if internalInputs.endCaps[j - 1] == True:
-                                aiActive = False
-                                #TODO: reset recurrent AI Tensors
+                        remoteConnection.put(StatusChange(i, j - 1, 5))
+                    if j > 0 and internalInputs.endCaps[j - 1] == True:
+                        aiActive = False
+                        #TODO: reset recurrent AI Tensors
 
                     if (j > 0) & (interOutput == False):
                         remoteConnection.put(StatusChange(i, j - 1, 5))

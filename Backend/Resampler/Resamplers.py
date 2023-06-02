@@ -47,12 +47,10 @@ def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tenso
     return excitation.transpose(0, 1)
 
 def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
-    print("resampling specharm")
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         offset = 0
     else:
         offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm.size()[0] / 2)
-        print(torch.isnan(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm).sum().item())
     if vocalSegment.startCap:
         windowStart = offset
     else:
@@ -85,9 +83,6 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                timings,
                                global_consts.config)
-    print(torch.isnan(output).sum().item())
-    print(output[0], output[-1], output[:, 0], output[:, -1])
-    print("resampling done")
     return output
     
 def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
@@ -125,7 +120,6 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         slope = torch.pow(slope, factor)
         specharm[vocalSegment.end1 - vocalSegment.end3:, global_consts.nHarmonics + 2:] *= slope.unsqueeze(1)
         specharm[vocalSegment.end1 - vocalSegment.end3:, :int(global_consts.nHarmonics / 2) + 1] *= slope.unsqueeze(1)
-    print(specharm[0], specharm[-1], specharm[:, 0], specharm[:, -1])
     return specharm
 
 def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:

@@ -117,23 +117,17 @@ class HarmPredAi(nn.Module):
     def forward(self, harm:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next harmonics batch in a sequence"""
         
-        print("pred fwd")
-        print(torch.isnan(harm).sum().item())
         x = harm.float().to(self.device)
-        print(torch.isnan(x).sum().item())
         x = self.layerStart1(x)
         x = self.ReLuStart1(x)
         x = self.layerStart2(x)
         x = self.ReLuStart2(x)
-        print(torch.isnan(x).sum().item())
         x, self.state = self.recurrentLayers(x.unsqueeze(0), self.state)
-        print(torch.isnan(x).sum().item())
         x = x.squeeze(dim = 0)
         x = self.layerEnd1(x)
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
-        print(torch.isnan(x).sum().item())
 
         return x
 
