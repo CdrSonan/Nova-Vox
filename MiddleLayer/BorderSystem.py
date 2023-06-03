@@ -16,6 +16,7 @@ def rescaleFromReference(note:Note, reference:tuple, borders:list) -> list:
     return borders
 
 def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tuple:
+    print("recalculating borders for note", index, "with reference length", referenceLength)
     if index < 0:
         return (0, 0)
     phonemes = track.phonemes[track.notes[index].phonemeStart:track.notes[index].phonemeEnd]
@@ -129,5 +130,6 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
         preutterance[0] = preutterance[1] - preutterance[0]
         track.borders[effectiveStart - 3:effectiveStart] = preutterance
         effectiveStart -= 3
-    start = track.notes[index].phonemeStart
+    start = track.notes[index].phonemeStart * 3
+    print("result borders:", start, end)
     return start, end

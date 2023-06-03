@@ -428,7 +428,7 @@ class MiddleLayer(Widget):
         self.submitOffset(False, phonIndex, offset, addition)
                 
         start, end = recalculateBorders(index, self.trackList[self.activeTrack], None)
-        if index > 0:
+        if index > 0 and self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] != "_autopause":
             start = min(start, recalculateBorders(index - 1, self.trackList[self.activeTrack], None)[0])
         start = min(start, 3 * phonIndex)
 
@@ -651,8 +651,10 @@ class MiddleLayer(Widget):
         else:
             text = self.syllableSplit(inputText)
                 
-                
-        phonemes = []
+        if len(self.trackList[self.activeTrack].phonemes) > self.trackList[self.activeTrack].notes[index].phonemeStart and self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
+            phonemes = ["_autopause",]
+        else:
+            phonemes = []
         for i in text:
             if i in self.trackList[self.activeTrack].phonemeLengths:
                 phonemes.append(i)
