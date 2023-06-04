@@ -61,9 +61,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
 
     def updateFromMain(change, lastZero):
         global statusControl, voicebankList, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
-        print("pre-update:", internalStatusControl.rs, internalStatusControl.ai, change.type)
-        if change.type == "changeInput":
-            print(change.data[1])
         if change.type == "terminate":
             return True
         elif change.type == "addTrack":
@@ -187,7 +184,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
             else:
                 positions = posToSegment(change.data[0], change.data[2], change.data[2] + len(change.data[3]), inputList)
-                inputList[change.data[0]].aiParamInputs[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
+                inputList[change.data[0]].customCurves[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
             inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], change.data[3], inputList, statusControl)
@@ -200,8 +197,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             inputList[change.data[0]].aiBalance = ensureTensorLength(inputList[change.data[0]].aiBalance, change.data[1], 0.)
             inputList[change.data[0]].vibratoSpeed = ensureTensorLength(inputList[change.data[0]].vibratoSpeed, change.data[1], 0.)
             inputList[change.data[0]].vibratoStrength = ensureTensorLength(inputList[change.data[0]].vibratoStrength, change.data[1], 0.)
+            for i in range(len(inputList[change.data[0]].customCurves)):
+                inputList[change.data[0]].customCurves[i] = ensureTensorLength(inputList[change.data[0]].customCurves[i], change.data[1], 0.)
 
-        print("post-update:", internalStatusControl.rs, internalStatusControl.ai)
         if change.final == False:
             return updateFromMain(connection.get(), lastZero)
         else:
@@ -278,13 +276,12 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 nextExcitation = None
                 nextPitch = None
                 
-                aiActive = False
                 if settings["cachingmode"] == "best rendering speed":
                     spectrum = spectrumCache[i]
                     processedSpectrum = processedSpectrumCache[i]
                     excitation = excitationCache[i]
                     pitch = pitchCache[i]
-                    indicator = -1
+                    indicator = 1
                 elif settings["cachingmode"] == "save RAM":
                     spectrum = SparseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs)
                     processedSpectrum = SparseCache((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device_rs)
@@ -301,27 +298,34 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
 
                 #go through internalStatusControl lists and set all parts required to render a pause-to-pause section to the value of indicator.
                 #when caching is available, this causes them to be loaded from cache, otherwise they are re-computed.
-                print("pre-adjust:", internalStatusControl.rs, internalStatusControl.ai)
-                for k in range(1, len(internalStatusControl.rs)):
-                    if internalStatusControl.rs[k] == 0 and internalStatusControl.rs[k - 1] > 0:
-                        for j in range(k):
-                            if internalInputs.phonemes[k - j] in ("_autopause", "pau"):
-                                break
-                            if internalStatusControl.rs[k - j] == 1:
-                                internalStatusControl.rs[k - j] = indicator
-                            if internalStatusControl.ai[k - j] == 1:
-                                internalStatusControl.ai[k - j] = indicator
-                        for j in range(len(internalStatusControl.ai) - k):
-                            if internalInputs.phonemes[k + j] in ("_autopause", "pau"):
-                                break
-                            if internalStatusControl.ai[k + j] == 1:
-                                internalStatusControl.ai[k + j] = indicator
-                firstPoint = len(internalStatusControl.ai) - 1
-                lastPoint = len(internalStatusControl.ai) - 1
-                for k in range(len(internalInputs.phonemes)):
+                
+                for k in range(len(internalStatusControl.ai)):
                     if internalInputs.phonemes[k] in ("_autopause", "pau"):
                         internalStatusControl.rs[k] = 1
                         internalStatusControl.ai[k] = 1
+                aiActive = False
+                for k in range(len(internalStatusControl.ai)):
+                    if internalStatusControl.ai[k] == 0:
+                        aiActive = True
+                    if internalInputs.phonemes[k] in ("_autopause", "pau"):
+                        aiActive = False
+                    if aiActive:
+                        internalStatusControl.ai[k] = 0
+                aiActive = False
+                for k in range(len(internalStatusControl.ai)):
+                    if internalStatusControl.ai[len(internalStatusControl.ai) - k - 1] == 0:
+                        aiActive = True
+                    if internalInputs.phonemes[len(internalStatusControl.ai) - k - 1] in ("_autopause", "pau"):
+                        aiActive = False
+                    if aiActive:
+                        internalStatusControl.ai[len(internalStatusControl.ai) - k - 1] = 0
+                aiActive = False
+                for k in range(len(internalStatusControl.ai)):
+                    if internalStatusControl.ai[k] == 0:
+                        internalStatusControl.rs[k] = indicator
+
+                firstPoint = len(internalStatusControl.ai) - 1
+                lastPoint = len(internalStatusControl.ai) - 1
                 for k, flag in enumerate(internalStatusControl.ai):
                     if flag <= 0:
                         firstPoint = k
@@ -331,7 +335,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         lastPoint = len(internalStatusControl.ai) - k - 1
                         break
 
-                print("post-adjust:", internalStatusControl.rs, internalStatusControl.ai)
                 voicebank.ai.reset()
                 previousShift = 0.
                 #TODO: reset recurrent AI Tensors

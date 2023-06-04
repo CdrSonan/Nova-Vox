@@ -172,7 +172,7 @@ class Track():
         borders = []
         for i in self.borders:
             borders.append(int(i))#TODO: switch to integer tensor representation
-        sequence = VocalSequence(self.length, borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength)
+        sequence = VocalSequence(self.length, borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
         return self.vbPath, None, sequence#None object is placeholder for wrapped NodeGraph
         #TODO: add node wrapping
 

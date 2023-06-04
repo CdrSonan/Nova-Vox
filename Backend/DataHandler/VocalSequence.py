@@ -11,7 +11,7 @@ from torch import Tensor
 class VocalSequence():
     """Class holding information about a vocal track as required by the rendering process"""
     
-    def __init__(self, length:int, borders:list, phonemes:list, startCaps:list, endCaps:list, offsets:Tensor, repetititionSpacing:Tensor, pitch:Tensor, steadiness:Tensor, breathiness:Tensor, aiBalance:Tensor, vibratoSpeed:Tensor, vibratoStrength:Tensor, useBreathiness:bool, useSteadiness:bool, useAIBalance:bool, useVibratoSpeed:bool, useVibratoStrength:bool) -> None:
+    def __init__(self, length:int, borders:list, phonemes:list, startCaps:list, endCaps:list, offsets:Tensor, repetititionSpacing:Tensor, pitch:Tensor, steadiness:Tensor, breathiness:Tensor, aiBalance:Tensor, vibratoSpeed:Tensor, vibratoStrength:Tensor, useBreathiness:bool, useSteadiness:bool, useAIBalance:bool, useVibratoSpeed:bool, useVibratoStrength:bool, customCurves:list, nodeGraphFunction) -> None:
         self.length = length
         self.phonemeLength = len(phonemes)
         self.borders = borders
@@ -34,6 +34,8 @@ class VocalSequence():
         self.useAIBalance = useAIBalance
         self.useVibratoSpeed = useVibratoSpeed
         self.useVibratoStrength = useVibratoStrength
+        self.customCurves = customCurves
+        self.nodeGraphFunction = nodeGraphFunction
         
     def duplicate(self):
         return VocalSequence(copy(self.length),
@@ -53,5 +55,6 @@ class VocalSequence():
                              copy(self.useSteadiness),
                              copy(self.useAIBalance),
                              copy(self.useVibratoSpeed),
-                             copy(self.useVibratoStrength))
-        
+                             copy(self.useVibratoStrength),
+                             deepcopy(self.customCurves),
+                             copy(self.nodeGraphFunction))
