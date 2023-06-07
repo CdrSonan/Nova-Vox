@@ -87,12 +87,16 @@ class RenderManager():
             None"""
 
 
+        global middleLayer
+        from UI.code.editor.Main import middleLayer
         self.stop()
         print("rendering subprocess restarting...")
         self.connection.close()
         self.remoteConnection.close()
         del self.connection
         del self.remoteConnection
+        for i in range(len(middleLayer.audioBuffer)):
+            middleLayer.audioBuffer[i] *= 0
         self.__init__(trackList)
 
     def stop(self) -> None:

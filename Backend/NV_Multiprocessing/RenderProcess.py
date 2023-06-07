@@ -59,7 +59,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     connection = connectionIn
     remoteConnection = remoteConnectionIn
 
-    def updateFromMain(change, lastZero):
+    def updateFromMain(change):
         global statusControl, voicebankList, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
         if change.type == "terminate":
             return True
@@ -167,9 +167,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             elif change.data[1] == "borders":
                 start = inputList[change.data[0]].borders[change.data[2]] * global_consts.batchSize
                 end = inputList[change.data[0]].borders[change.data[2] + len(change.data[3]) - 1] * global_consts.batchSize
-                if lastZero == None or lastZero != [change.data[0], start, end - start]:
-                    lastZero = [change.data[0], start, end - start]
-                    remoteConnection.put(StatusChange(change.data[0], start, end - start, "zeroAudio"))
+                remoteConnection.put(StatusChange(change.data[0], start, end - start, "zeroAudio"))
                 for i in range(len(change.data[3])):
                     change.data[3][i] = int(change.data[3][i])
                 inputList[change.data[0]].borders[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
@@ -188,7 +186,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
             inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], change.data[3], inputList, statusControl)
-            remoteConnection.put(StatusChange(change.data[0], None, None, "noteDeletion"))
+            remoteConnection.put(StatusChange(change.data[0], None, None, "offsetApplied"))
         elif change.type == "changeLength":
             inputList[change.data[0]].length = change.data[1]
             inputList[change.data[0]].pitch = ensureTensorLength(inputList[change.data[0]].pitch, change.data[1], -1.)
@@ -201,10 +199,10 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].customCurves[i] = ensureTensorLength(inputList[change.data[0]].customCurves[i], change.data[1], 0.)
 
         if change.final == False:
-            return updateFromMain(connection.get(), lastZero)
+            return updateFromMain(connection.get())
         else:
             try:
-                return updateFromMain(connection.get_nowait(), lastZero)
+                return updateFromMain(connection.get_nowait())
             except:
                 return False
 
@@ -233,7 +231,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
 
     #setting up caching and other required data that is independent of each individual rendering iteration
     window = torch.hann_window(global_consts.tripleBatchSize, device = device_rs)
-    lastZero = None
     if settings["cachingmode"] == "best rendering speed":
         spectrumCache = []
         processedSpectrumCache = []
@@ -531,7 +528,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             waveform = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize).to(device = torch.device("cpu"))
                             excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                             waveform += excitationSignal.to(device = torch.device("cpu"))
-                            lastZero = None
                             remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
                         remoteConnection.put(StatusChange(i, j - 1, 5))
                     if j > 0 and internalInputs.endCaps[j - 1] == True:
@@ -553,7 +549,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                     except:
                         c = False
                     if c:
-                        updateFromMain(c, lastZero)
+                        updateFromMain(c)
                         break
                 else:
                     continue
@@ -562,7 +558,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 logging.info("rendering iteration finished, waiting for new data...")
                 print("rendering iteration finished, waiting for new data...")
                 c = connection.get()
-                if updateFromMain(c, lastZero):
+                if updateFromMain(c):
                     break
                 
         except Exception as exc:
