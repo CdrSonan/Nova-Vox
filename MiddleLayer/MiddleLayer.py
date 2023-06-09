@@ -647,7 +647,13 @@ class MiddleLayer(Widget):
         if self.trackList[self.activeTrack].notes[index].phonemeMode:
             text = inputText.split(" ")
         elif inputText in self.trackList[self.activeTrack].wordDict[0]:
-            text = self.trackList[self.activeTrack].wordDict[0][inputText].split(" ")
+            if len(self.trackList[self.activeTrack].wordDict[0][inputText]) == 0:
+                text = self.syllableSplit(inputText)
+            elif len(self.trackList[self.activeTrack].wordDict[0][inputText]) == 1:
+                text = self.trackList[self.activeTrack].wordDict[0][inputText][0].split(" ")
+            else:
+                #TODO: implement UI for choosing between multiple pronunciations
+                pass
         else:
             text = self.syllableSplit(inputText)
                 

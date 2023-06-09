@@ -55,6 +55,30 @@ class WorddictUi(Frame):
         self.overrideList.addButton["command"] = self.onOverrideAddPress
         self.overrideList.addButton.pack(side = "right", fill = "x", expand = True)
         self.overrideList.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.overrideMappingList = LabelFrame(self, text = loc["override_list"])
+        self.overrideMappingList.list = Frame(self.overrideMappingList)
+        self.overrideMappingList.list.lb = Listbox(self.overrideMappingList.list)
+        self.overrideMappingList.list.lb.pack(side = "left",fill = "both", expand = True)
+        self.overrideMappingList.list.sb = tkinter.ttk.Scrollbar(self.overrideMappingList.list)
+        self.overrideMappingList.list.sb.pack(side = "left", fill = "y")
+        self.overrideMappingList.list.lb["selectmode"] = "single"
+        self.overrideMappingList.list.lb["yscrollcommand"] = self.overrideMappingList.list.sb.set
+        self.overrideMappingList.list.lb.bind("<<ListboxSelect>>", self.onOverrideMappingSelectionChange)
+        self.overrideMappingList.list.lb.bind("<FocusOut>", self.onOverrideMappingListFocusOut)
+        self.overrideMappingList.list.sb["command"] = self.overrideMappingList.list.lb.yview
+        self.overrideMappingList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
+        for i in loadedVB.wordDict[0].keys():
+            self.overrideMappingList.list.lb.insert("end", i)
+        self.overrideMappingList.removeButton = SlimButton(self.overrideMappingList)
+        self.overrideMappingList.removeButton["text"] = loc["remove"]
+        self.overrideMappingList.removeButton["command"] = self.onOverrideMappingRemovePress
+        self.overrideMappingList.removeButton.pack(side = "right", fill = "x", expand = True)
+        self.overrideMappingList.addButton = SlimButton(self.overrideMappingList)
+        self.overrideMappingList.addButton["text"] = loc["add"]
+        self.overrideMappingList.addButton["command"] = self.onOverrideMappingAddPress
+        self.overrideMappingList.addButton.pack(side = "right", fill = "x", expand = True)
+        self.overrideMappingList.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.overrideSettings = LabelFrame(self, text = loc["override_settings"])
         self.overrideSettings.word = Frame(self.overrideSettings)
@@ -161,9 +185,9 @@ class WorddictUi(Frame):
             while "new" + str(i) in loadedVB.wordDict[0].keys():
                 i += 1
             self.overrideList.list.lb.insert("end", "new" + str(i))
-            loadedVB.wordDict[0]["new" + str(i)] = ""
-        self.overrideList.list.lb.insert("end", "new")
-        loadedVB.wordDict[0]["new"] = ""
+        else:
+            self.overrideList.list.lb.insert("end", "new")
+        loadedVB.wordDict[0]["new"] = []
 
     def onOverrideRemovePress(self):
         """remove the selected override from the list"""
@@ -174,6 +198,9 @@ class WorddictUi(Frame):
             del loadedVB.wordDict[0][self.overrideList.list.lb.get(self.overrideList.list.lastFocusedIndex)]
             self.overrideList.list.lb.delete(self.overrideList.list.lastFocusedIndex)
             self.overrideList.list.lastFocusedIndex = None
+            while self.overrideMappingList.list.length > 0:
+                self.overrideMappingList.list.lb.delete(0, "end")
+            self.overrideMappingList.list.lastFocusedIndex = None
 
     def onOverrideSelectionChange(self, event):
         """update the override settings when the selection changes"""
@@ -185,7 +212,11 @@ class WorddictUi(Frame):
             index = self.overrideList.list.lastFocusedIndex
             word = self.overrideList.list.lb.get(index)
             self.overrideSettings.word.variable.set(word)
-            self.overrideSettings.mapping.variable.set(loadedVB.wordDict[0][word])
+            while self.overrideMappingList.list.length > 0:
+                self.overrideMappingList.list.lb.delete(0, "end")
+            for i in loadedVB.wordDict[0][word]:
+                self.overrideMappingList.list.lb.insert("end", i)
+            self.overrideMappingList.list.lastFocusedIndex = None
 
     def onOverrideListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last focused element of the override list when override list loses entry focus"""
@@ -193,6 +224,41 @@ class WorddictUi(Frame):
         logging.info("override list focus loss callback")
         if len(self.overrideList.list.lb.curselection()) > 0:
             self.overrideList.list.lastFocusedIndex = self.overrideList.list.lb.curselection()[0]
+
+    def onOverrideMappingAddPress(self):
+        """add a new override to the list"""
+
+        global loadedVB
+
+        if self.overrideList.list.lastFocusedIndex != None:
+            self.overrideMappingList.list.lb.insert("end", "")
+            loadedVB.wordDict[0][self.overrideList.list.lb.get(self.overrideList.list.lastFocusedIndex)].append("")
+
+    def onOverrideMappingRemovePress(self):
+        """remove the selected override from the list"""
+
+        global loadedVB
+
+        if self.overrideList.list.lastFocusedIndex != None and self.overrideMappingList.list.lastFocusedIndex != None:
+            del loadedVB.wordDict[0][self.overrideList.list.lb.get(self.overrideList.list.lastFocusedIndex)][self.overrideMappingList.list.lastFocusedIndex]
+            self.overrideMappingList.list.lb.delete(self.overrideMappingList.list.lastFocusedIndex)
+            self.overrideMappingList.list.lastFocusedIndex = None
+
+    def onOverrideMappingSelectionChange(self, event):
+        """update the override settings when the selection changes"""
+
+        global loadedVB
+
+        if len(self.overrideMappingList.list.lb.curselection()) > 0:
+            self.overrideMappingList.list.lastFocusedIndex = self.overrideMappingList.list.lb.curselection()[0]
+            self.overrideSettings.mapping.variable.set(loadedVB.wordDict[0][self.overrideList.list.lb.get(self.overrideList.list.lastFocusedIndex)][self.overrideMappingList.list.lastFocusedIndex])
+
+    def onOverrideMappingListFocusOut(self, event) -> None:
+        """Helper function for retaining information about the last focused element of the override list when override list loses entry focus"""
+
+        logging.info("override list focus loss callback")
+        if len(self.overrideMappingList.list.lb.curselection()) > 0:
+            self.overridMappingeList.list.lastFocusedIndex = self.overrideMappingList.list.lb.curselection()[0]
 
     def overrideWordUpdate(self):
         """updates the loaded Voicebank's wordDict when an override word is changed"""
@@ -217,10 +283,10 @@ class WorddictUi(Frame):
 
         global loadedVB
 
-        if self.overrideList.list.lastFocusedIndex != None:
+        if self.overrideList.list.lastFocusedIndex != None and self.overrideMappingList.list.lastFocusedIndex != None:
             index = self.overrideList.list.lastFocusedIndex
             word = self.overrideList.list.lb.get(index)
-            loadedVB.wordDict[0][word] = self.overrideSettings.mapping.variable.get()
+            loadedVB.wordDict[0][word][self.overrideMappingList.list.lastFocusedIndex] = self.overrideSettings.mapping.variable.get()
     
     def onOverrideCSVImportPress(self):
         """imports a CSV file to the override list"""
@@ -237,10 +303,10 @@ class WorddictUi(Frame):
                             word = i.split(",")[0]
                             mapping = i.split(",")[1].strip()
                             if word in loadedVB.wordDict[0].keys():
-                                tkinter.messagebox.showerror(loc["error"], loc["worddict_override_word_exists_error"])
-                                return
-                            loadedVB.wordDict[0][word] = mapping
-                            self.overrideList.list.lb.insert("end", word)
+                                loadedVB.wordDict[0][word].append(mapping)
+                            else:
+                                loadedVB.wordDict[0][word] = [mapping,]
+                                self.overrideList.list.lb.insert("end", word)
             except:
                 tkinter.messagebox.showerror(loc["error"], loc["worddict_csv_import_error"])
                 return
