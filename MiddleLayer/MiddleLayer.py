@@ -29,6 +29,7 @@ from Backend.VB_Components.Voicebank import LiteVoicebank
 
 from UI.code.editor.AdaptiveSpace import ParamCurve, TimingOptns, PitchOptns
 from UI.code.editor.Headers import SingerPanel, ParamPanel
+from UI.code.editor.PianoRoll import PhonemeSelector
 
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
@@ -640,7 +641,7 @@ class MiddleLayer(Widget):
         return None
             
 
-    def changeLyrics(self, index:int, inputText:str) -> None:
+    def changeLyrics(self, index:int, inputText:str, pronuncIndex:int = None) -> None:
         """changes the lyrics of the note at position index of the active track to text. Performs dictionary lookup and phoneme sanitization, respecting the note's phoneme input mode."""
 
         self.trackList[self.activeTrack].notes[index].content = inputText
@@ -651,9 +652,10 @@ class MiddleLayer(Widget):
                 text = self.syllableSplit(inputText)
             elif len(self.trackList[self.activeTrack].wordDict[0][inputText]) == 1:
                 text = self.trackList[self.activeTrack].wordDict[0][inputText][0].split(" ")
+            elif pronuncIndex != None:
+                self.text = self.trackList[self.activeTrack].wordDict[0][inputText][pronuncIndex].split(" ")
             else:
-                #TODO: implement UI for choosing between multiple pronunciations
-                pass
+                self.trackList[self.activeTrack].notes[index].reference.add_widget(PhonemeSelector(self.trackList[self.activeTrack].wordDict[0][inputText], index, inputText))
         else:
             text = self.syllableSplit(inputText)
                 

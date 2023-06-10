@@ -13,7 +13,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble
 
-from UI.code.editor.Util import ManagedToggleButton
+from UI.code.editor.Util import ManagedToggleButton, ReferencingButton
 
 from kivy.clock import mainthread
 from kivy.core.window import Window
@@ -34,6 +34,26 @@ class NoteProperties(Bubble):
         for i in self.content.children:
             i.reference = self.reference
         return super().on_parent(instance, value)
+
+class PhonemeSelector(Bubble):
+    """class for the phoneme selection menu for notes not in phoneme mode with multiple available pronunciations"""
+
+    index = NumericProperty()
+    
+    def __init__(self, options, index, content, **kwargs):
+        super().__init__(**kwargs)
+        self.options = options
+        self.index = index
+        self.content = content
+        for i in range(len(self.options)):
+            self.content.add_widget(ReferencingButton(text = i, reference = self, on_press = lambda : middleLayer.changeLyrics(self.index, self.content, i)))
+        Window.bind(mouse_pos=self.on_mouseover)
+
+    def on_mouseover(self, window, pos):
+        super().on_mouseover(window, pos)
+        if not (self.collide_point(*self.to_widget(*pos)) or self.parent.collide_point(*self.children[0].to_widget(*pos))):
+            self.parent.remove_widget(self)
+        
 
 class Note(ManagedToggleButton):
     """class for a note on the piano roll"""

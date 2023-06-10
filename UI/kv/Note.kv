@@ -21,6 +21,14 @@
         text: "delete"
         on_press: self.reference.delete()
 
+<PhonemeSelector>:
+    size_hint: (None, None)
+    size: (200, 80)
+    pos: (self.reference.x, self.reference.y - 80)if self.reference.width > 200 else (self.reference.x + (self.reference.width / 2) - 100, self.reference.y - 80)
+    orientation: 'vertical'
+    background_image: "UI/assets/Toolbar/overlay.png"
+    arrow_pos: "top_mid"
+
 <Note>:
     size_hint: (None, None)
     group: "Notes"
