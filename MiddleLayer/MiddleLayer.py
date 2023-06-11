@@ -655,7 +655,8 @@ class MiddleLayer(Widget):
             elif pronuncIndex != None:
                 self.text = self.trackList[self.activeTrack].wordDict[0][inputText][pronuncIndex].split(" ")
             else:
-                self.trackList[self.activeTrack].notes[index].reference.add_widget(PhonemeSelector(self.trackList[self.activeTrack].wordDict[0][inputText], index, inputText))
+                self.text = self.trackList[self.activeTrack].wordDict[0][inputText][pronuncIndex].split(" ")
+                self.trackList[self.activeTrack].notes[index].reference.add_widget(PhonemeSelector(self.trackList[self.activeTrack].wordDict[0][inputText], index, inputText, reference = self.trackList[self.activeTrack].notes[index]))
         else:
             text = self.syllableSplit(inputText)
                 

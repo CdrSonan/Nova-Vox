@@ -56,7 +56,7 @@ class WorddictUi(Frame):
         self.overrideList.addButton.pack(side = "right", fill = "x", expand = True)
         self.overrideList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.overrideMappingList = LabelFrame(self, text = loc["override_list"])
+        self.overrideMappingList = LabelFrame(self, text = loc["override_mapping_list"])
         self.overrideMappingList.list = Frame(self.overrideMappingList)
         self.overrideMappingList.list.lb = Listbox(self.overrideMappingList.list)
         self.overrideMappingList.list.lb.pack(side = "left",fill = "both", expand = True)
@@ -147,8 +147,8 @@ class WorddictUi(Frame):
         self.syllableSettings.mapping = Frame(self.syllableSettings)
         self.syllableSettings.mapping.variable = tkinter.StringVar(self.syllableSettings.mapping)
         self.syllableSettings.mapping.entry = tkinter.Entry(self.syllableSettings.mapping, textvariable = self.syllableSettings.mapping.variable)
-        self.overrideSettings.mapping.entry.bind("<FocusOut>", self.syllableMappingUpdate)
-        self.overrideSettings.mapping.entry.bind("<KeyRelease-Return>", self.syllableMappingUpdate)
+        self.syllableSettings.mapping.entry.bind("<FocusOut>", self.syllableMappingUpdate)
+        self.syllableSettings.mapping.entry.bind("<KeyRelease-Return>", self.syllableMappingUpdate)
         self.syllableSettings.mapping.entry.pack(side = "right", fill = "x", expand = True)
         self.syllableSettings.mapping.display = Label(self.syllableSettings.mapping)
         self.syllableSettings.mapping.display["text"] = loc["syllable_mapping"]
@@ -168,7 +168,7 @@ class WorddictUi(Frame):
         self.okButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
         self.loadButton = Button(self)
-        self.loadButton["text"] = loc["load"]
+        self.loadButton["text"] = loc["load_other_VB"]
         self.loadButton["command"] = self.onLoadPress
         self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
@@ -185,9 +185,10 @@ class WorddictUi(Frame):
             while "new" + str(i) in loadedVB.wordDict[0].keys():
                 i += 1
             self.overrideList.list.lb.insert("end", "new" + str(i))
+            loadedVB.wordDict[0]["new" + str(i)] = []
         else:
             self.overrideList.list.lb.insert("end", "new")
-        loadedVB.wordDict[0]["new"] = []
+            loadedVB.wordDict[0]["new"] = []
 
     def onOverrideRemovePress(self):
         """remove the selected override from the list"""
@@ -212,7 +213,8 @@ class WorddictUi(Frame):
             index = self.overrideList.list.lastFocusedIndex
             word = self.overrideList.list.lb.get(index)
             self.overrideSettings.word.variable.set(word)
-            while self.overrideMappingList.list.length > 0:
+            print(self.overrideMappingList.list.lb.size())
+            while self.overrideMappingList.list.lb.size() > 0:
                 self.overrideMappingList.list.lb.delete(0, "end")
             for i in loadedVB.wordDict[0][word]:
                 self.overrideMappingList.list.lb.insert("end", i)
@@ -258,9 +260,9 @@ class WorddictUi(Frame):
 
         logging.info("override list focus loss callback")
         if len(self.overrideMappingList.list.lb.curselection()) > 0:
-            self.overridMappingeList.list.lastFocusedIndex = self.overrideMappingList.list.lb.curselection()[0]
+            self.overrideMappingList.list.lastFocusedIndex = self.overrideMappingList.list.lb.curselection()[0]
 
-    def overrideWordUpdate(self):
+    def overrideWordUpdate(self, value):
         """updates the loaded Voicebank's wordDict when an override word is changed"""
 
         global loadedVB
@@ -278,15 +280,17 @@ class WorddictUi(Frame):
                 self.overrideList.list.lb.delete(index)
                 self.overrideList.list.lb.insert(index, newWord)
 
-    def overrideMappingUpdate(self):
+    def overrideMappingUpdate(self, value):
         """updates the loaded Voicebank's wordDict when an override mapping is changed"""
 
         global loadedVB
 
         if self.overrideList.list.lastFocusedIndex != None and self.overrideMappingList.list.lastFocusedIndex != None:
-            index = self.overrideList.list.lastFocusedIndex
-            word = self.overrideList.list.lb.get(index)
-            loadedVB.wordDict[0][word][self.overrideMappingList.list.lastFocusedIndex] = self.overrideSettings.mapping.variable.get()
+            word = self.overrideList.list.lb.get(self.overrideList.list.lastFocusedIndex)
+            index = self.overrideMappingList.list.lastFocusedIndex
+            loadedVB.wordDict[0][word][index] = self.overrideSettings.mapping.variable.get()
+            self.overrideMappingList.list.lb.delete(index)
+            self.overrideMappingList.list.lb.insert(index, self.overrideSettings.mapping.variable.get())
     
     def onOverrideCSVImportPress(self):
         """imports a CSV file to the override list"""
@@ -327,7 +331,7 @@ class WorddictUi(Frame):
         self.syllableList.list.lb.insert("end", "new")
         while len(loadedVB.wordDict[1]) < len("new") - 1:
             loadedVB.wordDict[1].append(dict())
-        loadedVB.wordDict[1][len("new")]["new"] = ""
+        loadedVB.wordDict[1][len("new") - 1]["new"] = ""
 
     def onSyllableRemovePress(self):
         """remove the selected syllable mapping from the list"""
@@ -336,9 +340,9 @@ class WorddictUi(Frame):
 
         if self.syllableList.list.lastFocusedIndex != None:
             item = self.syllableList.list.lb.get(self.syllableList.list.lastFocusedIndex)
-            del loadedVB.wordDict[1][len(item)][item]
-            if len(loadedVB.wordDict[1][len(item)]) == 0 and len(loadedVB.wordDict[1]) == len(item) + 1:
-                del loadedVB.wordDict[1][len(item)]
+            del loadedVB.wordDict[1][len(item) - 1][item]
+            while len(loadedVB.wordDict[1][-1]) == 0:
+                    del loadedVB.wordDict[1][-1]
             self.syllableList.list.lb.delete(self.syllableList.list.lastFocusedIndex)
             self.syllableList.list.lastFocusedIndex = None
 
@@ -352,7 +356,7 @@ class WorddictUi(Frame):
             index = self.syllableList.list.lastFocusedIndex
             syllable = self.syllableList.list.lb.get(index)
             self.syllableSettings.syllable.variable.set(syllable)
-            self.syllableSettings.mapping.variable.set(loadedVB.wordDict[1][len(syllable)][syllable])
+            self.syllableSettings.mapping.variable.set(loadedVB.wordDict[1][len(syllable) - 1][syllable])
 
     def onSyllableListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last focused element of the syllable list when syllable list loses entry focus"""
@@ -361,7 +365,7 @@ class WorddictUi(Frame):
         if len(self.syllableList.list.lb.curselection()) > 0:
             self.syllableList.list.lastFocusedIndex = self.syllableList.list.lb.curselection()[0]
 
-    def syllableUpdate(self):
+    def syllableUpdate(self, value):
         """updates the loaded Voicebank's wordDict when a syllable key is changed"""
 
         global loadedVB
@@ -371,17 +375,19 @@ class WorddictUi(Frame):
             syllable = self.syllableList.list.lb.get(index)
             newSyllable = self.syllableSettings.syllable.variable.get()
             if syllable != newSyllable:
-                if syllable in loadedVB.wordDict[1][len(newSyllable)].keys():
+                while len(loadedVB.wordDict[1]) < len(newSyllable) - 1:
+                    loadedVB.wordDict[1].append(dict())
+                if syllable in loadedVB.wordDict[1][len(newSyllable) - 1].keys():
                     tkinter.messagebox.showerror(loc["error"], loc["worddict_syllable_exists_error"])
                     self.syllableSettings.syllable.variable.set(syllable)
                     return
-                loadedVB.wordDict[1][len(newSyllable)][newSyllable] = loadedVB.wordDict[1][len(syllable)].pop(syllable)
-                if len(loadedVB.wordDict[1][len(syllable)]) == 0 and len(loadedVB.wordDict[1]) == len(syllable) + 1:
-                    del loadedVB.wordDict[1][len(syllable)]
+                loadedVB.wordDict[1][len(newSyllable) - 1][newSyllable] = loadedVB.wordDict[1][len(syllable) - 1].pop(syllable)
+                while len(loadedVB.wordDict[1][-1]) == 0:
+                    del loadedVB.wordDict[1][-1]
                 self.syllableList.list.lb.delete(index)
                 self.syllableList.list.lb.insert(index, newSyllable)
 
-    def syllableMappingUpdate(self):
+    def syllableMappingUpdate(self, value):
         """updates the loaded Voicebank's wordDict when a syllable mapping is changed"""
 
         global loadedVB
@@ -389,7 +395,7 @@ class WorddictUi(Frame):
         if self.syllableList.list.lastFocusedIndex != None:
             index = self.syllableList.list.lastFocusedIndex
             syllable = self.syllableList.list.lb.get(index)
-            loadedVB.wordDict[1][len(syllable)][syllable] = self.syllableSettings.mapping.variable.get()
+            loadedVB.wordDict[1][len(syllable) - 1][syllable] = self.syllableSettings.mapping.variable.get()
 
     def onSyllableCSVImportPress(self):
         """imports a CSV file to the syllable list"""
@@ -411,7 +417,7 @@ class WorddictUi(Frame):
                             if syllable in loadedVB.wordDict[1][len(syllable)].keys():
                                 tkinter.messagebox.showerror(loc["error"], loc["worddict_syllable_exists_error"])
                                 return
-                            loadedVB.wordDict[1][len(syllable)][syllable] = mapping
+                            loadedVB.wordDict[1][len(syllable) - 1][syllable] = mapping
                             self.syllableList.list.lb.insert("end", syllable)
             except:
                 tkinter.messagebox.showerror(loc["error"], loc["worddict_csv_import_error"])
@@ -422,10 +428,10 @@ class WorddictUi(Frame):
 
         logging.info("Wordict OK button callback")
         global loadedVB
-        self.overrideWordUpdate()
-        self.overrideMappingUpdate()
-        self.syllableUpdate()
-        self.syllableMappingUpdate()
+        self.overrideWordUpdate(None)
+        self.overrideMappingUpdate(None)
+        self.syllableUpdate(None)
+        self.syllableMappingUpdate(None)
         self.master.destroy()
 
     def onLoadPress(self) -> None:

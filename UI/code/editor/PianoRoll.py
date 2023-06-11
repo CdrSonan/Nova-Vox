@@ -38,7 +38,7 @@ class NoteProperties(Bubble):
 class PhonemeSelector(Bubble):
     """class for the phoneme selection menu for notes not in phoneme mode with multiple available pronunciations"""
 
-    index = NumericProperty()
+    reference = ObjectProperty()
     
     def __init__(self, options, index, content, **kwargs):
         super().__init__(**kwargs)
