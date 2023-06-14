@@ -653,12 +653,14 @@ class MiddleLayer(Widget):
             elif len(self.trackList[self.activeTrack].wordDict[0][inputText]) == 1:
                 text = self.trackList[self.activeTrack].wordDict[0][inputText][0].split(" ")
             elif pronuncIndex != None:
-                self.text = self.trackList[self.activeTrack].wordDict[0][inputText][pronuncIndex].split(" ")
+                text = self.trackList[self.activeTrack].wordDict[0][inputText][pronuncIndex].split(" ")
             else:
-                self.text = self.trackList[self.activeTrack].wordDict[0][inputText][pronuncIndex].split(" ")
-                self.trackList[self.activeTrack].notes[index].reference.add_widget(PhonemeSelector(self.trackList[self.activeTrack].wordDict[0][inputText], index, inputText, reference = self.trackList[self.activeTrack].notes[index]))
+                text = self.trackList[self.activeTrack].wordDict[0][inputText][0].split(" ")
+                self.trackList[self.activeTrack].notes[index].reference.add_widget(PhonemeSelector(self.trackList[self.activeTrack].wordDict[0][inputText], index, inputText, reference = self.trackList[self.activeTrack].notes[index].reference))
         else:
             text = self.syllableSplit(inputText)
+            if text == None:
+                text = ["pau"]
                 
         if len(self.trackList[self.activeTrack].phonemes) > self.trackList[self.activeTrack].notes[index].phonemeStart and self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
             phonemes = ["_autopause",]

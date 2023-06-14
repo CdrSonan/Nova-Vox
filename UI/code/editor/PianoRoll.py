@@ -40,19 +40,18 @@ class PhonemeSelector(Bubble):
 
     reference = ObjectProperty()
     
-    def __init__(self, options, index, content, **kwargs):
+    def __init__(self, options, index, word, **kwargs):
         super().__init__(**kwargs)
         self.options = options
         self.index = index
-        self.content = content
+        self.word = word
         for i in range(len(self.options)):
-            self.content.add_widget(ReferencingButton(text = i, reference = self, on_press = lambda : middleLayer.changeLyrics(self.index, self.content, i)))
+            self.content.add_widget(ReferencingButton(text = self.options[i], reference = self, on_press = lambda a : middleLayer.changeLyrics(self.index, self.word, i)))
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
-        super().on_mouseover(window, pos)
-        if not (self.collide_point(*self.to_widget(*pos)) or self.parent.collide_point(*self.children[0].to_widget(*pos))):
-            self.parent.remove_widget(self)
+        if not (self.collide_point(*self.to_widget(*pos)) or self.reference.collide_point(*self.children[0].to_widget(*pos))):
+            self.reference.remove_widget(self)
         
 
 class Note(ManagedToggleButton):
@@ -68,13 +67,13 @@ class Note(ManagedToggleButton):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Window.bind(mouse_pos=self.on_mouseover)
-        self.propertiesOpen = False
+        self.propertiesBubble = None
 
     def on_mouseover(self, window, pos):
         super().on_mouseover(window, pos)
-        if self.propertiesOpen and not (self.collide_point(*self.to_widget(*pos)) or self.children[0].collide_point(*self.children[0].to_widget(*pos))):
-            self.remove_widget(self.children[0])
-            self.propertiesOpen = False
+        if self.propertiesBubble and not (self.collide_point(*self.to_widget(*pos)) or self.children[0].collide_point(*self.children[0].to_widget(*pos))):
+            self.remove_widget(self.propertiesBubble)
+            self.propertiesBubble = None
 
     def on_parent(self, note, parent) -> None:
         """redraw call during initial note creation"""
@@ -165,12 +164,12 @@ class Note(ManagedToggleButton):
         """creates or removes the note's context menu when it is selected or deselected"""
 
         super().on_state(screen, state)
-        if state == "normal" and self.propertiesOpen:
-            self.remove_widget(self.children[0])
-            self.propertiesOpen = False
-        elif state == "down" and not self.propertiesOpen:
+        if state == "normal" and self.propertiesBubble:
+            self.remove_widget(self.propertiesBubble)
+            self.propertiesBubble = None
+        elif state == "down" and not self.propertiesBubble:
             self.add_widget(NoteProperties(reference = self))
-            self.propertiesOpen = True
+            self.propertiesBubble = self.children[0]
 
     def changeInputMode(self) -> None:
         """switches the note's input mode between text and phonemes"""

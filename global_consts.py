@@ -12,7 +12,6 @@
 # Changes can easily cause incompatibility with .nvx, .nvvb or other files,
 # program instability or various other issues.
 
-from ctypes import CDLL
 from C_Bridge import engineCfg
 
 #data batching
@@ -64,7 +63,7 @@ octaves = 4
 
 #self-identification
 language = "en"
-version = "0.8.0 (Open Beta release candidate)"
+version = "0.8.1"
 
 #devkit default values
 defaultExpectedPitch = 249.
