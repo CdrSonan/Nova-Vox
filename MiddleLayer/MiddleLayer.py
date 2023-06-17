@@ -43,6 +43,9 @@ class MiddleLayer(Widget):
         """Constructor called once during program startup. uses the id list of the main UI for referencing various UI elements and updating them. Functionality related to such UI updates may be moved to a dedicated class in the future, deprecating this argument."""
         
         super().__init__(**kwargs)
+        self.undoStack = []
+        self.redoStack = []
+        self.uiCallbackQueue = []
         self.trackList = []
         from Backend.NV_Multiprocessing.Manager import RenderManager
         self.manager = RenderManager(self.trackList)
@@ -74,6 +77,10 @@ class MiddleLayer(Widget):
                 device = i["name"] + ", " + settings["audioapi"]
         self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback, latency = float(settings["audiolatency"]))
         self.scriptCache = ""
+
+    def runUiCallbacks(self):
+        while len(self.uiCallbackQueue) > 0:
+            self.uiCallbackQueue.pop(0)()
 
     def importVoicebank(self, path:str, name:str, inImage) -> None:
         """Creates a new vocal track with a Voicebank loaded from disk.
