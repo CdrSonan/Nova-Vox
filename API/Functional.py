@@ -7,6 +7,7 @@
 
 global middleLayer
 
+from copy import copy
 from UI.code.editor.Main import middleLayer
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack, enqueueUiCallback
 
@@ -99,3 +100,187 @@ class UnifiedActionGroup:
 
 def runUiCallbacks():
     middleLayer.runUiCallbacks()
+
+class ImportVoicebank(UnifiedAction):
+    def __init__(self, voicebank, *args, **kwargs):
+        # get name and inImage based on path
+        
+        super().__init__(middleLayer.importVoicebank, *args, **kwargs)
+        self.voicebank = voicebank
+
+class ChangeTrack(UnifiedAction):
+    def __init__(self, index, *args, **kwargs):
+        super().__init__(middleLayer.changeTrack, index, *args, **kwargs)
+        self.previousTrack = copy(middleLayer.activeTrack)
+        
+    def inverseAction(self):
+        return ChangeTrack(self.previousTrack, *self.args, **self.kwargs)
+
+class CopyTrack(UnifiedAction):
+    def __init__(self, index, *args, **kwargs):
+        # get name and inImage based on existing track
+        super().__init__(middleLayer.copyTrack, index, *args, **kwargs)
+
+    def inverseAction(self):
+        return DeleteTrack(len(middleLayer.trackList) - 1, *self.args, **self.kwargs)
+
+class DeleteTrack(UnifiedAction):
+    def __init__(self, track, *args, **kwargs):
+        super().__init__(middleLayer.deleteTrack, *args, **kwargs)
+        self.track = track
+
+class AddParam(UnifiedAction):
+    def __init__(self, param, *args, **kwargs):
+        super().__init__(middleLayer.addParam, *args, **kwargs)
+        self.param = param
+
+class RemoveParam(UnifiedAction):
+    def __init__(self, param, *args, **kwargs):
+        super().__init__(middleLayer.removeParam, *args, **kwargs)
+        self.param = param
+
+class EnableParam(UnifiedAction):
+    def __init__(self, param, *args, **kwargs):
+        super().__init__(middleLayer.enableParam, *args, **kwargs)
+        self.param = param
+
+class DisableParam(UnifiedAction):
+    def __init__(self, param, *args, **kwargs):
+        super().__init__(middleLayer.disableParam, *args, **kwargs)
+        self.param = param
+
+class MoveParam(UnifiedAction):
+    def __init__(self, param, *args, **kwargs):
+        super().__init__(middleLayer.moveParam, *args, **kwargs)
+        self.param = param
+
+class SwitchParam(UnifiedAction):
+    def __init__(self, param, *args, **kwargs):
+        super().__init__(middleLayer.changeParam, *args, **kwargs)
+        self.param = param
+
+class ChangeParam(UnifiedAction):
+    def __init__(self, param, *args, **kwargs):
+        super().__init__(middleLayer.applyParamChanges, *args, **kwargs)
+        self.param = param
+
+class ChangePitch(UnifiedAction):
+    def __init__(self, pitch, *args, **kwargs):
+        super().__init__(middleLayer.applyPitchChanges, *args, **kwargs)
+        self.pitch = pitch
+
+class ChangeMode(UnifiedAction):
+    def __init__(self, mode, *args, **kwargs):
+        super().__init__(middleLayer.changePianoRollMode, *args, **kwargs)
+        self.mode = mode
+
+class Scroll(UnifiedAction):
+    def __init__(self, scroll, *args, **kwargs):
+        super().__init__(middleLayer.applyScroll, *args, **kwargs)
+        self.scroll = scroll
+
+class Zoom(UnifiedAction):
+    def __init__(self, zoom, *args, **kwargs):
+        super().__init__(middleLayer.applyZoom, *args, **kwargs)
+        self.zoom = zoom
+
+class AddNote(UnifiedAction):
+    def __init__(self, note, *args, **kwargs):
+        super().__init__(middleLayer.addNote, *args, **kwargs)
+        self.note = note
+
+class RemoveNote(UnifiedAction):
+    def __init__(self, note, *args, **kwargs):
+        super().__init__(middleLayer.removeNote, *args, **kwargs)
+        self.note = note
+
+class ChangeNoteLength(UnifiedAction):
+    def __init__(self, note, *args, **kwargs):
+        super().__init__(middleLayer.changeNoteLength, *args, **kwargs)
+        self.note = note
+
+class MoveNote(UnifiedAction):
+    def __init__(self, note, *args, **kwargs):
+        super().__init__(middleLayer.moveNote, *args, **kwargs)
+        self.note = note
+
+class ChangeNoteStart(UnifiedAction):
+    def __init__(self, note, *args, **kwargs):
+        super().__init__(middleLayer.changeNoteLength, *args, **kwargs)
+        self.note = note
+
+class ChangeLyrics(UnifiedAction):
+    def __init__(self, note, *args, **kwargs):
+        super().__init__(middleLayer.changeLyrics, *args, **kwargs)
+        self.note = note
+
+class MoveBorder(UnifiedAction):
+    def __init__(self, border, *args, **kwargs):
+        super().__init__(middleLayer.changeBorder, *args, **kwargs)
+        self.border = border
+
+class ChangeVoicebank(UnifiedAction):
+    def __init__(self, voicebank, *args, **kwargs):
+        super().__init__(middleLayer.changeVB, *args, **kwargs)
+        self.voicebank = voicebank
+
+class RepairNotes(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.repairNotes, *args, **kwargs)
+
+class RepairBorders(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.repairBorders, *args, **kwargs)
+
+class ForceChangeTrackLength(UnifiedAction):
+    def __init__(self, track, *args, **kwargs):
+        super().__init__(middleLayer.changeLength, *args, **kwargs)
+        self.track = track
+
+class Validate(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.validate, *args, **kwargs)
+
+class ChangeVolume(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.updateVolume, *args, **kwargs)
+
+class MovePlayhead(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.movePlayhead, *args, **kwargs)
+
+class Play(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.play, *args, **kwargs)
+
+class RestartRenderer(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.manager.restart, *args, **kwargs)
+
+class SaveNVX(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.saveNVX, *args, **kwargs)
+
+class LoadNVX(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.loadNVX, *args, **kwargs)
+
+class ExportFile(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.exportFile, *args, **kwargs)
+
+class ImportFile(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.importFile, *args, **kwargs)
+
+class LoadNVXPartial(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.loadNVXPartial, *args, **kwargs)
+
+class SaveNVXPartial(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.saveNVXPartial, *args, **kwargs)
+
+class ChangeSettings(UnifiedAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(middleLayer.changeSettings, *args, **kwargs)

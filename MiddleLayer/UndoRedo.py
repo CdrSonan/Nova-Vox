@@ -12,7 +12,7 @@ from MiddleLayer.IniParser import readSettings
 
 def enqueueUndo(action):
     middleLayer.undoStack.append(action)
-    if len(middleLayer.undoStack) > readSettings()["undoLimit"]:
+    if len(middleLayer.undoStack) > readSettings()["undoLimit"]:#TODO: make undo limit a setting
         middleLayer.undoStack.pop(0)
 
 def enqueueRedo(action):

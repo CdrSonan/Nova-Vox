@@ -134,6 +134,12 @@ class MiddleLayer(Widget):
         self.updateParamPanel()
         self.updatePianoRoll()
 
+    def addTrack(self, track):
+        """Adds a new track to the track list. Used for loading projects from disk."""
+        #TODO: actually use for loading from disk
+        self.trackList.append(track)
+        self.audioBuffer.append(torch.zeros([track.length * global_consts.batchSize,]))
+
     def copyTrack(self, index:int, name:str, inImage) -> None:
         """Duplicates a vocal track and all of its associated data.
 
@@ -202,6 +208,9 @@ class MiddleLayer(Widget):
             self.ids["adaptiveSpace"].clear_widgets()
             self.activeTrack = None
             self.updatePianoRoll()
+
+    def addParam(self, param) -> None:
+        pass #TODO: implement
 
     def deleteParam(self, index:int) -> None:
         """Placeholder function for removing an Ai-driven parameter from a track's stack. Deprecated with the introduction of node-based processing."""
@@ -726,7 +735,7 @@ class MiddleLayer(Widget):
             self.repairNotes(index + 1)
 
     def repairBorders(self, index:int) -> None:
-        """checks if the note at position index of the active track has exactly the same position as the previous note. If so, it is moved forward by one tick, ensuring that no note gets assigned a length of 0."""
+        """checks if the border at position index of the active track has exactly the same position as the previous note. If so, it is moved forward by one tick, ensuring that no note gets assigned a length of 0."""
 
         if index == 0 or index == len(self.trackList[self.activeTrack].borders):
             return
