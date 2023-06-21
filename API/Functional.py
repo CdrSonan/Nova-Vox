@@ -111,10 +111,9 @@ class ImportVoicebank(UnifiedAction):
 class ChangeTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
         super().__init__(middleLayer.changeTrack, index, *args, **kwargs)
-        self.previousTrack = copy(middleLayer.activeTrack)
         
     def inverseAction(self):
-        return ChangeTrack(self.previousTrack, *self.args, **self.kwargs)
+        return ChangeTrack(copy(middleLayer.activeTrack), *self.args, **self.kwargs)
 
 class CopyTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
@@ -125,49 +124,73 @@ class CopyTrack(UnifiedAction):
         return DeleteTrack(len(middleLayer.trackList) - 1, *self.args, **self.kwargs)
 
 class DeleteTrack(UnifiedAction):
-    def __init__(self, track, *args, **kwargs):
-        super().__init__(middleLayer.deleteTrack, *args, **kwargs)
-        self.track = track
+    def __init__(self, index, *args, **kwargs):
+        super().__init__(middleLayer.deleteTrack, index, *args, **kwargs)
+        self.index = index
+
+    def inverseAction(self):
+        return UnifiedAction(middleLayer.addTrack, copy(middleLayer.trackList[self.index]), *self.args, **self.kwargs)
 
 class AddParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.addParam, *args, **kwargs)
-        self.param = param
+        super().__init__(middleLayer.importParam, param, *args, **kwargs)
+
+    def inverseAction(self):
+        return RemoveParam(len(middleLayer.activeTrack.paramList) - 1, *self.args, **self.kwargs)
 
 class RemoveParam(UnifiedAction):
-    def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.removeParam, *args, **kwargs)
-        self.param = param
+    def __init__(self, index, *args, **kwargs):
+        super().__init__(middleLayer.deleteParam, index, *args, **kwargs)
+        self.index = index
+
+    def inverseAction(self):
+        return UnifiedAction(middleLayer.addParam, copy(middleLayer.activeTrack.paramList[self.index]), *self.args, **self.kwargs)
 
 class EnableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.enableParam, *args, **kwargs)
+        super().__init__(middleLayer.enableParam, param, *args, **kwargs)
         self.param = param
+
+    def inverseAction(self):
+        return DisableParam(self.param, *self.args, **self.kwargs)
 
 class DisableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.disableParam, *args, **kwargs)
+        super().__init__(middleLayer.disableParam, param, *args, **kwargs)
         self.param = param
+
+    def inverseAction(self):
+        return EnableParam(self.param, *self.args, **self.kwargs)
 
 class MoveParam(UnifiedAction):
-    def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.moveParam, *args, **kwargs)
-        self.param = param
+    def __init__(self, index, delta, *args, **kwargs):
+        super().__init__(middleLayer.moveParam, index, delta, *args, **kwargs)
+        self.index = index
+        self.delta = delta
+
+    def inverseAction(self):
+        return MoveParam(self.index + self.delta, -self.delta, *self.args, **self.kwargs)
 
 class SwitchParam(UnifiedAction):
-    def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.changeParam, *args, **kwargs)
-        self.param = param
+    def __init__(self, index, *args, **kwargs):
+        super().__init__(middleLayer.changeParam, index, *args, **kwargs)
+
+    def inverseAction(self):
+        return SwitchParam(copy(middleLayer.activeParam), *self.args, **self.kwargs)
 
 class ChangeParam(UnifiedAction):
-    def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.applyParamChanges, *args, **kwargs)
-        self.param = param
+    def __init__(self, data, start, section = None, *args, **kwargs):
+        super().__init__(middleLayer.applyParamChanges, data, start, section, *args, **kwargs)
+        #TODO self.oldData = 
 
 class ChangePitch(UnifiedAction):
-    def __init__(self, pitch, *args, **kwargs):
-        super().__init__(middleLayer.applyPitchChanges, *args, **kwargs)
-        self.pitch = pitch
+    def __init__(self, data, start, *args, **kwargs):
+        self.oldPitch = middleLayer.trackList[middleLayer.activeTrack].pitch[start:start + data.size()[0]]
+        super().__init__(middleLayer.applyPitchChanges, data, start, *args, **kwargs)
+        self.start = start
+
+    def inverseAction(self):
+        return ChangePitch(self.oldPitch, self.start, *self.args, **self.kwargs)
 
 class ChangeMode(UnifiedAction):
     def __init__(self, mode, *args, **kwargs):
