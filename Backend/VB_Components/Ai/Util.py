@@ -53,3 +53,49 @@ class RelLoss(nn.Module):
         correctors = targets / (inputs + 0.01) - 1
         out = torch.mean(torch.max(differences, correctors))
         return out
+
+class GuideRelLoss(nn.Module):
+    """function for calculating relative loss values between target and actual Tensor objects. Designed to be used with AI optimizers. Currently unused.
+    
+    Attributes:
+        None
+        
+    Methods:
+        __init__: basic class constructor
+        
+        forward: calculates relative loss based on input and target tensors after successful initialisation."""
+    
+    
+    def __init__(self, weight=None, size_average=True, threshold = 0.5, device = 'cpu'):
+        """basic class constructor.
+        
+        Arguments:
+            weight: required by PyTorch in some situations. Unused.
+            
+            size_average: required by PyTorch in some situations. Unused.
+            
+        Returns:
+            None"""
+        
+        
+        super().__init__()
+        if weight is None:
+            self.weight = torch.tensor([1.,], device=device)
+        else:
+            self.weight = torch.tensor(weight, device=device)
+        self.threshold = torch.tensor(threshold, device=device)
+ 
+    def forward(self, inputs:torch.Tensor, targets:torch.Tensor) -> float:  
+        """calculates relative loss based on input and target tensors after successful initialisation.
+        
+        Arguments:
+            inputs: AI-generated input Tensor
+            
+            targets: target Tensor
+            
+        Returns:
+            Relative error value calculated from the difference between input and target Tensor as Float"""
+        
+        error = (torch.abs(inputs - targets) + 0.001)# / (targets + 0.001)
+        out = torch.mean(torch.max(error - self.threshold, torch.tensor([0,], device = self.threshold.device))) * self.weight
+        return out

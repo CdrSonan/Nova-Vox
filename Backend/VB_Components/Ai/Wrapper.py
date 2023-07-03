@@ -13,8 +13,10 @@ import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
 import global_consts
+from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
-from Backend.VB_Components.Ai.PredAi import SpecPredAi, HarmPredAi
+from Backend.VB_Components.Ai.PredAi import SpecPredAi, SpecPredDiscriminator, DataGenerator
+from Backend.VB_Components.Ai.Util import GuideRelLoss
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.Resampler.CubicSplineInter import interp
 
@@ -24,7 +26,7 @@ halfHarms = int(global_consts.nHarmonics / 2) + 1
 class AIWrapper():
     """Wrapper class for the mandatory AI components of a Voicebank. Controls data pre- and postprocessing, state loading and saving, Hyperparameters, and both training and inference."""
 
-    def __init__(self, device = torch.device("cpu"), hparams:dict = None) -> None:
+    def __init__(self, voicebank, device = torch.device("cpu"), hparams:dict = None) -> None:
         """constructor taking a target device and dictionary of hyperparameters as input"""
 
         self.hparams = {
@@ -32,32 +34,35 @@ class AIWrapper():
             "crf_reg": 0.,
             "crf_hlc": 1,
             "crf_hls": 4000,
-            "pred_lr": 1.,
+            "pred_lr": 0.000055,
             "pred_reg": 0.,
             "pred_rlc": 3,
             "pred_rs": 1024,
-            "predh_lr": 1.,
-            "predh_reg": 0.,
-            "predh_rlc": 3,
-            "predh_rs": 1024,
+            "preddisc_lr": 0.000055,
+            "preddisc_reg": 0.,
+            "preddisc_rlc": 3,
+            "preddisc_rs": 1024,
             "crf_def_thrh" : 0.05
         }
         if hparams:
             for i in hparams.keys():
                 self.hparams[i] = hparams[i]
+        self.voicebank = LiteVoicebank(voicebank, device=device)
         self.crfAi = SpecCrfAi(device = device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=int(self.hparams["crf_hlc"]), hiddenLayerSize=int(self.hparams["crf_hls"]))
         self.predAi = SpecPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
-        self.predAiHarm = HarmPredAi(device = device, learningRate=self.hparams["predh_lr"], regularization=self.hparams["predh_reg"], recSize=int(self.hparams["predh_rs"]), recLayerCount=int(self.hparams["predh_rlc"]))
+        self.predAiDisc = SpecPredDiscriminator(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
+        self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
         self.device = device
         self.final = False
         self.defectiveCrfBins = []
-        #self.crfAiOptimizer = torch.optim.RMSprop(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization, momentum = 0.1)
-        #self.predAiOptimizer = torch.optim.NAdam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-        #self.predAiHarmOptimizer = torch.optim.NAdam(self.predAiHarm.parameters(), lr=self.predAiHarm.learningRate, weight_decay=self.predAiHarm.regularization)
         self.crfAiOptimizer = torch.optim.NAdam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
-        self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-        self.predAiHarmOptimizer = torch.optim.Adadelta(self.predAiHarm.parameters(), lr=self.predAiHarm.learningRate, weight_decay=self.predAiHarm.regularization)
+        #self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+        #self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
+        self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+        self.predAiDiscOptimizer = torch.optim.Adam(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
         self.criterion = nn.L1Loss()
+        self.discCriterion = nn.BCELoss()
+        self.guideCriterion = GuideRelLoss(weight = 1, threshold = 0.25, device=self.device)
     
     @staticmethod
     def dataLoader(data) -> DataLoader:
@@ -87,7 +92,6 @@ class AIWrapper():
                 'crfAi_sampleCount': self.crfAi.sampleCount,
                 'predAi_epoch': self.predAi.epoch,
                 'predAi_model_state_dict': self.predAi.state_dict(),
-                'predAiHarm_model_state_dict': self.predAiHarm.state_dict(),
                 'predAi_sampleCount': self.predAi.sampleCount,
                 'final': True
             }
@@ -98,9 +102,9 @@ class AIWrapper():
                 'crfAi_sampleCount': self.crfAi.sampleCount,
                 'predAi_epoch': self.predAi.epoch,
                 'predAi_model_state_dict': self.predAi.state_dict(),
-                'predAiHarm_model_state_dict': self.predAiHarm.state_dict(),
+                'predAiDisc_model_state_dict': self.predAiDisc.state_dict(),
                 'predAi_optimizer_state_dict': self.predAiOptimizer.state_dict(),
-                'predAiHarm_optimizer_state_dict': self.predAiHarmOptimizer.state_dict(),
+                'predAiDisc_optimizer_state_dict': self.predAiDiscOptimizer.state_dict(),
                 'predAi_sampleCount': self.predAi.sampleCount,
                 'final': False
             }
@@ -130,17 +134,19 @@ class AIWrapper():
         if (mode == None) or (mode == "pred"):
             if reset:
                 self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
-                self.predAiHarm = HarmPredAi(device = self.device, learningRate=self.hparams["predh_lr"], regularization=self.hparams["predh_reg"], recSize=self.hparams["predh_rs"])
+                self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
                 if aiState["final"]:
-                    self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-                    self.predAiHarmOptimizer = torch.optim.Adadelta(self.predAiHarm.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+                    #self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+                    #self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
+                    self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+                    self.predAiDiscOptimizer = torch.optim.Adam(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
             self.predAi.epoch = aiState["predAi_epoch"]
             self.predAi.sampleCount = aiState["predAi_sampleCount"]
             self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
-            self.predAiHarm.load_state_dict(aiState['predAiHarm_model_state_dict'])
+            self.predAiDisc.load_state_dict(aiState['predAiDisc_model_state_dict'])
             if not aiState["final"]:
                 self.predAiOptimizer.load_state_dict(aiState['predAi_optimizer_state_dict'])
-                self.predAiHarmOptimizer.load_state_dict(aiState['predAiHarm_optimizer_state_dict'])
+                self.predAiDiscOptimizer.load_state_dict(aiState['predAiDisc_optimizer_state_dict'])
         self.crfAi.eval()
         self.predAi.eval()
 
@@ -162,10 +168,8 @@ class AIWrapper():
         
         self.crfAi.eval()
         self.predAi.eval()
-        self.predAiHarm.eval()
         self.crfAi.requires_grad_(False)
         self.predAi.requires_grad_(False)
-        self.predAiHarm.requires_grad_(False)
         phase1 = specharm1[halfHarms:2 * halfHarms]
         phase2 = specharm2[halfHarms:2 * halfHarms]
         phase3 = specharm3[halfHarms:2 * halfHarms]
@@ -211,37 +215,37 @@ class AIWrapper():
             harms[i] = torch.min(harms[i], harmLimit)
             harms[i] = torch.max(harms[i], torch.tensor([0.,], device = self.device))
         output = torch.cat((harms, phases, spectrum), 1)
-        predSpectrum = self.predAi(spectrum)
+        """predSpectrum = self.predAi(spectrum)
         predSpectrum = torch.max(predSpectrum, torch.tensor([0.0001,], device = self.device))
         predHarms = self.predAiHarm(harms)
         predHarms = torch.max(predHarms, torch.tensor([0.0001,], device = self.device))
-        prediction = torch.cat((predHarms, phases, predSpectrum), 1)
+        prediction = torch.cat((predHarms, phases, predSpectrum), 1)"""
+        prediction = self.predAi(output, True)
         return output, torch.squeeze(prediction)
 
     def predict(self, specharm:torch.Tensor):
         """forward pass through the prediction Ai, taking a specharm as input and predicting the next one in a sequence. Includes data pre- and postprocessing."""
 
         self.predAi.eval()
-        self.predAiHarm.eval()
         self.predAi.requires_grad_(False)
-        self.predAiHarm.requires_grad_(False)
         if specharm.dim() == 1:
             specharm = specharm.unsqueeze(0)
-        phases = specharm[:, halfHarms:2 * halfHarms]
+        """phases = specharm[:, halfHarms:2 * halfHarms]
         spectrum = specharm[:, 2 * halfHarms:]
         harms = specharm[:, :halfHarms]
         predSpectrum = self.predAi(spectrum)
         predSpectrum = torch.max(predSpectrum, torch.tensor([0.0001,], device = self.device))
         predHarms = self.predAiHarm(harms)
         predHarms = torch.max(predHarms, torch.tensor([0.0001,], device = self.device))
-        prediction = torch.cat((predHarms, phases, predSpectrum), 1)
+        prediction = torch.cat((predHarms, phases, predSpectrum), 1)"""
+        prediction = self.predAi(specharm, True)
         return torch.squeeze(prediction)
 
     def reset(self) -> None:
         """resets the hidden states and cell states of the AI's LSTM layers."""
 
         self.predAi.resetState()
-        self.predAiHarm.resetState()
+        self.predAiDisc.resetState()
 
     def finalize(self):
         self.final = True
@@ -336,11 +340,14 @@ class AIWrapper():
 
         if reset:
             self.predAi = SpecPredAi(self.device, self.hparams["pred_lr"], self.hparams["pred_rlc"], self.hparams["pred_rs"], self.hparams["pred_reg"])
-            self.predAiHarm = HarmPredAi(self.device, self.hparams["pred_lr"], self.hparams["pred_rlc"], self.hparams["pred_rs"], self.hparams["pred_reg"])
-            self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-            self.predAiHarmOptimizer = torch.optim.Adadelta(self.predAiHarm.parameters(), lr=self.predAiHarm.learningRate, weight_decay=self.predAiHarm.regularization)
+            self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
+            self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
+            #self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+            #self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
+            self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
+            self.predAiDiscOptimizer = torch.optim.Adam(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
         self.predAi.train()
-        self.predAiHarm.train()
+        self.predAiDisc.train()
         if logging:
             csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_pred.csv"), 'w', newline='')
             fieldnames = ["epochs", "learning rate", "hidden layer count", "spec. loss", "harm. loss", "acc. sample count", "wtd. spec. train loss" "wtd. harm. train loss"]
@@ -351,44 +358,57 @@ class AIWrapper():
             self.predAi.epoch = epochs
         else:
             self.predAi.epoch = None
-        reportedLoss = 0.
-        reportedLossHarm = 0.
+        generatorLoss = None
+        targetLength = 0
+        total = 0
+        for data in tqdm(self.dataLoader(indata), desc = "pre-training", position = 0, total = len(indata), unit = "samples"):
+            data = torch.squeeze(data)
+            self.reset()
+            self.predAiOptimizer.zero_grad()
+            output = self.predAi(data)
+            loss = self.criterion(output, data)
+            loss.backward()
+            self.predAiOptimizer.step()
+            tqdm.write(loss.data.__repr__())
+            targetLength += data.size()[0]
+            total += 1
+        targetLength /= total
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
                 data = torch.squeeze(data)
                 self.reset()
-                input = data[:-1, 2 * halfHarms:]
-                target = data[1:, 2 * halfHarms:]
-                input = torch.squeeze(input)
-                target = torch.squeeze(target)
-                output = self.predAi(input)
-                loss = self.criterion(output.squeeze(), target)
+                synthBase = self.predAiGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 8)
+                synthInput = self.predAi(synthBase, True)
+                
+                if generatorLoss is None or generatorLoss.data < 3.:
+                    self.predAiDiscOptimizer.zero_grad()
+                    self.predAiDisc.resetState()
+                    output = self.predAiDisc(data)
+                    posDiscriminatorLoss = self.discCriterion(output, torch.full_like(output, 1, device = self.device))
+                    output = self.predAiDisc(synthInput.detach())
+                    negDiscriminatorLoss = self.discCriterion(output, torch.full_like(output, 0, device = self.device))
+                    discriminatorLoss = (posDiscriminatorLoss + negDiscriminatorLoss) / 2
+                    discriminatorLoss.backward()
+                    self.predAiDiscOptimizer.step()
+                
                 self.predAiOptimizer.zero_grad()
-                loss.backward()
+                self.predAiDisc.resetState()
+                output = self.predAiDisc(synthInput)
+                generatorLoss = self.discCriterion(output, torch.full_like(output, 1, device = self.device))
+                (generatorLoss + self.guideCriterion(synthBase, synthInput)).backward()
                 self.predAiOptimizer.step()
-                reportedLoss = (reportedLoss * 99 + loss.data) / 100
-                input = data[:-1, :halfHarms]
-                target = data[1:, :halfHarms]
-                input = torch.squeeze(input)
-                target = torch.squeeze(target)
-                output = self.predAiHarm(input)
-                lossHarm = self.criterion(output.squeeze(), target)
-                self.predAiHarmOptimizer.zero_grad()
-                lossHarm.backward()
-                self.predAiHarmOptimizer.step()
-                reportedLossHarm = (reportedLossHarm * 99 + lossHarm.data) / 100
-            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
+                tqdm.write("losses: {}, {}, {}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
+                
+            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
             self.predAi.sampleCount += len(indata)
             if writer != None:
                 results = {
                     "epochs": epoch,
                     "learning rate": self.predAi.learningRate,
                     "hidden layer count": self.predAi.recLayerCount,
-                    "spec. loss": loss.data,
-                    "harm. loss": lossHarm.data,
+                    "gen. loss": generatorLoss.data,
+                    "disc. loss": discriminatorLoss.data,
                     "acc. sample count": self.predAi.sampleCount,
-                    "wtd. spec. train loss": reportedLoss,
-                    "wtd. harm. train loss": reportedLossHarm
                 }
                 writer.writerow(results)
         if writer != None:
