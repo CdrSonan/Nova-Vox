@@ -13,7 +13,6 @@ import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
 import global_consts
-from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
 from Backend.VB_Components.Ai.PredAi import SpecPredAi, SpecPredDiscriminator, DataGenerator
 from Backend.VB_Components.Ai.Util import GuideRelLoss
@@ -47,7 +46,7 @@ class AIWrapper():
         if hparams:
             for i in hparams.keys():
                 self.hparams[i] = hparams[i]
-        self.voicebank = LiteVoicebank(voicebank, device=device)
+        self.voicebank = voicebank
         self.crfAi = SpecCrfAi(device = device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=int(self.hparams["crf_hlc"]), hiddenLayerSize=int(self.hparams["crf_hls"]))
         self.predAi = SpecPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
         self.predAiDisc = SpecPredDiscriminator(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
@@ -342,10 +341,10 @@ class AIWrapper():
             self.predAi = SpecPredAi(self.device, self.hparams["pred_lr"], self.hparams["pred_rlc"], self.hparams["pred_rs"], self.hparams["pred_reg"])
             self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
             self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
-            #self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-            #self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
             self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
             self.predAiDiscOptimizer = torch.optim.Adam(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
+        else:
+            self.predAiGenerator.rebuildPool()
         self.predAi.train()
         self.predAiDisc.train()
         if logging:

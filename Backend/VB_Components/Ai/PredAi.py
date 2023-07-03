@@ -11,7 +11,6 @@ from math import floor, pi, ceil, log
 import torch
 import torch.nn as nn
 import global_consts
-from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
@@ -179,19 +178,28 @@ class SpecPredDiscriminator(nn.Module):
 class DataGenerator:
     """generates synthetic data for the discriminator to train on"""
     
-    def __init__(self, voicebank:LiteVoicebank, crfAi:SpecCrfAi, mode:str = "reclist", requireVowels:bool = False) -> None:
+    def __init__(self, voicebank, crfAi:SpecCrfAi, mode:str = "reclist", requireVowels:bool = False) -> None:
         self.voicebank = voicebank
         self.crfAi = crfAi
         self.mode = mode
         self.requireVowels = requireVowels
-        if requireVowels:
+        self.rebuildPool()
+
+    def rebuildPool(self) -> None:
+        if self.requireVowels:
             self.longPool = [key for key, value in self.voicebank.phonemeDict.keys() if value[0].isPlosive and value[0].isVoiced]
             self.shortPool = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive or not value[0].isVoiced]
         else:
             self.longPool = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
             self.shortPool = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive]
-        self.shortAvg = sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in self.shortPool]) / len(self.shortPool)
-        self.longAvg = sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in self.longPool]) / len(self.longPool)
+        if len(self.shortPool) == 0:
+            self.shortAvg = 0
+        else:
+            self.shortAvg = sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in self.shortPool]) / len(self.shortPool)
+        if len(self.longPool) == 0:
+            self.longAvg = 0
+        else:
+            self.longAvg = sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in self.longPool]) / len(self.longPool)
 
     def makeSequence(self, noise:list, length:int = None, phonemeLength:int = None) -> torch.Tensor:
         if self.mode == "reclist":

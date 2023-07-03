@@ -95,7 +95,7 @@ class Voicebank():
         self.metadata = VbMetadata()
         self.filepath = filepath
         self.phonemeDict = dict()
-        self.ai = AIWrapper(device)
+        self.ai = AIWrapper(self, device)
         self.parameters = []
         self.wordDict = (dict(), [])
         self.stagedCrfTrainSamples = []
@@ -374,7 +374,7 @@ class LiteVoicebank():
         self.filepath = filepath
         self.phonemeDict = dict()
         self.device = device
-        self.ai = AIWrapper(device, torch.load(filepath, map_location = self.device)["hparams"])
+        self.ai = AIWrapper(self, device, torch.load(filepath, map_location = self.device)["hparams"])
         self.parameters = []
         self.wordDict = (dict(), [])
         self.stagedCrfTrainSamples = []

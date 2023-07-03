@@ -7,7 +7,6 @@
 
 from torch import device, float32, zeros
 from Backend.DataHandler.VocalSequence import VocalSequence
-from Backend.VB_Components.Voicebank import LiteVoicebank
 
 class VocalSegment():
     """Class representing the segment covered by a single phoneme within a VocalSequence. Designed to be modified by ESPER.
@@ -34,7 +33,7 @@ class VocalSegment():
     """
 
 
-    def __init__(self, inputs:VocalSequence, vb:LiteVoicebank, index:int, device:device) -> None:
+    def __init__(self, inputs:VocalSequence, vb, index:int, device:device) -> None:
         self.start1 = inputs.borders[3*index]
         self.start2 = inputs.borders[3*index+1]
         self.start3 = inputs.borders[3*index+2]
