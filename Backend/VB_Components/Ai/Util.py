@@ -99,3 +99,29 @@ class GuideRelLoss(nn.Module):
         error = (torch.abs(inputs - targets) + 0.001)# / (targets + 0.001)
         out = torch.mean(torch.max(error - self.threshold, torch.tensor([0,], device = self.threshold.device))) * self.weight
         return out
+
+def gradientPenalty(model, real, fake, device):
+    """calculates gradient penalty for a given model, real, and fake inputs.
+    
+    Arguments:
+        model: model to calculate gradient penalty for
+        
+        real: real input to model
+        
+        fake: fake input to model
+        
+        device: device to run model on
+        
+    Returns:
+        gradient penalty as Float"""
+    
+    limit = min(real.shape[0], fake.shape[0])
+    alpha = torch.rand(1, 1, device=device)
+    interpolates = alpha * real[:limit] + ((1 - alpha) * fake[:limit])
+    interpolates.requires_grad_(True)
+    with torch.backends.cudnn.flags(enabled=False):
+        disc_interpolates = model(interpolates)
+    output = torch.ones_like(disc_interpolates, device=device)
+    gradient = torch.autograd.grad(outputs=disc_interpolates, inputs=interpolates, grad_outputs=output, create_graph=True, retain_graph=True, only_inputs=True)[0]
+    result = ((gradient.norm(2, dim=1) - 1) ** 2).mean()
+    return result

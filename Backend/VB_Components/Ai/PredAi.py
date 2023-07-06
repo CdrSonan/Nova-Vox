@@ -121,7 +121,7 @@ class SpecPredAi(nn.Module):
         
         y = torch.max(y, torch.tensor([0.0001,], device = self.device))
 
-        return torch.cat((y, phases, x), 1)
+        return torch.cat((y + harms, phases, x + spectrum), 1)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -133,14 +133,14 @@ class SpecPredDiscriminator(nn.Module):
     
     def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
         super().__init__()
-        self.layerStart1 = torch.nn.Linear(global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device)
+        self.layerStart1 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device))
         self.ReLuStart1 = nn.Sigmoid()
-        self.layerStart2 = torch.nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device)
+        self.layerStart2 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device))
         self.ReLuStart2 = nn.Sigmoid()
-        self.recurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device)
-        self.layerEnd1 = torch.nn.Linear(recSize, int(recSize / 2), device = device)
+        self.recurrentLayers = torch.nn.utils.parametrizations.spectral_norm(nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device))
+        self.layerEnd1 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(recSize, int(recSize / 2), device = device))
         self.ReLuEnd1 = nn.Sigmoid()
-        self.layerEnd2 = torch.nn.Linear(int(recSize / 2), 1, device = device)
+        self.layerEnd2 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(int(recSize / 2), 1, device = device))
         self.ReLuEnd2 = nn.Sigmoid()
 
         self.device = device
@@ -168,7 +168,7 @@ class SpecPredDiscriminator(nn.Module):
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
-        return x
+        return torch.mean(x).squeeze()
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""

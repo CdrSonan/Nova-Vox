@@ -15,7 +15,7 @@ from torch.utils.data.dataloader import DataLoader
 import global_consts
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
 from Backend.VB_Components.Ai.PredAi import SpecPredAi, SpecPredDiscriminator, DataGenerator
-from Backend.VB_Components.Ai.Util import GuideRelLoss
+from Backend.VB_Components.Ai.Util import GuideRelLoss, gradientPenalty
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.Resampler.CubicSplineInter import interp
 
@@ -61,7 +61,7 @@ class AIWrapper():
         self.predAiDiscOptimizer = torch.optim.Adam(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
         self.criterion = nn.L1Loss()
         self.discCriterion = nn.BCELoss()
-        self.guideCriterion = GuideRelLoss(weight = 1, threshold = 0.25, device=self.device)
+        self.guideCriterion = GuideRelLoss(weight = 1, threshold = 0.5, device=self.device)
     
     @staticmethod
     def dataLoader(data) -> DataLoader:
@@ -346,7 +346,9 @@ class AIWrapper():
         else:
             self.predAiGenerator.rebuildPool()
         self.predAi.train()
+        self.predAi.requires_grad_(True)
         self.predAiDisc.train()
+        self.predAiDisc.requires_grad_(True)
         if logging:
             csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_pred.csv"), 'w', newline='')
             fieldnames = ["epochs", "learning rate", "hidden layer count", "spec. loss", "harm. loss", "acc. sample count", "wtd. spec. train loss" "wtd. harm. train loss"]
@@ -357,7 +359,6 @@ class AIWrapper():
             self.predAi.epoch = epochs
         else:
             self.predAi.epoch = None
-        generatorLoss = None
         targetLength = 0
         total = 0
         for data in tqdm(self.dataLoader(indata), desc = "pre-training", position = 0, total = len(indata), unit = "samples"):
@@ -379,21 +380,20 @@ class AIWrapper():
                 synthBase = self.predAiGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 8)
                 synthInput = self.predAi(synthBase, True)
                 
-                if generatorLoss is None or generatorLoss.data < 3.:
-                    self.predAiDiscOptimizer.zero_grad()
-                    self.predAiDisc.resetState()
-                    output = self.predAiDisc(data)
-                    posDiscriminatorLoss = self.discCriterion(output, torch.full_like(output, 1, device = self.device))
-                    output = self.predAiDisc(synthInput.detach())
-                    negDiscriminatorLoss = self.discCriterion(output, torch.full_like(output, 0, device = self.device))
-                    discriminatorLoss = (posDiscriminatorLoss + negDiscriminatorLoss) / 2
-                    discriminatorLoss.backward()
-                    self.predAiDiscOptimizer.step()
+                self.predAiDiscOptimizer.zero_grad()
+                self.predAiDisc.resetState()
+                posDiscriminatorLoss = self.predAiDisc(data)
+                #posDiscriminatorLoss = self.discCriterion(output, torch.full_like(output, 1, device = self.device))
+                negDiscriminatorLoss = self.predAiDisc(synthInput.detach())
+                #negDiscriminatorLoss = self.discCriterion(output, torch.full_like(output, 0, device = self.device))
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss# + 10 * gradientPenalty(self.predAiDisc, data, synthInput.detach(), self.device)
+                discriminatorLoss.backward()
+                self.predAiDiscOptimizer.step()
                 
                 self.predAiOptimizer.zero_grad()
                 self.predAiDisc.resetState()
-                output = self.predAiDisc(synthInput)
-                generatorLoss = self.discCriterion(output, torch.full_like(output, 1, device = self.device))
+                generatorLoss = torch.mean(self.predAiDisc(synthInput))
+                #generatorLoss = self.discCriterion(output, torch.full_like(output, 1, device = self.device))
                 (generatorLoss + self.guideCriterion(synthBase, synthInput)).backward()
                 self.predAiOptimizer.step()
                 tqdm.write("losses: {}, {}, {}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
