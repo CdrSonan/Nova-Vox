@@ -137,7 +137,11 @@ class SpecPredDiscriminator(nn.Module):
         self.ReLuStart1 = nn.Sigmoid()
         self.layerStart2 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device))
         self.ReLuStart2 = nn.Sigmoid()
-        self.recurrentLayers = torch.nn.utils.parametrizations.spectral_norm(nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device))
+        #self.recurrentLayers = torch.nn.utils.parametrizations.spectral_norm(nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device), name = "all_weights")
+        self.recurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device)
+        for i in self.recurrentLayers._all_weights:
+            for j in i:
+                self.recurrentLayers = torch.nn.utils.parametrizations.spectral_norm(self.recurrentLayers, name = j)
         self.layerEnd1 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(recSize, int(recSize / 2), device = device))
         self.ReLuEnd1 = nn.Sigmoid()
         self.layerEnd2 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(int(recSize / 2), 1, device = device))

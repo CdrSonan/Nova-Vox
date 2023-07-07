@@ -37,7 +37,7 @@ class AIWrapper():
             "pred_reg": 0.,
             "pred_rlc": 3,
             "pred_rs": 1024,
-            "preddisc_lr": 0.000055,
+            "preddisc_lr": 0.000085,
             "preddisc_reg": 0.,
             "preddisc_rlc": 3,
             "preddisc_rs": 1024,
@@ -396,7 +396,7 @@ class AIWrapper():
                 #generatorLoss = self.discCriterion(output, torch.full_like(output, 1, device = self.device))
                 (generatorLoss + self.guideCriterion(synthBase, synthInput)).backward()
                 self.predAiOptimizer.step()
-                tqdm.write("losses: {}, {}, {}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
+                tqdm.write("losses: {}, {}, {}, {}".format(posDiscriminatorLoss.__repr__(), negDiscriminatorLoss.__repr__(), discriminatorLoss.__repr__(), generatorLoss.__repr__()))
                 
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
             self.predAi.sampleCount += len(indata)
