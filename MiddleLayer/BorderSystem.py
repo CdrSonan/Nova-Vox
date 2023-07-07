@@ -100,7 +100,10 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
     dropinLength = (length - sum([i for i in segmentLengths if i])) / max(sum([1 for i in segmentLengths if not i]), 1)
     dropinLength = max(dropinLength, global_consts.refPhonemeLength)
     segmentLengths = [i if i else dropinLength for i in segmentLengths]
-    compression = length / sum(segmentLengths)
+    if len(segmentLengths) > 0:
+        compression = length / sum(segmentLengths)
+    else:
+        compression = 1
     segmentLengths = [i * compression for i in segmentLengths]
     
     if autopause:
