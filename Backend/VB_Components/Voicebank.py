@@ -228,6 +228,7 @@ class Voicebank():
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
 
         self.stagedCrfTrainSamples.append(AISample(filepath))
+        self.stagedCrfTrainSamples[-1].embedding = (0, 0)
 
     def addCrfTrainSampleUtau(self, sample:UtauSample) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""

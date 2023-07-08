@@ -118,6 +118,38 @@ class CrfaiUi(Frame):
         self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
         self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
         self.sideBar.sBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
+
+        def OnValidateCheckSum(P):
+            valid_hex_char = lambda c: c in 'abcdef0123456789'
+            return (len(P) < 5) and (all(valid_hex_char(z) for z in P.lower()))
+
+        self.sideBar.embedding1 = Frame(self.sideBar)
+        self.sideBar.embedding1.variable = tkinter.StringVar(self.sideBar.embedding1, "0000")
+        self.sideBar.embedding1.entry = Entry(self.sideBar.embedding1)
+        self.sideBar.embedding1.entry["validate"] = "key"
+        self.sideBar.embedding1.entry["validatecommand"] = (self.sideBar.embedding1.entry.register(OnValidateCheckSum), '%P')
+        self.sideBar.embedding1.entry["textvariable"] = self.sideBar.embedding1.variable
+        self.sideBar.embedding1.entry.bind("<FocusOut>", self.onEmbeddingUpdateTrigger)
+        self.sideBar.embedding1.entry.bind("<KeyRelease-Return>", self.onEmbeddingUpdateTrigger)
+        self.sideBar.embedding1.entry.pack(side = "right", fill = "x")
+        self.sideBar.embedding1.display = Label(self.sideBar.embedding1)
+        self.sideBar.embedding1.display["text"] = loc["embedding"]
+        self.sideBar.embedding1.display.pack(side = "right", fill = "x")
+        self.sideBar.embedding1.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.embedding2 = Frame(self.sideBar)
+        self.sideBar.embedding2.variable = tkinter.StringVar(self.sideBar.embedding2, "0000")
+        self.sideBar.embedding2.entry = Entry(self.sideBar.embedding2)
+        self.sideBar.embedding2.entry["validate"] = "key"
+        self.sideBar.embedding2.entry["validatecommand"] = (self.sideBar.embedding2.entry.register(OnValidateCheckSum), '%P')
+        self.sideBar.embedding2.entry["textvariable"] = self.sideBar.embedding2.variable
+        self.sideBar.embedding2.entry.bind("<FocusOut>", self.onEmbeddingUpdateTrigger)
+        self.sideBar.embedding2.entry.bind("<KeyRelease-Return>", self.onEmbeddingUpdateTrigger)
+        self.sideBar.embedding2.entry.pack(side = "right", fill = "x")
+        self.sideBar.embedding2.display = Label(self.sideBar.embedding2)
+        self.sideBar.embedding2.display["text"] = loc["embedding"]
+        self.sideBar.embedding2.display.pack(side = "right", fill = "x")
+        self.sideBar.embedding2.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.epochs = Frame(self.sideBar)
         self.sideBar.epochs.variable = tkinter.IntVar(self.sideBar.epochs, 1)
@@ -225,6 +257,13 @@ class CrfaiUi(Frame):
         loadedVB.stagedCrfTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
         loadedVB.stagedCrfTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
         loadedVB.stagedCrfTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
+
+    def onEmbeddingUpdateTrigger(self, event) -> None:
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
+            loadedVB.phonemeDict[key][0].embedding = (int(self.sideBar.embedding1.variable.get(), 16), int(self.sideBar.embedding2.variable.get(), 16))
 
     def onPitBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the pitch search settings of the currently selected sample to all samples"""

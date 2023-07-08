@@ -321,10 +321,10 @@ class UtauImportUi(Frame):
         if filepath != "":
             for s in self.sampleList:
                 if filepath == s.audioSample.filepath:
-                    sample = UtauSample(filepath, 1, None, 0, None, s.offset, s.fixed, s.blank, s.preuttr, s.overlap, True, False)
+                    sample = UtauSample(filepath, 1, None, 0, None, s.offset, s.fixed, s.blank, s.preuttr, s.overlap, True, False, 0)
                     break
             else:
-                sample = UtauSample(filepath, 1, None, 0, None, 0, 0, 0, 0, 0, True, False)
+                sample = UtauSample(filepath, 1, None, 0, None, 0, 0, 0, 0, 0, True, False, 0)
             self.sampleList.append(sample)
             self.phonemeList.list.lb.insert("end", sample.handle)
         

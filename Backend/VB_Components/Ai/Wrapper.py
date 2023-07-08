@@ -150,7 +150,7 @@ class AIWrapper():
         self.crfAi.eval()
         self.predAi.eval()
 
-    def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int) -> torch.Tensor:
+    def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int) -> torch.Tensor:
         """forward pass of both NNs for generating a transition between two phonemes, with data pre- and postprocessing
         
         Arguments:
@@ -184,7 +184,7 @@ class AIWrapper():
         harm4 = specharm4[:halfHarms]
         factor = math.log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.device), factor)
-        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor)).transpose(0, 1)
+        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, dec2bin(embedding1, 64), dec2bin(embedding2, 64), factor)).transpose(0, 1)
         for i in self.defectiveCrfBins:
             spectrum[:, i] = torch.mean(torch.cat((spectrum[:, i - 1].unsqueeze(1), spectrum[:, i + 1].unsqueeze(1)), 1), 1)
         borderRange = torch.zeros((outputSize,), device = self.device)
