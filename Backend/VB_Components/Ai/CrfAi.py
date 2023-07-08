@@ -83,7 +83,7 @@ class SpecCrfAi(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
         
-    def forward(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, factor:torch.Tensor) -> torch.Tensor:
+    def forward(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, factor:torch.Tensor) -> torch.Tensor:
         """Forward NN pass.
         
         Arguments:

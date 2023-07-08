@@ -289,7 +289,7 @@ class Voicebank():
             calculatePitch(sample, True)
             calculateSpectra(sample, False)
             avgSpecharm = torch.cat((sample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), sample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-            stagedCrfTrainSamples.append((avgSpecharm + sample.specharm).to(device = self.device))
+            stagedCrfTrainSamples.append(((avgSpecharm + sample.specharm).to(device = self.device), sample.embedding))
         print("sample preprocessing complete")
         print("AI training started")
         self.ai.trainCrf(stagedCrfTrainSamples, epochs = epochs, logging = logging, reset = not additive)

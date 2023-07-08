@@ -128,6 +128,8 @@ class AISample():
         self.isVoiced = True
         self.isPlosive = False
         
+        self.embedding = 0
+        
         self.expectedPitch = global_consts.defaultExpectedPitch
         self.searchRange = global_consts.defaultSearchRange
         self.voicedThrh = global_consts.defaultVoicedThrh
@@ -143,6 +145,7 @@ class AISample():
             audioSample.waveform = self.waveform
             audioSample.isVoiced = self.isVoiced
             audioSample.isPlosive = self.isPlosive
+            audioSample.embedding = self.embedding
             audioSample.expectedPitch = self.expectedPitch
             audioSample.searchRange = self.searchRange
             audioSample.voicedThrh = self.voicedThrh
@@ -199,3 +202,4 @@ class LiteAudioSample():
         self.excitation = audioSample.excitation
         self.isVoiced = audioSample.isVoiced
         self.isPlosive = audioSample.isPlosive
+        self.embedding = audioSample.embedding

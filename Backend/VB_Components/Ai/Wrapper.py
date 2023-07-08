@@ -15,9 +15,10 @@ from torch.utils.data.dataloader import DataLoader
 import global_consts
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
 from Backend.VB_Components.Ai.PredAi import SpecPredAi, SpecPredDiscriminator, DataGenerator
-from Backend.VB_Components.Ai.Util import GuideRelLoss, gradientPenalty
+from Backend.VB_Components.Ai.Util import GuideRelLoss
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.Resampler.CubicSplineInter import interp
+from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 
@@ -283,7 +284,9 @@ class AIWrapper():
         reportedLoss = 0.
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
-                data = data.to(device = self.device)
+                embedding1 = dec2bin(torch.tensor(data[1][0], device = self.device), 64)
+                embedding2 = dec2bin(torch.tensor(data[1][1], device = self.device), 64)
+                data = data[0].to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
                 spectrum2 = data[3, 2 * halfHarms:]
@@ -291,7 +294,7 @@ class AIWrapper():
                 spectrum4 = data[-1, 2 * halfHarms:]
                 outputSize = data.size()[0] - 2
                 factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor).transpose(0, 1)
+                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, embedding1, embedding2, factor).transpose(0, 1)
                 target = data[2:, 2 * halfHarms:]
                 loss = self.criterion(output, target)
                 self.crfAiOptimizer.zero_grad()

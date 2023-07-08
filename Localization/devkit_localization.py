@@ -155,6 +155,7 @@ def getLanguage():
         locale["worddict_override_word_exists_error"] = "cannot add several overrides for the same word"
         locale["worddict_syllable_exists_error"] = "cannot add several mappings for the same syllable"
         locale["worddict_csv_import_error"] = "error while importing .csv file"
+        locale["embedding"] = "AI embedding:"
         
 
     elif lang == "jp":
@@ -300,5 +301,6 @@ def getLanguage():
         locale["worddict_override_word_exists_error"] = ""
         locale["worddict_syllable_exists_error"] = ""
         locale["worddict_csv_import_error"] = ""
+        locale["embedding"] = ""
         
     return locale
