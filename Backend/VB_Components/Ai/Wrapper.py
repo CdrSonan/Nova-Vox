@@ -284,8 +284,8 @@ class AIWrapper():
         reportedLoss = 0.
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
-                embedding1 = dec2bin(torch.tensor(data[1][0], device = self.device), 64)
-                embedding2 = dec2bin(torch.tensor(data[1][1], device = self.device), 64)
+                embedding1 = dec2bin(torch.tensor(data[1][0], device = self.device), 16)
+                embedding2 = dec2bin(torch.tensor(data[1][1], device = self.device), 16)
                 data = data[0].to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
@@ -319,7 +319,7 @@ class AIWrapper():
         criterionSteps = 0
         with torch.no_grad():
             for data in self.dataLoader(indata):
-                data = data.to(device = self.device)
+                data = data[0].to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
                 spectrum2 = data[3, 2 * halfHarms:]

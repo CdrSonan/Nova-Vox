@@ -237,7 +237,8 @@ class CrfaiUi(Frame):
             self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedCrfTrainSamples[index].specDepth)
             self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedCrfTrainSamples[index].tempWidth)
             self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedCrfTrainSamples[index].tempDepth)
-            self.sideBar.embedding.variable.set(hex(loadedVB.stagedCrfTrainSamples[index].embedding)[2:])
+            self.sideBar.embedding1.variable.set(hex(loadedVB.stagedCrfTrainSamples[index].embedding[0])[2:])
+            self.sideBar.embedding2.variable.set(hex(loadedVB.stagedCrfTrainSamples[index].embedding[1])[2:])
             
     def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""
