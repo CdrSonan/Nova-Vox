@@ -121,10 +121,10 @@ class CrfaiUi(Frame):
 
         def OnValidateCheckSum(P):
             valid_hex_char = lambda c: c in 'abcdef0123456789'
-            return (len(P) < 5) and (all(valid_hex_char(z) for z in P.lower()))
+            return (len(P) < 9) and (all(valid_hex_char(z) for z in P.lower()))
 
         self.sideBar.embedding1 = Frame(self.sideBar)
-        self.sideBar.embedding1.variable = tkinter.StringVar(self.sideBar.embedding1, "0000")
+        self.sideBar.embedding1.variable = tkinter.StringVar(self.sideBar.embedding1, "00000000")
         self.sideBar.embedding1.entry = Entry(self.sideBar.embedding1)
         self.sideBar.embedding1.entry["validate"] = "key"
         self.sideBar.embedding1.entry["validatecommand"] = (self.sideBar.embedding1.entry.register(OnValidateCheckSum), '%P')
@@ -138,7 +138,7 @@ class CrfaiUi(Frame):
         self.sideBar.embedding1.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.sideBar.embedding2 = Frame(self.sideBar)
-        self.sideBar.embedding2.variable = tkinter.StringVar(self.sideBar.embedding2, "0000")
+        self.sideBar.embedding2.variable = tkinter.StringVar(self.sideBar.embedding2, "00000000")
         self.sideBar.embedding2.entry = Entry(self.sideBar.embedding2)
         self.sideBar.embedding2.entry["validate"] = "key"
         self.sideBar.embedding2.entry["validatecommand"] = (self.sideBar.embedding2.entry.register(OnValidateCheckSum), '%P')
@@ -237,6 +237,7 @@ class CrfaiUi(Frame):
             self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedCrfTrainSamples[index].specDepth)
             self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedCrfTrainSamples[index].tempWidth)
             self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedCrfTrainSamples[index].tempDepth)
+            self.sideBar.embedding.variable.set(hex(loadedVB.stagedCrfTrainSamples[index].embedding)[2:])
             
     def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""

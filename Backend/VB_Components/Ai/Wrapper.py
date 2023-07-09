@@ -184,7 +184,7 @@ class AIWrapper():
         harm4 = specharm4[:halfHarms]
         factor = math.log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.device), factor)
-        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, dec2bin(embedding1, 64), dec2bin(embedding2, 64), factor)).transpose(0, 1)
+        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, dec2bin(embedding1, 32), dec2bin(embedding2, 32), factor)).transpose(0, 1)
         for i in self.defectiveCrfBins:
             spectrum[:, i] = torch.mean(torch.cat((spectrum[:, i - 1].unsqueeze(1), spectrum[:, i + 1].unsqueeze(1)), 1), 1)
         borderRange = torch.zeros((outputSize,), device = self.device)

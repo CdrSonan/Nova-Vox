@@ -406,6 +406,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     previousSpectrum[-1].to(device = device_ai),
                                     currentSpectrum[0].to(device = device_ai),
                                     specB.to(device = device_ai),
+                                    voicebank.phonemeDict[internalInputs.phonemes[j - 1]][0].embedding,
+                                    voicebank.phonemeDict[internalInputs.phonemes[j]][0].embedding,
                                     internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j],
                                     internalInputs.pitch[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]],
                                     internalInputs.borders[3 * j + 1] - internalInputs.borders[3 * j]
@@ -450,6 +452,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     currentSpectrum[-1].to(device = device_ai),
                                     nextSpectrum[0].to(device = device_ai),
                                     specB.to(device = device_ai),
+                                    voicebank.phonemeDict[internalInputs.phonemes[j]][0].embedding,
+                                    voicebank.phonemeDict[internalInputs.phonemes[j + 1]][0].embedding,
                                     internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3],
                                     internalInputs.pitch[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]],
                                     internalInputs.borders[3 * j + 4] - internalInputs.borders[3 * j + 3]

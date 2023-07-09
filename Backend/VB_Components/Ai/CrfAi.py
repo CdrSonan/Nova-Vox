@@ -107,14 +107,14 @@ class SpecCrfAi(nn.Module):
         spectrum2tile = torch.tile(spectrum2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum3tile = torch.tile(spectrum3.unsqueeze(0), (outputSize, 1, 1)) * factor
         spectrum4tile = torch.tile(spectrum4.unsqueeze(0), (outputSize, 1, 1)) * factor#outputSize, 5, hTBS
-        embedding = torch.cat((factor[:, :, :global_consts.halfTripleBatchSize + 1 - 128], torch.tile(embedding1[None, None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, None, :], (outputSize, 1, 1))), dim = 2)
+        embedding = torch.cat((factor[:, :, :global_consts.halfTripleBatchSize + 1 - 64], torch.tile(embedding1[None, None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, None, :], (outputSize, 1, 1))), dim = 2)
         x = torch.cat((spectrum3tile, spectrum4tile, embedding), dim = 1)
         x = x.float()
         x = torch.flatten(x, 1)
         x = x.unsqueeze(0)
         state = torch.flatten(torch.cat((spectrum1, spectrum2), 1), 1).unsqueeze(0)
         x, state = self.layerStart1a(x, state)
-        embedding = torch.cat((1. - factor[:, :, :global_consts.halfTripleBatchSize + 1 - 128], torch.tile(embedding1[None, None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, None, :], (outputSize, 1, 1))), dim = 2)
+        embedding = torch.cat((1. - factor[:, :, :global_consts.halfTripleBatchSize + 1 - 64], torch.tile(embedding1[None, None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, None, :], (outputSize, 1, 1))), dim = 2)
         y = torch.cat((spectrum1tile, spectrum2tile, embedding), dim = 1)
         y = y.float()
         y = torch.flatten(y, 1)
