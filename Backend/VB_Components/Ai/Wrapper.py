@@ -284,8 +284,8 @@ class AIWrapper():
         reportedLoss = 0.
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
-                embedding1 = dec2bin(torch.tensor(data[1][0], device = self.device), 16)
-                embedding2 = dec2bin(torch.tensor(data[1][1], device = self.device), 16)
+                embedding1 = dec2bin(torch.tensor(data[1][0], device = self.device), 32)
+                embedding2 = dec2bin(torch.tensor(data[1][1], device = self.device), 32)
                 data = data[0].to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
@@ -319,6 +319,8 @@ class AIWrapper():
         criterionSteps = 0
         with torch.no_grad():
             for data in self.dataLoader(indata):
+                embedding1 = dec2bin(torch.tensor(data[1][0], device = self.device), 32)
+                embedding2 = dec2bin(torch.tensor(data[1][1], device = self.device), 32)
                 data = data[0].to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
@@ -327,7 +329,7 @@ class AIWrapper():
                 spectrum4 = data[-1, 2 * halfHarms:]
                 outputSize = data.size()[0] - 2
                 factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor).transpose(0, 1)
+                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, embedding1, embedding2, factor).transpose(0, 1)
                 criterionA = torch.cat((torch.ones((outputSize, 1), device = self.device), output[:, 1:] / output[:, :-1]), 1)
                 criterionB = torch.cat((output[:, :-1] / output[:, 1:], torch.ones((outputSize, 1), device = self.device)), 1)
                 criterion += torch.mean(criterionA + criterionB, dim = 0)

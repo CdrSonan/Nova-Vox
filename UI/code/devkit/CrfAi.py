@@ -263,9 +263,7 @@ class CrfaiUi(Frame):
     def onEmbeddingUpdateTrigger(self, event) -> None:
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)
-        if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
-            loadedVB.phonemeDict[key][0].embedding = (int(self.sideBar.embedding1.variable.get(), 16), int(self.sideBar.embedding2.variable.get(), 16))
+        loadedVB.stagedCrfTrainSamples[index].embedding = (int(self.sideBar.embedding1.variable.get(), 16), int(self.sideBar.embedding2.variable.get(), 16))
 
     def onPitBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the pitch search settings of the currently selected sample to all samples"""

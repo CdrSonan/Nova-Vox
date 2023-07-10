@@ -223,6 +223,7 @@ class DataGenerator:
             phonemeSequence = random.choice(self.voicebank.wordDict[0].values())
         else:
             raise ValueError("Invalid mode for Data Generator")
+        embeddings = [self.voicebank.phonemeDict[i][0].embedding for i in phonemeSequence]
         numShortPhonemes = sum([1 for i in phonemeSequence if i in self.shortPool])
         numLongPhonemes = sum([1 for i in phonemeSequence if i in self.longPool])
         effectiveLength = length - numShortPhonemes * self.shortAvg
@@ -265,11 +266,11 @@ class DataGenerator:
                                  [],
                                  None
         )
-        return sequence
+        return sequence, embeddings
 
     def synthesize(self, noise:list, length:int, phonemeLength:int = None) -> torch.Tensor:
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""
-        sequence = self.makeSequence(noise, length, phonemeLength)
+        sequence, embeddings = self.makeSequence(noise, length, phonemeLength)
         output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = self.crfAi.device)
         output[sequence.borders[0]:sequence.borders[3]] = getSpecharm(VocalSegment(sequence, self.voicebank, 0, self.crfAi.device), self.crfAi.device)
         for i in range(1, sequence.phonemeLength - 1):
@@ -280,13 +281,15 @@ class DataGenerator:
                                                                                output[sequence.borders[3*i]],
                                                                                output[sequence.borders[3*i+2]],
                                                                                output[sequence.borders[3*i+2]+1],
+                                                                               embeddings[i - 1],
+                                                                               embeddings[i],
                                                                                sequence.borders[3*i+2] - sequence.borders[3*i],
                                                                                sequence.pitch[sequence.borders[3*i]:sequence.borders[3*i+2]],
                                                                                (sequence.borders[3*i+1] - sequence.borders[3*i])/(sequence.borders[3*i+2] - sequence.borders[3*i]))
             
         return output
     
-    def crfWrapper(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int):
+    def crfWrapper(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int):
         self.crfAi.eval()
         self.crfAi.requires_grad_(False)
         phase1 = specharm1[halfHarms:2 * halfHarms]
@@ -303,7 +306,7 @@ class DataGenerator:
         harm4 = specharm4[:halfHarms]
         factor = log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.crfAi.device), factor)
-        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor)).transpose(0, 1)
+        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, embedding1, embedding2, factor)).transpose(0, 1)
         #for i in self.defectiveCrfBins:
         #    spectrum[:, i] = torch.mean(torch.cat((spectrum[:, i - 1].unsqueeze(1), spectrum[:, i + 1].unsqueeze(1)), 1), 1)
         borderRange = torch.zeros((outputSize,), device = self.crfAi.device)
