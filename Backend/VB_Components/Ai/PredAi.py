@@ -17,6 +17,7 @@ from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.Resampler.Resamplers import getSpecharm
 from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseInterp
+from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 
@@ -172,7 +173,7 @@ class SpecPredDiscriminator(nn.Module):
         x = self.ReLuEnd1(x)
         x = self.layerEnd2(x)
         x = self.ReLuEnd2(x)
-        return torch.mean(x).squeeze()
+        return torch.max(x).squeeze()
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -306,6 +307,8 @@ class DataGenerator:
         harm4 = specharm4[:halfHarms]
         factor = log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.crfAi.device), factor)
+        embedding1 = dec2bin(torch.tensor(embedding1, device = self.crfAi.device), 32)
+        embedding2 = dec2bin(torch.tensor(embedding2, device = self.crfAi.device), 32)
         spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, embedding1, embedding2, factor)).transpose(0, 1)
         #for i in self.defectiveCrfBins:
         #    spectrum[:, i] = torch.mean(torch.cat((spectrum[:, i - 1].unsqueeze(1), spectrum[:, i + 1].unsqueeze(1)), 1), 1)

@@ -61,8 +61,7 @@ class AIWrapper():
         self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
         self.predAiDiscOptimizer = torch.optim.Adam(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
         self.criterion = nn.L1Loss()
-        self.discCriterion = nn.BCELoss()
-        self.guideCriterion = GuideRelLoss(weight = 1, threshold = 0.5, device=self.device)
+        self.guideCriterion = nn.MSELoss()#GuideRelLoss(weight = 1, threshold = 0.5, device=self.device)
     
     @staticmethod
     def dataLoader(data) -> DataLoader:
@@ -184,7 +183,7 @@ class AIWrapper():
         harm4 = specharm4[:halfHarms]
         factor = math.log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.device), factor)
-        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, dec2bin(embedding1, 32), dec2bin(embedding2, 32), factor)).transpose(0, 1)
+        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, dec2bin(torch.tensor(embedding1, device = self.device), 32), dec2bin(torch.tensor(embedding2, device = self.device), 32), factor)).transpose(0, 1)
         for i in self.defectiveCrfBins:
             spectrum[:, i] = torch.mean(torch.cat((spectrum[:, i - 1].unsqueeze(1), spectrum[:, i + 1].unsqueeze(1)), 1), 1)
         borderRange = torch.zeros((outputSize,), device = self.device)
@@ -319,8 +318,8 @@ class AIWrapper():
         criterionSteps = 0
         with torch.no_grad():
             for data in self.dataLoader(indata):
-                embedding1 = dec2bin(torch.tensor(data[1][0], device = self.device), 32)
-                embedding2 = dec2bin(torch.tensor(data[1][1], device = self.device), 32)
+                embedding1 = dec2bin(data[1][0].clone().to(self.device), 32)
+                embedding2 = dec2bin(data[1][1].clone().to(self.device), 32)
                 data = data[0].to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
@@ -388,17 +387,14 @@ class AIWrapper():
                 self.predAiDiscOptimizer.zero_grad()
                 self.predAiDisc.resetState()
                 posDiscriminatorLoss = self.predAiDisc(data)
-                #posDiscriminatorLoss = self.discCriterion(output, torch.full_like(output, 1, device = self.device))
                 negDiscriminatorLoss = self.predAiDisc(synthInput.detach())
-                #negDiscriminatorLoss = self.discCriterion(output, torch.full_like(output, 0, device = self.device))
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss# + 10 * gradientPenalty(self.predAiDisc, data, synthInput.detach(), self.device)
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
                 discriminatorLoss.backward()
                 self.predAiDiscOptimizer.step()
                 
                 self.predAiOptimizer.zero_grad()
                 self.predAiDisc.resetState()
                 generatorLoss = torch.mean(self.predAiDisc(synthInput))
-                #generatorLoss = self.discCriterion(output, torch.full_like(output, 1, device = self.device))
                 (generatorLoss + self.guideCriterion(synthBase, synthInput)).backward()
                 self.predAiOptimizer.step()
                 tqdm.write("losses: {}, {}, {}, {}".format(posDiscriminatorLoss.__repr__(), negDiscriminatorLoss.__repr__(), discriminatorLoss.__repr__(), generatorLoss.__repr__()))
