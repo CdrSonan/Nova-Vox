@@ -36,30 +36,34 @@ class SpecPredAi(nn.Module):
 
         super().__init__()
         
-        self.specLayerStart1 = torch.nn.Linear(global_consts.halfTripleBatchSize + 1, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device)
-        self.specReLuStart1 = nn.Sigmoid()
-        self.specLayerStart2 = torch.nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device)
-        self.specReLuStart2 = nn.Sigmoid()
+        self.specEncoder = nn.Sequential(nn.Linear(global_consts.halfTripleBatchSize + 1, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device),
+                                         nn.Sigmoid(),
+                                         torch.nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device),
+                                         nn.Sigmoid()
+        )
         self.specRecurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device)
-        self.specLayerEnd1 = torch.nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device)
-        self.specReLuEnd1 = nn.Sigmoid()
-        self.specLayerEnd2 = torch.nn.Linear(int(recSize / 2 + global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device)
-        self.specReLuEnd2 = nn.Sigmoid()
+        self.specDecoder = nn.Sequential(torch.nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device),
+                                         nn.Sigmoid(),
+                                         torch.nn.Linear(int(recSize / 2 + global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device),
+                                         nn.Sigmoid()
+        )
         
-        self.harmLayerStart1 = torch.nn.Linear(halfHarms, int(halfHarms / 2 + recSize / 2), device = device)
-        self.harmReLuStart1 = nn.Sigmoid()
-        self.harmLayerStart2 = torch.nn.Linear(int(halfHarms / 2 + recSize / 2), recSize, device = device)
-        self.harmReLuStart2 = nn.Sigmoid()
+        self.harmEncoder = nn.Sequential(torch.nn.Linear(halfHarms, int(halfHarms / 2 + recSize / 2), device = device),
+                                         nn.Sigmoid(),
+                                         torch.nn.Linear(int(halfHarms / 2 + recSize / 2), recSize, device = device),
+                                         nn.Sigmoid()
+        )
         self.harmRecurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device)
-        self.harmLayerEnd1 = torch.nn.Linear(recSize, int(recSize / 2 + halfHarms / 2), device = device)
-        self.harmReLuEnd1 = nn.Sigmoid()
-        self.harmLayerEnd2 = torch.nn.Linear(int(recSize / 2 + halfHarms / 2), halfHarms, device = device)
-        self.harmReLuEnd2 = nn.Sigmoid()
+        self.harmDecoder = nn.Sequential(torch.nn.Linear(recSize, int(recSize / 2 + halfHarms / 2), device = device),
+                                         nn.Sigmoid(),
+                                         torch.nn.Linear(int(recSize / 2 + halfHarms / 2), halfHarms, device = device),
+                                         nn.Sigmoid()
+        )
         
-        self.spec2harmIn = torch.nn.Linear(recSize, recSize, device = device)
-        self.harm2specIn = torch.nn.Linear(recSize, recSize, device = device)
-        self.spec2harmOut = torch.nn.Linear(recSize, recSize, device = device)
-        self.harm2specOut = torch.nn.Linear(recSize, recSize, device = device)
+        self.spec2harmEncoder = torch.nn.Linear(recSize, recSize, device = device)
+        self.harm2specEncoder = torch.nn.Linear(recSize, recSize, device = device)
+        self.spec2harmDecoder = torch.nn.Linear(recSize, recSize, device = device)
+        self.harm2specDecoder = torch.nn.Linear(recSize, recSize, device = device)
 
         self.threshold = torch.nn.Threshold(0.001, 0.001)
 
@@ -75,54 +79,46 @@ class SpecPredAi(nn.Module):
         self.harmState = (torch.zeros(recLayerCount, 1, recSize, device = self.device), torch.zeros(recLayerCount, 1, recSize, device = self.device))
         
 
-    def forward(self, specharm:torch.Tensor, useJoints:bool = True) -> torch.Tensor:
+    def forward(self, specharm:torch.Tensor, deskewPremul:torch.Tensor, useJoints:bool = True) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
         phases = specharm[:, halfHarms:2 * halfHarms]
-        spectrum = specharm[:, 2 * halfHarms:]
-        harms = specharm[:, :halfHarms]
-        x = spectrum.float().to(self.device)
-        x = self.specLayerStart1(x)
-        x = self.specReLuStart1(x)
-        x = self.specLayerStart2(x)
-        x = self.specReLuStart2(x)
-        y = harms.float().to(self.device)
-        y = self.harmLayerStart1(y)
-        y = self.harmReLuStart1(y)
-        y = self.harmLayerStart2(y)
-        y = self.harmReLuStart2(y)
+        spectrum = specharm[:, 2 * halfHarms:] / deskewPremul[halfHarms:] + 0.1
+        harms = specharm[:, :halfHarms] / deskewPremul[:halfHarms] + 0.1
+        x = self.specEncoder(spectrum)
+        y = self.harmEncoder(harms)
         
         if useJoints:
-            x, y = (x + self.harm2specIn(y), y + self.spec2harmIn(x))
+            recSpecInput = x + self.harm2specEncoder(y)
+            recHarmInput =  y + self.spec2harmEncoder(x)
+        else:
+            recSpecInput = x
+            recHarmInput = y
         
-        x, self.specState = self.specRecurrentLayers(x.unsqueeze(0), self.specState)
-        x = x.squeeze(dim = 0)
-        y, self.harmState = self.harmRecurrentLayers(y.unsqueeze(0), self.harmState)
-        y = y.squeeze(dim = 0)
+        recSpecOutput, self.specState = self.specRecurrentLayers(recSpecInput.unsqueeze(0), self.specState)
+        recHarmOutput, self.harmState = self.harmRecurrentLayers(recHarmInput.unsqueeze(0), self.harmState)
         
         if useJoints:
-            x, y = (x + self.harm2specOut(y), y + self.spec2harmOut(x))
+            xx = recSpecOutput.squeeze(dim = 0) + self.harm2specDecoder(recHarmOutput.squeeze(dim = 0))
+            yy = recHarmOutput.squeeze(dim = 0) + self.spec2harmDecoder(recSpecOutput.squeeze(dim = 0))
+        else:
+            xx = recSpecOutput.squeeze(dim = 0)
+            yy = recHarmOutput.squeeze(dim = 0)
         
-        x = self.specLayerEnd1(x)
-        x = self.specReLuEnd1(x)
-        x = self.specLayerEnd2(x)
-        x = self.specReLuEnd2(x)
-        y = self.harmLayerEnd1(y)
-        y = self.harmReLuEnd1(y)
-        y = self.harmLayerEnd2(y)
-        y = self.harmReLuEnd2(y)
+        spectrumOutput = (self.specDecoder(xx) - 0.1) * deskewPremul[halfHarms:]
+        harmOutput = (self.harmDecoder(yy) - 0.1) * deskewPremul[:halfHarms]
 
         spectralFilterWidth = 2 * global_consts.filterTEEMult
-        x = torch.fft.rfft(x, dim = 1)
-        cutoffWindow = torch.zeros_like(x)
+        fourier = torch.fft.rfft(spectrumOutput, dim = 1)
+        cutoffWindow = torch.zeros_like(fourier)
         cutoffWindow[:, 0:int(spectralFilterWidth / 2)] = 1.
         cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
-        x = torch.fft.irfft(cutoffWindow * x, dim = 1, n = global_consts.halfTripleBatchSize + 1)
-        x = self.threshold(x)
+        smoothedSpectrumOutput = torch.fft.irfft(cutoffWindow * fourier, dim = 1, n = global_consts.halfTripleBatchSize + 1)
+        finalSpectrumOutput = self.threshold(smoothedSpectrumOutput)
         
-        y = torch.max(y, torch.tensor([0.0001,], device = self.device))
+        finalHarmOutput = torch.max(harmOutput, torch.tensor([0.0001,], device = self.device))
 
-        return torch.cat((y + harms, phases, x + spectrum), 1)
+        return torch.cat((finalHarmOutput + harms, phases, finalSpectrumOutput + spectrum), 1)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -134,19 +130,40 @@ class SpecPredDiscriminator(nn.Module):
     
     def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
         super().__init__()
-        self.layerStart1 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device))
-        self.ReLuStart1 = nn.Sigmoid()
-        self.layerStart2 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device))
-        self.ReLuStart2 = nn.Sigmoid()
-        #self.recurrentLayers = torch.nn.utils.parametrizations.spectral_norm(nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device), name = "all_weights")
-        self.recurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device)
-        for i in self.recurrentLayers._all_weights:
+        self.specEncoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(global_consts.halfTripleBatchSize + 1, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device)),
+                                         nn.Sigmoid(),
+                                         nn.utils.parametrizations.spectral_norm(nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device)),
+                                         nn.Sigmoid()
+        )
+        self.specRecurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device)
+        for i in self.specRecurrentLayers._all_weights:
             for j in i:
-                self.recurrentLayers = torch.nn.utils.parametrizations.spectral_norm(self.recurrentLayers, name = j)
-        self.layerEnd1 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(recSize, int(recSize / 2), device = device))
-        self.ReLuEnd1 = nn.Sigmoid()
-        self.layerEnd2 = torch.nn.utils.parametrizations.spectral_norm(torch.nn.Linear(int(recSize / 2), 1, device = device))
-        self.ReLuEnd2 = nn.Sigmoid()
+                self.specRecurrentLayers = nn.utils.parametrizations.spectral_norm(self.specRecurrentLayers, name = j)
+        self.specDecoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device)),
+                                         nn.Sigmoid(),
+                                         nn.utils.parametrizations.spectral_norm(nn.Linear(int(recSize / 2 + global_consts.halfTripleBatchSize / 2), 1, device = device)),
+                                         nn.Sigmoid()
+        )
+        
+        self.harmEncoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(halfHarms, int(halfHarms / 2 + recSize / 2), device = device)),
+                                         nn.Sigmoid(),
+                                         nn.utils.parametrizations.spectral_norm(nn.Linear(int(halfHarms / 2 + recSize / 2), recSize, device = device)),
+                                         nn.Sigmoid()
+        )
+        self.harmRecurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device)
+        for i in self.harmRecurrentLayers._all_weights:
+            for j in i:
+                self.harmRecurrentLayers = nn.utils.parametrizations.spectral_norm(self.harmRecurrentLayers, name = j)
+        self.harmDecoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, int(recSize / 2 + halfHarms / 2), device = device)),
+                                         nn.Sigmoid(),
+                                         nn.utils.parametrizations.spectral_norm(nn.Linear(int(recSize / 2 + halfHarms / 2), 1, device = device)),
+                                         nn.Sigmoid()
+        )
+        
+        self.spec2harmEncoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
+        self.harm2specEncoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
+        self.spec2harmDecoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
+        self.harm2specDecoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
 
         self.device = device
         self.learningRate = learningRate
@@ -156,29 +173,44 @@ class SpecPredDiscriminator(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
 
-        self.state = (torch.zeros(recLayerCount, 1, recSize, device = self.device), torch.zeros(recLayerCount, 1, recSize, device = self.device))
+        self.specState = (torch.zeros(recLayerCount, 1, recSize, device = self.device), torch.zeros(recLayerCount, 1, recSize, device = self.device))
+        self.harmState = (torch.zeros(recLayerCount, 1, recSize, device = self.device), torch.zeros(recLayerCount, 1, recSize, device = self.device))
         
 
-    def forward(self, spectrum:torch.Tensor) -> torch.Tensor:
-        """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
+    def forward(self, specharm:torch.Tensor, deskewPremul:torch.Tensor, useJoints:bool = True) -> torch.Tensor:
+        """forward pass through the NN, aiming to predict the next spectrum in a sequence"""
 
-        x = spectrum.float().to(self.device)
-        x = self.layerStart1(x)
-        x = self.ReLuStart1(x)
-        x = self.layerStart2(x)
-        x = self.ReLuStart2(x)
-        x, self.state = self.recurrentLayers(x.unsqueeze(0), self.state)
-        x = x.squeeze(dim = 0)
-        x = self.layerEnd1(x)
-        x = self.ReLuEnd1(x)
-        x = self.layerEnd2(x)
-        x = self.ReLuEnd2(x)
-        return torch.max(x).squeeze()
+        spectrum = specharm[:, 2 * halfHarms:] / deskewPremul[halfHarms:] + 0.1
+        harms = specharm[:, :halfHarms] / deskewPremul[:halfHarms] + 0.1
+        x = self.specEncoder(spectrum)
+        y = self.harmEncoder(harms)
+        
+        if useJoints:
+            recSpecInput = x + self.harm2specEncoder(y)
+            recHarmInput =  y + self.spec2harmEncoder(x)
+        else:
+            recSpecInput = x
+            recHarmInput = y
+        
+        recSpecOutput, self.specState = self.specRecurrentLayers(recSpecInput.unsqueeze(0), self.specState)
+        recHarmOutput, self.harmState = self.harmRecurrentLayers(recHarmInput.unsqueeze(0), self.harmState)
+        
+        if useJoints:
+            xx = recSpecOutput.squeeze(dim = 0) + self.harm2specDecoder(recHarmOutput.squeeze(dim = 0))
+            yy = recHarmOutput.squeeze(dim = 0) + self.spec2harmDecoder(recSpecOutput.squeeze(dim = 0))
+        else:
+            xx = recSpecOutput.squeeze(dim = 0)
+            yy = recHarmOutput.squeeze(dim = 0)
+        
+        spectrumOutput = self.specDecoder(xx)
+        harmOutput = self.harmDecoder(yy)
+        return torch.squeeze(spectrumOutput + harmOutput)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        self.state = (torch.zeros(self.recLayerCount, 1, self.recSize, device = self.device), torch.zeros(self.recLayerCount, 1, self.recSize, device = self.device))
+        self.specState = (torch.zeros(self.recLayerCount, 1, self.recSize, device = self.device), torch.zeros(self.recLayerCount, 1, self.recSize, device = self.device))
+        self.harmState = (torch.zeros(self.recLayerCount, 1, self.recSize, device = self.device), torch.zeros(self.recLayerCount, 1, self.recSize, device = self.device))
 
 class DataGenerator:
     """generates synthetic data for the discriminator to train on"""
