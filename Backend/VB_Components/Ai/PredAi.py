@@ -85,40 +85,39 @@ class SpecPredAi(nn.Module):
         phases = specharm[:, halfHarms:2 * halfHarms]
         spectrum = specharm[:, 2 * halfHarms:] / deskewPremul[halfHarms:] + 0.1
         harms = specharm[:, :halfHarms] / deskewPremul[:halfHarms] + 0.1
+        
         x = self.specEncoder(spectrum)
         y = self.harmEncoder(harms)
         
         if useJoints:
-            recSpecInput = x + self.harm2specEncoder(y)
-            recHarmInput =  y + self.spec2harmEncoder(x)
-        else:
-            recSpecInput = x
-            recHarmInput = y
+            x, y = (x + self.harm2specEncoder(y),   y + self.spec2harmEncoder(x))
         
-        recSpecOutput, self.specState = self.specRecurrentLayers(recSpecInput.unsqueeze(0), self.specState)
-        recHarmOutput, self.harmState = self.harmRecurrentLayers(recHarmInput.unsqueeze(0), self.harmState)
+        x, self.specState = self.specRecurrentLayers(x.unsqueeze(0), self.specState)
+        y, self.harmState = self.harmRecurrentLayers(y.unsqueeze(0), self.harmState)
+        
+        x = x.squeeze(dim = 0)
+        y = y.squeeze(dim = 0)
         
         if useJoints:
-            xx = recSpecOutput.squeeze(dim = 0) + self.harm2specDecoder(recHarmOutput.squeeze(dim = 0))
-            yy = recHarmOutput.squeeze(dim = 0) + self.spec2harmDecoder(recSpecOutput.squeeze(dim = 0))
-        else:
-            xx = recSpecOutput.squeeze(dim = 0)
-            yy = recHarmOutput.squeeze(dim = 0)
+            x, y = (x + self.harm2specDecoder(y),   y + self.spec2harmDecoder(x))
         
-        spectrumOutput = (self.specDecoder(xx) - 0.1) * deskewPremul[halfHarms:]
-        harmOutput = (self.harmDecoder(yy) - 0.1) * deskewPremul[:halfHarms]
+        x = self.specDecoder(x)
+        y = self.harmDecoder(y)
+        
+        x = (x - 0.1) * deskewPremul[halfHarms:]
+        y = (y - 0.1) * deskewPremul[:halfHarms]
 
         spectralFilterWidth = 2 * global_consts.filterTEEMult
-        fourier = torch.fft.rfft(spectrumOutput, dim = 1)
-        cutoffWindow = torch.zeros_like(fourier)
+        x = torch.fft.rfft(x, dim = 1)
+        cutoffWindow = torch.zeros_like(x)
         cutoffWindow[:, 0:int(spectralFilterWidth / 2)] = 1.
         cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
-        smoothedSpectrumOutput = torch.fft.irfft(cutoffWindow * fourier, dim = 1, n = global_consts.halfTripleBatchSize + 1)
-        finalSpectrumOutput = self.threshold(smoothedSpectrumOutput)
+        x = torch.fft.irfft(cutoffWindow * x, dim = 1, n = global_consts.halfTripleBatchSize + 1)
+        x = self.threshold(x)
         
-        finalHarmOutput = torch.max(harmOutput, torch.tensor([0.0001,], device = self.device))
+        y = torch.max(y, torch.tensor([0.0001,], device = self.device))
 
-        return torch.cat((finalHarmOutput + harms, phases, finalSpectrumOutput + spectrum), 1)
+        return torch.cat((y, phases, x), 1)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -186,25 +185,20 @@ class SpecPredDiscriminator(nn.Module):
         y = self.harmEncoder(harms)
         
         if useJoints:
-            recSpecInput = x + self.harm2specEncoder(y)
-            recHarmInput =  y + self.spec2harmEncoder(x)
-        else:
-            recSpecInput = x
-            recHarmInput = y
+            x, y = (x + self.harm2specEncoder(y),   y + self.spec2harmEncoder(x))
         
-        recSpecOutput, self.specState = self.specRecurrentLayers(recSpecInput.unsqueeze(0), self.specState)
-        recHarmOutput, self.harmState = self.harmRecurrentLayers(recHarmInput.unsqueeze(0), self.harmState)
+        x, self.specState = self.specRecurrentLayers(x.unsqueeze(0), self.specState)
+        y, self.harmState = self.harmRecurrentLayers(y.unsqueeze(0), self.harmState)
+        
+        x = x.squeeze(dim = 0)
+        y = y.squeeze(dim = 0)
         
         if useJoints:
-            xx = recSpecOutput.squeeze(dim = 0) + self.harm2specDecoder(recHarmOutput.squeeze(dim = 0))
-            yy = recHarmOutput.squeeze(dim = 0) + self.spec2harmDecoder(recSpecOutput.squeeze(dim = 0))
-        else:
-            xx = recSpecOutput.squeeze(dim = 0)
-            yy = recHarmOutput.squeeze(dim = 0)
+            x, y = (x + self.harm2specDecoder(y),   y + self.spec2harmDecoder(x))
         
-        spectrumOutput = self.specDecoder(xx)
-        harmOutput = self.harmDecoder(yy)
-        return torch.squeeze(spectrumOutput + harmOutput)
+        x = self.specDecoder(x)
+        y = self.harmDecoder(y)
+        return torch.squeeze(x + y)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""

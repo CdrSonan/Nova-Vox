@@ -34,11 +34,11 @@ class AIWrapper():
             "crf_reg": 0.,
             "crf_hlc": 1,
             "crf_hls": 4000,
-            "pred_lr": 0.000055,
+            "pred_lr": 0.0055,
             "pred_reg": 0.,
             "pred_rlc": 3,
             "pred_rs": 1024,
-            "preddisc_lr": 0.000085,
+            "preddisc_lr": 0.0055,
             "preddisc_reg": 0.,
             "preddisc_rlc": 3,
             "preddisc_rs": 1024,
@@ -149,7 +149,6 @@ class AIWrapper():
         self.crfAi.eval()
         self.predAi.eval()
 
-    @torch.autocast(device_type = "cuda")
     def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int) -> torch.Tensor:
         """forward pass of both NNs for generating a transition between two phonemes, with data pre- and postprocessing
         
@@ -218,7 +217,6 @@ class AIWrapper():
         prediction = self.predAi(output, self.deskewingPremul, True)
         return output, torch.squeeze(prediction)
 
-    @torch.autocast(device_type = "cuda")
     def predict(self, specharm:torch.Tensor):
         """forward pass through the prediction Ai, taking a specharm as input and predicting the next one in a sequence. Includes data pre- and postprocessing."""
 
@@ -335,7 +333,6 @@ class AIWrapper():
         self.defectiveCrfBins = criterion.to_sparse().coalesce().indices()
         print("defective Crf frequency bins:", self.defectiveCrfBins)
     
-    @torch.autocast(device_type = "cuda")
     def trainPred(self, indata, epochs:int=1, logging:bool = False, reset:bool = False) -> None:
         """trains the NN based on a dataset of specharm sequences"""
 
@@ -363,27 +360,26 @@ class AIWrapper():
             self.predAi.epoch = None
         total = 0
         for phoneme in self.voicebank.phonemeDict.values():
-            self.deskewingPremul += torch.mean(torch.cat((phoneme[0].specharm[:, :halfHarms].to(self.device), phoneme[0].specharm[:, 2 * halfHarms:].to(self.device)), 1), 0)
+            if torch.any(torch.isnan(phoneme[0].avgSpecharm)):
+                print("src NaN!")
+            self.deskewingPremul += phoneme[0].avgSpecharm.to(self.device)
             total += 1
         self.deskewingPremul /= total * 2.25
         targetLength = 0
         total = 0
-        scaler = torch.cuda.amp.GradScaler()
         for data in tqdm(self.dataLoader(indata), desc = "pre-training", position = 0, total = len(indata), unit = "samples"):
             data = torch.squeeze(data)
             self.reset()
             self.predAiOptimizer.zero_grad()
-            output = self.predAi(data, self.deskewingPremul, True)
-            loss = self.criterion(output, data)
-            scaler.scale(loss).backward()
-            scaler.step(self.predAiOptimizer)
-            scaler.update()
+            with torch.autocast(device_type = "cuda"):
+                output = self.predAi(data, self.deskewingPremul, True)
+                loss = self.criterion(output, data)
+            loss.backward()
+            self.predAiOptimizer.step()
             tqdm.write(loss.data.__repr__())
             targetLength += data.size()[0]
             total += 1
         targetLength /= total
-        discScaler = torch.cuda.amp.GradScaler()
-        genScaler = torch.cuda.amp.GradScaler()
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
                 data = torch.squeeze(data)
@@ -393,20 +389,18 @@ class AIWrapper():
                 
                 self.predAiDiscOptimizer.zero_grad()
                 self.predAiDisc.resetState()
-                posDiscriminatorLoss = self.predAiDisc(data, self.deskewingPremul, True)
-                negDiscriminatorLoss = self.predAiDisc(synthInput.detach(), self.deskewingPremul, True)
-                discriminatorLoss = posDiscriminatorLoss[-1] - negDiscriminatorLoss[-1]
-                discScaler.scale(discriminatorLoss).backward()
-                discScaler.step(self.predAiDiscOptimizer)
-                discScaler.update()
+                posDiscriminatorLoss = self.predAiDisc(data, self.deskewingPremul, True)[-1]
+                negDiscriminatorLoss = self.predAiDisc(synthInput.detach(), self.deskewingPremul, True)[-1]
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
+                discriminatorLoss.backward()
+                self.predAiDiscOptimizer.step()
                 
                 self.predAiOptimizer.zero_grad()
                 self.predAiDisc.resetState()
                 generatorLoss = self.predAiDisc(synthInput, self.deskewingPremul, True)[-1]
-                genScaler.scale(generatorLoss + self.guideCriterion(synthBase, synthInput)).backward()
-                genScaler.step(self.predAiOptimizer)
-                genScaler.update()
-                tqdm.write("losses: {}, {}, {}, {}".format(posDiscriminatorLoss.__repr__(), negDiscriminatorLoss.__repr__(), discriminatorLoss.__repr__(), generatorLoss.__repr__()))
+                (generatorLoss + self.guideCriterion(synthBase, synthInput)).backward()
+                self.predAiOptimizer.step()
+                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
             self.predAi.sampleCount += len(indata)
