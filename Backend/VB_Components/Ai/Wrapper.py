@@ -34,6 +34,7 @@ class AIWrapper():
             "crf_reg": 0.,
             "crf_hlc": 1,
             "crf_hls": 4000,
+            "crf_def_thrh" : 0.05,
             "pred_lr": 0.0055,
             "pred_reg": 0.,
             "pred_rlc": 3,
@@ -42,7 +43,9 @@ class AIWrapper():
             "preddisc_reg": 0.,
             "preddisc_rlc": 3,
             "preddisc_rs": 1024,
-            "crf_def_thrh" : 0.05
+            "pred_guide_wgt": 0.5,
+            "pred_pow_wgt": 0.2,
+            "pred_pow_exp": 1.5
         }
         if hparams:
             for i in hparams.keys():
@@ -59,7 +62,8 @@ class AIWrapper():
         self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
         self.predAiDiscOptimizer = torch.optim.Adam(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
         self.criterion = nn.L1Loss()
-        self.guideCriterion = nn.MSELoss()#GuideRelLoss(weight = 1, threshold = 0.5, device=self.device)
+        self.guideCriterion = nn.MSELoss()
+        self.powerCriterion = nn.MSELoss()
         self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + halfHarms + 1,), device = self.device)
     
     @staticmethod
@@ -398,7 +402,9 @@ class AIWrapper():
                 self.predAiOptimizer.zero_grad()
                 self.predAiDisc.resetState()
                 generatorLoss = self.predAiDisc(synthInput, self.deskewingPremul, True)[-1]
-                (generatorLoss + self.guideCriterion(synthBase, synthInput)).backward()
+                guideLoss = self.hparams["pred_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
+                powerLoss = self.hparams["pred_pow_wgt"] * self.powerCriterion(torch.mean(torch.pow(synthBase, self.hparams["pred_pow_exp"])), torch.mean(torch.pow(synthInput, self.hparams["pred_pow_exp"])))
+                (generatorLoss + guideLoss + powerLoss).backward()
                 self.predAiOptimizer.step()
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 
