@@ -10,7 +10,6 @@ from math import floor, pi, ceil, log
 
 import torch
 import torch.nn as nn
-from torchaudio.transforms import MelScale, InverseMelScale
 import global_consts
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
 from Backend.DataHandler.VocalSequence import VocalSequence
@@ -32,20 +31,20 @@ class SpecPredAi(nn.Module):
         resetState: resets the hidden states and cell states of the internal LSTM layers"""
 
 
-    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=1024, regularization:float=1e-5, melBanks:int = 80) -> None:
+    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
         """basic constructor accepting the learning rate and other hyperparameters as input"""
 
         super().__init__()
         
-        self.specEncoder = nn.Sequential(nn.Linear(melBanks, int(melBanks / 2 + recSize / 2), device = device),
+        self.specEncoder = nn.Sequential(nn.Linear(global_consts.halfTripleBatchSize + 1, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device),
                                          nn.Sigmoid(),
-                                         torch.nn.Linear(int(melBanks / 2 + recSize / 2), recSize, device = device),
+                                         torch.nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device),
                                          nn.Sigmoid()
         )
         self.specRecurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device)
-        self.specDecoder = nn.Sequential(torch.nn.Linear(recSize, int(recSize / 2 + melBanks / 2), device = device),
+        self.specDecoder = nn.Sequential(torch.nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device),
                                          nn.Sigmoid(),
-                                         torch.nn.Linear(int(recSize / 2 + melBanks / 2), melBanks, device = device),
+                                         torch.nn.Linear(int(recSize / 2 + global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device),
                                          nn.Sigmoid()
         )
         
@@ -65,9 +64,6 @@ class SpecPredAi(nn.Module):
         self.harm2specEncoder = torch.nn.Linear(recSize, recSize, device = device)
         self.spec2harmDecoder = torch.nn.Linear(recSize, recSize, device = device)
         self.harm2specDecoder = torch.nn.Linear(recSize, recSize, device = device)
-        
-        self.melEncoder = MelScale(n_mels = melBanks, sample_rate = global_consts.sampleRate, n_stft = global_consts.tripleBatchSize, f_min = 0, f_max = global_consts.sampleRate / 2, device = device)
-        self.melDecoder = InverseMelScale(n_mels = melBanks, sample_rate = global_consts.sampleRate, n_stft = global_consts.tripleBatchSize, f_min = 0, f_max = global_consts.sampleRate / 2, device = device)
 
         self.threshold = torch.nn.Threshold(0.001, 0.001)
 
@@ -90,9 +86,7 @@ class SpecPredAi(nn.Module):
         spectrum = specharm[:, 2 * halfHarms:] / deskewPremul[halfHarms:] + 0.1
         harms = specharm[:, :halfHarms] / deskewPremul[:halfHarms] + 0.1
         
-        x = self.melEncoder(spectrum)
-        
-        x = self.specEncoder(x)
+        x = self.specEncoder(spectrum)
         y = self.harmEncoder(harms)
         
         if useJoints:
@@ -109,8 +103,6 @@ class SpecPredAi(nn.Module):
         
         x = self.specDecoder(x)
         y = self.harmDecoder(y)
-        
-        x = self.melDecoder(x)
         
         x = (x - 0.1) * deskewPremul[halfHarms:]
         y = (y - 0.1) * deskewPremul[:halfHarms]
@@ -135,20 +127,20 @@ class SpecPredAi(nn.Module):
 
 class SpecPredDiscriminator(nn.Module):
     
-    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=1024, regularization:float=1e-5, melBanks:int = 80) -> None:
+    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
         super().__init__()
-        self.specEncoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(melBanks, int(melBanks / 2 + recSize / 2), device = device)),
+        self.specEncoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(global_consts.halfTripleBatchSize + 1, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device)),
                                          nn.Sigmoid(),
-                                         nn.utils.parametrizations.spectral_norm(nn.Linear(int(melBanks / 2 + recSize / 2), recSize, device = device)),
+                                         nn.utils.parametrizations.spectral_norm(nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device)),
                                          nn.Sigmoid()
         )
         self.specRecurrentLayers = nn.LSTM(input_size = recSize, hidden_size = recSize, num_layers = recLayerCount, batch_first = True, dropout = 0.05, device = device)
         for i in self.specRecurrentLayers._all_weights:
             for j in i:
                 self.specRecurrentLayers = nn.utils.parametrizations.spectral_norm(self.specRecurrentLayers, name = j)
-        self.specDecoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, int(recSize / 2 + melBanks / 2), device = device)),
+        self.specDecoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device)),
                                          nn.Sigmoid(),
-                                         nn.utils.parametrizations.spectral_norm(nn.Linear(int(recSize / 2 + melBanks / 2), 1, device = device)),
+                                         nn.utils.parametrizations.spectral_norm(nn.Linear(int(recSize / 2 + global_consts.halfTripleBatchSize / 2), 1, device = device)),
                                          nn.Sigmoid()
         )
         
@@ -172,8 +164,6 @@ class SpecPredDiscriminator(nn.Module):
         self.spec2harmDecoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
         self.harm2specDecoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
 
-        self.melEncoder = MelScale(n_mels = melBanks, sample_rate = global_consts.sampleRate, n_stft = global_consts.tripleBatchSize, f_min = 0, f_max = global_consts.sampleRate / 2, device = device)
-
         self.device = device
         self.learningRate = learningRate
         self.recLayerCount = recLayerCount
@@ -191,10 +181,7 @@ class SpecPredDiscriminator(nn.Module):
 
         spectrum = specharm[:, 2 * halfHarms:] / deskewPremul[halfHarms:] + 0.1
         harms = specharm[:, :halfHarms] / deskewPremul[:halfHarms] + 0.1
-
-        x = self.melEncoder(spectrum)
-        
-        x = self.specEncoder(x)
+        x = self.specEncoder(spectrum)
         y = self.harmEncoder(harms)
         
         if useJoints:

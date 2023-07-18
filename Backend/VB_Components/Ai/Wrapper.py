@@ -38,13 +38,11 @@ class AIWrapper():
             "pred_lr": 0.0055,
             "pred_reg": 0.,
             "pred_rlc": 3,
-            "pred_rs": 768,#1024,
-            "pred_mel_banks": 128,
+            "pred_rs": 1024,
             "preddisc_lr": 0.0055,
             "preddisc_reg": 0.,
             "preddisc_rlc": 3,
-            "preddisc_rs": 768,#1024,
-            "preddisc_mel_banks": 128,
+            "preddisc_rs": 1024,
             "pred_guide_wgt": 0.5,
             "pred_pow_wgt": 0.2,
             "pred_pow_exp": 1.5
@@ -54,8 +52,8 @@ class AIWrapper():
                 self.hparams[i] = hparams[i]
         self.voicebank = voicebank
         self.crfAi = SpecCrfAi(device = device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=int(self.hparams["crf_hlc"]), hiddenLayerSize=int(self.hparams["crf_hls"]))
-        self.predAi = SpecPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]), melBanks = int(self.hparams["pred_mel_banks"]))
-        self.predAiDisc = SpecPredDiscriminator(device = device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]), melBanks = int(self.hparams["preddisc_mel_banks"]))
+        self.predAi = SpecPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
+        self.predAiDisc = SpecPredDiscriminator(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
         self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
         self.device = device
         self.final = False
@@ -139,8 +137,8 @@ class AIWrapper():
                 self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
         if (mode == None) or (mode == "pred"):
             if reset:
-                self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]), melBanks = int(self.hparams["pred_mel_banks"]))
-                self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]), melBanks = int(self.hparams["preddisc_mel_banks"]))
+                self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
+                self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
                 if aiState["final"]:
                     self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
                     self.predAiDiscOptimizer = torch.optim.Adam(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
@@ -343,8 +341,8 @@ class AIWrapper():
         """trains the NN based on a dataset of specharm sequences"""
 
         if reset:
-            self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]), melBanks = int(self.hparams["pred_mel_banks"]))
-            self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]), melBanks = int(self.hparams["preddisc_mel_banks"]))
+            self.predAi = SpecPredAi(self.device, self.hparams["pred_lr"], self.hparams["pred_rlc"], self.hparams["pred_rs"], self.hparams["pred_reg"])
+            self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
             self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
             self.predAiOptimizer = torch.optim.Adam(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
             self.predAiDiscOptimizer = torch.optim.Adam(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
