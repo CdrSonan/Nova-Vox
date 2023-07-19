@@ -38,14 +38,12 @@ class AIWrapper():
             "pred_lr": 0.0055,
             "pred_reg": 0.,
             "pred_rlc": 3,
-            "pred_rs": 1024,
+            "pred_rs": 768,
             "preddisc_lr": 0.0055,
             "preddisc_reg": 0.,
             "preddisc_rlc": 3,
-            "preddisc_rs": 1024,
-            "pred_guide_wgt": 0.5,
-            "pred_pow_wgt": 0.2,
-            "pred_pow_exp": 1.5
+            "preddisc_rs": 768,
+            "pred_guide_wgt": 1.
         }
         if hparams:
             for i in hparams.keys():
@@ -364,8 +362,6 @@ class AIWrapper():
             self.predAi.epoch = None
         total = 0
         for phoneme in self.voicebank.phonemeDict.values():
-            if torch.any(torch.isnan(phoneme[0].avgSpecharm)):
-                print("src NaN!")
             self.deskewingPremul += phoneme[0].avgSpecharm.to(self.device)
             total += 1
         self.deskewingPremul /= total * 2.25
@@ -403,8 +399,7 @@ class AIWrapper():
                 self.predAiDisc.resetState()
                 generatorLoss = self.predAiDisc(synthInput, self.deskewingPremul, True)[-1]
                 guideLoss = self.hparams["pred_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                powerLoss = self.hparams["pred_pow_wgt"] * self.powerCriterion(torch.mean(torch.pow(synthBase, self.hparams["pred_pow_exp"])), torch.mean(torch.pow(synthInput, self.hparams["pred_pow_exp"])))
-                (generatorLoss + guideLoss + powerLoss).backward()
+                (generatorLoss + guideLoss).backward()
                 self.predAiOptimizer.step()
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 
