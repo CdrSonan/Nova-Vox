@@ -38,12 +38,13 @@ class AIWrapper():
             "pred_lr": 0.0055,
             "pred_reg": 0.,
             "pred_rlc": 3,
-            "pred_rs": 768,
+            "pred_rs": 1024,
             "preddisc_lr": 0.0055,
             "preddisc_reg": 0.,
             "preddisc_rlc": 3,
-            "preddisc_rs": 768,
-            "pred_guide_wgt": 1.
+            "preddisc_rs": 1024,
+            "pred_guide_wgt": 1.,
+            "pred_train_asym": 10
         }
         if hparams:
             for i in hparams.keys():
@@ -369,19 +370,19 @@ class AIWrapper():
         total = 0
         for data in tqdm(self.dataLoader(indata), desc = "pre-training", position = 0, total = len(indata), unit = "samples"):
             data = torch.squeeze(data)
-            self.reset()
+            """self.reset()
             self.predAiOptimizer.zero_grad()
             with torch.autocast(device_type = "cuda"):
                 output = self.predAi(data, self.deskewingPremul, True)
                 loss = self.criterion(output, data)
             loss.backward()
             self.predAiOptimizer.step()
-            tqdm.write(loss.data.__repr__())
+            tqdm.write(loss.data.__repr__())"""
             targetLength += data.size()[0]
             total += 1
         targetLength /= total
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
-            for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
+            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
                 self.reset()
                 synthBase = self.predAiGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 8)
@@ -395,12 +396,14 @@ class AIWrapper():
                 discriminatorLoss.backward()
                 self.predAiDiscOptimizer.step()
                 
-                self.predAiOptimizer.zero_grad()
-                self.predAiDisc.resetState()
-                generatorLoss = self.predAiDisc(synthInput, self.deskewingPremul, True)[-1]
-                guideLoss = self.hparams["pred_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                (generatorLoss + guideLoss).backward()
-                self.predAiOptimizer.step()
+                if index % self.hparams["pred_train_asym"] == 0:
+                    self.predAiOptimizer.zero_grad()
+                    self.predAiDisc.resetState()
+                    generatorLoss = self.predAiDisc(synthInput, self.deskewingPremul, True)[-1]
+                    guideLoss = self.hparams["pred_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
+                    (generatorLoss + guideLoss).backward()
+                    self.predAiOptimizer.step()
+
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
