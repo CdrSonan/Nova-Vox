@@ -45,7 +45,6 @@ class SpecPredAi(nn.Module):
         self.specDecoder = nn.Sequential(torch.nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device),
                                          nn.Sigmoid(),
                                          torch.nn.Linear(int(recSize / 2 + global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device),
-                                         nn.Sigmoid()
         )
         
         self.harmEncoder = nn.Sequential(torch.nn.Linear(halfHarms, int(halfHarms / 2 + recSize / 2), device = device),
@@ -57,7 +56,6 @@ class SpecPredAi(nn.Module):
         self.harmDecoder = nn.Sequential(torch.nn.Linear(recSize, int(recSize / 2 + halfHarms / 2), device = device),
                                          nn.Sigmoid(),
                                          torch.nn.Linear(int(recSize / 2 + halfHarms / 2), halfHarms, device = device),
-                                         nn.Sigmoid()
         )
         
         self.spec2harmEncoder = torch.nn.Linear(recSize, recSize, device = device)
@@ -83,8 +81,8 @@ class SpecPredAi(nn.Module):
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
         phases = specharm[:, halfHarms:2 * halfHarms]
-        spectrum = specharm[:, 2 * halfHarms:] / deskewPremul[halfHarms:] + 0.1
-        harms = specharm[:, :halfHarms] / deskewPremul[:halfHarms] + 0.1
+        spectrum = specharm[:, 2 * halfHarms:]# / deskewPremul[halfHarms:] + 0.1
+        harms = specharm[:, :halfHarms]# / deskewPremul[:halfHarms] + 0.1
         
         x = self.specEncoder(spectrum)
         y = self.harmEncoder(harms)
@@ -104,8 +102,8 @@ class SpecPredAi(nn.Module):
         x = self.specDecoder(x)
         y = self.harmDecoder(y)
         
-        x = (x - 0.1) * deskewPremul[halfHarms:]
-        y = (y - 0.1) * deskewPremul[:halfHarms]
+        #x = (x - 0.1) * deskewPremul[halfHarms:]
+        #y = (y - 0.1) * deskewPremul[:halfHarms]
 
         spectralFilterWidth = 2 * global_consts.filterTEEMult
         x = torch.fft.rfft(x, dim = 1)
@@ -141,7 +139,6 @@ class SpecPredDiscriminator(nn.Module):
         self.specDecoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device)),
                                          nn.Sigmoid(),
                                          nn.utils.parametrizations.spectral_norm(nn.Linear(int(recSize / 2 + global_consts.halfTripleBatchSize / 2), 1, device = device)),
-                                         nn.Sigmoid()
         )
         
         self.harmEncoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(halfHarms, int(halfHarms / 2 + recSize / 2), device = device)),
@@ -156,7 +153,6 @@ class SpecPredDiscriminator(nn.Module):
         self.harmDecoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, int(recSize / 2 + halfHarms / 2), device = device)),
                                          nn.Sigmoid(),
                                          nn.utils.parametrizations.spectral_norm(nn.Linear(int(recSize / 2 + halfHarms / 2), 1, device = device)),
-                                         nn.Sigmoid()
         )
         
         self.spec2harmEncoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
