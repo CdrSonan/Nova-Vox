@@ -125,3 +125,22 @@ def gradientPenalty(model, real, fake, device):
     gradient = torch.autograd.grad(outputs=disc_interpolates, inputs=interpolates, grad_outputs=output, create_graph=True, retain_graph=True, only_inputs=True)[0]
     result = ((gradient.norm(2, dim=1) - 1) ** 2).mean()
     return result
+
+class HighwayLSTM(nn.Module):
+    
+    def __init__(self, input_size:int, hidden_size:int, device:torch.device, **kwargs) -> None:
+        super().__init__()
+        self.lstm = nn.LSTM(input_size = input_size, hidden_size = hidden_size, **kwargs, device = device)
+        self.highway = nn.Linear(input_size, hidden_size, bias = False, device = device)
+
+    def forward(self, x:torch.Tensor, state:torch.Tensor) -> torch.Tensor:
+        output = self.lstm(x.unsqueeze(0), state)
+        return output[0].squeeze(0) + self.highway(x), output[1]
+
+class SpecNormHighwayLSTM(HighwayLSTM):
+    
+    def __init__(self, input_size: int, hidden_size: int, device: torch.device, **kwargs) -> None:
+        super().__init__(input_size, hidden_size, device, **kwargs)
+        for i in self.lstm._all_weights:
+            for j in i:
+                self.lstm = nn.utils.parametrizations.spectral_norm(self.lstm, name = j)
