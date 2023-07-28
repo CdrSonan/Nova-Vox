@@ -21,7 +21,7 @@ packaging==23.0
 pefile==2022.5.30
 Pillow==9.4.0
 pycparser==2.21
-Pygments==2.14.0
+Pygments==2.15.0
 pyinstaller==5.6.2
 pyinstaller-hooks-contrib==2022.15
 pyparsing==3.0.9
