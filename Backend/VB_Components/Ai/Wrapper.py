@@ -39,20 +39,22 @@ class AIWrapper():
             "pred_reg": 0.,
             "pred_rlc": 3,
             "pred_rs": 1024,
+            "pred_drp":0.5,
             "preddisc_lr": 1.,
             "preddisc_reg": 0.,
-            "preddisc_rlc": 1,
+            "preddisc_rlc": 3,
             "preddisc_rs": 1024,
+            "preddisc_drp":0.25,
             "pred_guide_wgt": 1.,
-            "pred_train_asym": 1
+            "pred_train_asym": 4
         }
         if hparams:
             for i in hparams.keys():
                 self.hparams[i] = hparams[i]
         self.voicebank = voicebank
         self.crfAi = SpecCrfAi(device = device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=int(self.hparams["crf_hlc"]), hiddenLayerSize=int(self.hparams["crf_hls"]))
-        self.predAi = SpecPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]))
-        self.predAiDisc = SpecPredDiscriminator(device = device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]))
+        self.predAi = SpecPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]), dropout = self.hparams["pred_drp"])
+        self.predAiDisc = SpecPredDiscriminator(device = device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]), dropout = self.hparams["preddisc_drp"])
         self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
         self.device = device
         self.final = False
@@ -138,8 +140,8 @@ class AIWrapper():
                 self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
         if (mode == None) or (mode == "pred"):
             if reset:
-                self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"])
-                self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]))
+                self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"], recLayerCount=int(self.hparams["pred_rlc"]), dropout = self.hparams["pred_drp"])
+                self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]), dropout = self.hparams["preddisc_drp"])
                 if aiState["final"]:
                     self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
                     self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
@@ -366,6 +368,8 @@ class AIWrapper():
             self.predAi.epoch = None
         total = 0
         for phoneme in self.voicebank.phonemeDict.values():
+            if torch.isnan(phoneme[0].avgSpecharm).any():
+                continue
             self.deskewingPremul += phoneme[0].avgSpecharm.to(self.device)
             total += 1
         self.deskewingPremul /= total * 2.25
@@ -407,7 +411,7 @@ class AIWrapper():
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
                 self.reset()
-                synthBase = self.predAiGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 8)
+                synthBase = self.predAiGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
                 synthInput = self.predAi(synthBase, self.deskewingPremul, True)
                 
                 self.predAiDiscOptimizer.zero_grad()

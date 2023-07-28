@@ -38,8 +38,8 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
     if audioSample.pitchDeltas.size()[0] < 2:
         calculatePitchFallback_legacy(audioSample)
     if limiter:
-        mul1 = torch.maximum(torch.floor(audioSample.pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate + 0.5), torch.ones([1,]))
-        mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / audioSample.pitchDeltas + 0.5), torch.ones([1,]))
+        mul1 = torch.maximum(torch.floor(audioSample.pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate + 0.5), torch.ones([1,], device = audioSample.pitchDeltas.device))
+        mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / audioSample.pitchDeltas + 0.5), torch.ones([1,], device = audioSample.pitchDeltas.device))
         audioSample.pitchDeltas /= mul1
         audioSample.pitchDeltas *= mul2
     audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
@@ -47,7 +47,7 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
     if (audioSample.pitchDeltas.size()[0] < 1):
         audioSample.pitchDeltas = torch.tensor([audioSample.expectedPitch,], device = audioSample.pitchDeltas.device)
     if (audioSample.pitchDeltas.size()[0] > 1):
-        audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0]), audioSample.pitchDeltas, torch.linspace(0., 1., length))
+        audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0], device = audioSample.pitchDeltas.device), audioSample.pitchDeltas, torch.linspace(0., 1., length, device = audioSample.pitchDeltas.device))
         audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
 
 def calculatePitchFallback(audioSample:AudioSample) -> None:

@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 import global_consts
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
-from Backend.VB_Components.Ai.Util import HighwayLSTM, SpecNormHighwayLSTM
+from Backend.VB_Components.Ai.Util import HighwayLSTM, SpecNormHighwayLSTM, init_weights
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.Resampler.Resamplers import getSpecharm
@@ -32,7 +32,7 @@ class SpecPredAi(nn.Module):
         resetState: resets the hidden states and cell states of the internal LSTM layers"""
 
 
-    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
+    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5, dropout:float=0.05) -> None:
         """basic constructor accepting the learning rate and other hyperparameters as input"""
 
         super().__init__()
@@ -42,7 +42,7 @@ class SpecPredAi(nn.Module):
                                          torch.nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device),
                                          nn.Sigmoid()
         )
-        self.specRecurrentLayers = [HighwayLSTM(input_size = recSize, hidden_size = recSize, num_layers = 1, batch_first = True, dropout = 0.05, device = device) for i in range(recLayerCount)]
+        self.specRecurrentLayers = [HighwayLSTM(input_size = recSize, hidden_size = recSize, num_layers = 1, batch_first = True, dropout = dropout, device = device) for i in range(recLayerCount)]
         for i, layer in enumerate(self.specRecurrentLayers):
             self.register_module("specRecurrentLayer" + str(i), layer)
         self.specDecoder = nn.Sequential(torch.nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device),
@@ -55,7 +55,7 @@ class SpecPredAi(nn.Module):
                                          torch.nn.Linear(int(halfHarms / 2 + recSize / 2), recSize, device = device),
                                          nn.Sigmoid()
         )
-        self.harmRecurrentLayers = [HighwayLSTM(input_size = recSize, hidden_size = recSize, num_layers = 1, batch_first = True, dropout = 0.05, device = device) for i in range(recLayerCount)]
+        self.harmRecurrentLayers = [HighwayLSTM(input_size = recSize, hidden_size = recSize, num_layers = 1, batch_first = True, dropout = dropout, device = device) for i in range(recLayerCount)]
         for i, layer in enumerate(self.harmRecurrentLayers):
             self.register_module("harmRecurrentLayer" + str(i), layer)
         self.harmDecoder = nn.Sequential(torch.nn.Linear(recSize, int(recSize / 2 + halfHarms / 2), device = device),
@@ -69,6 +69,8 @@ class SpecPredAi(nn.Module):
         self.harm2specDecoder = torch.nn.Linear(recSize, recSize, device = device)
 
         self.threshold = torch.nn.Threshold(0.001, 0.001)
+        
+        #self.apply(init_weights)
 
         self.device = device
         self.learningRate = learningRate
@@ -129,19 +131,20 @@ class SpecPredAi(nn.Module):
 
 class SpecPredDiscriminator(nn.Module):
     
-    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5) -> None:
+    def __init__(self, device:torch.device = None, learningRate:float=5e-5, recLayerCount:int=3, recSize:int=halfHarms + global_consts.halfTripleBatchSize + 1, regularization:float=1e-5, dropout:float=0.05) -> None:
         super().__init__()
         self.specEncoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(global_consts.halfTripleBatchSize + 1, int(global_consts.halfTripleBatchSize / 2 + recSize / 2), device = device)),
                                          nn.Sigmoid(),
                                          nn.utils.parametrizations.spectral_norm(nn.Linear(int(global_consts.halfTripleBatchSize / 2 + recSize / 2), recSize, device = device)),
                                          nn.Sigmoid()
         )
-        self.specRecurrentLayers = [SpecNormHighwayLSTM(input_size = recSize, hidden_size = recSize, num_layers = 1, batch_first = True, dropout = 0.05, device = device) for i in range(recLayerCount)]
+        self.specRecurrentLayers = [SpecNormHighwayLSTM(input_size = recSize, hidden_size = recSize, num_layers = 1, batch_first = True, dropout = dropout, device = device) for i in range(recLayerCount)]
         for i, layer in enumerate(self.specRecurrentLayers):
             self.register_module("specRecurrentLayer" + str(i), layer)
         self.specDecoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, int(recSize / 2 + global_consts.halfTripleBatchSize / 2), device = device)),
                                          nn.Sigmoid(),
                                          nn.utils.parametrizations.spectral_norm(nn.Linear(int(recSize / 2 + global_consts.halfTripleBatchSize / 2), 1, device = device)),
+                                         #nn.Tanh()
         )
         
         self.harmEncoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(halfHarms, int(halfHarms / 2 + recSize / 2), device = device)),
@@ -149,18 +152,21 @@ class SpecPredDiscriminator(nn.Module):
                                          nn.utils.parametrizations.spectral_norm(nn.Linear(int(halfHarms / 2 + recSize / 2), recSize, device = device)),
                                          nn.Sigmoid()
         )
-        self.harmRecurrentLayers = [SpecNormHighwayLSTM(input_size = recSize, hidden_size = recSize, num_layers = 1, batch_first = True, dropout = 0.05, device = device) for i in range(recLayerCount)]
+        self.harmRecurrentLayers = [SpecNormHighwayLSTM(input_size = recSize, hidden_size = recSize, num_layers = 1, batch_first = True, dropout = dropout, device = device) for i in range(recLayerCount)]
         for i, layer in enumerate(self.harmRecurrentLayers):
             self.register_module("harmRecurrentLayer" + str(i), layer)
         self.harmDecoder = nn.Sequential(nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, int(recSize / 2 + halfHarms / 2), device = device)),
                                          nn.Sigmoid(),
                                          nn.utils.parametrizations.spectral_norm(nn.Linear(int(recSize / 2 + halfHarms / 2), 1, device = device)),
+                                         #nn.Tanh()
         )
         
         self.spec2harmEncoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
         self.harm2specEncoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
         self.spec2harmDecoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
         self.harm2specDecoder = nn.utils.parametrizations.spectral_norm(nn.Linear(recSize, recSize, device = device))
+        
+        #self.apply(init_weights)
 
         self.device = device
         self.learningRate = learningRate
@@ -198,7 +204,8 @@ class SpecPredDiscriminator(nn.Module):
         
         x = self.specDecoder(x)
         y = self.harmDecoder(y)
-        return torch.squeeze(x + y)
+        return 20 * torch.tanh(torch.squeeze(x + y) / 20)
+        #return torch.squeeze(x + y)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""

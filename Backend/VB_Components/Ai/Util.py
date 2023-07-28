@@ -128,19 +128,33 @@ def gradientPenalty(model, real, fake, device):
 
 class HighwayLSTM(nn.Module):
     
-    def __init__(self, input_size:int, hidden_size:int, device:torch.device, **kwargs) -> None:
+    def __init__(self, input_size:int, hidden_size:int, dropout:float, device:torch.device, **kwargs) -> None:
         super().__init__()
         self.lstm = nn.LSTM(input_size = input_size, hidden_size = hidden_size, **kwargs, device = device)
         self.highway = nn.Linear(input_size, hidden_size, bias = False, device = device)
+        self.dropout = nn.Dropout(dropout)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x:torch.Tensor, state:torch.Tensor) -> torch.Tensor:
-        output = self.lstm(x.unsqueeze(0), state)
-        return output[0].squeeze(0) + self.highway(x), output[1]
+        lstmOut = self.lstm(x.unsqueeze(0), state)
+        return self.sigmoid(lstmOut[0].squeeze(0)) + self.dropout(self.highway(x)), lstmOut[1]
 
 class SpecNormHighwayLSTM(HighwayLSTM):
     
-    def __init__(self, input_size: int, hidden_size: int, device: torch.device, **kwargs) -> None:
-        super().__init__(input_size, hidden_size, device, **kwargs)
+    def __init__(self, input_size: int, hidden_size: int, dropout:float, device: torch.device, **kwargs) -> None:
+        super().__init__(input_size, hidden_size, dropout, device, **kwargs)
         for i in self.lstm._all_weights:
             for j in i:
                 self.lstm = nn.utils.parametrizations.spectral_norm(self.lstm, name = j)
+
+def init_weights(module:nn.Module) -> None:
+    if isinstance(module, nn.Linear):
+        nn.init.xavier_uniform_(module.weight)
+        if module.bias != None:
+            nn.init.zeros_(module.bias)
+    if isinstance(module, nn.LSTM):
+        for name, param in module.named_parameters():
+            if 'bias' in name:
+                nn.init.zeros_(param)
+            elif 'weight' in name:
+                nn.init.xavier_uniform_(param)
