@@ -8,11 +8,16 @@
 global middleLayer
 
 from copy import copy
+import os
+
+import torch
+
 from UI.code.editor.Main import middleLayer
+from MiddleLayer.IniParser import readSettings
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack, enqueueUiCallback
 
 class UnifiedAction:
-    def __init__(self, action, undo = False, redo = False, uiCallback = None, immediate = True, *args, **kwargs):
+    def __init__(self, action, undo = False, redo = False, uiCallback = None, immediate = False, *args, **kwargs):
         self.action = action
         self.args = args
         self.kwargs = kwargs
@@ -102,11 +107,13 @@ def runUiCallbacks():
     middleLayer.runUiCallbacks()
 
 class ImportVoicebank(UnifiedAction):
-    def __init__(self, voicebank, *args, **kwargs):
-        # get name and inImage based on path
-        
-        super().__init__(middleLayer.importVoicebank, *args, **kwargs)
-        self.voicebank = voicebank
+    def __init__(self, file, *args, **kwargs):
+        data = torch.load(os.path.join(readSettings()["datadir"], "Voices", file), map_location = torch.device("cpu"))["metadata"]
+        super().__init__(middleLayer.importVoicebank, file, data.name, data.image, *args, **kwargs)
+        self.index = len(middleLayer.trackList) - 1
+
+    def inverseAction(self):
+        return DeleteTrack(self.index, *self.args, **self.kwargs)
 
 class ChangeTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
@@ -117,8 +124,8 @@ class ChangeTrack(UnifiedAction):
 
 class CopyTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
-        # get name and inImage based on existing track
-        super().__init__(middleLayer.copyTrack, index, *args, **kwargs)
+        data = torch.load(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[index].vbPath), map_location = torch.device("cpu"))["metadata"]
+        super().__init__(middleLayer.copyTrack, index, data.name, data.image, *args, **kwargs)
 
     def inverseAction(self):
         return DeleteTrack(len(middleLayer.trackList) - 1, *self.args, **self.kwargs)
@@ -180,8 +187,30 @@ class SwitchParam(UnifiedAction):
 
 class ChangeParam(UnifiedAction):
     def __init__(self, data, start, section = None, *args, **kwargs):
+        if middleLayer.activeParam == "steadiness":
+            self.oldData = middleLayer.trackList[middleLayer.activeTrack].steadiness[start:start + data.size()[0]]
+        elif middleLayer.activeParam == "breathiness":
+            self.oldData = middleLayer.trackList[middleLayer.activeTrack].breathiness[start:start + data.size()[0]]
+        elif middleLayer.activeParam == "AI Balance":
+            self.oldData = middleLayer.trackList[middleLayer.activeTrack].aiBalance[start:start + data.size()[0]]
+        elif middleLayer.activeParam == "loop":
+            if section:
+                self.oldData = middleLayer.trackList[middleLayer.activeTrack].loopOverlap[start:start + data.size()[0]]
+            else:
+                self.oldData = middleLayer.trackList[middleLayer.activeTrack].loopOffset[start:start + data.size()[0]]
+        elif self.activeParam == "vibrato":
+            if section:
+                self.oldData = middleLayer.trackList[middleLayer.activeTrack].vibratoSpeed[start:start + data.size()[0]]
+            else:
+                self.oldData = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength[start:start + data.size()[0]]
+        else:
+            self.oldData = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[self.activeParam].curve[start:start + data.size()[0]]
         super().__init__(middleLayer.applyParamChanges, data, start, section, *args, **kwargs)
-        #TODO self.oldData = 
+        self.start = start
+        self.section = section
+
+    def inverseAction(self):
+        return ChangeParam(self.oldData, self.start, self.section, *self.args, **self.kwargs)
 
 class ChangePitch(UnifiedAction):
     def __init__(self, data, start, *args, **kwargs):
@@ -194,23 +223,33 @@ class ChangePitch(UnifiedAction):
 
 class ChangeMode(UnifiedAction):
     def __init__(self, mode, *args, **kwargs):
-        super().__init__(middleLayer.changePianoRollMode, *args, **kwargs)
-        self.mode = mode
+        super().__init__(middleLayer.changePianoRollMode, mode, *args, **kwargs)
+        
+    def inverseAction(self):
+        return ChangeMode(middleLayer.mode, *self.args, **self.kwargs)
 
 class Scroll(UnifiedAction):
     def __init__(self, scroll, *args, **kwargs):
-        super().__init__(middleLayer.applyScroll, *args, **kwargs)
-        self.scroll = scroll
+        super().__init__(middleLayer.applyScroll, scroll, *args, **kwargs)
+
+    def inverseAction(self):
+        return Scroll(middleLayer.scrollValue, *self.args, **self.kwargs)
 
 class Zoom(UnifiedAction):
     def __init__(self, zoom, *args, **kwargs):
         super().__init__(middleLayer.applyZoom, *args, **kwargs)
         self.zoom = zoom
 
+    def inverseAction(self):
+        return Zoom(self.zoom, *self.args, **self.kwargs)
+
 class AddNote(UnifiedAction):
     def __init__(self, note, *args, **kwargs):
         super().__init__(middleLayer.addNote, *args, **kwargs)
         self.note = note
+        
+    def inverseAction(self):
+        return RemoveNote(self.note, *self.args, **self.kwargs)
 
 class RemoveNote(UnifiedAction):
     def __init__(self, note, *args, **kwargs):
