@@ -141,8 +141,8 @@ class DeleteTrack(UnifiedAction):
         return UnifiedAction(middleLayer.addTrack, copy(middleLayer.trackList[self.index]), *self.args, **self.kwargs)
 
 class AddParam(UnifiedAction):
-    def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.importParam, param, *args, **kwargs)
+    def __init__(self, param, name, *args, **kwargs):
+        super().__init__(middleLayer.importParam, param, name, *args, **kwargs)
 
     def inverseAction(self):
         return RemoveParam(len(middleLayer.activeTrack.paramList) - 1, *self.args, **self.kwargs)
@@ -189,39 +189,40 @@ class SwitchParam(UnifiedAction):
 
 class ChangeParam(UnifiedAction):
     def __init__(self, data, start, section = None, *args, **kwargs):
-        if middleLayer.activeParam == "steadiness":
-            self.oldData = middleLayer.trackList[middleLayer.activeTrack].steadiness[start:start + data.size()[0]]
-        elif middleLayer.activeParam == "breathiness":
-            self.oldData = middleLayer.trackList[middleLayer.activeTrack].breathiness[start:start + data.size()[0]]
-        elif middleLayer.activeParam == "AI Balance":
-            self.oldData = middleLayer.trackList[middleLayer.activeTrack].aiBalance[start:start + data.size()[0]]
-        elif middleLayer.activeParam == "loop":
-            if section:
-                self.oldData = middleLayer.trackList[middleLayer.activeTrack].loopOverlap[start:start + data.size()[0]]
-            else:
-                self.oldData = middleLayer.trackList[middleLayer.activeTrack].loopOffset[start:start + data.size()[0]]
-        elif self.activeParam == "vibrato":
-            if section:
-                self.oldData = middleLayer.trackList[middleLayer.activeTrack].vibratoSpeed[start:start + data.size()[0]]
-            else:
-                self.oldData = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength[start:start + data.size()[0]]
-        else:
-            self.oldData = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[self.activeParam].curve[start:start + data.size()[0]]
         super().__init__(middleLayer.applyParamChanges, data, start, section, *args, **kwargs)
         self.start = start
         self.section = section
+        self.length = data.size()[0]
 
     def inverseAction(self):
-        return ChangeParam(self.oldData, self.start, self.section, *self.args, **self.kwargs)
+        if middleLayer.activeParam == "steadiness":
+            oldData = middleLayer.trackList[middleLayer.activeTrack].steadiness[self.start:self.start + self.length]
+        elif middleLayer.activeParam == "breathiness":
+            oldData = middleLayer.trackList[middleLayer.activeTrack].breathiness[self.start:self.start + self.length]
+        elif middleLayer.activeParam == "AI Balance":
+            oldData = middleLayer.trackList[middleLayer.activeTrack].aiBalance[self.start:self.start + self.length]
+        elif middleLayer.activeParam == "loop":
+            if self.section:
+                oldData = middleLayer.trackList[middleLayer.activeTrack].loopOverlap[self.start:self.start + self.length]
+            else:
+                oldData = middleLayer.trackList[middleLayer.activeTrack].loopOffset[self.start:self.start + self.length]
+        elif middleLayer.activeParam == "vibrato":
+            if self.section:
+                oldData = middleLayer.trackList[middleLayer.activeTrack].vibratoSpeed[self.start:self.start + self.length]
+            else:
+                oldData = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength[self.start:self.start + self.length]
+        else:
+            oldData = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[self.activeParam].curve[self.start:self.start + self.length]
+        return ChangeParam(oldData, self.start, self.section, *self.args, **self.kwargs)
 
 class ChangePitch(UnifiedAction):
     def __init__(self, data, start, *args, **kwargs):
-        self.oldPitch = middleLayer.trackList[middleLayer.activeTrack].pitch[start:start + data.size()[0]]
         super().__init__(middleLayer.applyPitchChanges, data, start, *args, **kwargs)
         self.start = start
+        self.size = data.size()[0]
 
     def inverseAction(self):
-        return ChangePitch(self.oldPitch, self.start, *self.args, **self.kwargs)
+        return ChangePitch(middleLayer.trackList[middleLayer.activeTrack].pitch[self.start:self.start + self.size], self.start, *self.args, **self.kwargs)
 
 class ChangeMode(UnifiedAction):
     def __init__(self, mode, *args, **kwargs):
@@ -254,29 +255,28 @@ class AddNote(UnifiedAction):
 
 class RemoveNote(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
-        self.note = middleLayer.trackList[middleLayer.activeTrack].notes[index]
         super().__init__(middleLayer.removeNote, index, *args, **kwargs)
+        self.index = index
     
     def inverseAction(self):
-        return AddNote(self.note.index, self.note.x, self.note.y, self.note.reference, *self.args, **self.kwargs) #TODO: process remaining note data
+        note = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
+        return AddNote(note.index, note.x, note.y, note.reference, *self.args, **self.kwargs) #TODO: process remaining note data
 
 class ChangeNoteLength(UnifiedAction):
     def __init__(self, index, x, length, *args, **kwargs):
         self.index = index
-        self.data = (middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[index].length)
         super().__init__(middleLayer.changeNoteLength, index, x, length, *args, **kwargs)
     
     def inverseAction(self):
-        return ChangeNoteLength(self.index, self.data[0], self.data[1], *self.args, **self.kwargs)
+        return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length, *self.args, **self.kwargs)
 
 class MoveNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
         self.index = index
-        self.data = (middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos)
         super().__init__(middleLayer.moveNote, index, x, y, *args, **kwargs)
     
     def inverseAction(self):
-        return MoveNote(self.index, self.data[0], self.data[1], *self.args, **self.kwargs)
+        return MoveNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos, *self.args, **self.kwargs)
 
 class ChangeLyrics(UnifiedAction):
     def __init__(self, index, inputText, pronuncIndex, *args, **kwargs):
