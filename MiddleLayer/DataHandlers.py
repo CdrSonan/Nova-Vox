@@ -188,3 +188,4 @@ class Note():
         self.content = ""
         self.phonemeStart = start
         self.phonemeEnd = end
+        self.pronuncIndex = None

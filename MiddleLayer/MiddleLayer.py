@@ -661,6 +661,7 @@ class MiddleLayer(Widget):
         """changes the lyrics of the note at position index of the active track to text. Performs dictionary lookup and phoneme sanitization, respecting the note's phoneme input mode."""
 
         self.trackList[self.activeTrack].notes[index].content = inputText
+        self.trackList[self.activeTrack].notes[index].pronuncIndex = pronuncIndex
         if self.trackList[self.activeTrack].notes[index].phonemeMode:
             text = inputText.split(" ")
         elif inputText in self.trackList[self.activeTrack].wordDict[0]:

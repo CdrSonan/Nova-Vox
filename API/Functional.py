@@ -13,7 +13,9 @@ import os
 import torch
 
 from UI.code.editor.Main import middleLayer
-from MiddleLayer.IniParser import readSettings
+from MiddleLayer.IniParser import readSettings, writeSettings, writeCustomSettings
+from MiddleLayer.FileIO import loadNVX, validateTrackData
+from MiddleLayer.DataHandlers import Note
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack, enqueueUiCallback
 
 class UnifiedAction:
@@ -237,112 +239,121 @@ class Scroll(UnifiedAction):
 
 class Zoom(UnifiedAction):
     def __init__(self, zoom, *args, **kwargs):
-        super().__init__(middleLayer.applyZoom, *args, **kwargs)
-        self.zoom = zoom
+        super().__init__(middleLayer.applyZoom, zoom, *args, **kwargs)
 
     def inverseAction(self):
-        return Zoom(self.zoom, *self.args, **self.kwargs)
+        return Zoom(middleLayer.xScale, *self.args, **self.kwargs)
 
 class AddNote(UnifiedAction):
-    def __init__(self, note, *args, **kwargs):
-        super().__init__(middleLayer.addNote, *args, **kwargs)
-        self.note = note
+    def __init__(self, index, x, y, reference, *args, **kwargs):
+        super().__init__(middleLayer.addNote, index, x, y, reference, *args, **kwargs)
+        self.index = index
         
     def inverseAction(self):
-        return RemoveNote(self.note, *self.args, **self.kwargs)
+        return RemoveNote(self.index, *self.args, **self.kwargs)
 
 class RemoveNote(UnifiedAction):
-    def __init__(self, note, *args, **kwargs):
-        super().__init__(middleLayer.removeNote, *args, **kwargs)
-        self.note = note
+    def __init__(self, index, *args, **kwargs):
+        self.note = middleLayer.trackList[middleLayer.activeTrack].notes[index]
+        super().__init__(middleLayer.removeNote, index, *args, **kwargs)
+    
+    def inverseAction(self):
+        return AddNote(self.note.index, self.note.x, self.note.y, self.note.reference, *self.args, **self.kwargs) #TODO: process remaining note data
 
 class ChangeNoteLength(UnifiedAction):
-    def __init__(self, note, *args, **kwargs):
-        super().__init__(middleLayer.changeNoteLength, *args, **kwargs)
-        self.note = note
+    def __init__(self, index, x, length, *args, **kwargs):
+        self.index = index
+        self.data = (middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[index].length)
+        super().__init__(middleLayer.changeNoteLength, index, x, length, *args, **kwargs)
+    
+    def inverseAction(self):
+        return ChangeNoteLength(self.index, self.data[0], self.data[1], *self.args, **self.kwargs)
 
 class MoveNote(UnifiedAction):
-    def __init__(self, note, *args, **kwargs):
-        super().__init__(middleLayer.moveNote, *args, **kwargs)
-        self.note = note
-
-class ChangeNoteStart(UnifiedAction):
-    def __init__(self, note, *args, **kwargs):
-        super().__init__(middleLayer.changeNoteLength, *args, **kwargs)
-        self.note = note
+    def __init__(self, index, x, y, *args, **kwargs):
+        self.index = index
+        self.data = (middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos)
+        super().__init__(middleLayer.moveNote, index, x, y, *args, **kwargs)
+    
+    def inverseAction(self):
+        return MoveNote(self.index, self.data[0], self.data[1], *self.args, **self.kwargs)
 
 class ChangeLyrics(UnifiedAction):
-    def __init__(self, note, *args, **kwargs):
-        super().__init__(middleLayer.changeLyrics, *args, **kwargs)
-        self.note = note
+    def __init__(self, index, inputText, pronuncIndex, *args, **kwargs):
+        super().__init__(middleLayer.changeLyrics, index, inputText, pronuncIndex, *args, **kwargs)
+        self.index = index
+    
+    def inverseAction(self):
+        return ChangeLyrics(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].pronuncIndex, *self.args, **self.kwargs)
 
 class MoveBorder(UnifiedAction):
-    def __init__(self, border, *args, **kwargs):
-        super().__init__(middleLayer.changeBorder, *args, **kwargs)
+    def __init__(self, border, pos, *args, **kwargs):
+        super().__init__(middleLayer.changeBorder, border, pos, *args, **kwargs)
         self.border = border
+    
+    def inverseAction(self):
+        return MoveBorder(self.border, middleLayer.trackList[middleLayer.activeTrack].borders[self.border], *self.args, **self.kwargs)
 
 class ChangeVoicebank(UnifiedAction):
-    def __init__(self, voicebank, *args, **kwargs):
+    def __init__(self, index, path, *args, **kwargs):
         super().__init__(middleLayer.changeVB, *args, **kwargs)
-        self.voicebank = voicebank
-
-class RepairNotes(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.repairNotes, *args, **kwargs)
-
-class RepairBorders(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.repairBorders, *args, **kwargs)
+        self.index = index
+    
+    def inverseAction(self):
+        return ChangeVoicebank(self.index, middleLayer.trackList[middleLayer.activeTrack].vbPath, *self.args, **self.kwargs)
 
 class ForceChangeTrackLength(UnifiedAction):
-    def __init__(self, track, *args, **kwargs):
-        super().__init__(middleLayer.changeLength, *args, **kwargs)
-        self.track = track
-
-class Validate(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.validate, *args, **kwargs)
+    def __init__(self, length, *args, **kwargs):
+        super().__init__(middleLayer.changeLength, length, *args, **kwargs)
+    
+    def inverseAction(self):
+        return ForceChangeTrackLength(middleLayer.trackList[middleLayer.activeTrack].length, *self.args, **self.kwargs)
 
 class ChangeVolume(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.updateVolume, *args, **kwargs)
-
-class MovePlayhead(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.movePlayhead, *args, **kwargs)
-
-class Play(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.play, *args, **kwargs)
-
-class RestartRenderer(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.manager.restart, *args, **kwargs)
-
-class SaveNVX(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.saveNVX, *args, **kwargs)
+    def __init__(self, index, volume, *args, **kwargs):
+        super().__init__(middleLayer.updateVolume, index, volume, *args, **kwargs)
+        self.index = index
+    
+    def inverseAction(self):
+        return ChangeVolume(self.index, middleLayer.trackList[middleLayer.activeTrack].volume, *self.args, **self.kwargs)
 
 class LoadNVX(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.loadNVX, *args, **kwargs)
-
-class ExportFile(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.exportFile, *args, **kwargs)
-
-class ImportFile(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.importFile, *args, **kwargs)
-
-class LoadNVXPartial(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.loadNVXPartial, *args, **kwargs)
-
-class SaveNVXPartial(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.saveNVXPartial, *args, **kwargs)
-
-class ChangeSettings(UnifiedAction):
-    def __init__(self, *args, **kwargs):
-        super().__init__(middleLayer.changeSettings, *args, **kwargs)
+    def __init__(self, path, *args, **kwargs):
+        super().__init__(loadNVX, path, middleLayer, *args, **kwargs)
+    
+    def inverseAction(self):
+        def restoreTrackList(tracks:list):
+            for i in range(len(middleLayer.trackList)):
+                middleLayer.deleteTrack(0)
+            for trackData in tracks:
+                track = validateTrackData(trackData)
+                vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
+                middleLayer.importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
+                middleLayer.trackList[-1].volume = track["volume"]
+                for note in track["notes"]:
+                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], note["phonemeStart"], note["phonemeEnd"]))
+                    middleLayer.trackList[-1].notes[-1].length = note["length"]
+                    middleLayer.trackList[-1].notes[-1].phonemeMode = note["phonemeMode"]
+                    middleLayer.trackList[-1].notes[-1].content = note["content"]
+                middleLayer.trackList[-1].phonemes = track["phonemes"]
+                middleLayer.trackList[-1].pitch = track["pitch"]
+                middleLayer.trackList[-1].basePitch = track["basePitch"]
+                middleLayer.trackList[-1].breathiness = track["breathiness"]
+                middleLayer.trackList[-1].steadiness = track["steadiness"]
+                middleLayer.trackList[-1].aiBalance = track["aiBalance"]
+                middleLayer.trackList[-1].loopOverlap = track["loopOverlap"]
+                middleLayer.trackList[-1].loopOffset = track["loopOffset"]
+                middleLayer.trackList[-1].vibratoSpeed = track["vibratoSpeed"]
+                middleLayer.trackList[-1].vibratoStrength = track["vibratoStrength"]
+                middleLayer.trackList[-1].usePitch = track["usePitch"]
+                middleLayer.trackList[-1].useBreathiness = track["useBreathiness"]
+                middleLayer.trackList[-1].useSteadiness = track["useSteadiness"]
+                middleLayer.trackList[-1].useAIBalance = track["useAIBalance"]
+                middleLayer.trackList[-1].useVibratoSpeed = track["useVibratoSpeed"]
+                middleLayer.trackList[-1].useVibratoStrength = track["useVibratoStrength"]
+                middleLayer.trackList[-1].nodegraph = track["nodegraph"]
+                middleLayer.trackList[-1].borders = track["borders"]
+                middleLayer.trackList[-1].length = track["length"]
+                middleLayer.trackList[-1].mixinVB = track["mixinVB"]
+                middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
+        return UnifiedAction(restoreTrackList, middleLayer.trackList, *self.args, **self.kwargs)
