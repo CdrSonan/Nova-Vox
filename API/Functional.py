@@ -13,19 +13,19 @@ import os
 import torch
 
 from UI.code.editor.Main import middleLayer
-from MiddleLayer.IniParser import readSettings, writeSettings, writeCustomSettings
+from MiddleLayer.IniParser import readSettings
 from MiddleLayer.FileIO import loadNVX, validateTrackData
 from MiddleLayer.DataHandlers import Note
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack, enqueueUiCallback
 
 class UnifiedAction:
-    def __init__(self, action, undo = False, redo = False, uiCallback = None, immediate = False, *args, **kwargs):
+    def __init__(self, action, undo = False, redo = False, useUiCallback = False, immediate = False, *args, **kwargs):
         self.action = action
         self.args = args
         self.kwargs = kwargs
         self.undo = undo
         self.redo = redo
-        self.uiCallback = uiCallback
+        self.useUiCallback = useUiCallback
         if immediate:
             self.__call__()
 
@@ -33,10 +33,10 @@ class UnifiedAction:
         return UnifiedAction(self.action, undo = self.undo, redo = self.redo, immediate = False, *self.args, **self.kwargs)
 
     def __call__(self):
-        self.action(*self.args, **self.kwargs)
-        if self.uiCallback:
-            enqueueUiCallback(self.uiCallback)
         inverse = self.inverseAction()
+        self.action(*self.args, **self.kwargs)
+        if self.useUiCallback:
+            enqueueUiCallback(self.uiCallback())
         if self.undo:
             inverse.undo = False
             inverse.redo = True
@@ -162,6 +162,11 @@ class EnableParam(UnifiedAction):
 
     def inverseAction(self):
         return DisableParam(self.param, *self.args, **self.kwargs)
+    
+    def uiCallback(self):
+        for i in middleLayer.ids["paramList"].children:
+            if i.name == self.param:
+                i.children[0].state = "down"
 
 class DisableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
@@ -170,6 +175,11 @@ class DisableParam(UnifiedAction):
 
     def inverseAction(self):
         return EnableParam(self.param, *self.args, **self.kwargs)
+    
+    def uiCallback(self):
+        for i in middleLayer.ids["paramList"].children:
+            if i.name == self.param:
+                i.children[0].state = "normal"
 
 class MoveParam(UnifiedAction):
     def __init__(self, index, delta, *args, **kwargs):
@@ -181,11 +191,16 @@ class MoveParam(UnifiedAction):
         return MoveParam(self.index + self.delta, -self.delta, *self.args, **self.kwargs)
 
 class SwitchParam(UnifiedAction):
-    def __init__(self, index, *args, **kwargs):
-        super().__init__(middleLayer.changeParam, index, *args, **kwargs)
+    def __init__(self, param, *args, **kwargs):
+        super().__init__(middleLayer.changeParam, param, *args, **kwargs)
 
     def inverseAction(self):
         return SwitchParam(copy(middleLayer.activeParam), *self.args, **self.kwargs)
+    
+    def uiCallback(self):
+        for i in middleLayer.ids["paramList"].children:
+            if i.name == middleLayer.activeParam:
+                i.children[0].state = "down"
 
 class ChangeParam(UnifiedAction):
     def __init__(self, data, start, section = None, *args, **kwargs):
@@ -215,6 +230,9 @@ class ChangeParam(UnifiedAction):
             oldData = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[self.activeParam].curve[self.start:self.start + self.length]
         return ChangeParam(oldData, self.start, self.section, *self.args, **self.kwargs)
 
+    def uiCallback(self):
+        middleLayer.ids["adaptiveSpace"].redraw()
+
 class ChangePitch(UnifiedAction):
     def __init__(self, data, start, *args, **kwargs):
         super().__init__(middleLayer.applyPitchChanges, data, start, *args, **kwargs)
@@ -223,6 +241,10 @@ class ChangePitch(UnifiedAction):
 
     def inverseAction(self):
         return ChangePitch(middleLayer.trackList[middleLayer.activeTrack].pitch[self.start:self.start + self.size], self.start, *self.args, **self.kwargs)
+    
+    def uiCallback(self):
+        if middleLayer.mode == "pitch":
+            middleLayer.ids["pianoRoll"].redrawPitch()
 
 class ChangeMode(UnifiedAction):
     def __init__(self, mode, *args, **kwargs):
@@ -246,12 +268,17 @@ class Zoom(UnifiedAction):
         return Zoom(middleLayer.xScale, *self.args, **self.kwargs)
 
 class AddNote(UnifiedAction):
-    def __init__(self, index, x, y, reference, *args, **kwargs):
-        super().__init__(middleLayer.addNote, index, x, y, reference, *args, **kwargs)
+    def __init__(self, index, x, y, *args, **kwargs):
+        super().__init__(middleLayer.addNote, index, x, y, None, *args, **kwargs)
         self.index = index
+        self.x = x
+        self.y = y
         
     def inverseAction(self):
         return RemoveNote(self.index, *self.args, **self.kwargs)
+    
+    def UiCallback(self):
+        middleLayer.ids["pianoRoll"].add_widget(Note(index = self.index, xPos = self.x, yPos = self.y, length = 100, height = middleLayer.ids["pianoRoll"].yScale))
 
 class RemoveNote(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
@@ -261,6 +288,10 @@ class RemoveNote(UnifiedAction):
     def inverseAction(self):
         note = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
         return AddNote(note.index, note.x, note.y, note.reference, *self.args, **self.kwargs) #TODO: process remaining note data
+    
+    def UiCallback(self):
+        middleLayer.ids["pianoRoll"].remove_widget(middleLayer.ids["pianoRoll"].notes[self.index])
+        del middleLayer.ids["pianoRoll"].notes[self.index]
 
 class ChangeNoteLength(UnifiedAction):
     def __init__(self, index, x, length, *args, **kwargs):
@@ -269,6 +300,10 @@ class ChangeNoteLength(UnifiedAction):
     
     def inverseAction(self):
         return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length, *self.args, **self.kwargs)
+    
+    def UiCallback(self):
+        middleLayer.ids["pianoRoll"].notes[self.index].length = self.length
+        middleLayer.ids["pianoRoll"].notes[self.index].redraw()
 
 class MoveNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
@@ -277,6 +312,11 @@ class MoveNote(UnifiedAction):
     
     def inverseAction(self):
         return MoveNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos, *self.args, **self.kwargs)
+    
+    def UiCallback(self):
+        middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
+        middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
+        middleLayer.ids["pianoRoll"].notes[self.index].redraw()
 
 class ChangeLyrics(UnifiedAction):
     def __init__(self, index, inputText, pronuncIndex, *args, **kwargs):
@@ -285,6 +325,9 @@ class ChangeLyrics(UnifiedAction):
     
     def inverseAction(self):
         return ChangeLyrics(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].pronuncIndex, *self.args, **self.kwargs)
+    
+    def UiCallback(self):
+        middleLayer.ids["pianoRoll"].notes[self.index].redrawStatusBars()
 
 class MoveBorder(UnifiedAction):
     def __init__(self, border, pos, *args, **kwargs):
@@ -293,6 +336,11 @@ class MoveBorder(UnifiedAction):
     
     def inverseAction(self):
         return MoveBorder(self.border, middleLayer.trackList[middleLayer.activeTrack].borders[self.border], *self.args, **self.kwargs)
+    
+    def UiCallback(self):
+        if middleLayer.mode == "timing":
+            middleLayer.ids["pianoRoll"].removeTiming()
+            middleLayer.ids["pianoRoll"].drawTiming()
 
 class ChangeVoicebank(UnifiedAction):
     def __init__(self, index, path, *args, **kwargs):
