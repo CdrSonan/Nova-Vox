@@ -12,6 +12,9 @@ import os
 
 import torch
 
+from io import BytesIO
+from kivy.core.image import Image as CoreImage
+
 from UI.code.editor.Main import middleLayer
 from MiddleLayer.IniParser import readSettings
 from MiddleLayer.FileIO import loadNVX, validateTrackData
@@ -344,11 +347,24 @@ class MoveBorder(UnifiedAction):
 
 class ChangeVoicebank(UnifiedAction):
     def __init__(self, index, path, *args, **kwargs):
-        super().__init__(middleLayer.changeVB, *args, **kwargs)
+        super().__init__(middleLayer.changeVB, path, *args, **kwargs)
         self.index = index
     
     def inverseAction(self):
         return ChangeVoicebank(self.index, middleLayer.trackList[middleLayer.activeTrack].vbPath, *self.args, **self.kwargs)
+    
+    def UiCallback(self):
+        data = torch.load(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[self.index].vbPath), map_location = torch.device("cpu"))["metadata"]
+        for i in middleLayer.ids["singerList"].children:
+            if i.index == self.index:
+                i.name = data["name"]
+                canvas_img = data["image"]
+                data = BytesIO()
+                canvas_img.save(data, format='png')
+                data.seek(0)
+                im = CoreImage(BytesIO(data.read()), ext='png')
+                i.image = im.texture
+                break
 
 class ForceChangeTrackLength(UnifiedAction):
     def __init__(self, length, *args, **kwargs):
@@ -356,6 +372,10 @@ class ForceChangeTrackLength(UnifiedAction):
     
     def inverseAction(self):
         return ForceChangeTrackLength(middleLayer.trackList[middleLayer.activeTrack].length, *self.args, **self.kwargs)
+    
+    def UiCallback(self):
+        middleLayer.ids["pianoRoll"].length = middleLayer.trackList[middleLayer.activeTrack].length
+        middleLayer.ids["pianoRoll"].updateTimingMarkers()
 
 class ChangeVolume(UnifiedAction):
     def __init__(self, index, volume, *args, **kwargs):
@@ -364,6 +384,12 @@ class ChangeVolume(UnifiedAction):
     
     def inverseAction(self):
         return ChangeVolume(self.index, middleLayer.trackList[middleLayer.activeTrack].volume, *self.args, **self.kwargs)
+    
+    def UiCallback(self):
+        for i in middleLayer.ids["singerList"].children:
+            if i.index == self.index:
+                i.children[0].children[0].children[0].children[0].children[2].children[0].value = middleLayer.trackList[middleLayer.activeTrack].volume
+                break
 
 class LoadNVX(UnifiedAction):
     def __init__(self, path, *args, **kwargs):
