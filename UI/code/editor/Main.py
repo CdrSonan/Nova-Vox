@@ -20,6 +20,7 @@ from kivy.properties import NumericProperty, ColorProperty, ObjectProperty, Dict
 from MiddleLayer.MiddleLayer import MiddleLayer
 from MiddleLayer.IniParser import readSettings
 from MiddleLayer.FileIO import saveNVX
+from MiddleLayer.UndoRedo import undo, redo
 from MiddleLayer.ErrorHandler import handleMainException, handleRendererException
 
 from Localization.editor_localization import getLanguage
@@ -141,14 +142,16 @@ class NovaVoxUI(Widget):
             middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
 
     def undo(self) -> None:
-        """placeholder for undo function"""
+        """undo function"""
 
         print("undo callback")
+        undo()
 
     def redo(self) -> None:
-        """placeholder for redo function"""
+        """redo function"""
 
         print("redo callback")
+        redo()
 
     def restart(self) -> None:
         """restarts the rendering process through its manager"""

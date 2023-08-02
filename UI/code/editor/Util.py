@@ -288,6 +288,14 @@ class FloatInput(TextInput, TooltipBehavior):
             )
         return super().insert_text(s, from_undo=from_undo)
 
+class IntInput(TextInput, TooltipBehavior):
+    
+    pat = re.compile('[^0-9]')
+    def insert_text(self, substring, from_undo=False):
+        pat = self.pat
+        s = re.sub(pat, '', substring)
+        return super().insert_text(s, from_undo)
+
 class ReferencingButton(ManagedButton, TooltipBehavior):
     """A button with an additional property for keeping a reference to a different, arbitrary object"""
 

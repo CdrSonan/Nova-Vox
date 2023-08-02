@@ -70,6 +70,7 @@ class MiddleLayer(Widget):
         self.deletions = []
         self.playing = False
         settings = readSettings()
+        self.undoLimit = settings["undolimit"]
         device = None
         devices = sounddevice.query_devices()
         for i in devices:
@@ -77,10 +78,6 @@ class MiddleLayer(Widget):
                 device = i["name"] + ", " + settings["audioapi"]
         self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback, latency = float(settings["audiolatency"]))
         self.scriptCache = ""
-
-    def runUiCallbacks(self):
-        while len(self.uiCallbackQueue) > 0:
-            self.uiCallbackQueue.pop(0)()
 
     def importVoicebank(self, path:str, name:str, inImage) -> None:
         """Creates a new vocal track with a Voicebank loaded from disk.

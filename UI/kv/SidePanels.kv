@@ -411,6 +411,21 @@
         Label:
             size_hint_y: None
             height: 30 * app.root.uiScale
+            text: app.root.loc["undo_limit"]
+        IntInput:
+            #undo limit input
+            id: settings_undoLimit
+            size_hint_y: None
+            height: max(30 * app.root.uiScale, self.minimum_height)
+            background_normal: "UI/assets/Toolbar/Adaptive07new.png"
+            background_active: "UI/assets/Toolbar/Adaptive07new.png"
+            background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
+            foreground_color: (1., 1., 1., 1.)
+            halign: "center"
+            multiline: False
+        Label:
+            size_hint_y: None
+            height: 30 * app.root.uiScale
             text: app.root.loc["loglevel"]
         ManagedSpinner:
             #logging level dropdown menu

@@ -340,6 +340,7 @@ class SettingsSidePanel(CursorAwareView):
         self.refreshAudioDevices(settings["audioapi"])
         self.ids["settings_audioDevice"].text = settings["audiodevice"]
         self.ids["settings_audioLatency"].text = settings["audiolatency"]
+        self.ids["settings_undoLimit"].text = settings["undolimit"]
         self.ids["settings_loglevel"].text = settings["loglevel"]
         self.ids["settings_datadir"].text = settings["datadir"]
         self.ids["settings_uiScale"].text = settings["uiscale"]
@@ -379,6 +380,7 @@ class SettingsSidePanel(CursorAwareView):
                       self.ids["settings_audioApi"].text,
                       audioDevice,
                       self.ids["settings_audioLatency"].text,
+                      self.ids["settings_undoLimit"].text,
                       self.ids["settings_loglevel"].text,
                       self.ids["settings_datadir"].text,
                       self.ids["settings_uiScale"].text,

@@ -8,24 +8,14 @@
 global middleLayer
 
 from UI.code.editor.Main import middleLayer
-from MiddleLayer.IniParser import readSettings
 
 def enqueueUndo(action):
     middleLayer.undoStack.append(action)
-    if len(middleLayer.undoStack) > readSettings()["undoLimit"]:#TODO: make undo limit a setting
+    if len(middleLayer.undoStack) > middleLayer.undoLimit:
         middleLayer.undoStack.pop(0)
 
 def enqueueRedo(action):
     middleLayer.redoStack.append(action)
-
-def enqueueUiCallback(callback):
-    toRemove = []
-    for i in range(len(middleLayer.uiCallbackQueue)):
-        if middleLayer.uiCallbackQueue[i] == callback:
-            toRemove.append(i)
-    while len(toRemove) > 0:
-        middleLayer.uiCallbackQueue.pop(toRemove.pop(-1))
-    middleLayer.uiCallbackQueue.append(callback)
 
 def clearRedoStack():
     middleLayer.redoStack = []
@@ -34,11 +24,8 @@ def undo():
     inverse = middleLayer.undoStack[-1].inverseAction()
     middleLayer.undoStack.pop(-1)()
     enqueueRedo(inverse)
-    middleLayer.runUiCallbacks()
 
 def redo():
     inverse = middleLayer.redoStack[-1].inverseAction()
     middleLayer.redoStack.pop(-1)()
     enqueueUndo(inverse)
-    middleLayer.runUiCallbacks()
-
