@@ -22,7 +22,10 @@ import global_consts
 
 from MiddleLayer.IniParser import readSettings
 import MiddleLayer.DataHandlers as dh
+from MiddleLayer.UndoRedo import enqueueUndo
 from MiddleLayer.BorderSystem import recalculateBorders
+
+from API.Functional import *
 
 from Util import ensureTensorLength, noteToPitch
 from Backend.VB_Components.Voicebank import LiteVoicebank
@@ -90,6 +93,7 @@ class MiddleLayer(Widget):
             inImage: image displayed in the track header"""
 
 
+        enqueueUndo(ImportVoicebank(path).inverseAction())
         self.importVoicebankNoSubmit(path, name, inImage)
         self.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
         self.submitAddTrack(self.trackList[-1])
@@ -120,6 +124,7 @@ class MiddleLayer(Widget):
     def importParam(self, path:str, name:str) -> None:
         """placeholder function for importing an Ai-driven parameter. Deprecated with the introduction of node-based processing."""
 
+        enqueueUndo(AddParam(path).inverseAction())
         self.trackList[self.activeTrack].nodeGraph.append(path)
         self.ids["paramList"].add_widget(ParamPanel(name = name, switchable = True, sortable = True, deletable = True, index = len(self.trackList[self.activeTrack].nodegraph.params) - 1))
         self.submitNodegraphUpdate()
@@ -127,6 +132,7 @@ class MiddleLayer(Widget):
     def changeTrack(self, index) -> None:
         """Helper function triggering the required UI updates when the user selects a different track"""
 
+        enqueueUndo(ChangeTrack(index).inverseAction())
         self.activeTrack = index
         self.updateParamPanel()
         self.updatePianoRoll()
@@ -148,6 +154,7 @@ class MiddleLayer(Widget):
             inImage: Image displayed in the header of the duplicated track"""
 
 
+        enqueueUndo(CopyTrack(index).inverseAction())
         reference = self.trackList[index]
         self.trackList.append(dh.Track(reference.vbPath))
         self.trackList[-1].volume = copy(reference.volume)
@@ -186,6 +193,7 @@ class MiddleLayer(Widget):
     def deleteTrack(self, index:int) -> None:
         """Deletes the track at index index in self.trackList, and all of its associated data"""
 
+        enqueueUndo(DeleteTrack(index).inverseAction())
         self.trackList.pop(index)
         self.audioBuffer.pop(index)
         toRemove = None
@@ -206,12 +214,14 @@ class MiddleLayer(Widget):
             self.activeTrack = None
             self.updatePianoRoll()
 
-    def addParam(self, param) -> None:
+    def addParam(self, param, name) -> None:
+        enqueueUndo(AddParam(param, name).inverseAction())
         pass #TODO: implement
 
     def deleteParam(self, index:int) -> None:
         """Placeholder function for removing an Ai-driven parameter from a track's stack. Deprecated with the introduction of node-based processing."""
 
+        enqueueUndo(RemoveParam(index).inverseAction())
         self.trackList[self.activeTrack].nodegraph.delete(index)
         if index <= self.activeParam:
             self.changeParam(self.activeParam - 1)
@@ -231,6 +241,7 @@ class MiddleLayer(Widget):
             name: when adressing a named resampler parameter, the name of the parameter. Otherwise ignored."""
 
 
+        enqueueUndo(EnableParam(name).inverseAction())
         if name == "steadiness":
             self.trackList[self.activeTrack].useSteadiness = True
         elif name == "breathiness":
@@ -254,6 +265,7 @@ class MiddleLayer(Widget):
             name: When adressing a named resampler parameter, the name of the parameter. Otherwise ignored."""
 
 
+        enqueueUndo(DisableParam(name).inverseAction())
         if name == "steadiness":
             self.trackList[self.activeTrack].useSteadiness = False
         elif name == "breathiness":
@@ -272,6 +284,7 @@ class MiddleLayer(Widget):
         """Moves a sortable parameter curve at index index of the current track's param curve stack to a different position defined by delta.
         All other arguments specify information about the parameter being moved for re-applying its header widget."""
 
+        enqueueUndo(MoveParam(index, delta).inverseAction())
         for i in self.ids["paramList"].children:
             if i.index == index:
                 i.parent.remove_widget(i)
@@ -313,6 +326,7 @@ class MiddleLayer(Widget):
     def changeParam(self, index:int, name:str) -> None:
         """updates the adaptive space after an active parameter change"""
 
+        enqueueUndo(SwitchParam(index, name).inverseAction())
         if index == -1:
             if name == "steadiness":
                 self.activeParam = "steadiness"
@@ -331,6 +345,7 @@ class MiddleLayer(Widget):
     def applyParamChanges(self, data:list, start:int, section:bool = False) -> None:
         """submits edits made to a parameter curve to the rendering process. For multicurve parameter views, section represents whether the upper or lower curve was edited."""
 
+        enqueueUndo(ChangeParam(data, start, section).inverseAction())
         if self.activeParam == "steadiness":
             self.trackList[self.activeTrack].steadiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
             self.submitNamedParamChange(True, "steadiness", start, torch.tensor(data, dtype = torch.half))
@@ -364,6 +379,7 @@ class MiddleLayer(Widget):
     def applyPitchChanges(self, data:torch.Tensor, start:int) -> None:
         """submits edits made to the pitch curve to the rendering process"""
 
+        enqueueUndo(ChangePitch(data, start).inverseAction())
         if type(data) == list:
             data = torch.tensor(data, dtype = torch.half)
         self.trackList[self.activeTrack].pitch[start:start + data.size()[0]] = data
@@ -373,17 +389,20 @@ class MiddleLayer(Widget):
     def changePianoRollMode(self) -> None:
         """helper function for piano roll UI updates when changing modes"""
 
+        enqueueUndo(ChangeMode(self.mode).inverseAction())
         self.ids["pianoRoll"].changeMode()
 
     def applyScroll(self) -> None:
         """helper function for synchromizing scrolling between the piano roll and adaptive space"""
 
+        enqueueUndo(Scroll(self.scrollValue).inverseAction())
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
 
     def applyZoom(self) -> None:
         """helper function for synchromizing zoom between the piano roll and adaptive space"""
 
+        enqueueUndo(Zoom(self.xScale).inverseAction())
         self.ids["pianoRoll"].applyZoom(self.xScale)
         self.ids["adaptiveSpace"].applyZoom(self.xScale)
 
@@ -560,6 +579,7 @@ class MiddleLayer(Widget):
     def addNote(self, index:int, x:int, y:int, reference) -> None:
         """adds a new note at position (x, y) and index index to the active track. reference is an ObjectProperty pointing to its UI representation."""
 
+        enqueueUndo(AddNote(index, x, y, reference).inverseAction())
         if self.activeTrack == None:
             return
         if index == 0:
@@ -582,6 +602,7 @@ class MiddleLayer(Widget):
     def removeNote(self, index:int) -> None:
         """removes the note at position index of the active track"""
 
+        enqueueUndo(RemoveNote(index).inverseAction())
         self.offsetPhonemes(index, self.trackList[self.activeTrack].notes[index].phonemeStart - self.trackList[self.activeTrack].notes[index].phonemeEnd)
         self.trackList[self.activeTrack].notes.pop(index)
         if index < len(self.trackList[self.activeTrack].notes):
@@ -590,6 +611,7 @@ class MiddleLayer(Widget):
     def changeNoteLength(self, index:int, x:int, length:int) -> None:
         """changes the length and start position of the note at position index of the active track to length and x. This makes this function useful for moving either the beginning or the end of a note."""
 
+        enqueueUndo(ChangeNoteLength(index, x, length).inverseAction())
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         if index + 1 == len(self.trackList[self.activeTrack].notes):
             iterationEnd += 1
@@ -612,6 +634,7 @@ class MiddleLayer(Widget):
     def moveNote(self, index:int, x:int, y:int) -> None:
         """moves the note at position index of the active track to the position (x, y)."""
 
+        enqueueUndo(MoveNote(index, x, y).inverseAction())
         iterationEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
         iterationStart = self.trackList[self.activeTrack].notes[index].phonemeStart
         if iterationEnd > iterationStart:
@@ -657,6 +680,7 @@ class MiddleLayer(Widget):
     def changeLyrics(self, index:int, inputText:str, pronuncIndex:int = None) -> None:
         """changes the lyrics of the note at position index of the active track to text. Performs dictionary lookup and phoneme sanitization, respecting the note's phoneme input mode."""
 
+        enqueueUndo(ChangeLyrics(index, inputText, pronuncIndex).inverseAction())
         self.trackList[self.activeTrack].notes[index].content = inputText
         self.trackList[self.activeTrack].notes[index].pronuncIndex = pronuncIndex
         if self.trackList[self.activeTrack].notes[index].phonemeMode:
@@ -705,6 +729,7 @@ class MiddleLayer(Widget):
     def changeBorder(self, border:int, pos:int) -> None:
         """sets the position of the timing marker at index border of the active track to pos"""
 
+        enqueueUndo(MoveBorder(border, pos).inverseAction())
         self.trackList[self.activeTrack].borders[border] = pos
         if self.mode == "timing":
             self.ids["adaptiveSpace"].updateFromBorder(border, pos)
@@ -713,6 +738,7 @@ class MiddleLayer(Widget):
     def changeVB(self, index:int, path:str) -> None:
         """changes the Voicebank of the active track, and performs the necessary checks"""
 
+        enqueueUndo(ChangeVoicebank(index, path).inverseAction())
         self.trackList[self.activeTrack].phonemeLengths = dict()
         tmpVb = LiteVoicebank(path)
         for i in tmpVb.phonemeDict.keys():
@@ -836,6 +862,7 @@ class MiddleLayer(Widget):
     def updateVolume(self, index:int, volume:float) -> None:
         """updates the volume of the track at position index of the track list"""
 
+        enqueueUndo(ChangeVolume(index, volume).inverseAction())
         self.trackList[index].volume = volume
     
     def updateAudioBuffer(self, track:int, index:int, data:torch.Tensor) -> None:

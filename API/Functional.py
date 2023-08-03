@@ -19,7 +19,7 @@ from UI.code.editor.Main import middleLayer
 from MiddleLayer.IniParser import readSettings
 from MiddleLayer.FileIO import loadNVX, validateTrackData
 from MiddleLayer.DataHandlers import Note
-from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack, enqueueUiCallback
+from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
 
 class UnifiedAction:
     def __init__(self, action, undo = False, redo = False, useUiCallback = False, immediate = False, *args, **kwargs):
@@ -39,7 +39,7 @@ class UnifiedAction:
         inverse = self.inverseAction()
         self.action(*self.args, **self.kwargs)
         if self.useUiCallback:
-            enqueueUiCallback(self.uiCallback())
+            self.uiCallback()
         if self.undo:
             inverse.undo = False
             inverse.redo = True
@@ -56,24 +56,6 @@ class UnifiedAction:
 
     def __repr__(self):
         return f"UnifiedAction(action={self.action}, undo = {self.undo}, redo = {self.redo}, UI Callback = {self.uiCallback}, args={self.args}, kwargs={self.kwargs})"
-
-class UiCallback:
-    def __init__(self, callback, *args, **kwargs):
-        self.callback = callback
-        self.args = args
-        self.kwargs = kwargs
-
-    def __call__(self):
-        self.callback(*self.args, **self.kwargs)
-
-    def __eq__(self, other):
-        if other.__class__ == self.__class__:
-            return self.callback == other.callback and self.args == other.args and self.kwargs == other.kwargs
-        else:
-            return False
-
-    def __repr__(self):
-        return f"UiCallback(callback={self.callback}, args={self.args}, kwargs={self.kwargs})"
 
 class UnifiedActionGroup:
     def __init__(self, *actions, undo = False, redo = False, immediate = True):
@@ -95,11 +77,11 @@ class UnifiedActionGroup:
             return UnifiedActionGroup(*actions, undo = True, redo = False, immediate = False)
 
     def __call__(self):
+        inverse = self.inverseAction()
         for action in self.actions:
             action.action(*action.args, **action.kwargs)
             if action.uiCallback:
-                enqueueUiCallback(action.uiCallback)
-        inverse = self.inverseAction()
+                action.uiCallback()
         if self.undo:
             enqueueRedo(inverse)
         elif self.redo:
@@ -107,9 +89,6 @@ class UnifiedActionGroup:
         else:
             enqueueUndo(inverse)
             clearRedoStack()
-
-def runUiCallbacks():
-    middleLayer.runUiCallbacks()
 
 class ImportVoicebank(UnifiedAction):
     def __init__(self, file, *args, **kwargs):
@@ -160,7 +139,7 @@ class RemoveParam(UnifiedAction):
 
 class EnableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.enableParam, param, *args, **kwargs)
+        super().__init__(middleLayer.enableParam, param, useUiCallback = True, *args, **kwargs)
         self.param = param
 
     def inverseAction(self):
@@ -173,7 +152,7 @@ class EnableParam(UnifiedAction):
 
 class DisableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.disableParam, param, *args, **kwargs)
+        super().__init__(middleLayer.disableParam, param, useUiCallback = True, *args, **kwargs)
         self.param = param
 
     def inverseAction(self):
@@ -195,7 +174,7 @@ class MoveParam(UnifiedAction):
 
 class SwitchParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
-        super().__init__(middleLayer.changeParam, param, *args, **kwargs)
+        super().__init__(middleLayer.changeParam, param, useUiCallback = True, *args, **kwargs)
 
     def inverseAction(self):
         return SwitchParam(copy(middleLayer.activeParam), *self.args, **self.kwargs)
@@ -207,7 +186,7 @@ class SwitchParam(UnifiedAction):
 
 class ChangeParam(UnifiedAction):
     def __init__(self, data, start, section = None, *args, **kwargs):
-        super().__init__(middleLayer.applyParamChanges, data, start, section, *args, **kwargs)
+        super().__init__(middleLayer.applyParamChanges, data, start, section, useUiCallback = True, *args, **kwargs)
         self.start = start
         self.section = section
         self.length = data.size()[0]
@@ -238,7 +217,7 @@ class ChangeParam(UnifiedAction):
 
 class ChangePitch(UnifiedAction):
     def __init__(self, data, start, *args, **kwargs):
-        super().__init__(middleLayer.applyPitchChanges, data, start, *args, **kwargs)
+        super().__init__(middleLayer.applyPitchChanges, data, start, useUiCallback = True, *args, **kwargs)
         self.start = start
         self.size = data.size()[0]
 
@@ -272,7 +251,7 @@ class Zoom(UnifiedAction):
 
 class AddNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
-        super().__init__(middleLayer.addNote, index, x, y, None, *args, **kwargs)
+        super().__init__(middleLayer.addNote, index, x, y, None, useUiCallback = True, *args, **kwargs)
         self.index = index
         self.x = x
         self.y = y
@@ -285,7 +264,7 @@ class AddNote(UnifiedAction):
 
 class RemoveNote(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
-        super().__init__(middleLayer.removeNote, index, *args, **kwargs)
+        super().__init__(middleLayer.removeNote, index, useUiCallback = True, *args, **kwargs)
         self.index = index
     
     def inverseAction(self):
@@ -299,7 +278,7 @@ class RemoveNote(UnifiedAction):
 class ChangeNoteLength(UnifiedAction):
     def __init__(self, index, x, length, *args, **kwargs):
         self.index = index
-        super().__init__(middleLayer.changeNoteLength, index, x, length, *args, **kwargs)
+        super().__init__(middleLayer.changeNoteLength, index, x, length, useUiCallback = True, *args, **kwargs)
     
     def inverseAction(self):
         return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length, *self.args, **self.kwargs)
@@ -311,7 +290,7 @@ class ChangeNoteLength(UnifiedAction):
 class MoveNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
         self.index = index
-        super().__init__(middleLayer.moveNote, index, x, y, *args, **kwargs)
+        super().__init__(middleLayer.moveNote, index, x, y, useUiCallback = True, *args, **kwargs)
     
     def inverseAction(self):
         return MoveNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos, *self.args, **self.kwargs)
@@ -323,7 +302,7 @@ class MoveNote(UnifiedAction):
 
 class ChangeLyrics(UnifiedAction):
     def __init__(self, index, inputText, pronuncIndex, *args, **kwargs):
-        super().__init__(middleLayer.changeLyrics, index, inputText, pronuncIndex, *args, **kwargs)
+        super().__init__(middleLayer.changeLyrics, index, inputText, pronuncIndex, useUiCallback = True, *args, **kwargs)
         self.index = index
     
     def inverseAction(self):
@@ -334,7 +313,7 @@ class ChangeLyrics(UnifiedAction):
 
 class MoveBorder(UnifiedAction):
     def __init__(self, border, pos, *args, **kwargs):
-        super().__init__(middleLayer.changeBorder, border, pos, *args, **kwargs)
+        super().__init__(middleLayer.changeBorder, border, pos, useUiCallback = True, *args, **kwargs)
         self.border = border
     
     def inverseAction(self):
@@ -347,7 +326,7 @@ class MoveBorder(UnifiedAction):
 
 class ChangeVoicebank(UnifiedAction):
     def __init__(self, index, path, *args, **kwargs):
-        super().__init__(middleLayer.changeVB, path, *args, **kwargs)
+        super().__init__(middleLayer.changeVB, path, useUiCallback = True, *args, **kwargs)
         self.index = index
     
     def inverseAction(self):
@@ -368,7 +347,7 @@ class ChangeVoicebank(UnifiedAction):
 
 class ForceChangeTrackLength(UnifiedAction):
     def __init__(self, length, *args, **kwargs):
-        super().__init__(middleLayer.changeLength, length, *args, **kwargs)
+        super().__init__(middleLayer.changeLength, length, useUiCallback = True, *args, **kwargs)
     
     def inverseAction(self):
         return ForceChangeTrackLength(middleLayer.trackList[middleLayer.activeTrack].length, *self.args, **self.kwargs)
@@ -379,7 +358,7 @@ class ForceChangeTrackLength(UnifiedAction):
 
 class ChangeVolume(UnifiedAction):
     def __init__(self, index, volume, *args, **kwargs):
-        super().__init__(middleLayer.updateVolume, index, volume, *args, **kwargs)
+        super().__init__(middleLayer.updateVolume, index, volume, useUiCallback = True, *args, **kwargs)
         self.index = index
     
     def inverseAction(self):

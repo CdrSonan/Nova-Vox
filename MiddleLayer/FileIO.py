@@ -8,6 +8,8 @@
 import torch
 from MiddleLayer.MiddleLayer import MiddleLayer
 from MiddleLayer.DataHandlers import Note
+from MiddleLayer.UndoRedo import enqueueUndo
+from API.Functional import LoadNVX
 
 def validateTrackData(trackData:dict) -> dict:
     """validates the data of a track after loading it from a file"""
@@ -66,6 +68,7 @@ def saveNVX(path:str, middleLayer:MiddleLayer) -> None:
 def loadNVX(path:str, middleLayer:MiddleLayer) -> None:
     """backend function for loading a .nvx file"""
 
+    enqueueUndo(LoadNVX(path))
     if path == "":
         return
     data = torch.load(path, map_location = torch.device("cpu"))
