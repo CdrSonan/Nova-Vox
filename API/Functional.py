@@ -18,8 +18,14 @@ from kivy.core.image import Image as CoreImage
 from UI.code.editor.Main import middleLayer
 from MiddleLayer.IniParser import readSettings
 from MiddleLayer.FileIO import loadNVX, validateTrackData
-from MiddleLayer.DataHandlers import Note
+from MiddleLayer.DataHandlers import Note, Track
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
+
+import global_consts
+
+from UI.code.editor.AdaptiveSpace import ParamCurve, TimingOptns, PitchOptns
+from UI.code.editor.Headers import SingerPanel, ParamPanel
+from UI.code.editor.PianoRoll import PhonemeSelector
 
 class UnifiedAction:
     def __init__(self, action, undo = False, redo = False, useUiCallback = False, immediate = False, *args, **kwargs):
@@ -92,8 +98,21 @@ class UnifiedActionGroup:
 
 class ImportVoicebank(UnifiedAction):
     def __init__(self, file, *args, **kwargs):
+        def action(file, name, image):
+            track = Track(file)
+            middleLayer.trackList.append(track)
+            canvas_img = image
+            data = BytesIO()
+            canvas_img.save(data, format='png')
+            data.seek(0)
+            im = CoreImage(BytesIO(data.read()), ext='png')
+            image = im.texture
+            middleLayer.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
+            middleLayer.audioBuffer.append(torch.zeros([track.length * global_consts.batchSize,]))
+            middleLayer.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
+            middleLayer.submitAddTrack(middleLayer.trackList[-1])
         data = torch.load(os.path.join(readSettings()["datadir"], "Voices", file), map_location = torch.device("cpu"))["metadata"]
-        super().__init__(middleLayer.importVoicebank, file, data.name, data.image, *args, **kwargs)
+        super().__init__(action, file, data.name, data.image, *args, **kwargs)
         self.index = len(middleLayer.trackList) - 1
 
     def inverseAction(self):
@@ -101,7 +120,11 @@ class ImportVoicebank(UnifiedAction):
 
 class ChangeTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
-        super().__init__(middleLayer.changeTrack, index, *args, **kwargs)
+        def action(index):
+            middleLayer.activeTrack = index
+            middleLayer.updateParamPanel()
+            middleLayer.updatePianoRoll()
+        super().__init__(action, index, *args, **kwargs)
         
     def inverseAction(self):
         return ChangeTrack(copy(middleLayer.activeTrack), *self.args, **self.kwargs)
