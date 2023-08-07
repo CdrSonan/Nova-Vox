@@ -388,21 +388,17 @@ class MiddleLayer(Widget):
 
     def changePianoRollMode(self) -> None:
         """helper function for piano roll UI updates when changing modes"""
-
-        enqueueUndo(ChangeMode(self.mode).inverseAction())
         self.ids["pianoRoll"].changeMode()
 
     def applyScroll(self) -> None:
         """helper function for synchromizing scrolling between the piano roll and adaptive space"""
 
-        enqueueUndo(Scroll(self.scrollValue).inverseAction())
         self.ids["pianoRoll"].applyScroll(self.scrollValue)
         self.ids["adaptiveSpace"].applyScroll(self.scrollValue)
 
     def applyZoom(self) -> None:
         """helper function for synchromizing zoom between the piano roll and adaptive space"""
 
-        enqueueUndo(Zoom(self.xScale).inverseAction())
         self.ids["pianoRoll"].applyZoom(self.xScale)
         self.ids["adaptiveSpace"].applyZoom(self.xScale)
 
