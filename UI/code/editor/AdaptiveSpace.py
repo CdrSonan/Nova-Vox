@@ -13,6 +13,8 @@ from kivy.uix.scrollview import ScrollView
 from kivy.core.window import Window
 from kivy.app import App
 
+import API.Ops
+
 class AdaptiveSpace(AnchorLayout):
     """Contains a ParamCurve, TimingOptions or PitchOptions widget depending on the current mode, and handles adressing and switching between them."""
 
@@ -271,7 +273,7 @@ class ParamCurve(ScrollView):
             else:
                 for i in range(int(len(touch.ud['line'].points) / 2)):
                     data.append((touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] * 2 / self.height) - 1)
-            middleLayer.applyParamChanges(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'])
+            API.Ops.ChangeParam(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'])()
             self.children[0].canvas.remove(touch.ud['line'])
             self.redraw()
         else:
@@ -452,7 +454,7 @@ class TimingOptns(ScrollView):
                 if bar == None:
                     return True
                 if touch.ud["section"]:
-                    middleLayer.applyParamChanges([y * 2 / self.height - 1], bar, section = touch.ud['section'])
+                    API.Ops.ChangeParam([y * 2 / self.height - 1], bar, section = touch.ud['section'])()
                     self.points1[bar] = (self.points1[bar][0], y)
                     self.children[0].canvas.remove(self.rectangles1[bar])
                     del self.rectangles1[bar]
@@ -461,7 +463,7 @@ class TimingOptns(ScrollView):
                         self.rectangles1.insert(bar, ObjectProperty())
                         self.rectangles1[bar] = Rectangle(pos = (barToPos(self, bar, x), self.y + 0.5 * self.height), size = (10, self.points1[bar][1] - 0.5 * self.height))
                 else:
-                    middleLayer.applyParamChanges([y * 2 / self.height], bar, section = touch.ud['section'])
+                    API.Ops.ChangeParam([y * 2 / self.height], bar, section = touch.ud['section'])()
                     self.points2[bar] = (self.points2[bar][0], y)
                     self.children[0].canvas.remove(self.rectangles2[bar])
                     del self.rectangles2[bar]
@@ -561,7 +563,7 @@ class TimingOptns(ScrollView):
                     if firstBar == None:
                         firstBar = bar
             if firstBar != None:
-                middleLayer.applyParamChanges(finalData, firstBar, section = touch.ud['section'])
+                API.Ops.ChangeParam(finalData, firstBar, section = touch.ud['section'])()
             self.children[0].canvas.remove(touch.ud['line'])
             self.redraw()
         else:
@@ -755,7 +757,7 @@ class PitchOptns(ScrollView):
                 else:
                     for i in range(int(len(touch.ud['line'].points) / 2)):
                         data.append((touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] * 4 / self.height) - 1)
-            middleLayer.applyParamChanges(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'], section = touch.ud['section'])
+            API.Ops.ChangeParam(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'], section = touch.ud['section'])()
             self.children[0].canvas.remove(touch.ud['line'])
             self.redraw()
         else:

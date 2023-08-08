@@ -8,6 +8,7 @@
 from torch import linspace
 from Backend.Resampler.CubicSplineInter import interp
 from Util import convertFormat
+import API.Ops
 
 def getPerNoteData(arrayFormat:str = "list", useNominalTimings:bool = False) -> list:
     """Returns the data of the current project in a per-note format using common Python data structures compatible with other engines.
@@ -87,16 +88,17 @@ def importFromPerNoteData(tracks:list, wipe:bool = False, useNominalTimings:bool
     from UI.code.editor.Main import middleLayer
     if wipe:
         while len(middleLayer.trackList) > 0:
-            middleLayer.deleteTrack(0)
+            API.Ops.DeleteTrack(0)()
     for track in tracks:
-        middleLayer.importVoicebank(track["voicebank"])
+        API.Ops.ImportVoicebank(track["voicebank"])()
         middleLayer.trackList[-1].volume = track["volume"]
         #TODO: add mixin vb hook once implemented
         for note in track["notes"]:
-            middleLayer.trackList[-1].addNote(len(middleLayer.trackList[-1].notes), note["start"], note["pitch"])
-            middleLayer.trackList[-1].changeNoteLength(len(middleLayer.trackList[-1].notes) - 1, note["start"], note["end"] - note["start"])
+            API.Ops.ChangeTrack(len(middleLayer.trackList) - 1)()
+            API.Ops.AddNote(len(middleLayer.trackList[-1].notes), note["start"], note["pitch"])()
+            API.Ops.ChangeNoteLength(len(middleLayer.trackList[-1].notes) - 1, note["start"], note["end"] - note["start"])()
             middleLayer.trackList[-1].notes[-1].phonemeMode = True
-            middleLayer.trackList[-1].notes[-1].changeLyrics("".join(note["phonemes"]))
+            API.Ops.ChangeLyrics(len(middleLayer.trackList[-1].notes) - 1, "".join(note["phonemes"]))()
             middleLayer.trackList[-1].loopOverlap[middleLayer.trackList[-1].notes[-1].phonemeStart:middleLayer.trackList[-1].notes[-1].phonemeEnd] = convertFormat(note["loopOverlap"], "torch")
             middleLayer.trackList[-1].loopOffset[middleLayer.trackList[-1].notes[-1].phonemeStart:middleLayer.trackList[-1].notes[-1].phonemeEnd] = convertFormat(note["loopOffset"], "torch")
         for note in track["notes"]:

@@ -25,8 +25,6 @@ import MiddleLayer.DataHandlers as dh
 from MiddleLayer.UndoRedo import enqueueUndo
 from MiddleLayer.BorderSystem import recalculateBorders
 
-from API.Functional import *
-
 from Util import ensureTensorLength, noteToPitch
 from Backend.VB_Components.Voicebank import LiteVoicebank
 
@@ -215,7 +213,6 @@ class MiddleLayer(Widget):
             self.updatePianoRoll()
 
     def addParam(self, param, name) -> None:
-        enqueueUndo(AddParam(param, name).inverseAction())
         pass #TODO: implement
 
     def deleteParam(self, index:int) -> None:
@@ -306,17 +303,17 @@ class MiddleLayer(Widget):
             for i in self.trackList[self.activeTrack].nodegraph.params:
                 self.ids["paramList"].add_widget(ParamPanel(name = i.name, index = counter))
                 counter += 1
-            self.changeParam(-1, "steadiness")
+            API.Ops.SwitchParam(-1, "steadiness")()
         if self.mode == "timing":
             self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", switchable = False, sortable = False, deletable = False, index = -1, visualName = loc["loop_overlap"], state = "down"))
             self.ids["paramList"].add_widget(ParamPanel(name = "loop offset", switchable = False, sortable = False, deletable = False, index = -1, visualName = loc["loop_offset"]))
             self.ids["adaptiveSpace"].add_widget(TimingOptns())
-            self.changeParam(-1, "loop overlap")
+            API.Ops.SwitchParam(-1, "loop overlap")()
         if self.mode == "pitch":
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoSpeed, visualName = loc["vibrato_speed"], state = "down"))
             self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoStrength, visualName = loc["vibrato_strength"]))
             self.ids["adaptiveSpace"].add_widget(PitchOptns())
-            self.changeParam(-1, "vibrato speed")
+            API.Ops.SwitchParam(-1, "vibrato speed")()
 
     def updatePianoRoll(self) -> None:
         """updates the piano roll UI after a track or mode change"""
@@ -592,7 +589,6 @@ class MiddleLayer(Widget):
             self.repairBorders(3 * len(self.trackList[self.activeTrack].phonemes))
         else:
             self.trackList[self.activeTrack].notes.insert(index, dh.Note(x, y, self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].notes[index].phonemeStart, reference))
-        self.changeLyrics(index, self.trackList[self.activeTrack].notes[index].content)
         self.adjustNote(index, 100, x)
 
     def removeNote(self, index:int) -> None:
@@ -987,4 +983,9 @@ class MiddleLayer(Widget):
         vibratoCurve *= torch.pow(torch.sin(torch.linspace(0, math.pi, end - start + 1)[:-1]), torch.tensor([global_consts.vibratoEnvelopeExp,], device = self.trackList[self.activeTrack].basePitch.device))
         self.trackList[self.activeTrack].basePitch[start:end] += vibratoCurve
         self.trackList[self.activeTrack].pitch[start:end] = self.trackList[self.activeTrack].basePitch[start:end] + torch.heaviside(self.trackList[self.activeTrack].basePitch[start:end], torch.ones_like(self.trackList[self.activeTrack].basePitch[start:end])) * pitchDelta
-        self.applyPitchChanges(self.trackList[self.activeTrack].pitch[start:end], start)
+        data = self.trackList[self.activeTrack].pitch[start:end]
+        if type(data) == list:
+            data = torch.tensor(data, dtype = torch.half)
+        self.trackList[self.activeTrack].pitch[start:start + data.size()[0]] = data
+        data = noteToPitch(data)
+        self.submitNamedPhonParamChange(True, "pitch", start, data)

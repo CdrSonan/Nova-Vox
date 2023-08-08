@@ -23,6 +23,8 @@ import soundfile
 
 import global_consts
 
+import API.Ops
+
 from MiddleLayer.IniParser import readSettings, writeSettings
 from MiddleLayer.FileIO import saveNVX, loadNVX
 
@@ -54,7 +56,7 @@ class FileSidePanel(CursorAwareView):
         tkui.withdraw()
         dir = filedialog.askopenfilename(filetypes = (("NVX", "nvx"), (loc["all_files"], "*")))
         tkui.destroy()
-        loadNVX(dir, middleLayer)
+        API.Ops.LoadNVX(dir)()
 
 
     def openRenderPopup(self) -> None:
@@ -158,9 +160,7 @@ class SingerSidePanel(CursorAwareView):
     def importVoicebank(self, path:str, name:str, image) -> None:
         """adds a new vocal track using the selected Voicebank when the import button is pressed"""
 
-        global middleLayer
-        from UI.code.editor.Main import middleLayer
-        middleLayer.importVoicebank(path, name, image)
+        API.Ops.ImportVoicebank(path, name, image)()
 
 class ParamSidePanel(CursorAwareView):
     """Side panel containing a list of installed parameters, and options to display info about them and load them"""
@@ -206,7 +206,7 @@ class ParamSidePanel(CursorAwareView):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        middleLayer.importParam(path, name)
+        API.Ops.AddParam(path, name)()
 
 class ScriptingSidePanel(CursorAwareView):
     """side panel containing options for scripting, loading and unloading addons, and opening the devkit"""

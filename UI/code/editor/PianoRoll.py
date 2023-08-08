@@ -15,6 +15,8 @@ from kivy.uix.bubble import Bubble
 
 from UI.code.editor.Util import ManagedToggleButton, ReferencingButton
 
+import API.Ops
+
 from kivy.clock import mainthread
 from kivy.core.window import Window
 
@@ -46,7 +48,7 @@ class PhonemeSelector(Bubble):
         self.index = index
         self.word = word
         for i in range(len(self.options)):
-            self.content.add_widget(ReferencingButton(text = self.options[i], reference = self, on_press = lambda a : middleLayer.changeLyrics(self.index, self.word, i)))
+            self.content.add_widget(ReferencingButton(text = self.options[i], reference = self, on_press = lambda a : API.Ops.ChangeLyrics(self.index, self.word, i)()))
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
@@ -178,14 +180,14 @@ class Note(ManagedToggleButton):
         from UI.code.editor.Main import middleLayer
         self.inputMode = not self.inputMode
         middleLayer.trackList[middleLayer.activeTrack].notes[self.index].phonemeMode = self.inputMode
-        middleLayer.changeLyrics(self.index, self.children[1].text)
+        API.Ops.ChangeLyrics(self.index, self.children[1].text)
 
     def delete(self) -> None:
         """deletes the note"""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        middleLayer.removeNote(self.index)
+        API.Ops.RemoveNote(self.index)()
         for i in self.parent.parent.notes:
             if i.index > self.index:
                 i.index -= 1
@@ -199,7 +201,7 @@ class Note(ManagedToggleButton):
         from UI.code.editor.Main import middleLayer
         if focus:
             return
-        middleLayer.changeLyrics(self.index, text)
+        API.Ops.ChangeLyrics(self.index, text)
         self.redrawStatusBars()
 
     def redrawStatusBars(self, complete = False) -> None:
@@ -739,7 +741,7 @@ class PianoRoll(ScrollView):
             if "newNote" in touch.ud:
                 if self.to_local(touch.x, touch.y) != touch.ud["newNote"][3]:
                     newNote = Note(index = touch.ud["newNote"][0], xPos = touch.ud["newNote"][1], yPos = touch.ud["newNote"][2], length = 100, height = self.yScale)
-                    middleLayer.addNote(touch.ud["newNote"][0], touch.ud["newNote"][1], touch.ud["newNote"][2], newNote)
+                    API.Ops.AddNote(touch.ud["newNote"][0], touch.ud["newNote"][1], touch.ud["newNote"][2], newNote)()
                     self.children[0].add_widget(newNote, index = 5)
                     self.notes.append(newNote)
                     touch.ud["noteIndex"] = touch.ud["newNote"][0]
@@ -759,7 +761,7 @@ class PianoRoll(ScrollView):
                     length = max(note.xPos + note.length - x, 1)
                     note.length = length
                     note.xPos = x
-                    switch = middleLayer.changeNoteLength(touch.ud["noteIndex"], x, length)
+                    switch = API.Ops.ChangeNoteLength(touch.ud["noteIndex"], x, length)()
                     if switch == True:
                         middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] + 1].reference.index += 1
                         middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index -= 1
@@ -773,7 +775,7 @@ class PianoRoll(ScrollView):
                 elif touch.ud["grabMode"] == "mid":
                     note.xPos = int(x + touch.ud["xOffset"] + 1)
                     note.yPos = int(y + touch.ud["yOffset"] + 1)
-                    switch = middleLayer.moveNote(touch.ud["noteIndex"], int(x + touch.ud["xOffset"] + 1), int(y + touch.ud["yOffset"] + 1))
+                    switch = API.Ops.MoveNote(touch.ud["noteIndex"], int(x + touch.ud["xOffset"] + 1), int(y + touch.ud["yOffset"] + 1))()
                     if switch == True:
                         middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] + 1].reference.index += 1
                         middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index -= 1
@@ -786,7 +788,7 @@ class PianoRoll(ScrollView):
                 elif touch.ud["grabMode"] == "end":
                     length = max(x - note.xPos, 1)
                     note.length = length
-                    middleLayer.changeNoteLength(touch.ud["noteIndex"], note.xPos, length)
+                    API.Ops.ChangeNoteLength(touch.ud["noteIndex"], note.xPos, length)()
                     note.redraw()
                 return True
             else:
@@ -824,7 +826,7 @@ class PianoRoll(ScrollView):
                     self.timingHints[int((border - 2) / 3)].width = self.xScale * (middleLayer.trackList[middleLayer.activeTrack].borders[border + 1] - newPos)
                 elif border % 3 == 0 and border > 0:
                     self.timingHints[int(border / 3) - 1].width = self.xScale * (newPos - middleLayer.trackList[middleLayer.activeTrack].borders[border - 1])
-                middleLayer.changeBorder(border, newPos)
+                API.Ops.MoveBorder(border, newPos)()
                 if checkLeft and border > 0:
                     if middleLayer.trackList[middleLayer.activeTrack].borders[border - 1] >= middleLayer.trackList[middleLayer.activeTrack].borders[border]:
                         applyBorder(border - 1, newPos - 1, True, False)
@@ -923,7 +925,7 @@ class PianoRoll(ScrollView):
             else:
                 for i in range(int(len(touch.ud['line'].points) / 2)):
                     data.append(touch.ud['line'].points[2 * (int(len(touch.ud['line'].points) / 2) - i) - 1] / self.yScale - 0.5)
-            middleLayer.applyPitchChanges(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'])
+            API.Ops.ChangePitch(data, touch.ud['startPoint'][0] - touch.ud['startPointOffset'])()
             self.children[0].canvas.remove(touch.ud['line'])
             self.redrawPitch()
         else:

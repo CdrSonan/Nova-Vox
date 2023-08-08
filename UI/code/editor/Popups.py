@@ -21,6 +21,8 @@ from Backend import NodeLib
 from MiddleLayer.IniParser import readSettings
 from UI.code.editor.Util import ManagedPopup
 
+import API.Ops
+
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
 
@@ -121,7 +123,7 @@ class SingerSettingsPanel(Popup):
             middleLayer.recalculatePauses(self.index)
         if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]:
             middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
-            middleLayer.changeVB(self.index, middleLayer.trackList[self.index].vbPath)
+            API.Ops.ChangeVB(self.index, middleLayer.trackList[self.index].vbPath)()
             for i in middleLayer.ids["singerList"].children:
                 if i.index == self.index:
                     i.name = self.children[0].children[0].children[0].children[0].children[2].children[4].text

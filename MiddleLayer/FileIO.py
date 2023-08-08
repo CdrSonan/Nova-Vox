@@ -6,17 +6,15 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import torch
-from MiddleLayer.MiddleLayer import MiddleLayer
 from MiddleLayer.DataHandlers import Note
-from MiddleLayer.UndoRedo import enqueueUndo
-from API.Functional import LoadNVX
+import API.Ops
 
 def validateTrackData(trackData:dict) -> dict:
     """validates the data of a track after loading it from a file"""
 
     return trackData
 
-def saveNVX(path:str, middleLayer:MiddleLayer) -> None:
+def saveNVX(path:str, middleLayer) -> None:
     """backend function for saving a .nvx file"""
 
     tracks = []
@@ -65,16 +63,15 @@ def saveNVX(path:str, middleLayer:MiddleLayer) -> None:
     }
     torch.save(data, path)
 
-def loadNVX(path:str, middleLayer:MiddleLayer) -> None:
+def loadNVX(path:str, middleLayer) -> None:
     """backend function for loading a .nvx file"""
 
-    enqueueUndo(LoadNVX(path))
     if path == "":
         return
     data = torch.load(path, map_location = torch.device("cpu"))
     tracks = data["tracks"]
     for i in range(len(middleLayer.trackList)):
-        middleLayer.deleteTrack(0)
+        API.Ops.DeleteTrack(0)
     for trackData in tracks:
         track = validateTrackData(trackData)
         vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]

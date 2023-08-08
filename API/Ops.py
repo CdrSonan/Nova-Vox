@@ -27,7 +27,6 @@ from Util import noteToPitch
 
 import global_consts
 
-from UI.code.editor.AdaptiveSpace import ParamCurve, TimingOptns, PitchOptns
 from UI.code.editor.Headers import SingerPanel, ParamPanel
 from UI.code.editor.PianoRoll import PhonemeSelector
 
@@ -418,7 +417,7 @@ class AddNote(UnifiedAction):
                 middleLayer.repairBorders(3 * len(middleLayer.trackList[middleLayer.activeTrack].phonemes))
             else:
                 middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, reference))
-            middleLayer.changeLyrics(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].content)
+            ChangeLyrics(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].content)()
             middleLayer.adjustNote(index, 100, x)
         super().__init__(action, index, x, y, reference, None, useUiCallback = True, *args, **kwargs)
         self.index = index
@@ -605,7 +604,7 @@ class ChangeVoicebank(UnifiedAction):
                     middleLayer.trackList[middleLayer.activeTrack].phonemeLengths[i] = None
             middleLayer.submitChangeVB(index, path)
             for i, note in enumerate(middleLayer.trackList[middleLayer.activeTrack].notes):
-                middleLayer.changeLyrics(i, note.content)
+                ChangeLyrics(i, note.content)()
         super().__init__(action, path, useUiCallback = True, *args, **kwargs)
         self.index = index
     

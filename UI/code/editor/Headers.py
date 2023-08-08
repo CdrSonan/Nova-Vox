@@ -14,6 +14,8 @@ from kivy.clock import mainthread
 from UI.code.editor.Util import ImageButton, ImageToggleButton, ManagedToggleButton
 from UI.code.editor.Popups import SingerSettingsPanel
 
+import API.Ops
+
 class SingerPanel(AnchorLayout):
     """Header widget for a vocal track"""
 
@@ -26,7 +28,7 @@ class SingerPanel(AnchorLayout):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        middleLayer.changeTrack(self.index)
+        API.Ops.ChangeTrack(self.index)()
 
     def openSettings(self) -> None:
         """opens the settings panel of the track"""
@@ -38,21 +40,21 @@ class SingerPanel(AnchorLayout):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        middleLayer.copyTrack(self.index, self.name, self.image)
+        API.Ops.CopyTrack(self.index, self.name, self.image)
 
     def deleteTrack(self) -> None:
         """signals the middleLayer to delete the track"""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        middleLayer.deleteTrack(self.index)
+        API.Ops.DeleteTrack(self.index)()
 
     def updateVolume(self, volume:float) -> None:
         """signals the middleLayer to update the volume of the track"""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        middleLayer.updateVolume(self.index, volume)
+        API.Ops.ChangeVolume(self.index, volume)()
 
 class ParamPanel(ManagedToggleButton):
     """Header widget for a resampler parameter, or tuning curve used for audio processing"""
@@ -105,9 +107,9 @@ class ParamPanel(ManagedToggleButton):
         global middleLayer
         from UI.code.editor.Main import middleLayer
         if self.children[0].state == "down":
-            middleLayer.enableParam(self.name)
+            API.Ops.EnableParam(self.name)()
         else:
-            middleLayer.disableParam(self.name)
+            API.Ops.DisableParam(self.name)()
 
     def moveParam(self) -> None:
         """signals the middleLayer to move the widget to a new position within the stack"""
@@ -115,18 +117,18 @@ class ParamPanel(ManagedToggleButton):
         global middleLayer
         from UI.code.editor.Main import middleLayer
         delta = 0
-        middleLayer.moveParam(self.name, self.switchable, self.sortable, self.index, delta, self.children[0].state == "down")
+        API.Ops.MoveParam(self.name, self.switchable, self.sortable, self.index, delta, self.children[0].state == "down")()
 
     def deleteParam(self) -> None:
         """signals the middleLayer to delete the widget and associated tuning curve"""
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        middleLayer.deleteParam(self.index)
+        API.Ops.RemoveParam(self.name)()
 
     def changeParam(self) -> None:
         """signals the middleLayer a change of the active parameter, prompting the required UI updates"""
         
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        middleLayer.changeParam(self.index, self.name)
+        API.Ops.SwitchParam(self.index, self.name)()
