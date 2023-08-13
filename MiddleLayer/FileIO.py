@@ -6,8 +6,8 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import torch
-from MiddleLayer.DataHandlers import Note
-import API.Ops
+#from MiddleLayer.DataHandlers import Note
+#import API.Ops
 
 def validateTrackData(trackData:dict) -> dict:
     """validates the data of a track after loading it from a file"""
@@ -63,8 +63,7 @@ def saveNVX(path:str, middleLayer) -> None:
     }
     torch.save(data, path)
 
-def loadNVX(path:str, middleLayer) -> None:
-    """backend function for loading a .nvx file"""
+"""def loadNVX(path:str, middleLayer) -> None:
 
     if path == "":
         return
@@ -75,7 +74,7 @@ def loadNVX(path:str, middleLayer) -> None:
     for trackData in tracks:
         track = validateTrackData(trackData)
         vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
-        middleLayer.importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
+        API.Ops._importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
         middleLayer.trackList[-1].volume = track["volume"]
         for note in track["notes"]:
             middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], note["phonemeStart"], note["phonemeEnd"]))
@@ -103,4 +102,4 @@ def loadNVX(path:str, middleLayer) -> None:
         middleLayer.trackList[-1].length = track["length"]
         middleLayer.trackList[-1].mixinVB = track["mixinVB"]
         middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
-    middleLayer.validate()
+    middleLayer.validate()"""

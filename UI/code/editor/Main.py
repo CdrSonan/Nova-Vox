@@ -18,9 +18,10 @@ from kivy.core.window import Window
 from kivy.properties import NumericProperty, ColorProperty, ObjectProperty, DictProperty
 
 from MiddleLayer.MiddleLayer import MiddleLayer
+global middleLayer
+middleLayer = MiddleLayer()
 from MiddleLayer.IniParser import readSettings
 from MiddleLayer.FileIO import saveNVX
-from MiddleLayer.UndoRedo import undo, redo
 from MiddleLayer.ErrorHandler import handleMainException, handleRendererException
 
 from Localization.editor_localization import getLanguage
@@ -59,8 +60,8 @@ class NovaVoxUI(Widget):
     
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        global middleLayer
-        middleLayer = MiddleLayer(self.ids)
+        middleLayer.setIDs(self.ids)
+        self.middleLayer = middleLayer
         self._keyboard = Window.request_keyboard(None, self, 'text')
         if self._keyboard.widget:
             pass
@@ -140,18 +141,6 @@ class NovaVoxUI(Widget):
         else:
             middleLayer.mainAudioBufferPos = int(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
             middleLayer.movePlayhead(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
-
-    def undo(self) -> None:
-        """undo function"""
-
-        print("undo callback")
-        undo()
-
-    def redo(self) -> None:
-        """redo function"""
-
-        print("redo callback")
-        redo()
 
     def restart(self) -> None:
         """restarts the rendering process through its manager"""

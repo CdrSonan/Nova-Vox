@@ -66,14 +66,14 @@
             size_hint: (None, None)
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "UI/assets/TopBar/Top04.png"
-            on_press: root.undo()
+            on_press: root.middleLayer.undo()
         ImageButton:
             #redo button
             pos: (314 * root.uiScale, root.height - 45 * root.uiScale)
             size_hint: (None, None)
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "UI/assets/TopBar/Top05.png"
-            on_press: root.redo()
+            on_press: root.middleLayer.redo()
         
         #Side bar buttons
         ImageButton:

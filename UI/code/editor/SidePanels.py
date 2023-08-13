@@ -26,7 +26,7 @@ import global_consts
 import API.Ops
 
 from MiddleLayer.IniParser import readSettings, writeSettings
-from MiddleLayer.FileIO import saveNVX, loadNVX
+from MiddleLayer.FileIO import saveNVX
 
 from UI.code.editor.Util import ListElement, CursorAwareView, ManagedPopup
 

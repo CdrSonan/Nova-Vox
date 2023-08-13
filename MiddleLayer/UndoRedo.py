@@ -10,7 +10,10 @@ global middleLayer
 from UI.code.editor.Main import middleLayer
 
 def enqueueUndo(action):
-    middleLayer.undoStack.append(action)
+    if middleLayer.singleUndoActive:
+        middleLayer.undoStack[-1].append(action)
+    else:
+        middleLayer.undoStack.append(action)
     if len(middleLayer.undoStack) > middleLayer.undoLimit:
         middleLayer.undoStack.pop(0)
 

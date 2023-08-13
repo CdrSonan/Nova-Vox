@@ -17,7 +17,7 @@ from kivy.core.image import Image as CoreImage
 
 from UI.code.editor.Main import middleLayer
 from MiddleLayer.IniParser import readSettings
-from MiddleLayer.FileIO import loadNVX, validateTrackData
+from MiddleLayer.FileIO import validateTrackData
 from MiddleLayer.DataHandlers import Note, Track
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
 
@@ -57,7 +57,7 @@ class UnifiedAction:
             inverse.undo = True
             inverse.redo = False
             enqueueUndo(inverse)
-        else:
+        elif self.undo != None:
             inverse.undo = True
             inverse.redo = False
             enqueueUndo(inverse)
@@ -67,7 +67,7 @@ class UnifiedAction:
         return f"UnifiedAction(action={self.action}, undo = {self.undo}, redo = {self.redo}, UI Callback = {self.uiCallback}, args={self.args}, kwargs={self.kwargs})"
 
 class UnifiedActionGroup:
-    def __init__(self, *actions, undo = False, redo = False, immediate = True):
+    def __init__(self, *actions, undo = False, redo = False, immediate = False):
         self.actions = actions
         self.undo = undo
         self.redo = redo
@@ -98,6 +98,52 @@ class UnifiedActionGroup:
         else:
             enqueueUndo(inverse)
             clearRedoStack()
+    
+    def append(self, action):
+        self.actions.append(action)
+        self.actions[-1].undo = self.undo
+        self.actions[-1].redo = self.redo
+    
+    def __len__(self):
+        return len(self.actions)
+
+class SingleUndo():
+    def __enter__(self):
+        middleLayer.singleUndoActive = True
+        middleLayer.undoStack.append(UnifiedActionGroup())
+    def __exit__(self, exc_type, exc_value, traceback):
+        middleLayer.singleUndoActive = False
+        if len(middleLayer.undoStack[-1]) == 0:
+            middleLayer.undoStack.pop(-1)
+
+def singleUndo(func):
+    def wrapper(*args, **kwargs):
+        with SingleUndo():
+            func(*args, **kwargs)
+    return wrapper
+
+def _importVoicebankNoSubmit(path:str, name:str, inImage) -> None:
+        """Creates a new vocal track with a Voicebank loaded from disk, but does not submit it to the rendering process.
+        The rendering process needs to be restarted, or submitAddTrack needs to be called separately for the new track to be recognized
+
+        Arguments:
+            path: filepath of the .nvvb Voicebank file used for the track
+
+            name: display name of the Voicebank/track
+
+            inImage: image displayed in the track header"""
+        
+
+        track = Track(path)
+        middleLayer.trackList.append(track)
+        canvas_img = inImage
+        data = BytesIO()
+        canvas_img.save(data, format='png')
+        data.seek(0)
+        im = CoreImage(BytesIO(data.read()), ext='png')
+        image = im.texture
+        middleLayer.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
+        middleLayer.audioBuffer.append(torch.zeros([track.length * global_consts.batchSize,]))
 
 class ImportVoicebank(UnifiedAction):
     def __init__(self, file, *args, **kwargs):
@@ -417,7 +463,7 @@ class AddNote(UnifiedAction):
                 middleLayer.repairBorders(3 * len(middleLayer.trackList[middleLayer.activeTrack].phonemes))
             else:
                 middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, reference))
-            ChangeLyrics(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].content)()
+            ChangeLyrics(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].content, undo = None)()
             middleLayer.adjustNote(index, 100, x)
         super().__init__(action, index, x, y, reference, None, useUiCallback = True, *args, **kwargs)
         self.index = index
@@ -604,7 +650,7 @@ class ChangeVoicebank(UnifiedAction):
                     middleLayer.trackList[middleLayer.activeTrack].phonemeLengths[i] = None
             middleLayer.submitChangeVB(index, path)
             for i, note in enumerate(middleLayer.trackList[middleLayer.activeTrack].notes):
-                ChangeLyrics(i, note.content)()
+                ChangeLyrics(i, note.content, undo = None)()
         super().__init__(action, path, useUiCallback = True, *args, **kwargs)
         self.index = index
     
@@ -642,7 +688,46 @@ class ChangeVolume(UnifiedAction):
 
 class LoadNVX(UnifiedAction):
     def __init__(self, path, *args, **kwargs):
-        super().__init__(loadNVX, path, middleLayer, *args, **kwargs)
+        def action(path):
+            if path == "":
+                return
+            data = torch.load(path, map_location = torch.device("cpu"))
+            tracks = data["tracks"]
+            for i in range(len(middleLayer.trackList)):
+                DeleteTrack(0, undo = None)()
+            for trackData in tracks:
+                track = validateTrackData(trackData)
+                vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
+                _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
+                middleLayer.trackList[-1].volume = track["volume"]
+                for note in track["notes"]:
+                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], note["phonemeStart"], note["phonemeEnd"]))
+                    middleLayer.trackList[-1].notes[-1].length = note["length"]
+                    middleLayer.trackList[-1].notes[-1].phonemeMode = note["phonemeMode"]
+                    middleLayer.trackList[-1].notes[-1].content = note["content"]
+                middleLayer.trackList[-1].phonemes = track["phonemes"]
+                middleLayer.trackList[-1].pitch = track["pitch"]
+                middleLayer.trackList[-1].basePitch = track["basePitch"]
+                middleLayer.trackList[-1].breathiness = track["breathiness"]
+                middleLayer.trackList[-1].steadiness = track["steadiness"]
+                middleLayer.trackList[-1].aiBalance = track["aiBalance"]
+                middleLayer.trackList[-1].loopOverlap = track["loopOverlap"]
+                middleLayer.trackList[-1].loopOffset = track["loopOffset"]
+                middleLayer.trackList[-1].vibratoSpeed = track["vibratoSpeed"]
+                middleLayer.trackList[-1].vibratoStrength = track["vibratoStrength"]
+                middleLayer.trackList[-1].usePitch = track["usePitch"]
+                middleLayer.trackList[-1].useBreathiness = track["useBreathiness"]
+                middleLayer.trackList[-1].useSteadiness = track["useSteadiness"]
+                middleLayer.trackList[-1].useAIBalance = track["useAIBalance"]
+                middleLayer.trackList[-1].useVibratoSpeed = track["useVibratoSpeed"]
+                middleLayer.trackList[-1].useVibratoStrength = track["useVibratoStrength"]
+                middleLayer.trackList[-1].nodegraph = track["nodegraph"]
+                middleLayer.trackList[-1].borders = track["borders"]
+                middleLayer.trackList[-1].length = track["length"]
+                middleLayer.trackList[-1].mixinVB = track["mixinVB"]
+                middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
+            middleLayer.validate()
+        super().__init__(action, path, middleLayer, *args, **kwargs)
     
     def inverseAction(self):
         def restoreTrackList(tracks:list):
@@ -651,7 +736,7 @@ class LoadNVX(UnifiedAction):
             for trackData in tracks:
                 track = validateTrackData(trackData)
                 vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
-                middleLayer.importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
+                _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
                 middleLayer.trackList[-1].volume = track["volume"]
                 for note in track["notes"]:
                     middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], note["phonemeStart"], note["phonemeEnd"]))
