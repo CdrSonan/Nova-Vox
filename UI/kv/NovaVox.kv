@@ -10,6 +10,8 @@
 #:import Factory kivy.factory.Factory
 #:import settings MiddleLayer.IniParser.readSettings
 #:import ew kivy.uix.effectwidget
+#:import undo MiddleLayer.UndoRedo.undo
+#:import redo MiddleLayer.UndoRedo.redo
 
 <NovaVoxUI>:
     uiScale: float(settings()["uiscale"])
@@ -66,14 +68,14 @@
             size_hint: (None, None)
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "UI/assets/TopBar/Top04.png"
-            on_press: root.middleLayer.undo()
+            on_press: undo()
         ImageButton:
             #redo button
             pos: (314 * root.uiScale, root.height - 45 * root.uiScale)
             size_hint: (None, None)
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "UI/assets/TopBar/Top05.png"
-            on_press: root.middleLayer.redo()
+            on_press: redo()
         
         #Side bar buttons
         ImageButton:

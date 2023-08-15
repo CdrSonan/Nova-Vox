@@ -160,7 +160,7 @@ class SingerSidePanel(CursorAwareView):
     def importVoicebank(self, path:str, name:str, image) -> None:
         """adds a new vocal track using the selected Voicebank when the import button is pressed"""
 
-        API.Ops.ImportVoicebank(path, name, image)()
+        API.Ops.ImportVoicebank(path)()
 
 class ParamSidePanel(CursorAwareView):
     """Side panel containing a list of installed parameters, and options to display info about them and load them"""

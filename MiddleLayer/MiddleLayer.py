@@ -36,7 +36,9 @@ class MiddleLayer(Widget):
         super().__init__(**kwargs)
         self.undoStack = []
         self.redoStack = []
+        self.undoActive = True
         self.singleUndoActive = False
+        self.ui = None
         self.trackList = []
         from Backend.NV_Multiprocessing.Manager import RenderManager
         self.manager = RenderManager(self.trackList)
@@ -60,7 +62,7 @@ class MiddleLayer(Widget):
         self.deletions = []
         self.playing = False
         settings = readSettings()
-        self.undoLimit = settings["undolimit"]
+        self.undoLimit = int(settings["undolimit"])
         device = None
         devices = sounddevice.query_devices()
         for i in devices:
@@ -69,10 +71,11 @@ class MiddleLayer(Widget):
         self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback, latency = float(settings["audiolatency"]))
         self.scriptCache = ""
         
-    def setIDs(self, ids) -> None:
-        """sets the id list of the main UI for referencing various UI elements and updating them. Functionality related to such UI updates may be moved to a dedicated class in the future, deprecating this function."""
+    def setUI(self, ui) -> None:
+        """sets the ui and id list references of the main UI. Functionality related to such UI updates may be moved to a dedicated class in the future, deprecating this function."""
 
-        self.ids = ids
+        self.ui = ui
+        self.ids = ui.ids
     
 
     def addTrack(self, track):
@@ -83,31 +86,6 @@ class MiddleLayer(Widget):
 
     def addParam(self, param, name) -> None:
         pass #TODO: implement
-
-    """def updateParamPanel(self) -> None:
-
-        self.ids["paramList"].clear_widgets()
-        self.ids["adaptiveSpace"].clear_widgets()
-        if self.mode == "notes":
-            self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useSteadiness, visualName = loc["steadiness"], state = "down"))
-            self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useBreathiness, visualName = loc["breathiness"]))
-            self.ids["paramList"].add_widget(ParamPanel(name = "AI balance", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useAIBalance, visualName = loc["ai_balance"]))
-            self.ids["adaptiveSpace"].add_widget(ParamCurve())
-            counter = 0
-            for i in self.trackList[self.activeTrack].nodegraph.params:
-                self.ids["paramList"].add_widget(ParamPanel(name = i.name, index = counter))
-                counter += 1
-            API.Ops.SwitchParam(-1, "steadiness")()
-        if self.mode == "timing":
-            self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", switchable = False, sortable = False, deletable = False, index = -1, visualName = loc["loop_overlap"], state = "down"))
-            self.ids["paramList"].add_widget(ParamPanel(name = "loop offset", switchable = False, sortable = False, deletable = False, index = -1, visualName = loc["loop_offset"]))
-            self.ids["adaptiveSpace"].add_widget(TimingOptns())
-            API.Ops.SwitchParam(-1, "loop overlap")()
-        if self.mode == "pitch":
-            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoSpeed, visualName = loc["vibrato_speed"], state = "down"))
-            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1, switchState = self.trackList[self.activeTrack].useVibratoStrength, visualName = loc["vibrato_strength"]))
-            self.ids["adaptiveSpace"].add_widget(PitchOptns())
-            API.Ops.SwitchParam(-1, "vibrato speed")()"""
 
     def updatePianoRoll(self) -> None:
         """updates the piano roll UI after a track or mode change"""
@@ -357,7 +335,7 @@ class MiddleLayer(Widget):
         del self.deletions[:]
         self.manager.restart(self.trackList)
         self.updatePianoRoll()
-        self.updateParamPanel()
+        self.ui.updateParamPanel()
 
     def submitTerminate(self) -> None:
         self.manager.sendChange("terminate", True)

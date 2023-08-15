@@ -40,7 +40,7 @@ class SingerPanel(AnchorLayout):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        API.Ops.CopyTrack(self.index, self.name, self.image)
+        API.Ops.CopyTrack(self.index)()
 
     def deleteTrack(self) -> None:
         """signals the middleLayer to delete the track"""
@@ -131,4 +131,4 @@ class ParamPanel(ManagedToggleButton):
         
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        API.Ops.SwitchParam(self.index, self.name)()
+        API.Ops.SwitchParam(self.name)()

@@ -24,11 +24,11 @@ def clearRedoStack():
     middleLayer.redoStack = []
 
 def undo():
-    inverse = middleLayer.undoStack[-1].inverseAction()
+    if len(middleLayer.undoStack) == 0:
+        return
     middleLayer.undoStack.pop(-1)()
-    enqueueRedo(inverse)
 
 def redo():
-    inverse = middleLayer.redoStack[-1].inverseAction()
+    if len(middleLayer.redoStack) == 0:
+        return
     middleLayer.redoStack.pop(-1)()
-    enqueueUndo(inverse)

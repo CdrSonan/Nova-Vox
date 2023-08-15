@@ -31,24 +31,33 @@ from UI.code.editor.Headers import SingerPanel, ParamPanel
 from UI.code.editor.PianoRoll import PhonemeSelector
 
 class UnifiedAction:
-    def __init__(self, action, undo = False, redo = False, useUiCallback = False, immediate = False, *args, **kwargs):
+    def __init__(self, action, *args, undo = False, redo = False, immediate = False, **kwargs):
         self.action = action
         self.args = args
         self.kwargs = kwargs
         self.undo = undo
         self.redo = redo
-        self.useUiCallback = useUiCallback
         if immediate:
             self.__call__()
 
     def inverseAction(self):
         return UnifiedAction(self.action, undo = self.undo, redo = self.redo, immediate = False, *self.args, **self.kwargs)
+    
+    def uiCallback(self):
+        return
 
     def __call__(self):
-        inverse = self.inverseAction()
-        self.action(*self.args, **self.kwargs)
-        if self.useUiCallback:
+        if middleLayer.undoActive:
+            with NoUndo():
+                inverse = self.inverseAction()
+                self.action(*self.args, **self.kwargs)
+                self.uiCallback()
+        else:
+            inverse = self.inverseAction()
+            self.action(*self.args, **self.kwargs)
             self.uiCallback()
+        if not middleLayer.undoActive:
+            return
         if self.undo:
             inverse.undo = False
             inverse.redo = True
@@ -64,7 +73,7 @@ class UnifiedAction:
             clearRedoStack()
 
     def __repr__(self):
-        return f"UnifiedAction(action={self.action}, undo = {self.undo}, redo = {self.redo}, UI Callback = {self.uiCallback}, args={self.args}, kwargs={self.kwargs})"
+        return f"UnifiedAction(action={self.action}, undo = {self.undo}, redo = {self.redo}, args={self.args}, kwargs={self.kwargs})"
 
 class UnifiedActionGroup:
     def __init__(self, *actions, undo = False, redo = False, immediate = False):
@@ -86,11 +95,14 @@ class UnifiedActionGroup:
             return UnifiedActionGroup(*actions, undo = True, redo = False, immediate = False)
 
     def __call__(self):
-        inverse = self.inverseAction()
-        for action in self.actions:
-            action.action(*action.args, **action.kwargs)
-            if action.uiCallback:
-                action.uiCallback()
+        with NoUndo():
+            inverse = self.inverseAction()
+            for action in self.actions:
+                action.action(*action.args, **action.kwargs)
+                if action.uiCallback:
+                    action.uiCallback()
+        if not middleLayer.undoActive:
+            return
         if self.undo:
             enqueueRedo(inverse)
         elif self.redo:
@@ -106,6 +118,12 @@ class UnifiedActionGroup:
     
     def __len__(self):
         return len(self.actions)
+
+class NoUndo():
+    def __enter__(self):
+        middleLayer.undoActive = False
+    def __exit__(self, exc_type, exc_value, traceback):
+        middleLayer.undoActive = True
 
 class SingleUndo():
     def __enter__(self):
@@ -142,7 +160,7 @@ def _importVoicebankNoSubmit(path:str, name:str, inImage) -> None:
         data.seek(0)
         im = CoreImage(BytesIO(data.read()), ext='png')
         image = im.texture
-        middleLayer.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
+        middleLayer.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(middleLayer.trackList) - 1))
         middleLayer.audioBuffer.append(torch.zeros([track.length * global_consts.batchSize,]))
 
 class ImportVoicebank(UnifiedAction):
@@ -150,13 +168,12 @@ class ImportVoicebank(UnifiedAction):
         def action(file, name, image):
             track = Track(file)
             middleLayer.trackList.append(track)
-            canvas_img = image
             data = BytesIO()
-            canvas_img.save(data, format='png')
+            image.save(data, format='png')
             data.seek(0)
             im = CoreImage(BytesIO(data.read()), ext='png')
             image = im.texture
-            middleLayer.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(self.trackList) - 1))
+            middleLayer.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(middleLayer.trackList) - 1))
             middleLayer.audioBuffer.append(torch.zeros([track.length * global_consts.batchSize,]))
             middleLayer.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
             middleLayer.submitAddTrack(middleLayer.trackList[-1])
@@ -165,23 +182,28 @@ class ImportVoicebank(UnifiedAction):
         self.index = len(middleLayer.trackList) - 1
 
     def inverseAction(self):
-        return DeleteTrack(self.index, *self.args, **self.kwargs)
+        return DeleteTrack(self.index)
 
 class ChangeTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
         def action(index):
             middleLayer.activeTrack = index
-            middleLayer.updateParamPanel()
+            middleLayer.ui.updateParamPanel()
             middleLayer.updatePianoRoll()
         super().__init__(action, index, *args, **kwargs)
         
     def inverseAction(self):
-        return ChangeTrack(copy(middleLayer.activeTrack), *self.args, **self.kwargs)
+        return ChangeTrack(copy(middleLayer.activeTrack))
 
 class CopyTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
         def action(index, name, image):
-            reference = self.trackList[index]
+            data = BytesIO()
+            image.save(data, format='png')
+            data.seek(0)
+            im = CoreImage(BytesIO(data.read()), ext='png')
+            image = im.texture
+            reference = middleLayer.trackList[index]
             middleLayer.trackList.append(Track(reference.vbPath))
             middleLayer.trackList[-1].volume = copy(reference.volume)
             for i in reference.notes:
@@ -218,7 +240,7 @@ class CopyTrack(UnifiedAction):
         super().__init__(action, index, data.name, data.image, *args, **kwargs)
 
     def inverseAction(self):
-        return DeleteTrack(len(middleLayer.trackList) - 1, *self.args, **self.kwargs)
+        return DeleteTrack(len(middleLayer.trackList) - 1)
 
 class DeleteTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
@@ -246,7 +268,7 @@ class DeleteTrack(UnifiedAction):
         self.index = index
 
     def inverseAction(self):
-        return UnifiedAction(middleLayer.addTrack, copy(middleLayer.trackList[self.index]), *self.args, **self.kwargs)
+        return UnifiedAction(middleLayer.addTrack, copy(middleLayer.trackList[self.index]))
 
 class AddParam(UnifiedAction):
     def __init__(self, param, name, *args, **kwargs):
@@ -255,7 +277,7 @@ class AddParam(UnifiedAction):
         super().__init__(action, param, name, *args, **kwargs)
 
     def inverseAction(self):
-        return RemoveParam(len(middleLayer.activeTrack.paramList) - 1, *self.args, **self.kwargs)
+        return RemoveParam(len(middleLayer.activeTrack.paramList) - 1)
 
 class RemoveParam(UnifiedAction):
     def __init__(self, name, *args, **kwargs):
@@ -271,7 +293,7 @@ class RemoveParam(UnifiedAction):
         self.name = name
 
     def inverseAction(self):
-        return UnifiedAction(middleLayer.addParam, copy(middleLayer.activeTrack.paramList[self.name]), *self.args, **self.kwargs)
+        return UnifiedAction(middleLayer.addParam, copy(middleLayer.activeTrack.paramList[self.name]))
 
 class EnableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
@@ -289,7 +311,7 @@ class EnableParam(UnifiedAction):
             else:
                 middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[name].enabled = True
             middleLayer.submitEnableParam(name)
-        super().__init__(action, param, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, param)
         self.param = param
 
     def inverseAction(self):
@@ -316,7 +338,7 @@ class DisableParam(UnifiedAction):
             else:
                 middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[name].enabled = False
             middleLayer.submitDisableParam(name)
-        super().__init__(action, param, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, param)
         self.param = param
 
     def inverseAction(self):
@@ -342,7 +364,7 @@ class MoveParam(UnifiedAction):
         self.delta = delta
 
     def inverseAction(self):
-        return MoveParam(self.index + self.delta, -self.delta, *self.args, **self.kwargs)
+        return MoveParam(self.index + self.delta, -self.delta)
 
 class SwitchParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
@@ -353,16 +375,16 @@ class SwitchParam(UnifiedAction):
                 middleLayer.activeParam = "vibrato"
             else:
                 middleLayer.activeParam = name
-        middleLayer.ids["adaptiveSpace"].children[0].redraw()
-        super().__init__(action, param, useUiCallback = True, *args, **kwargs)
+            middleLayer.ids["adaptiveSpace"].children[0].redraw()
+        super().__init__(action, param, *args, **kwargs)
 
     def inverseAction(self):
-        return SwitchParam(copy(middleLayer.activeParam), *self.args, **self.kwargs)
+        return SwitchParam(copy(middleLayer.activeParam))
     
     def uiCallback(self):
         for i in middleLayer.ids["paramList"].children:
             if i.name == middleLayer.activeParam:
-                i.children[0].state = "down"
+                i.state = "down"
 
 class ChangeParam(UnifiedAction):
     def __init__(self, data, start, section = None, *args, **kwargs):
@@ -396,10 +418,10 @@ class ChangeParam(UnifiedAction):
             else:
                 middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                 middleLayer.submitParamChange(True, middleLayer.activeParam, start, torch.tensor(data, dtype = torch.half))
-        super().__init__(action, data, start, section, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, data, start, section, *args, **kwargs)
         self.start = start
         self.section = section
-        self.length = data.size()[0]
+        self.length = len(data)
 
     def inverseAction(self):
         if middleLayer.activeParam == "steadiness":
@@ -420,7 +442,7 @@ class ChangeParam(UnifiedAction):
                 oldData = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength[self.start:self.start + self.length]
         else:
             oldData = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[self.activeParam].curve[self.start:self.start + self.length]
-        return ChangeParam(oldData, self.start, self.section, *self.args, **self.kwargs)
+        return ChangeParam(oldData, self.start, self.section)
 
     def uiCallback(self):
         middleLayer.ids["adaptiveSpace"].redraw()
@@ -433,12 +455,12 @@ class ChangePitch(UnifiedAction):
             middleLayer.trackList[self.activeTrack].pitch[start:start + data.size()[0]] = data
             data = noteToPitch(data)
             middleLayer.submitNamedPhonParamChange(True, "pitch", start, data)
-        super().__init__(action, data, start, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, data, start, *args, **kwargs)
         self.start = start
         self.size = data.size()[0]
 
     def inverseAction(self):
-        return ChangePitch(middleLayer.trackList[middleLayer.activeTrack].pitch[self.start:self.start + self.size], self.start, *self.args, **self.kwargs)
+        return ChangePitch(middleLayer.trackList[middleLayer.activeTrack].pitch[self.start:self.start + self.size], self.start)
     
     def uiCallback(self):
         if middleLayer.mode == "pitch":
@@ -463,15 +485,15 @@ class AddNote(UnifiedAction):
                 middleLayer.repairBorders(3 * len(middleLayer.trackList[middleLayer.activeTrack].phonemes))
             else:
                 middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, reference))
-            ChangeLyrics(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].content, undo = None)()
+            ChangeLyrics(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].content)()
             middleLayer.adjustNote(index, 100, x)
-        super().__init__(action, index, x, y, reference, None, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, index, x, y, reference, *args, **kwargs)
         self.index = index
         self.x = x
         self.y = y
         
     def inverseAction(self):
-        return RemoveNote(self.index, *self.args, **self.kwargs)
+        return RemoveNote(self.index)
     
     def UiCallback(self):
         middleLayer.ids["pianoRoll"].add_widget(Note(index = self.index, xPos = self.x, yPos = self.y, length = 100, height = middleLayer.ids["pianoRoll"].yScale))
@@ -483,12 +505,12 @@ class RemoveNote(UnifiedAction):
             middleLayer.trackList[middleLayer.activeTrack].notes.pop(index)
             if index < len(middleLayer.trackList[middleLayer.activeTrack].notes):
                 middleLayer.adjustNote(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].length, middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos)
-        super().__init__(action, index, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, index, *args, **kwargs)
         self.index = index
     
     def inverseAction(self):
         note = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
-        return AddNote(note.index, note.x, note.y, note.reference, *self.args, **self.kwargs) #TODO: process remaining note data
+        return AddNote(note.index, note.x, note.y, note.reference) #TODO: process remaining note data
     
     def UiCallback(self):
         middleLayer.ids["pianoRoll"].remove_widget(middleLayer.ids["pianoRoll"].notes[self.index])
@@ -516,10 +538,10 @@ class ChangeNoteLength(UnifiedAction):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
             return middleLayer.adjustNote(index, oldLength, oldPos)
         self.index = index
-        super().__init__(action, index, x, length, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, index, x, length, *args, **kwargs)
     
     def inverseAction(self):
-        return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length, *self.args, **self.kwargs)
+        return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length)
     
     def UiCallback(self):
         middleLayer.ids["pianoRoll"].notes[self.index].length = self.length
@@ -554,10 +576,10 @@ class MoveNote(UnifiedAction):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
             return middleLayer.adjustNote(index, oldLength, oldPos)
         self.index = index
-        super().__init__(action, index, x, y, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, index, x, y, *args, **kwargs)
     
     def inverseAction(self):
-        return MoveNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos, *self.args, **self.kwargs)
+        return MoveNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos)
     
     def UiCallback(self):
         middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
@@ -611,11 +633,11 @@ class ChangeLyrics(UnifiedAction):
             middleLayer.submitNamedPhonParamChange(False, "offsets", middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, offsets)
             middleLayer.makeAutoPauses(index)
             middleLayer.submitFinalize()
-        super().__init__(action, index, inputText, pronuncIndex, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, index, inputText, pronuncIndex, *args, **kwargs)
         self.index = index
     
     def inverseAction(self):
-        return ChangeLyrics(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].pronuncIndex, *self.args, **self.kwargs)
+        return ChangeLyrics(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].pronuncIndex)
     
     def UiCallback(self):
         middleLayer.ids["pianoRoll"].notes[self.index].redrawStatusBars()
@@ -627,11 +649,11 @@ class MoveBorder(UnifiedAction):
             if middleLayer.mode == "timing":
                 middleLayer.ids["adaptiveSpace"].updateFromBorder(border, pos)
             middleLayer.submitBorderChange(False, border, [pos,])
-        super().__init__(action, border, pos, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, border, pos, *args, **kwargs)
         self.border = border
     
     def inverseAction(self):
-        return MoveBorder(self.border, middleLayer.trackList[middleLayer.activeTrack].borders[self.border], *self.args, **self.kwargs)
+        return MoveBorder(self.border, middleLayer.trackList[middleLayer.activeTrack].borders[self.border])
     
     def UiCallback(self):
         if middleLayer.mode == "timing":
@@ -650,12 +672,12 @@ class ChangeVoicebank(UnifiedAction):
                     middleLayer.trackList[middleLayer.activeTrack].phonemeLengths[i] = None
             middleLayer.submitChangeVB(index, path)
             for i, note in enumerate(middleLayer.trackList[middleLayer.activeTrack].notes):
-                ChangeLyrics(i, note.content, undo = None)()
-        super().__init__(action, path, useUiCallback = True, *args, **kwargs)
+                ChangeLyrics(i, note.content)()
+        super().__init__(action, index, path, *args, **kwargs)
         self.index = index
     
     def inverseAction(self):
-        return ChangeVoicebank(self.index, middleLayer.trackList[middleLayer.activeTrack].vbPath, *self.args, **self.kwargs)
+        return ChangeVoicebank(self.index, middleLayer.trackList[middleLayer.activeTrack].vbPath)
     
     def UiCallback(self):
         data = torch.load(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[self.index].vbPath), map_location = torch.device("cpu"))["metadata"]
@@ -674,11 +696,11 @@ class ChangeVolume(UnifiedAction):
     def __init__(self, index, volume, *args, **kwargs):
         def action(index, volume):
             middleLayer.trackList[index].volume = volume
-        super().__init__(action, index, volume, useUiCallback = True, *args, **kwargs)
+        super().__init__(action, index, volume, *args, **kwargs)
         self.index = index
     
     def inverseAction(self):
-        return ChangeVolume(self.index, middleLayer.trackList[middleLayer.activeTrack].volume, *self.args, **self.kwargs)
+        return ChangeVolume(self.index, middleLayer.trackList[middleLayer.activeTrack].volume)
     
     def UiCallback(self):
         for i in middleLayer.ids["singerList"].children:
@@ -694,7 +716,7 @@ class LoadNVX(UnifiedAction):
             data = torch.load(path, map_location = torch.device("cpu"))
             tracks = data["tracks"]
             for i in range(len(middleLayer.trackList)):
-                DeleteTrack(0, undo = None)()
+                DeleteTrack(0)()
             for trackData in tracks:
                 track = validateTrackData(trackData)
                 vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
@@ -764,4 +786,4 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].length = track["length"]
                 middleLayer.trackList[-1].mixinVB = track["mixinVB"]
                 middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
-        return UnifiedAction(restoreTrackList, middleLayer.trackList, *self.args, **self.kwargs)
+        return UnifiedAction(restoreTrackList, middleLayer.trackList)

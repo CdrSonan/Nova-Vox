@@ -34,6 +34,8 @@ from UI.code.editor.SidePanels import *
 from UI.code.editor.NodeEditor import *
 from UI.code.editor.Util import *
 
+import API.Ops
+
 class NovaVoxUI(Widget):
     """class of the Root UI of the Nova-Vox editor. At program startup or after a reset, a single instance of this class is created, which then creates all UI elements as its children"""
 
@@ -60,7 +62,7 @@ class NovaVoxUI(Widget):
     
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        middleLayer.setIDs(self.ids)
+        middleLayer.setUI(self)
         self.middleLayer = middleLayer
         self._keyboard = Window.request_keyboard(None, self, 'text')
         if self._keyboard.widget:
@@ -98,7 +100,32 @@ class NovaVoxUI(Widget):
         except Exception as e:
             handleMainException(e)
         return self.update(deltatime)
+    
+    def updateParamPanel(self) -> None:
 
+        self.ids["paramList"].clear_widgets()
+        self.ids["adaptiveSpace"].clear_widgets()
+        if middleLayer.mode == "notes":
+            self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useSteadiness, visualName = loc["steadiness"], state = "down"))
+            self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useBreathiness, visualName = loc["breathiness"]))
+            self.ids["paramList"].add_widget(ParamPanel(name = "AI balance", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useAIBalance, visualName = loc["ai_balance"]))
+            self.ids["adaptiveSpace"].add_widget(ParamCurve())
+            counter = 0
+            for i in middleLayer.trackList[middleLayer.activeTrack].nodegraph.params:
+                self.ids["paramList"].add_widget(ParamPanel(name = i.name, index = counter))
+                counter += 1
+            API.Ops.SwitchParam("steadiness")()
+        if middleLayer.mode == "timing":
+            self.ids["paramList"].add_widget(ParamPanel(name = "loop overlap", switchable = False, sortable = False, deletable = False, index = -1, visualName = loc["loop_overlap"], state = "down"))
+            self.ids["paramList"].add_widget(ParamPanel(name = "loop offset", switchable = False, sortable = False, deletable = False, index = -1, visualName = loc["loop_offset"]))
+            self.ids["adaptiveSpace"].add_widget(TimingOptns())
+            API.Ops.SwitchParam("loop overlap")()
+        if middleLayer.mode == "pitch":
+            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato speed", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useVibratoSpeed, visualName = loc["vibrato_speed"], state = "down"))
+            self.ids["paramList"].add_widget(ParamPanel(name = "vibrato strength", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useVibratoStrength, visualName = loc["vibrato_strength"]))
+            self.ids["adaptiveSpace"].add_widget(PitchOptns())
+            API.Ops.SwitchParam("vibrato speed")()
+    
     def setMode(self, mode) -> None:
         """signals the middleLAyer a change of the input mode and prompts the required UI updates"""
 
@@ -106,7 +133,7 @@ class NovaVoxUI(Widget):
         if middleLayer.activeTrack == None or middleLayer.mode == mode:
             return
         middleLayer.mode = mode
-        middleLayer.updateParamPanel()
+        self.updateParamPanel()
         middleLayer.changePianoRollMode()
 
     def setTool(self, tool) -> None:
