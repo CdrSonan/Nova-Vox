@@ -179,10 +179,9 @@ class ImportVoicebank(UnifiedAction):
             middleLayer.submitAddTrack(middleLayer.trackList[-1])
         data = torch.load(os.path.join(readSettings()["datadir"], "Voices", file), map_location = torch.device("cpu"))["metadata"]
         super().__init__(action, file, data.name, data.image, *args, **kwargs)
-        self.index = len(middleLayer.trackList) - 1
 
     def inverseAction(self):
-        return DeleteTrack(self.index)
+        return DeleteTrack(-1)
 
 class ChangeTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
@@ -240,11 +239,13 @@ class CopyTrack(UnifiedAction):
         super().__init__(action, index, data.name, data.image, *args, **kwargs)
 
     def inverseAction(self):
-        return DeleteTrack(len(middleLayer.trackList) - 1)
+        return DeleteTrack(-1)
 
 class DeleteTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
         def action(index):
+            if index < 0:
+                index += len(middleLayer.trackList)
             middleLayer.trackList.pop(index)
             middleLayer.audioBuffer.pop(index)
             toRemove = None
@@ -266,9 +267,35 @@ class DeleteTrack(UnifiedAction):
                 middleLayer.updatePianoRoll()
         super().__init__(action, index, *args, **kwargs)
         self.index = index
+    
+    def inverseAction(self):
+        
+        return _ReinsertTrack(copy(middleLayer.trackList[self.index]), self.index)
+
+class _ReinsertTrack(UnifiedAction):
+    def __init__(self, track, index, *args, **kwargs):
+        def action(track, index):
+            metadata = torch.load(os.path.join(readSettings()["datadir"], "Voices", track.vbPath), map_location = torch.device("cpu"))["metadata"]
+            middleLayer.trackList.insert(index, track)
+            data = BytesIO()
+            metadata.image.save(data, format='png')
+            data.seek(0)
+            im = CoreImage(BytesIO(data.read()), ext='png')
+            image = im.texture
+            middleLayer.ids["singerList"].add_widget(SingerPanel(name = metadata.name, image = image, index = index), index = len(middleLayer.trackList) - 1 - index)
+            for i in middleLayer.ids["singerList"].children:
+                if i.index > index:
+                    i.index += 1
+                elif i.index == index:
+                    i.children[0].trigger_action(duration = 0)
+            middleLayer.audioBuffer.insert(index, torch.zeros([track.length * global_consts.batchSize,]))
+            middleLayer.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
+            middleLayer.submitAddTrack(middleLayer.trackList[-1])
+        super().__init__(action, track, index, *args, **kwargs)
+        self.index = index
 
     def inverseAction(self):
-        return UnifiedAction(middleLayer.addTrack, copy(middleLayer.trackList[self.index]))
+        return DeleteTrack(self.index)
 
 class AddParam(UnifiedAction):
     def __init__(self, param, name, *args, **kwargs):
@@ -385,6 +412,8 @@ class SwitchParam(UnifiedAction):
         for i in middleLayer.ids["paramList"].children:
             if i.name == middleLayer.activeParam:
                 i.state = "down"
+            else:
+                i.state = "normal"
 
 class ChangeParam(UnifiedAction):
     def __init__(self, data, start, section = None, *args, **kwargs):

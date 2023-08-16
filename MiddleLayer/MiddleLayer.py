@@ -76,13 +76,6 @@ class MiddleLayer(Widget):
 
         self.ui = ui
         self.ids = ui.ids
-    
-
-    def addTrack(self, track):
-        """Adds a new track to the track list. Used for loading projects from disk."""
-        #TODO: actually use for loading from disk
-        self.trackList.append(track)
-        self.audioBuffer.append(torch.zeros([track.length * global_consts.batchSize,]))
 
     def addParam(self, param, name) -> None:
         pass #TODO: implement
