@@ -123,8 +123,8 @@ class SingerSettingsPanel(Popup):
             middleLayer.recalculatePauses(self.index)
         if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]:
             middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
-            API.Ops.ChangeVB(self.index, middleLayer.trackList[self.index].vbPath)()
-            for i in middleLayer.ids["singerList"].children:
+            API.Ops.ChangeVoicebank(self.index, middleLayer.trackList[self.index].vbPath)()
+            """for i in middleLayer.ids["singerList"].children:
                 if i.index == self.index:
                     i.name = self.children[0].children[0].children[0].children[0].children[2].children[4].text
                     canvas_img = self.vbData[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)].image
@@ -133,7 +133,7 @@ class SingerSettingsPanel(Popup):
                     data.seek(0)
                     im = CoreImage(BytesIO(data.read()), ext='png')
                     i.image = im.texture
-                    break
+                    break"""
 
 class LicensePanel(Popup):
     """panel displaying the Nova-Vox license, contributors and other info"""

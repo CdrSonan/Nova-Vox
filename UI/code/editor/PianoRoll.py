@@ -201,7 +201,7 @@ class Note(ManagedToggleButton):
         from UI.code.editor.Main import middleLayer
         if focus:
             return
-        API.Ops.ChangeLyrics(self.index, text)
+        API.Ops.ChangeLyrics(self.index, text)()
         self.redrawStatusBars()
 
     def redrawStatusBars(self, complete = False) -> None:

@@ -23,20 +23,21 @@ from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
 
 from Backend.VB_Components.Voicebank import LiteVoicebank
 
-from Util import noteToPitch
+from Util import noteToPitch, convertFormat
 
 import global_consts
 
 from UI.code.editor.Headers import SingerPanel, ParamPanel
-from UI.code.editor.PianoRoll import PhonemeSelector
+from UI.code.editor.PianoRoll import PhonemeSelector, Note as UiNote
 
 class UnifiedAction:
-    def __init__(self, action, *args, undo = False, redo = False, immediate = False, **kwargs):
+    def __init__(self, action, *args, undo = False, redo = False, immediate = False, uiCallback = True, **kwargs):
         self.action = action
         self.args = args
         self.kwargs = kwargs
         self.undo = undo
         self.redo = redo
+        self.useUiCallback = uiCallback
         if immediate:
             self.__call__()
 
@@ -50,12 +51,14 @@ class UnifiedAction:
         if middleLayer.undoActive:
             with NoUndo():
                 inverse = self.inverseAction()
-                self.action(*self.args, **self.kwargs)
-                self.uiCallback()
+                returnValue = self.action(*self.args, **self.kwargs)
+                if self.useUiCallback:
+                    self.uiCallback()
         else:
             inverse = self.inverseAction()
-            self.action(*self.args, **self.kwargs)
-            self.uiCallback()
+            returnValue = self.action(*self.args, **self.kwargs)
+            if self.useUiCallback:
+                self.uiCallback()
         if not middleLayer.undoActive:
             return
         if self.undo:
@@ -71,6 +74,7 @@ class UnifiedAction:
             inverse.redo = False
             enqueueUndo(inverse)
             clearRedoStack()
+        return returnValue
 
     def __repr__(self):
         return f"UnifiedAction(action={self.action}, undo = {self.undo}, redo = {self.redo}, args={self.args}, kwargs={self.kwargs})"
@@ -406,6 +410,7 @@ class SwitchParam(UnifiedAction):
         super().__init__(action, param, *args, **kwargs)
 
     def inverseAction(self):
+        #TODO: fix UI disappearing when middleLayer.activeParam is None
         return SwitchParam(copy(middleLayer.activeParam))
     
     def uiCallback(self):
@@ -471,7 +476,7 @@ class ChangeParam(UnifiedAction):
                 oldData = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength[self.start:self.start + self.length]
         else:
             oldData = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[self.activeParam].curve[self.start:self.start + self.length]
-        return ChangeParam(oldData, self.start, self.section)
+        return ChangeParam(convertFormat(oldData, "list"), self.start, self.section)
 
     def uiCallback(self):
         middleLayer.ids["adaptiveSpace"].redraw()
@@ -514,7 +519,6 @@ class AddNote(UnifiedAction):
                 middleLayer.repairBorders(3 * len(middleLayer.trackList[middleLayer.activeTrack].phonemes))
             else:
                 middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, reference))
-            ChangeLyrics(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].content)()
             middleLayer.adjustNote(index, 100, x)
         super().__init__(action, index, x, y, reference, *args, **kwargs)
         self.index = index
@@ -524,8 +528,30 @@ class AddNote(UnifiedAction):
     def inverseAction(self):
         return RemoveNote(self.index)
     
-    def UiCallback(self):
-        middleLayer.ids["pianoRoll"].add_widget(Note(index = self.index, xPos = self.x, yPos = self.y, length = 100, height = middleLayer.ids["pianoRoll"].yScale))
+    #def uiCallback(self):
+    #    newNote = Note(index = self.index, xPos = self.x, yPos = self.y, length = 100, height = middleLayer.ids["pianoRoll"].yScale)
+    #    middleLayer.ids["pianoRoll"].add_widget(newNote, index = 5)
+    #    middleLayer.ids["pianoRoll"].notes.append(newNote)
+
+class _ReinsertNote(UnifiedAction):
+    def __init__(self, index, note, *args, **kwargs):
+        def action(index, note):
+            returnValue = AddNote(index, note.xPos, note.yPos, note.reference)()
+            ChangeNoteLength(index, note.xPos, note.length)()
+            newNote = UiNote(index = index, xPos = note.xPos, yPos = note.yPos, length = 100, height = middleLayer.ids["pianoRoll"].yScale)
+            middleLayer.ids["pianoRoll"].children[0].add_widget(newNote, index = 5)
+            middleLayer.ids["pianoRoll"].notes.append(newNote)
+            ChangeLyrics(index, note.content, None)()
+            return returnValue
+        super().__init__(action, index, note, *args, **kwargs)
+        self.index = index
+        self.note = note
+    
+    def inverseAction(self):
+        return RemoveNote(self.index)
+    
+    #def uiCallback(self):
+    #    middleLayer.ids["pianoRoll"].add_widget(Note(index = self.index, xPos = self.note.xPos, yPos = self.note.yPos, length = self.note.length, height = middleLayer.ids["pianoRoll"].yScale))
 
 class RemoveNote(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
@@ -538,12 +564,11 @@ class RemoveNote(UnifiedAction):
         self.index = index
     
     def inverseAction(self):
-        note = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
-        return AddNote(note.index, note.x, note.y, note.reference) #TODO: process remaining note data
+        return _ReinsertNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index])
     
-    def UiCallback(self):
-        middleLayer.ids["pianoRoll"].remove_widget(middleLayer.ids["pianoRoll"].notes[self.index])
-        del middleLayer.ids["pianoRoll"].notes[self.index]
+    #def uiCallback(self):
+    #    middleLayer.ids["pianoRoll"].remove_widget(middleLayer.ids["pianoRoll"].notes[self.index])
+    #    del middleLayer.ids["pianoRoll"].notes[self.index]
 
 class ChangeNoteLength(UnifiedAction):
     def __init__(self, index, x, length, *args, **kwargs):
@@ -566,15 +591,21 @@ class ChangeNoteLength(UnifiedAction):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].length = length
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
             return middleLayer.adjustNote(index, oldLength, oldPos)
-        self.index = index
         super().__init__(action, index, x, length, *args, **kwargs)
+        self.index = index
+        self.x = x
+        self.length = length
     
     def inverseAction(self):
         return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length)
     
-    def UiCallback(self):
-        middleLayer.ids["pianoRoll"].notes[self.index].length = self.length
-        middleLayer.ids["pianoRoll"].notes[self.index].redraw()
+    def uiCallback(self):
+        for i in middleLayer.ids["pianoRoll"].notes:
+            if i.index == self.index:
+                i.length = self.length
+                i.x = self.x
+                i.redraw()
+                break
 
 class MoveNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
@@ -610,13 +641,13 @@ class MoveNote(UnifiedAction):
     def inverseAction(self):
         return MoveNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos)
     
-    def UiCallback(self):
+    def uiCallback(self):
         middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
         middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
         middleLayer.ids["pianoRoll"].notes[self.index].redraw()
 
 class ChangeLyrics(UnifiedAction):
-    def __init__(self, index, inputText, pronuncIndex, *args, **kwargs):
+    def __init__(self, index, inputText, pronuncIndex = None, *args, **kwargs):
         def action(index, inputText, pronuncIndex):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].content = inputText
             middleLayer.trackList[middleLayer.activeTrack].notes[index].pronuncIndex = pronuncIndex
@@ -668,7 +699,8 @@ class ChangeLyrics(UnifiedAction):
     def inverseAction(self):
         return ChangeLyrics(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].pronuncIndex)
     
-    def UiCallback(self):
+    def uiCallback(self):
+        middleLayer.ids["pianoRoll"].notes[self.index].children[0].text = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content
         middleLayer.ids["pianoRoll"].notes[self.index].redrawStatusBars()
 
 class MoveBorder(UnifiedAction):
@@ -684,7 +716,7 @@ class MoveBorder(UnifiedAction):
     def inverseAction(self):
         return MoveBorder(self.border, middleLayer.trackList[middleLayer.activeTrack].borders[self.border])
     
-    def UiCallback(self):
+    def uiCallback(self):
         if middleLayer.mode == "timing":
             middleLayer.ids["pianoRoll"].removeTiming()
             middleLayer.ids["pianoRoll"].drawTiming()
@@ -708,12 +740,12 @@ class ChangeVoicebank(UnifiedAction):
     def inverseAction(self):
         return ChangeVoicebank(self.index, middleLayer.trackList[middleLayer.activeTrack].vbPath)
     
-    def UiCallback(self):
+    def uiCallback(self):
         data = torch.load(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[self.index].vbPath), map_location = torch.device("cpu"))["metadata"]
         for i in middleLayer.ids["singerList"].children:
             if i.index == self.index:
-                i.name = data["name"]
-                canvas_img = data["image"]
+                i.name = data.name
+                canvas_img = data.image
                 data = BytesIO()
                 canvas_img.save(data, format='png')
                 data.seek(0)
@@ -731,7 +763,7 @@ class ChangeVolume(UnifiedAction):
     def inverseAction(self):
         return ChangeVolume(self.index, middleLayer.trackList[middleLayer.activeTrack].volume)
     
-    def UiCallback(self):
+    def uiCallback(self):
         for i in middleLayer.ids["singerList"].children:
             if i.index == self.index:
                 i.children[0].children[0].children[0].children[0].children[2].children[0].value = middleLayer.trackList[middleLayer.activeTrack].volume
