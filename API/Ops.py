@@ -46,6 +46,9 @@ class UnifiedAction:
     
     def uiCallback(self):
         return
+    
+    def merge(self, other):
+        return None
 
     def __call__(self):
         if middleLayer.undoActive:
@@ -97,6 +100,9 @@ class UnifiedActionGroup:
             return UnifiedActionGroup(*actions, undo = False, redo = True, immediate = False)
         else:
             return UnifiedActionGroup(*actions, undo = True, redo = False, immediate = False)
+    
+    def merge(self, other):
+        return None
 
     def __call__(self):
         with NoUndo():
@@ -414,6 +420,12 @@ class SwitchParam(UnifiedAction):
         return SwitchParam(copy(middleLayer.activeParam))
     
     def uiCallback(self):
+        if middleLayer.activeParam == "loop" and middleLayer.mode != "timing":
+            middleLayer.ui.setMode("timing")
+        elif middleLayer.activeParam == "vibrato" and middleLayer.mode != "pitch":
+            middleLayer.ui.setMode("pitch")
+        elif middleLayer.activeParam != "loop" and middleLayer.activeParam != "vibrato" and middleLayer.mode != "notes":
+            middleLayer.ui.setMode("notes")
         for i in middleLayer.ids["paramList"].children:
             if i.name == middleLayer.activeParam:
                 i.state = "down"
@@ -606,6 +618,11 @@ class ChangeNoteLength(UnifiedAction):
                 i.x = self.x
                 i.redraw()
                 break
+    
+    def merge(self, other):
+        if type(other) == ChangeNoteLength and self.index == other.index:
+            return ChangeNoteLength(self.index, self.x, self.length)
+        return None
 
 class MoveNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
@@ -635,8 +652,10 @@ class MoveNote(UnifiedAction):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
             return middleLayer.adjustNote(index, oldLength, oldPos)
-        self.index = index
         super().__init__(action, index, x, y, *args, **kwargs)
+        self.index = index
+        self.x = x
+        self.y = y
     
     def inverseAction(self):
         return MoveNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos)
@@ -645,6 +664,11 @@ class MoveNote(UnifiedAction):
         middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
         middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
         middleLayer.ids["pianoRoll"].notes[self.index].redraw()
+    
+    def merge(self, other):
+        if type(other) == MoveNote and self.index == other.index:
+            return MoveNote(self.index, self.x, self.y)
+        return None
 
 class ChangeLyrics(UnifiedAction):
     def __init__(self, index, inputText, pronuncIndex = None, *args, **kwargs):
@@ -712,6 +736,7 @@ class MoveBorder(UnifiedAction):
             middleLayer.submitBorderChange(False, border, [pos,])
         super().__init__(action, border, pos, *args, **kwargs)
         self.border = border
+        self.pos = pos
     
     def inverseAction(self):
         return MoveBorder(self.border, middleLayer.trackList[middleLayer.activeTrack].borders[self.border])
@@ -720,6 +745,11 @@ class MoveBorder(UnifiedAction):
         if middleLayer.mode == "timing":
             middleLayer.ids["pianoRoll"].removeTiming()
             middleLayer.ids["pianoRoll"].drawTiming()
+    
+    def merge(self, other):
+        if type(other) == MoveBorder and self.border == other.border:
+            return MoveBorder(self.border, self.pos)
+        return None
 
 class ChangeVoicebank(UnifiedAction):
     def __init__(self, index, path, *args, **kwargs):
@@ -759,6 +789,7 @@ class ChangeVolume(UnifiedAction):
             middleLayer.trackList[index].volume = volume
         super().__init__(action, index, volume, *args, **kwargs)
         self.index = index
+        self.volume = volume
     
     def inverseAction(self):
         return ChangeVolume(self.index, middleLayer.trackList[middleLayer.activeTrack].volume)
@@ -768,6 +799,11 @@ class ChangeVolume(UnifiedAction):
             if i.index == self.index:
                 i.children[0].children[0].children[0].children[0].children[2].children[0].value = middleLayer.trackList[middleLayer.activeTrack].volume
                 break
+    
+    def merge(self, other):
+        if type(other) == ChangeVolume and self.index == other.index:
+            return ChangeVolume(self.index, self.volume)
+        return None
 
 class LoadNVX(UnifiedAction):
     def __init__(self, path, *args, **kwargs):

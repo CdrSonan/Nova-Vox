@@ -11,9 +11,17 @@ from UI.code.editor.Main import middleLayer
 
 def enqueueUndo(action):
     if middleLayer.singleUndoActive:
-        middleLayer.undoStack[-1].append(action)
+        merge = middleLayer.undoStack[-1][-1].merge(action)
+        if merge != None:
+            middleLayer.undoStack[-1][-1] = merge
+        else:
+            middleLayer.undoStack[-1].append(action)
     else:
-        middleLayer.undoStack.append(action)
+        merge = middleLayer.undoStack[-1][-1].merge(action)
+        if merge != None:
+            middleLayer.undoStack[-1] = merge
+        else:
+            middleLayer.undoStack.append(action)
     if len(middleLayer.undoStack) > middleLayer.undoLimit:
         middleLayer.undoStack.pop(0)
 
