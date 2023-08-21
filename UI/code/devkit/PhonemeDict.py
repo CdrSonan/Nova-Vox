@@ -61,21 +61,45 @@ class PhonemedictUi(Frame):
         self.phonemeList.list.sb.pack(side = "left", fill = "y")
         self.phonemeList.list.lb["selectmode"] = "single"
         self.phonemeList.list.lb["yscrollcommand"] = self.phonemeList.list.sb.set
-        self.phonemeList.list.lb.bind("<<ListboxSelect>>", self.onSelectionChange)
-        self.phonemeList.list.lb.bind("<FocusOut>", self.onListFocusOut)
+        self.phonemeList.list.lb.bind("<<ListboxSelect>>", self.onPhonSelectionChange)
+        self.phonemeList.list.lb.bind("<FocusOut>", self.onPhonListFocusOut)
         self.phonemeList.list.sb["command"] = self.phonemeList.list.lb.yview
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
         for i in loadedVB.phonemeDict.keys():
             self.phonemeList.list.lb.insert("end", i)
         self.phonemeList.removeButton = SlimButton(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]
-        self.phonemeList.removeButton["command"] = self.onRemovePress
+        self.phonemeList.removeButton["command"] = self.onPhonRemovePress
         self.phonemeList.removeButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.addButton = SlimButton(self.phonemeList)
         self.phonemeList.addButton["text"] = loc["add"]
-        self.phonemeList.addButton["command"] = self.onAddPress
+        self.phonemeList.addButton["command"] = self.onPhonAddPress
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sampleList = LabelFrame(self, text = loc["phon_list"])
+        self.sampleList.list = Frame(self.sampleList)
+        self.sampleList.list.lb = Listbox(self.sampleList.list)
+        self.sampleList.list.lb.pack(side = "left",fill = "both", expand = True)
+        self.sampleList.list.sb = tkinter.ttk.Scrollbar(self.sampleList.list)
+        self.sampleList.list.sb.pack(side = "left", fill = "y")
+        self.sampleList.list.lb["selectmode"] = "single"
+        self.sampleList.list.lb["yscrollcommand"] = self.sampleList.list.sb.set
+        self.sampleList.list.lb.bind("<<ListboxSelect>>", self.onSmpSelectionChange)
+        self.sampleList.list.lb.bind("<FocusOut>", self.onSmpListFocusOut)
+        self.sampleList.list.sb["command"] = self.sampleList.list.lb.yview
+        self.sampleList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
+        for i in loadedVB.phonemeDict.keys():
+            self.sampleList.list.lb.insert("end", i)
+        self.sampleList.removeButton = SlimButton(self.sampleList)
+        self.sampleList.removeButton["text"] = loc["remove"]
+        self.sampleList.removeButton["command"] = self.onSmpRemovePress
+        self.sampleList.removeButton.pack(side = "right", fill = "x", expand = True)
+        self.sampleList.addButton = SlimButton(self.sampleList)
+        self.sampleList.addButton["text"] = loc["add"]
+        self.sampleList.addButton["command"] = self.onSmpAddPress
+        self.sampleList.addButton.pack(side = "right", fill = "x", expand = True)
+        self.sampleList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar = LabelFrame(self, text = loc["per_ph_set"])
         self.sideBar.pack(side = "top", fill = "x", padx = 5, pady = 2, ipadx = 5, ipady = 10)
@@ -234,8 +258,9 @@ class PhonemedictUi(Frame):
         self.loadButton.pack(side = "right", fill = "x", expand = True, padx = 10, pady = 10)
 
         self.phonemeList.list.lastFocusedIndex = None
+        self.sampleList.list.lastFocusedIndex = None
         
-    def onSelectionChange(self, event) -> None:
+    def onPhonSelectionChange(self, event) -> None:
         """Adjusts the per-phoneme part of the UI to display the correct values when the selected Phoneme in the Phoneme list changes"""
 
         logging.info("Phonemedict selection change callback")
@@ -245,6 +270,7 @@ class PhonemedictUi(Frame):
             index = self.phonemeList.list.lastFocusedIndex
             key = self.phonemeList.list.lb.get(index)
             self.sideBar.key.variable.set(key)
+            self.reloadSamples()
             if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
                 self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key][0].expectedPitch)
                 self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key][0].searchRange)
@@ -272,12 +298,65 @@ class PhonemedictUi(Frame):
             self.updateSlider()
             self.onSliderMove(0)
                 
-    def onListFocusOut(self, event) -> None:
-        """Helper function for retaining information about the last focused element of the Phoneme list when Phoneme list loses entry focus"""
+    def onPhonListFocusOut(self, event) -> None:
+        """Helper function for retaining information about the last focused element of the sample list when sample list loses entry focus"""
 
         logging.info("Phonemedict list focus loss callback")
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
+
+    def onSmpSelectionChange(self, event) -> None:
+        """Adjusts the per-sample part of the UI to display the correct values when the selected sample in the sample list changes"""
+
+        logging.info("Phonemedict selection change callback")
+        global loadedVB
+        if len(self.phonemeList.list.lb.curselection()) > 0:
+            self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
+            index = self.phonemeList.list.lastFocusedIndex
+            key = self.phonemeList.list.lb.get(index)
+            sample = self.sampleList.list.lastFocusedIndex
+            self.sideBar.key.variable.set(key)
+            if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
+                self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key][sample].expectedPitch)
+                self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key][sample].searchRange)
+                self.sideBar.voicedThrh.variable.set(loadedVB.phonemeDict[key][sample].voicedThrh)
+                self.sideBar.specSmooth.widthVariable.set(loadedVB.phonemeDict[key][sample].specWidth)
+                self.sideBar.specSmooth.depthVariable.set(loadedVB.phonemeDict[key][sample].specDepth)
+                self.sideBar.tempSmooth.widthVariable.set(loadedVB.phonemeDict[key][sample].tempWidth)
+                self.sideBar.tempSmooth.depthVariable.set(loadedVB.phonemeDict[key][sample].tempDepth)
+                self.sideBar.isVoiced.variable.set(loadedVB.phonemeDict[key][sample].isVoiced)
+                self.sideBar.isPlosive.variable.set(loadedVB.phonemeDict[key][sample].isPlosive)
+                self.sideBar.embedding.variable.set(hex(loadedVB.phonemeDict[key][sample].embedding)[2:])
+                self.enableButtons()
+            else:
+                self.sideBar.expPitch.variable.set(None)
+                self.sideBar.pSearchRange.variable.set(None)
+                self.sideBar.voicedThrh.variable.set(None)
+                self.sideBar.specSmooth.widthVariable.set(None)
+                self.sideBar.specSmooth.depthVariable.set(None)
+                self.sideBar.tempSmooth.widthVariable.set(None)
+                self.sideBar.tempSmooth.depthVariable.set(None)
+                self.sideBar.isVoiced.variable.set(False)
+                self.sideBar.isPlosive.variable.set(False)
+                self.sideBar.embedding.variable.set("00000000")
+                self.disableButtons()
+            self.updateSlider()
+            self.onSliderMove(0)
+    
+    def reloadSamples(self) -> None:
+        while len(self.sampleList.list.lb) > 0:
+            self.sampleList.list.lb.delete(0)
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        for i in loadedVB.phonemeDict[key]:
+            self.sampleList.list.lb.insert("end", i.filepath)
+                
+    def onSmpListFocusOut(self, event) -> None:
+        """Helper function for retaining information about the last focused element of the Phoneme list when Phoneme list loses entry focus"""
+
+        logging.info("Phonemedict list focus loss callback")
+        if len(self.sampleList.list.lb.curselection()) > 0:
+            self.sampleList.list.lastFocusedIndex = self.sampleList.list.lb.curselection()[0]
         
     def disableButtons(self) -> None:
         """Helper function disabling all per-phoneme settings buttons"""
@@ -311,7 +390,7 @@ class PhonemedictUi(Frame):
         self.sideBar.isPlosive.entry["state"] = "normal"
         self.sideBar.embedding.entry["state"] = "normal"
     
-    def onAddPress(self) -> None:
+    def onPhonAddPress(self) -> None:
         """UI Frontend function for adding a phoneme to the Voicebank"""
 
         logging.info("Phonemedict add button callback")
@@ -325,7 +404,7 @@ class PhonemedictUi(Frame):
                 loadedVB.addPhoneme(key, filepath)
                 self.phonemeList.list.lb.insert("end", key)
         
-    def onRemovePress(self) -> None:
+    def onPhonRemovePress(self) -> None:
         """UI Frontend function for removing a phoneme from the Voicebank"""
 
         logging.info("Phonemedict remove button callback")
@@ -341,6 +420,34 @@ class PhonemedictUi(Frame):
                 self.phonemeList.list.lb.selection_set(index)
             if self.phonemeList.list.lb.size() == 0:
                 self.disableButtons()
+    
+    def onSmpAddPress(self) -> None:
+        """UI Frontend function for adding a sample to a phoneme of the Voicebank"""
+
+        logging.info("Phonemedict add button callback")
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        key = self.phonemeList.list.lb.get(index)
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
+        if filepath != "":
+            loadedVB.addSample(key, filepath)
+            self.sampleList.list.lb.insert("end", filepath)
+        
+    def onSmpRemovePress(self) -> None:
+        """UI Frontend function for removing a sample from a phoneme of the Voicebank"""
+
+        logging.info("Phonemedict remove button callback")
+        global loadedVB
+        if self.sampleList.list.lb.size() > 1:
+            index = self.phonemeList.list.lastFocusedIndex
+            key = self.phonemeList.list.lb.get(index)
+            sample = self.sampleList.list.lastFocusedIndex
+            loadedVB.delSample(key, sample)
+            self.sampleList.list.lb.delete(sample)
+            if index == self.phonemeList.list.lb.size():
+                self.sampleList.list.lb.selection_set(sample - 1)
+            else:
+                self.sampleList.list.lb.selection_set(sample)
 
     def onSliderMove(self, value:float) -> None:
         """Updates the phoneme diagram to display the correct time frame when the time slider is moved"""

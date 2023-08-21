@@ -194,12 +194,28 @@ class Voicebank():
         self.phonemeDict[key] = [AudioSample(filepath),]
         calculatePitch(self.phonemeDict[key][0])
         calculateSpectra(self.phonemeDict[key][0])
+    
+    def addSample(self, key:str, filepath:str) -> None:
+        """adds a sample to an existing phoneme.
+        
+        Arguments:
+            key: The key of the phoneme the sample should be added to
+            
+            filepath: a String representing the filepath to the .wav audio file of the sample"""
+            
+            
+        self.phonemeDict[key].append(AudioSample(filepath))
+        calculatePitch(self.phonemeDict[key][-1])
+        calculateSpectra(self.phonemeDict[key][-1])
 
     def addPhonemeUtau(self, sample:UtauSample) -> None:
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
-            self.phonemeDict[sample.key] = [sample.convert(False),]
-            calculatePitch(self.phonemeDict[sample.key][0])
-            calculateSpectra(self.phonemeDict[sample.key][0])
+            if sample.key in self.phonemeDict.keys():
+                self.phonemeDict[sample.key].append(sample.convert(False))
+            else:
+                self.phonemeDict[sample.key] = [sample.convert(False),]
+            calculatePitch(self.phonemeDict[sample.key][-1])
+            calculateSpectra(self.phonemeDict[sample.key][-1])
         else:
             logging.warning("skipped one or several samples below the size threshold")
     
@@ -207,6 +223,17 @@ class Voicebank():
         """deletes a phoneme from the Voicebank's PhonemeDict"""
 
         self.phonemeDict.pop(key)
+    
+    def delSample(self, key:str, index:int) -> None:
+        """deletes a sample from an existing phoneme.
+        
+        Arguments:
+            key: The key of the phoneme the sample should be deleted from
+            
+            index: The index of the sample in the phoneme's sample list"""
+            
+            
+        self.phonemeDict[key].pop(index)
     
     def changePhonemeKey(self, key:str, newKey:str) -> None:
         """changes the key of a Phoneme to a new key without changing its underlaying data"""

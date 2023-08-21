@@ -677,27 +677,40 @@ class ChangeLyrics(UnifiedAction):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].pronuncIndex = pronuncIndex
             if middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeMode:
                 text = inputText.split(" ")
-            elif inputText in middleLayer.trackList[middleLayer.activeTrack].wordDict[0]:
-                if len(middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText]) == 0:
-                    text = middleLayer.syllableSplit(inputText)
-                elif len(middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText]) == 1:
-                    text = middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText][0].split(" ")
-                elif pronuncIndex != None:
-                    text = middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText][pronuncIndex].split(" ")
-                else:
-                    text = middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText][0].split(" ")
-                    middleLayer.trackList[middleLayer.activeTrack].notes[index].reference.add_widget(PhonemeSelector(middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText], index, inputText, reference = middleLayer.trackList[middleLayer.activeTrack].notes[index].reference))
             else:
-                text = middleLayer.syllableSplit(inputText)
-                if text == None:
-                    text = ["pau"]
+                expressionKey = None
+                if "_" in inputText:
+                    inputText = inputText.split("_")
+                    if len(inputText) > 1:
+                        inputText = "".join(inputText[:-1])
+                        expressionKey = inputText[-1]
+                if inputText in middleLayer.trackList[middleLayer.activeTrack].wordDict[0]:
+                    if len(middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText]) == 0:
+                        text = middleLayer.syllableSplit(inputText)
+                    elif len(middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText]) == 1:
+                        text = middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText][0].split(" ")
+                    elif pronuncIndex != None:
+                        text = middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText][pronuncIndex].split(" ")
+                    else:
+                        text = middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText][0].split(" ")
+                        middleLayer.trackList[middleLayer.activeTrack].notes[index].reference.add_widget(PhonemeSelector(middleLayer.trackList[middleLayer.activeTrack].wordDict[0][inputText], index, inputText, reference = middleLayer.trackList[middleLayer.activeTrack].notes[index].reference))
+                else:
+                    text = middleLayer.syllableSplit(inputText)
+                    if text == None:
+                        text = ["pau"]
                     
             if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) > middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart and middleLayer.trackList[middleLayer.activeTrack].phonemes[middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart] == "_autopause":
                 phonemes = ["_autopause",]
             else:
                 phonemes = []
             for i in text:
-                if i in middleLayer.trackList[middleLayer.activeTrack].phonemeLengths:
+                if expressionKey != None:
+                    phoneme = i + "_" + expressionKey
+                else:
+                    phoneme = i
+                if phoneme in middleLayer.trackList[middleLayer.activeTrack].phonemeLengths:
+                    phonemes.append(phoneme)
+                elif i in middleLayer.trackList[middleLayer.activeTrack].phonemeLengths:
                     phonemes.append(i)
             if phonemes == [""]or phonemes == []:
                 phonemes = ["pau"]
