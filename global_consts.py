@@ -32,6 +32,7 @@ filterTEEMult = 32
 filterHRSSMult = 4
 nFormants = 50
 nHarmonics = 128
+halfHarms = 65
 ampContThreshold = 10
 
 #synthesis spectral processing

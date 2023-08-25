@@ -15,7 +15,7 @@ from torch.utils.data.dataloader import DataLoader
 import global_consts
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
 from Backend.VB_Components.Ai.PredAi import SpecPredAi, SpecPredDiscriminator, DataGenerator
-from Backend.VB_Components.Ai.Util import GuideRelLoss
+from Backend.VB_Components.Ai.VAE import VAE
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.Resampler.CubicSplineInter import interp
 from Util import dec2bin
@@ -46,7 +46,8 @@ class AIWrapper():
             "preddisc_rs": 1024,
             "preddisc_drp":0.25,
             "pred_guide_wgt": 1.,
-            "pred_train_asym": 4
+            "pred_train_asym": 4,
+            "latent_dim": 128
         }
         if hparams:
             for i in hparams.keys():
@@ -56,12 +57,14 @@ class AIWrapper():
         self.predAi = SpecPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]), dropout = self.hparams["pred_drp"])
         self.predAiDisc = SpecPredDiscriminator(device = device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]), dropout = self.hparams["preddisc_drp"])
         self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
+        self.VAE = VAE(device = device, latent_dim = self.hparams["latent_dim"])
         self.device = device
         self.final = False
         self.defectiveCrfBins = []
         self.crfAiOptimizer = torch.optim.NAdam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
         self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
         self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
+        self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr=0.0001)
         self.criterion = nn.L1Loss()
         self.guideCriterion = nn.MSELoss()
         self.pretrainCriterion = nn.BCELoss()
@@ -95,6 +98,7 @@ class AIWrapper():
                 'crfAi_sampleCount': self.crfAi.sampleCount,
                 'predAi_epoch': self.predAi.epoch,
                 'predAi_model_state_dict': self.predAi.state_dict(),
+                'VAE_model_state_dict': self.VAE.state_dict(),
                 'predAi_sampleCount': self.predAi.sampleCount,
                 'deskew_premul': self.deskewingPremul,
                 'defective_crf_bins': self.defectiveCrfBins,
@@ -108,8 +112,10 @@ class AIWrapper():
                 'predAi_epoch': self.predAi.epoch,
                 'predAi_model_state_dict': self.predAi.state_dict(),
                 'predAiDisc_model_state_dict': self.predAiDisc.state_dict(),
+                'VAE_model_state_dict': self.VAE.state_dict(),
                 'predAi_optimizer_state_dict': self.predAiOptimizer.state_dict(),
                 'predAiDisc_optimizer_state_dict': self.predAiDiscOptimizer.state_dict(),
+                'VAE_optimizer_state_dict': self.VAEOptimizer.state_dict(),
                 'predAi_sampleCount': self.predAi.sampleCount,
                 'deskew_premul': self.deskewingPremul,
                 'defective_crf_bins': self.defectiveCrfBins,
@@ -148,12 +154,14 @@ class AIWrapper():
             self.predAi.epoch = aiState["predAi_epoch"]
             self.predAi.sampleCount = aiState["predAi_sampleCount"]
             self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
+            self.VAE.load_state_dict(aiState['VAE_model_state_dict'])
             self.deskewingPremul = aiState["deskew_premul"]
             self.defectiveCrfBins = aiState["defective_crf_bins"]
             if not aiState["final"]:
                 self.predAiDisc.load_state_dict(aiState['predAiDisc_model_state_dict'])
                 self.predAiOptimizer.load_state_dict(aiState['predAi_optimizer_state_dict'])
                 self.predAiDiscOptimizer.load_state_dict(aiState['predAiDisc_optimizer_state_dict'])
+                self.VAEOptimizer.load_state_dict(aiState['VAE_optimizer_state_dict'])
         self.crfAi.eval()
         self.predAi.eval()
 
@@ -232,14 +240,6 @@ class AIWrapper():
         self.predAi.requires_grad_(False)
         if specharm.dim() == 1:
             specharm = specharm.unsqueeze(0)
-        """phases = specharm[:, halfHarms:2 * halfHarms]
-        spectrum = specharm[:, 2 * halfHarms:]
-        harms = specharm[:, :halfHarms]
-        predSpectrum = self.predAi(spectrum)
-        predSpectrum = torch.max(predSpectrum, torch.tensor([0.0001,], device = self.device))
-        predHarms = self.predAiHarm(harms)
-        predHarms = torch.max(predHarms, torch.tensor([0.0001,], device = self.device))
-        prediction = torch.cat((predHarms, phases, predSpectrum), 1)"""
         prediction = self.predAi(specharm, self.deskewingPremul, True)
         return torch.squeeze(prediction)
 
@@ -447,99 +447,21 @@ class AIWrapper():
         if writer != None:
             writer.close()
 
-    def trainCrfDebug(self, indata, testdata, epochs:int=1, logging:bool = False) -> None:
-        """NN training with forward and backward passes, loss criterion and optimizer runs based on a dataset of spectral transition samples. Additionally performs a validation pass using a separate dataset, and plots the result.
-        
-        Arguments:
-            indata: Tensor, List or other Iterable containing sets of specharm data. Each element should represent a phoneme transition.
-
-            testdata: Tensor, List or other Iterable containing sets of specharm data. Each element should represent a phoneme transition. Used for the validation pass after each training epoch.
-            
-            epochs: number of epochs to use for training as Integer.
-            
-        Returns:
-            None"""
-        
-
-        self.crfAi.train()
-        if logging:
-            csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_crf.csv"), 'w', newline='')
-            fieldnames = ["epochs", "learning rate", "hidden layer count", "loss", "acc. sample count", "wtd. train loss"]
-            writer = DictWriter(csvFile, fieldnames)
-        else:
-            writer = None
-
-        if (self.crfAi.epoch == 0) or self.crfAi.epoch == epochs:
-            self.crfAi.epoch = epochs
-        else:
-            self.crfAi.epoch = None
-        reportedLoss = 0.
-        trainLossSpec = []
-        testLossSpec = []
-        trainLossSpecStd = []
-        testLossSpecStd = []
-        for epoch in range(epochs):
-            trainLossSpecLocal = []
-            testLossSpecLocal = []
-            for data in self.dataLoader(indata):
-                data = data.to(device = self.device)
+    def trainVAE(self, indata, writer, epochs:int=1) -> None:
+        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
+            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
-                spectrum1 = data[2, 2 * halfHarms:]
-                spectrum2 = data[3, 2 * halfHarms:]
-                spectrum3 = data[-2, 2 * halfHarms:]
-                spectrum4 = data[-1, 2 * halfHarms:]
-                
-                outputSize = data.size()[0] - 2
-                factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor).transpose(0, 1)
-                target = data[2:, 2 * halfHarms:]
-                loss = self.criterion(output, target)
-                trainLossSpecLocal.append(loss.data.item())
-                self.crfAiOptimizer.zero_grad()
+                self.VAEOptimizer.zero_grad()
+                loss = self.VAE.training_step(data)
                 loss.backward()
-                self.crfAiOptimizer.step()
-                print('epoch [{}/{}], train loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
-            for data in self.dataLoader(testdata):
-                data = data.to(device = self.device)
-                data = torch.squeeze(data)
-                spectrum1 = data[2, 2 * halfHarms:]
-                spectrum2 = data[3, 2 * halfHarms:]
-                spectrum3 = data[-2, 2 * halfHarms:]
-                spectrum4 = data[-1, 2 * halfHarms:]
-                
-                outputSize = data.size()[0] - 2
-                factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, factor).transpose(0, 1)
-                target = data[2:, 2 * halfHarms:]
-                loss = self.criterion(output, target)
-                testLossSpecLocal.append(loss.data.item())
-                print('epoch [{}/{}], test loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
-            reportedLoss = (reportedLoss * 99 + loss.data) / 100
-
-            from numpy import array, std, mean
-            trainLossSpecLocal = array(trainLossSpecLocal)
-            testLossSpecLocal = array(testLossSpecLocal)
-            trainLossSpec.append(mean(trainLossSpecLocal))
-            testLossSpec.append(mean(testLossSpecLocal))
-            trainLossSpecStd.append(std(trainLossSpecLocal))
-            testLossSpecStd.append(std(testLossSpecLocal))
-
+                self.VAEOptimizer.step()
             if writer != None:
                 results = {
                     "epochs": epoch,
-                    "learning rate": self.crfAi.learningRate,
-                    "hidden layer count": self.crfAi.hiddenLayerCount,
-                    "loss": loss.data,
-                    "acc. sample count": self.crfAi.sampleCount,
-                    "wtd. train loss": reportedLoss
+                    "learning rate": self.predAi.learningRate,
+                    "hidden layer count": self.predAi.recLayerCount,
+                    "gen. loss": loss.data,
+                    "disc. loss": "VAE",
+                    "acc. sample count": self.predAi.sampleCount,
                 }
                 writer.writerow(results)
-        if writer != None:
-            writer.close()
-        import matplotlib.pyplot as plt
-        plt.plot(trainLossSpec)
-        plt.plot(testLossSpec)
-        plt.show()
-        plt.plot(trainLossSpecStd)
-        plt.plot(testLossSpecStd)
-        plt.show()
