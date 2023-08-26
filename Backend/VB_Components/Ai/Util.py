@@ -158,3 +158,12 @@ def init_weights(module:nn.Module) -> None:
                 nn.init.zeros_(param)
             elif 'weight' in name:
                 nn.init.xavier_uniform_(param)
+
+class SpecNormLSTM(nn.Module):
+    
+    def __init__(self, input_size:int, hidden_size:int, dropout:float, device:torch.device, **kwargs) -> None:
+        super().__init__()
+        self.lstm = nn.LSTM(input_size = input_size, hidden_size = hidden_size, **kwargs, device = device)
+        for i in self.lstm._all_weights:
+            for j in i:
+                self.lstm = nn.utils.parametrizations.spectral_norm(self.lstm, name = j)
