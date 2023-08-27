@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 import global_consts
 from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
-from Backend.VB_Components.Ai.Util import HighwayLSTM, SpecNormHighwayLSTM, SpecNormLSTM
+from Backend.VB_Components.Ai.Util import HighwayLSTM, SpecNormHighwayLSTM, SpecNormLSTM, init_weights
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.Resampler.Resamplers import getSpecharm
@@ -37,19 +37,19 @@ class MainAi(nn.Module):
 
         super().__init__()
         
-        self.encoderA = SpecNormLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
+        self.encoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
         
-        self.decoderA = SpecNormLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = 10 * dim, batch_first = True, dropout = dropout, device = device)
+        self.decoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = 10 * dim, batch_first = True, dropout = dropout, device = device)
         
         self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
         self.decoderB = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], proj_size = 10 * dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
-        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[0], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[2], dropout = dropout, activation = "gelu")
+        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[0], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[2], dropout = dropout, activation = "gelu", batch_first = True)
 
         self.threshold = torch.nn.Threshold(0.001, 0.001)
         
-        #self.apply(init_weights)
+        self.apply(init_weights)
 
         self.device = device
         self.learningRate = learningRate
@@ -80,7 +80,7 @@ class MainAi(nn.Module):
         if level > 1:
             skipB, self.encoderBState = self.encoderB(skipA, self.encoderBState)
         if level > 2:
-            skipB += self.blockC(skipB, torch.roll(skipB, (1, 0, 0)), tgt_mask = torch.triu(torch.ones(skipB.size()[1], skipB.size()[1], device = self.device), diagonal = 1).bool())
+            skipB += self.blockC(skipB, torch.roll(skipB, (0, 1, 0)), tgt_mask = torch.triu(torch.ones(skipB.size()[1], skipB.size()[1], device = self.device), diagonal = 1).bool())
         if level > 1:
             decodedA = self.decoderB(skipB, self.decoderBState)
             skipA += decodedA[0]
@@ -107,19 +107,19 @@ class MainCritic(nn.Module):
     def __init__(self, dim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05) -> None:
         super().__init__()
         
-        self.encoderA = SpecNormLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
+        self.encoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
         
-        self.decoderA = SpecNormLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = 1, batch_first = True, dropout = dropout, device = device)
+        self.decoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = 1, batch_first = True, dropout = dropout, device = device)
         
         self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
         self.decoderB = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], proj_size = 10 * dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
-        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[0], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[2], dropout = dropout, activation = "gelu")
+        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[0], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[2], dropout = dropout, activation = "gelu", batch_first = True)
 
         self.threshold = torch.nn.Threshold(0.001, 0.001)
         
-        #self.apply(init_weights)
+        self.apply(init_weights)
 
         self.device = device
         self.learningRate = learningRate
@@ -150,7 +150,7 @@ class MainCritic(nn.Module):
         if level > 1:
             skipB, self.encoderBState = self.encoderB(skipA, self.encoderBState)
         if level > 2:
-            skipB += self.blockC(skipB, torch.roll(skipB, (1, 0, 0)), tgt_mask = torch.triu(torch.ones(skipB.size()[1], skipB.size()[1], device = self.device), diagonal = 1).bool())
+            skipB += self.blockC(skipB, torch.roll(skipB, (0, 1, 0)), tgt_mask = torch.triu(torch.ones(skipB.size()[1], skipB.size()[1], device = self.device), diagonal = 1).bool())
         if level > 1:
             decodedA = self.decoderB(skipB, self.decoderBState)
             skipA += decodedA[0]

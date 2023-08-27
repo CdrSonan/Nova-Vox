@@ -182,9 +182,7 @@ class AIWrapper():
 
         
         self.crfAi.eval()
-        self.predAi.eval()
         self.crfAi.requires_grad_(False)
-        self.predAi.requires_grad_(False)
         phase1 = specharm1[halfHarms:2 * halfHarms]
         phase2 = specharm2[halfHarms:2 * halfHarms]
         phase3 = specharm3[halfHarms:2 * halfHarms]
@@ -230,7 +228,7 @@ class AIWrapper():
             harms[i] = torch.min(harms[i], harmLimit)
             harms[i] = torch.max(harms[i], torch.tensor([0.,], device = self.device))
         output = torch.cat((harms, phases, spectrum), 1)
-        prediction = self.predAi(output, self.deskewingPremul, True)
+        prediction = self.predict(output)
         return output, torch.squeeze(prediction)
 
     def predict(self, specharm:torch.Tensor):
@@ -238,10 +236,12 @@ class AIWrapper():
 
         self.predAi.eval()
         self.predAi.requires_grad_(False)
-        if specharm.dim() == 1:
-            specharm = specharm.unsqueeze(0)
-        prediction = self.predAi(specharm, self.deskewingPremul, True)
-        return torch.squeeze(prediction)
+        latent = self.VAE.encoder(specharm)
+        if latent.dim() == 1:
+            latent = latent.unsqueeze(0)
+        prediction = self.predAi(latent, self.deskewingPremul, True)
+        output = self.VAE.decoder(torch.squeeze(prediction))
+        return torch.squeeze(output)
 
     def reset(self) -> None:
         """resets the hidden states and cell states of the AI's LSTM layers."""
@@ -350,12 +350,15 @@ class AIWrapper():
             self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
             self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
             self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
+            self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"])
         else:
             self.predAiGenerator.rebuildPool()
         self.predAi.train()
         self.predAi.requires_grad_(True)
         self.predAiDisc.train()
         self.predAiDisc.requires_grad_(True)
+        self.VAE.train()
+        self.VAE.requires_grad_(True)
         if logging:
             csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_pred.csv"), 'w', newline='')
             fieldnames = ["epochs", "learning rate", "hidden layer count", "spec. loss", "harm. loss", "acc. sample count", "wtd. spec. train loss" "wtd. harm. train loss"]
@@ -375,43 +378,19 @@ class AIWrapper():
         self.deskewingPremul /= total * 2.25
         targetLength = 0
         total = 0
-        for data in tqdm(self.dataLoader(indata), desc = " generator pre-training", position = 0, total = len(indata), unit = "samples"):
+        for data in self.dataLoader(indata):
             data = torch.squeeze(data)
-
-            """self.reset()
-            self.predAiOptimizer.zero_grad()
-            output = self.predAi(data, self.deskewingPremul, True)
-            loss = self.criterion(output, data)
-            loss.backward()
-            self.predAiOptimizer.step()"""
-            
             targetLength += data.size()[0]
             total += 1
-            #tqdm.write(loss.data.__repr__())
         targetLength /= total
-
-        """for epoch in tqdm(range(1), desc = "training", position = 0, unit = "epochs"):
-            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                data = torch.squeeze(data)
-                self.reset()
-                synthBase = self.predAiGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 8)
-                synthInput = self.predAi(synthBase, self.deskewingPremul, False)
-                
-                self.predAiDiscOptimizer.zero_grad()
-                self.predAiDisc.resetState()
-                posDiscriminatorLoss = self.predAiDisc(data, self.deskewingPremul, True)[-1]
-                negDiscriminatorLoss = self.predAiDisc(synthInput.detach(), self.deskewingPremul, True)[-1]
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
-                discriminatorLoss.backward()
-                self.predAiDiscOptimizer.step()
-
-                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__()))"""
+        
+        self.trainVAE(indata, writer, epochs)
 
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                data = torch.squeeze(data)
+                data = self.VAE.encoder(torch.squeeze(data))
                 self.reset()
-                synthBase = self.predAiGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
+                synthBase = self.VAE.encoder(self.predAiGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12))
                 synthInput = self.predAi(synthBase, self.deskewingPremul, True)
                 
                 self.predAiDiscOptimizer.zero_grad()
