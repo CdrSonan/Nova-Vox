@@ -37,9 +37,45 @@ class MainAi(nn.Module):
 
         super().__init__()
         
-        self.encoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
+        #self.encoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
         
-        self.decoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = 10 * dim, batch_first = True, dropout = dropout, device = device)
+        #self.decoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
+        
+        self.encoderA = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+        )
+        
+        self.decoderA = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+        )
         
         self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
@@ -78,17 +114,17 @@ class MainAi(nn.Module):
         if level > 0:
             skipA, self.encoderAState = self.encoderA(padded, self.encoderAState)
         if level > 1:
-            skipB, self.encoderBState = self.encoderB(skipA, self.encoderBState)
+            skipB, self.encoderBState = self.encoderB(skipA.reshape(1, skipA.size()[1] / 10, skipA.size()[2] * 10), self.encoderBState)
         if level > 2:
             skipB += self.blockC(skipB, torch.roll(skipB, (0, 1, 0)), tgt_mask = torch.triu(torch.ones(skipB.size()[1], skipB.size()[1], device = self.device), diagonal = 1).bool())
         if level > 1:
-            decodedA = self.decoderB(skipB, self.decoderBState)
-            skipA += decodedA[0]
-            self.decoderBState = decodedA[1]
+            decodedB = self.decoderB(skipB, self.decoderBState).reshape(1, skipA.size()[1], skipA.size()[2])
+            skipA += decodedB[0]
+            self.decoderBState = decodedB[1]
         if level > 0:
-            decodedB = self.decoderA(skipA, self.decoderAState)
-            output = latent + decodedB[0]
-            self.decoderAState = decodedB[1]
+            decodedA = self.decoderA(skipA, self.decoderAState)
+            output = latent + decodedA[0]
+            self.decoderAState = decodedA[1]
         else:
             output = latent
         

@@ -344,6 +344,7 @@ class AIWrapper():
     def trainPred(self, indata, epochs:int=1, logging:bool = False, reset:bool = False) -> None:
         """trains the NN based on a dataset of specharm sequences"""
 
+        scaler = torch.cuda.amp.GradScaler()
         if reset:
             self.predAi = SpecPredAi(self.device, self.hparams["pred_lr"], self.hparams["pred_rlc"], self.hparams["pred_rs"], self.hparams["pred_reg"])
             self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]))
@@ -398,16 +399,16 @@ class AIWrapper():
                 posDiscriminatorLoss = self.predAiDisc(data, self.deskewingPremul, True)[-1]
                 negDiscriminatorLoss = self.predAiDisc(synthInput.detach(), self.deskewingPremul, True)[-1]
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
-                discriminatorLoss.backward()
-                self.predAiDiscOptimizer.step()
+                scaler.scale(discriminatorLoss).backward()
+                scaler.step(self.predAiDiscOptimizer)
                 
                 if index % self.hparams["pred_train_asym"] == 0:
                     self.predAiOptimizer.zero_grad()
                     self.predAiDisc.resetState()
                     generatorLoss = self.predAiDisc(synthInput, self.deskewingPremul, True)[-1]
                     guideLoss = self.hparams["pred_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                    (generatorLoss + guideLoss).backward()
-                    self.predAiOptimizer.step()
+                    scaler.scale(generatorLoss + guideLoss).backward()
+                    scaler.step(self.predAiOptimizer)
 
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 
@@ -427,13 +428,14 @@ class AIWrapper():
             writer.close()
 
     def trainVAE(self, indata, writer, epochs:int=1) -> None:
+        scaler = torch.cuda.amp.GradScaler()
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
                 self.VAEOptimizer.zero_grad()
                 loss = self.VAE.training_step(data)
-                loss.backward()
-                self.VAEOptimizer.step()
+                scaler.scale(loss).backward()
+                scaler.step(self.VAEOptimizer)
             if writer != None:
                 results = {
                     "epochs": epoch,
