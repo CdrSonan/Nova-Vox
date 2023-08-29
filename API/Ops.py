@@ -704,7 +704,7 @@ class ChangeLyrics(UnifiedAction):
             else:
                 phonemes = []
             for i in text:
-                if expressionKey != None:
+                if  not middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeMode and (expressionKey != None):
                     phoneme = i + "_" + expressionKey
                 else:
                     phoneme = i

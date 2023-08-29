@@ -20,10 +20,10 @@ from Backend.DataHandler.VocalSegment import VocalSegment
 def getClosestSample(samples:list, pitch:float):
     closestSample = 0
     closestDistance = math.inf
-    for i, sample in enumerate(samples):
+    for sample in samples:
         if abs(sample.pitch - pitch) < closestDistance:
-            closestSample = i
-            closestDistance = abs(sample - pitch)
+            closestSample = sample
+            closestDistance = abs(sample.pitch - pitch)
     return closestSample
 
 def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
@@ -165,9 +165,12 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                requiredSize,
                                timings)
-    return output
+    import matplotlib.pyplot as plt
+    output_legacy = getPitch_legacy(vocalSegment, device)
+    plt.plot(output_legacy.cpu().numpy(), output.cpu().numpy())
+    return output_legacy
 
-def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the pitch curve of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":

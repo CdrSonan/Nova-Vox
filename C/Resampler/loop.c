@@ -18,6 +18,7 @@ void loopSamplerSpecharm(float* input, int length, float* output, int targetLeng
     int effSpacing = ceildiv(spacing * length,  2);
     int requiredInstances = targetLength / (length - effSpacing);
     int lastWin = targetLength - requiredInstances * (length - effSpacing);
+    printf("effSpacing: %i, requiredInstances: %i, lastWin: %i\n", effSpacing, requiredInstances, lastWin);
     if (targetLength <= length)
     {
         //one instance is required to cover the entire length.

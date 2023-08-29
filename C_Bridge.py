@@ -10,8 +10,8 @@ import torch
 
 from Backend.DataHandler.AudioSample import AudioSample
 
-esper = ctypes.CDLL("lib/Release/esper.dll")
-resampler = ctypes.CDLL("lib/Release/resampler.dll")
+esper = ctypes.CDLL("lib/Debug/esper.dll")
+resampler = ctypes.CDLL("lib/Debug/resampler.dll")
 
 class engineCfg(ctypes.Structure):
     _fields_ = [("sampleRate", ctypes.c_uint),

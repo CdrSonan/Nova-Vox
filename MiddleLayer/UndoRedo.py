@@ -16,7 +16,7 @@ def enqueueUndo(action):
             middleLayer.undoStack[-1][-1] = merge
         else:
             middleLayer.undoStack[-1].append(action)
-    else:
+    elif len(middleLayer.undoStack) > 0:
         merge = middleLayer.undoStack[-1][-1].merge(action)
         if merge != None:
             middleLayer.undoStack[-1] = merge

@@ -30,7 +30,7 @@ class VAE(nn.Module):
         self.fc_var = nn.Linear(encoder_dim, latent_dim, device = self.device)
 
         # for the gaussian likelihood
-        self.log_scale = nn.Parameter(torch.Tensor([0.0], device = self.device))
+        self.log_scale = nn.Parameter(torch.tensor([0.0,], device = self.device))
 
     def gaussian_likelihood(self, x_hat, logscale, x):
         scale = torch.exp(logscale)
