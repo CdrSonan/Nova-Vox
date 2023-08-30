@@ -402,7 +402,7 @@ class UtauImportUi(Frame):
         if self.sampleList[index]._type == 0:
             loadedVB.addPhonemeUtau(self.sampleList[index])
         else:
-            loadedVB.addCrfTrainSampleUtau(self.sampleList[index])
+            loadedVB.addTrTrainSampleUtau(self.sampleList[index])
         self.sideBar._type.variable.set(0)
         self.sideBar.key.variable.set(None)
         self.sideBar.start.variable.set(None)
@@ -427,9 +427,9 @@ class UtauImportUi(Frame):
             if self.sampleList[0]._type == 0:
                 loadedVB.addPhonemeUtau(self.sampleList[0])
             elif self.sampleList[0]._type == 2:
-                loadedVB.addPredTrainSampleUtau(self.sampleList[0])
+                loadedVB.addMainTrainSampleUtau(self.sampleList[0])
             else:
-                loadedVB.addCrfTrainSampleUtau(self.sampleList[0])
+                loadedVB.addTrTrainSampleUtau(self.sampleList[0])
             del self.sampleList[0]
             self.phonemeList.list.lb.delete(0)
         self.update()

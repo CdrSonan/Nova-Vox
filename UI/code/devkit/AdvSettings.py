@@ -12,7 +12,7 @@ import sys
 
 import torch
 
-from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
+from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.PredAi import SpecPredAi, SpecPredDiscriminator
 from Localization.devkit_localization import getLanguage
 from UI.code.devkit.Widgets import *
@@ -235,7 +235,7 @@ class AdvSettingsUi(Frame):
         if resetCrf:
             loadedVB.ai.hparams["crf_hlc"] = hparams["crf_hlc"]
             loadedVB.ai.hparams["crf_hls"] = hparams["crf_hls"]
-            loadedVB.ai.crfAi = SpecCrfAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["crf_lr"], regularization=loadedVB.ai.hparams["crf_reg"], hiddenLayerCount=loadedVB.ai.hparams["crf_hlc"], hiddenLayerSize=loadedVB.ai.hparams["crf_hls"])
+            loadedVB.ai.crfAi = TrAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["crf_lr"], regularization=loadedVB.ai.hparams["crf_reg"], hiddenLayerCount=loadedVB.ai.hparams["crf_hlc"], hiddenLayerSize=loadedVB.ai.hparams["crf_hls"])
         if resetPred:
             loadedVB.ai.hparams["pred_rs"] = hparams["pred_rs"]
             loadedVB.ai.predAi = SpecPredAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["pred_lr"], regularization=loadedVB.ai.hparams["pred_reg"], recSize=loadedVB.ai.hparams["rs"])

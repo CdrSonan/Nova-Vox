@@ -428,7 +428,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 excitation.write(nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx], windowEndEx, internalInputs.borders[3 * j + 5])
                             aiSpec = torch.roll(currentSpectrum, (-1,), (0,))
                             aiSpec[0] = currentSpectrum[0]
-                            aiSpec = torch.squeeze(voicebank.ai.predict(aiSpec.to(device = device_ai))).to(device = device_rs)
+                            aiSpec = torch.squeeze(voicebank.ai.refine(aiSpec.to(device = device_ai))).to(device = device_rs)
                             aiBalance = internalInputs.aiBalance[windowStart:windowEnd].unsqueeze(1).to(device = device_rs)
                             aiSpec = (0.5 - 0.5 * aiBalance) * currentSpectrum + (0.5 + 0.5 * aiBalance) * aiSpec
                             pitchOffset = currentPitch[windowStart - internalInputs.borders[3 * j]:windowEnd - internalInputs.borders[3 * j]]

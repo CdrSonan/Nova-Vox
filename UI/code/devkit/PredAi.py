@@ -46,7 +46,7 @@ class PredaiUi(Frame):
         self.phonemeList.list.lb.bind("<FocusOut>", self.onListFocusOut)
         self.phonemeList.list.sb["command"] = self.phonemeList.list.lb.yview
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
-        for i in loadedVB.stagedPredTrainSamples:
+        for i in loadedVB.stagedMainTrainSamples:
             self.phonemeList.list.lb.insert("end", i.filepath)
         self.phonemeList.removeButton = SlimButton(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]
@@ -209,13 +209,13 @@ class PredaiUi(Frame):
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
             index = self.phonemeList.list.lastFocusedIndex
-            self.sideBar.expPitch.variable.set(loadedVB.stagedPredTrainSamples[index].expectedPitch)
-            self.sideBar.pSearchRange.variable.set(loadedVB.stagedPredTrainSamples[index].searchRange)
-            self.sideBar.voicedThrh.variable.set(loadedVB.stagedPredTrainSamples[index].voicedThrh)
-            self.sideBar.specSmooth.widthVariable.set(loadedVB.stagedPredTrainSamples[index].specWidth)
-            self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedPredTrainSamples[index].specDepth)
-            self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedPredTrainSamples[index].tempWidth)
-            self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedPredTrainSamples[index].tempDepth)
+            self.sideBar.expPitch.variable.set(loadedVB.stagedMainTrainSamples[index].expectedPitch)
+            self.sideBar.pSearchRange.variable.set(loadedVB.stagedMainTrainSamples[index].searchRange)
+            self.sideBar.voicedThrh.variable.set(loadedVB.stagedMainTrainSamples[index].voicedThrh)
+            self.sideBar.specSmooth.widthVariable.set(loadedVB.stagedMainTrainSamples[index].specWidth)
+            self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedMainTrainSamples[index].specDepth)
+            self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedMainTrainSamples[index].tempWidth)
+            self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedMainTrainSamples[index].tempDepth)
             
     def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""
@@ -230,20 +230,20 @@ class PredaiUi(Frame):
         logging.info("crf staged phoneme update callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
-        loadedVB.stagedPredTrainSamples[index].expectedPitch = self.sideBar.expPitch.variable.get()
-        loadedVB.stagedPredTrainSamples[index].searchRange = self.sideBar.pSearchRange.variable.get()
-        loadedVB.stagedPredTrainSamples[index].voicedThrh =  self.sideBar.voicedThrh.variable.get()
-        loadedVB.stagedPredTrainSamples[index].specWidth = self.sideBar.specSmooth.widthVariable.get()
-        loadedVB.stagedPredTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
-        loadedVB.stagedPredTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
-        loadedVB.stagedPredTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
+        loadedVB.stagedMainTrainSamples[index].expectedPitch = self.sideBar.expPitch.variable.get()
+        loadedVB.stagedMainTrainSamples[index].searchRange = self.sideBar.pSearchRange.variable.get()
+        loadedVB.stagedMainTrainSamples[index].voicedThrh =  self.sideBar.voicedThrh.variable.get()
+        loadedVB.stagedMainTrainSamples[index].specWidth = self.sideBar.specSmooth.widthVariable.get()
+        loadedVB.stagedMainTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
+        loadedVB.stagedMainTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
+        loadedVB.stagedMainTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
 
     def onPitBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the pitch search settings of the currently selected sample to all samples"""
 
         pitch = self.sideBar.expPitch.variable.get()
         pitchRange = self.sideBar.pSearchRange.variable.get()
-        for i in loadedVB.stagedPredTrainSamples:
+        for i in loadedVB.stagedMainTrainSamples:
             i.expectedPitch = pitch
             i.searchRange = pitchRange
 
@@ -257,7 +257,7 @@ class PredaiUi(Frame):
             self.sideBar.tempSmooth.widthVariable.get(),
             self.sideBar.tempSmooth.depthVariable.get(),
         ]
-        for i in loadedVB.stagedPredTrainSamples:
+        for i in loadedVB.stagedMainTrainSamples:
             i.voicedThrh = newValues[0]
             i.specWidth = newValues[1]
             i.specDepth = newValues[2]
@@ -272,7 +272,7 @@ class PredaiUi(Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")), multiple = True)
         if filepath != ():
             for i in filepath:
-                loadedVB.addPredTrainSample(i)
+                loadedVB.addMainTrainSample(i)
                 self.phonemeList.list.lb.insert("end", i)
         
     def onRemovePress(self) -> None:
@@ -282,7 +282,7 @@ class PredaiUi(Frame):
         global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
-            loadedVB.delPredTrainSample(index)
+            loadedVB.delMainTrainSample(index)
             self.phonemeList.list.lb.delete(index)
             if index == self.phonemeList.list.lb.size():
                 self.phonemeList.list.lb.selection_set(index - 1)
@@ -295,7 +295,7 @@ class PredaiUi(Frame):
         logging.info("Crfai dataset export callback")
         global loadedVB
         filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".dat", filetypes = ((".dat", ".dat"), (loc["all_files_desc"], "*")))
-        torch.save(loadedVB.stagedPredTrainSamples, filepath)
+        torch.save(loadedVB.stagedMainTrainSamples, filepath)
 
     def onImportPress(self) -> None:
         """UI Frontend function for importing a previously saved AI training dataset. Overwrites any previously staged training samples."""
@@ -304,7 +304,7 @@ class PredaiUi(Frame):
         global loadedVB
         filepaths = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
         for i in filepaths:
-            loadedVB.stagedPredTrainSamples.extend(torch.load(i, map_location = torch.device("cpu")))
+            loadedVB.stagedMainTrainSamples.extend(torch.load(i, map_location = torch.device("cpu")))
                 
     def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""
@@ -313,7 +313,7 @@ class PredaiUi(Frame):
         global loadedVB
         self.statusVar.set("training Ai...")
         self.update()
-        loadedVB.trainPredAi(
+        loadedVB.trainMainAi(
             self.sideBar.epochs.variable.get(),
             self.sideBar.additive.variable.get(),
             self.sideBar.logging.variable.get()
@@ -370,5 +370,5 @@ class PredaiUi(Frame):
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
-            loadedVB.loadPredWeights(filepath)
+            loadedVB.loadMainWeights(filepath)
             self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.predAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.predAi.sampleCount) + loc["AI_stat_3"])

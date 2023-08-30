@@ -13,7 +13,7 @@ import global_consts
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 
 
-class SpecCrfAi(nn.Module):
+class TrAi(nn.Module):
     """class for generating crossfades between the spectra of different phonemes using AI.
     
     Attributes:
@@ -57,7 +57,7 @@ class SpecCrfAi(nn.Module):
             None"""
             
             
-        super(SpecCrfAi, self).__init__()
+        super(TrAi, self).__init__()
         self.layerStart1a = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, batch_first = True, device = device)
         self.layerStart1b = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, batch_first = True, device = device)
         self.ReLuStart1 = nn.ReLU()

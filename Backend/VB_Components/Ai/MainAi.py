@@ -11,7 +11,7 @@ from math import floor, pi, ceil, log
 import torch
 import torch.nn as nn
 import global_consts
-from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
+from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.Util import HighwayLSTM, SpecNormHighwayLSTM, SpecNormLSTM, init_weights
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
@@ -45,16 +45,16 @@ class MainAi(nn.Module):
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
         )
@@ -63,16 +63,16 @@ class MainAi(nn.Module):
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2)),
             nn.BatchNorm1d(blockA[0]),
             nn.Sigmoid(),
         )
@@ -81,7 +81,7 @@ class MainAi(nn.Module):
         
         self.decoderB = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], proj_size = 10 * dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
-        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[0], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[2], dropout = dropout, activation = "gelu", batch_first = True)
+        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True)
 
         self.threshold = torch.nn.Threshold(0.001, 0.001)
         
@@ -211,7 +211,7 @@ class MainCritic(nn.Module):
 class DataGenerator:
     """generates synthetic data for the discriminator to train on"""
     
-    def __init__(self, voicebank, crfAi:SpecCrfAi, mode:str = "reclist", requireVowels:bool = False) -> None:
+    def __init__(self, voicebank, crfAi:TrAi, mode:str = "reclist", requireVowels:bool = False) -> None:
         self.voicebank = voicebank
         self.crfAi = crfAi
         self.mode = mode

@@ -46,7 +46,7 @@ class CrfaiUi(Frame):
         self.phonemeList.list.lb.bind("<FocusOut>", self.onListFocusOut)
         self.phonemeList.list.sb["command"] = self.phonemeList.list.lb.yview
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
-        for i in loadedVB.stagedCrfTrainSamples:
+        for i in loadedVB.stagedTrTrainSamples:
             self.phonemeList.list.lb.insert("end", i.filepath)
         self.phonemeList.removeButton = SlimButton(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]
@@ -231,14 +231,14 @@ class CrfaiUi(Frame):
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
             index = self.phonemeList.list.lastFocusedIndex
-            self.sideBar.expPitch.variable.set(loadedVB.stagedCrfTrainSamples[index].expectedPitch)
-            self.sideBar.pSearchRange.variable.set(loadedVB.stagedCrfTrainSamples[index].searchRange)
-            self.sideBar.specSmooth.widthVariable.set(loadedVB.stagedCrfTrainSamples[index].specWidth)
-            self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedCrfTrainSamples[index].specDepth)
-            self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedCrfTrainSamples[index].tempWidth)
-            self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedCrfTrainSamples[index].tempDepth)
-            self.sideBar.embedding1.variable.set(hex(loadedVB.stagedCrfTrainSamples[index].embedding[0])[2:])
-            self.sideBar.embedding2.variable.set(hex(loadedVB.stagedCrfTrainSamples[index].embedding[1])[2:])
+            self.sideBar.expPitch.variable.set(loadedVB.stagedTrTrainSamples[index].expectedPitch)
+            self.sideBar.pSearchRange.variable.set(loadedVB.stagedTrTrainSamples[index].searchRange)
+            self.sideBar.specSmooth.widthVariable.set(loadedVB.stagedTrTrainSamples[index].specWidth)
+            self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedTrTrainSamples[index].specDepth)
+            self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedTrTrainSamples[index].tempWidth)
+            self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedTrTrainSamples[index].tempDepth)
+            self.sideBar.embedding1.variable.set(hex(loadedVB.stagedTrTrainSamples[index].embedding[0])[2:])
+            self.sideBar.embedding2.variable.set(hex(loadedVB.stagedTrTrainSamples[index].embedding[1])[2:])
             
     def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""
@@ -253,24 +253,24 @@ class CrfaiUi(Frame):
         logging.info("crf staged phoneme update callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
-        loadedVB.stagedCrfTrainSamples[index].expectedPitch = self.sideBar.expPitch.variable.get()
-        loadedVB.stagedCrfTrainSamples[index].searchRange = self.sideBar.pSearchRange.variable.get()
-        loadedVB.stagedCrfTrainSamples[index].specWidth = self.sideBar.specSmooth.widthVariable.get()
-        loadedVB.stagedCrfTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
-        loadedVB.stagedCrfTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
-        loadedVB.stagedCrfTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
+        loadedVB.stagedTrTrainSamples[index].expectedPitch = self.sideBar.expPitch.variable.get()
+        loadedVB.stagedTrTrainSamples[index].searchRange = self.sideBar.pSearchRange.variable.get()
+        loadedVB.stagedTrTrainSamples[index].specWidth = self.sideBar.specSmooth.widthVariable.get()
+        loadedVB.stagedTrTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
+        loadedVB.stagedTrTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
+        loadedVB.stagedTrTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
 
     def onEmbeddingUpdateTrigger(self, event) -> None:
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
-        loadedVB.stagedCrfTrainSamples[index].embedding = (int(self.sideBar.embedding1.variable.get(), 16), int(self.sideBar.embedding2.variable.get(), 16))
+        loadedVB.stagedTrTrainSamples[index].embedding = (int(self.sideBar.embedding1.variable.get(), 16), int(self.sideBar.embedding2.variable.get(), 16))
 
     def onPitBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the pitch search settings of the currently selected sample to all samples"""
 
         pitch = self.sideBar.expPitch.variable.get()
         pitchRange = self.sideBar.pSearchRange.variable.get()
-        for i in loadedVB.stagedCrfTrainSamples:
+        for i in loadedVB.stagedTrTrainSamples:
             i.expectedPitch = pitch
             i.searchRange = pitchRange
 
@@ -284,7 +284,7 @@ class CrfaiUi(Frame):
             self.sideBar.tempSmooth.widthVariable.get(),
             self.sideBar.tempSmooth.depthVariable.get(),
         ]
-        for i in loadedVB.stagedCrfTrainSamples:
+        for i in loadedVB.stagedTrTrainSamples:
             i.voicedThrh = newValues[0]
             i.specWidth = newValues[1]
             i.specDepth = newValues[2]
@@ -299,7 +299,7 @@ class CrfaiUi(Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")), multiple = True)
         if filepath != ():
             for i in filepath:
-                loadedVB.addCrfTrainSample(i)
+                loadedVB.addTrTrainSample(i)
                 self.phonemeList.list.lb.insert("end", i)
         
     def onRemovePress(self) -> None:
@@ -309,7 +309,7 @@ class CrfaiUi(Frame):
         global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
-            loadedVB.delCrfTrainSample(index)
+            loadedVB.delTrTrainSample(index)
             self.phonemeList.list.lb.delete(index)
             if index == self.phonemeList.list.lb.size():
                 self.phonemeList.list.lb.selection_set(index - 1)
@@ -322,7 +322,7 @@ class CrfaiUi(Frame):
         logging.info("Crfai dataset export callback")
         global loadedVB
         filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".dat", filetypes = ((".dat", ".dat"), (loc["all_files_desc"], "*")))
-        torch.save(loadedVB.stagedCrfTrainSamples, filepath)
+        torch.save(loadedVB.stagedTrTrainSamples, filepath)
 
     def onImportPress(self) -> None:
         """UI Frontend function for importing a previously saved AI training dataset. Overwrites any previously staged training samples."""
@@ -331,7 +331,7 @@ class CrfaiUi(Frame):
         global loadedVB
         filepaths = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
         for i in filepaths:
-            loadedVB.stagedCrfTrainSamples.extend(torch.load(i, map_location = torch.device("cpu")))
+            loadedVB.stagedTrTrainSamples.extend(torch.load(i, map_location = torch.device("cpu")))
                 
     def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""
@@ -340,7 +340,7 @@ class CrfaiUi(Frame):
         global loadedVB
         self.statusVar.set("training Ai...")
         self.update()
-        loadedVB.trainCrfAi(
+        loadedVB.trainTrAi(
             self.sideBar.epochs.variable.get(),
             self.sideBar.additive.variable.get(),
             self.sideBar.logging.variable.get()
@@ -395,5 +395,5 @@ class CrfaiUi(Frame):
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
-            loadedVB.loadCrfWeights(filepath)
+            loadedVB.loadTrWeights(filepath)
             self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])

@@ -98,14 +98,14 @@ class Voicebank():
         self.ai = AIWrapper(self, device)
         self.parameters = []
         self.wordDict = (dict(), [])
-        self.stagedCrfTrainSamples = []
-        self.stagedPredTrainSamples = []
+        self.stagedTrTrainSamples = []
+        self.stagedMainTrainSamples = []
         self.device = device
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
-            self.loadCrfWeights(self.filepath)
-            self.loadPredWeights(self.filepath)
+            self.loadTrWeights(self.filepath)
+            self.loadMainWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
         
@@ -123,7 +123,7 @@ class Voicebank():
         
     def loadMetadata(self, filepath:str) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
-        data = torch.load(filepath, map_location = self.device)
+        data = torch.load(filepath, map_location = torch.device("cpu"))
         self.metadata = data["metadata"]
     
     def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
@@ -137,7 +137,7 @@ class Voicebank():
             None"""
             
             
-        data = torch.load(filepath, map_location = self.device)
+        data = torch.load(filepath, map_location = torch.device("cpu"))
         if additive:
             for i in data["phonemeDict"].keys():
                 if i in self.phonemeDict.keys():
@@ -148,26 +148,40 @@ class Voicebank():
         else:
             self.phonemeDict = data["phonemeDict"]
     
-    def loadCrfWeights(self, filepath:str) -> None:
+    def loadTrWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
         aiState = torch.load(filepath, map_location = self.device)["aiState"]
         hparams = torch.load(filepath, map_location = self.device)["hparams"]
-        self.ai.hparams["crf_lr"] = hparams["crf_lr"]
-        self.ai.hparams["crf_reg"] = hparams["crf_reg"]
-        self.ai.hparams["crf_hls"] = hparams["crf_hls"]
-        self.ai.hparams["crf_hlc"] = hparams["crf_hlc"]
-        self.ai.loadState(aiState, "crf", True)
+        self.ai.hparams["tr_lr"] = hparams["tr_lr"]
+        self.ai.hparams["tr_reg"] = hparams["tr_reg"]
+        self.ai.hparams["tr_hlc"] = hparams["tr_hlc"]
+        self.ai.hparams["tr_hls"] = hparams["tr_hls"]
+        self.ai.hparams["tr_def_thrh"] = hparams["tr_def_thrh"]
+        self.ai.loadState(aiState, "tr", True)
 
-    def loadPredWeights(self, filepath:str) -> None:
+    def loadMainWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
         aiState = torch.load(filepath, map_location = self.device)["aiState"]
         hparams = torch.load(filepath, map_location = self.device)["hparams"]
-        self.ai.hparams["pred_lr"] = hparams["pred_lr"]
-        self.ai.hparams["pred_reg"] = hparams["pred_reg"]
-        self.ai.hparams["pred_rs"] = hparams["pred_rs"]
-        self.ai.loadState(aiState, "pred", True)
+        self.ai.hparams["latent_dim"] = hparams["latent_dim"]
+        self.ai.hparams["main_blkA"] = hparams["main_blkA"]
+        self.ai.hparams["main_blkB"] = hparams["main_blkB"]
+        self.ai.hparams["main_blkC"] = hparams["main_blkC"]
+        self.ai.hparams["main_lr"] = hparams["main_lr"]
+        self.ai.hparams["main_reg"] = hparams["main_reg"]
+        self.ai.hparams["main_drp"] = hparams["main_drp"]
+        self.ai.hparams["crt_blkA"] = hparams["crt_blkA"]
+        self.ai.hparams["crt_blkB"] = hparams["crt_blkB"]
+        self.ai.hparams["crt_blkC"] = hparams["crt_blkC"]
+        self.ai.hparams["crt_lr"] = hparams["crt_lr"]
+        self.ai.hparams["crt_reg"] = hparams["crt_reg"]
+        self.ai.hparams["crt_drp"] = hparams["crt_drp"]
+        self.ai.hparams["vae_lr"] = hparams["vae_lr"]
+        self.ai.hparams["gan_guide_wgt"] = hparams["gan_guide_wgt"]
+        self.ai.hparams["gan_train_asym"] = hparams["gan_train_asym"]
+        self.ai.loadState(aiState, "main", True)
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
@@ -180,7 +194,7 @@ class Voicebank():
     def loadWordDict(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
 
-        self.wordDict = torch.load(filepath, map_location = self.device)["wordDict"]
+        self.wordDict = torch.load(filepath, map_location = torch.device("cpu"))["wordDict"]
         
     def addPhoneme(self, key:str, filepath:str) -> None:
         """adds a phoneme to the Voicebank's PhonemeDict.
@@ -251,54 +265,54 @@ class Voicebank():
         self.phonemeDict[key][0] = LiteAudioSample(self.phonemeDict[key][0])
         print("staged phoneme " + key + " finalized")
     
-    def addCrfTrainSample(self, filepath:str) -> None:
+    def addTrTrainSample(self, filepath:str) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
 
-        self.stagedCrfTrainSamples.append(AISample(filepath))
-        self.stagedCrfTrainSamples[-1].embedding = (0, 0)
+        self.stagedTrTrainSamples.append(AISample(filepath))
+        self.stagedTrTrainSamples[-1].embedding = (0, 0)
 
-    def addCrfTrainSampleUtau(self, sample:UtauSample) -> None:
+    def addTrTrainSampleUtau(self, sample:UtauSample) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
 
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
-            self.stagedCrfTrainSamples.append(sample.convert(True))
+            self.stagedTrTrainSamples.append(sample.convert(True))
         else:
             logging.warning("skipped one or several samples below the size threshold")
     
-    def delCrfTrainSample(self, index:int) -> None:
+    def delTrTrainSample(self, index:int) -> None:
         """removes an audio sample from the list of staged training phonemes"""
 
-        del self.stagedCrfTrainSamples[index]
+        del self.stagedTrTrainSamples[index]
     
-    def changeCrfTrainSampleFile(self, index:int, filepath:str) -> None:
+    def changeTrTrainSampleFile(self, index:int, filepath:str) -> None:
         """currently unused method that changes the file of a staged phoneme crossfade Ai training sample"""
 
-        self.stagedCrfTrainSamples[index] = AISample(filepath)
+        self.stagedTrTrainSamples[index] = AISample(filepath)
 
-    def addPredTrainSample(self, filepath:str) -> None:
+    def addMainTrainSample(self, filepath:str) -> None:
         """stages an audio sample the prediction Ai is to be trained with"""
 
-        self.stagedPredTrainSamples.append(AISample(filepath))
+        self.stagedMainTrainSamples.append(AISample(filepath))
 
-    def addPredTrainSampleUtau(self, sample:UtauSample) -> None:
+    def addMainTrainSampleUtau(self, sample:UtauSample) -> None:
         """stages an audio sample the prediction Ai is to be trained with"""
 
         if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 4 * global_consts.tripleBatchSize:
-            self.stagedPredTrainSamples.append(sample.convert(True))
+            self.stagedMainTrainSamples.append(sample.convert(True))
         else:
             logging.warning("skipped one or several samples below the size threshold")
     
-    def delPredTrainSample(self, index:int) -> None:
+    def delMainTrainSample(self, index:int) -> None:
         """removes an audio sample from the list of staged training samples"""
 
-        del self.stagedPredTrainSamples[index]
+        del self.stagedMainTrainSamples[index]
     
-    def changePredTrainSampleFile(self, index:int, filepath:str) -> None:
+    def changeMainTrainSampleFile(self, index:int, filepath:str) -> None:
         """currently unused method that changes the file of a staged prediction Ai training sample"""
 
-        self.stagedPredTrainSamples[index] = AISample(filepath)
+        self.stagedMainTrainSamples[index] = AISample(filepath)
     
-    def trainCrfAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
+    def trainTrAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
         
         Arguments:
@@ -310,20 +324,20 @@ class Voicebank():
             
 
         print("sample preprocessing started")
-        sampleCount = len(self.stagedCrfTrainSamples)
-        stagedCrfTrainSamples = []
+        sampleCount = len(self.stagedTrTrainSamples)
+        stagedTrTrainSamples = []
         for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            sample = self.stagedCrfTrainSamples.pop().convert(False)
+            sample = self.stagedTrTrainSamples.pop().convert(False)
             calculatePitch(sample, True)
             calculateSpectra(sample, False)
             avgSpecharm = torch.cat((sample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), sample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-            stagedCrfTrainSamples.append(((avgSpecharm + sample.specharm).to(device = self.device), sample.embedding))
+            stagedTrTrainSamples.append(((avgSpecharm + sample.specharm).to(device = self.device), sample.embedding))
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainCrf(stagedCrfTrainSamples, epochs = epochs, logging = logging, reset = not additive)
+        self.ai.trainCrf(stagedTrTrainSamples, epochs = epochs, logging = logging, reset = not additive)
         print("AI training complete")
 
-    def trainPredAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
+    def trainMainAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
         """initiates the training of the Voicebank's prediction Ai using all staged training samples and the Ai's settings.
         
         Arguments:
@@ -335,18 +349,18 @@ class Voicebank():
             
 
         print("sample preprocessing started")
-        sampleCount = len(self.stagedPredTrainSamples)
-        stagedPredTrainSamples = []
+        sampleCount = len(self.stagedMainTrainSamples)
+        stagedMainTrainSamples = []
         for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            samples = self.stagedPredTrainSamples.pop().convert(True)
+            samples = self.stagedMainTrainSamples.pop().convert(True)
             for j in samples:
                 calculatePitch(j, False)
                 calculateSpectra(j, False)
                 avgSpecharm = torch.cat((j.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), j.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-                stagedPredTrainSamples.append((avgSpecharm + j.specharm).to(device = self.device))
+                stagedMainTrainSamples.append((avgSpecharm + j.specharm).to(device = self.device))
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainPred(stagedPredTrainSamples, epochs = epochs, logging = logging, reset = not additive)
+        self.ai.trainPred(stagedMainTrainSamples, epochs = epochs, logging = logging, reset = not additive)
         print("AI training complete")
 
 class LiteVoicebank():
@@ -405,19 +419,19 @@ class LiteVoicebank():
         self.ai = AIWrapper(self, device, torch.load(filepath, map_location = self.device)["hparams"])
         self.parameters = []
         self.wordDict = (dict(), [])
-        self.stagedCrfTrainSamples = []
-        self.stagedPredTrainSamples = []
+        self.stagedTrTrainSamples = []
+        self.stagedMainTrainSamples = []
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
-            self.loadCrfWeights(self.filepath)
-            self.loadPredWeights(self.filepath)
+            self.loadTrWeights(self.filepath)
+            self.loadMainWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
         
     def loadMetadata(self, filepath:str) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
-        data = torch.load(filepath, map_location = self.device)
+        data = torch.load(filepath, map_location = torch.device("cpu"))
         self.metadata = data["metadata"]
     
     def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
@@ -431,7 +445,7 @@ class LiteVoicebank():
             None"""
             
             
-        data = torch.load(filepath, map_location = self.device)
+        data = torch.load(filepath, map_location = torch.device("cpu"))
         if additive:
             for i in data["phonemeDict"].keys():
                 if i in self.phonemeDict.keys():
@@ -442,22 +456,25 @@ class LiteVoicebank():
         else:
             self.phonemeDict = data["phonemeDict"]
     
-    def loadCrfWeights(self, filepath:str) -> None:
+    def loadTrWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
         aiState = torch.load(filepath, map_location = self.device)["aiState"]
         hparams = torch.load(filepath, map_location = self.device)["hparams"]
-        self.ai.hparams["crf_hls"] = hparams["crf_hls"]
-        self.ai.hparams["crf_hlc"] = hparams["crf_hlc"]
-        self.ai.loadState(aiState, "crf", True)
+        self.ai.hparams["tr_hlc"] = hparams["tr_hlc"]
+        self.ai.hparams["tr_hls"] = hparams["tr_hls"]
+        self.ai.loadState(aiState, "tr", True)
 
-    def loadPredWeights(self, filepath:str) -> None:
+    def loadMainWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
         aiState = torch.load(filepath, map_location = self.device)["aiState"]
         hparams = torch.load(filepath, map_location = self.device)["hparams"]
-        self.ai.hparams["pred_rs"] = hparams["pred_rs"]
-        self.ai.loadState(aiState, "pred", True)
+        self.ai.hparams["latent_dim"] = hparams["latent_dim"]
+        self.ai.hparams["main_blkA"] = hparams["main_blkA"]
+        self.ai.hparams["main_blkB"] = hparams["main_blkB"]
+        self.ai.hparams["main_blkC"] = hparams["main_blkC"]
+        self.ai.loadState(aiState, "main", True)
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""

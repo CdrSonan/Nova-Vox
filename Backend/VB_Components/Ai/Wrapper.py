@@ -13,8 +13,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
 import global_consts
-from Backend.VB_Components.Ai.CrfAi import SpecCrfAi
-from Backend.VB_Components.Ai.PredAi import SpecPredAi, SpecPredDiscriminator, DataGenerator
+from Backend.VB_Components.Ai.TrAi import TrAi
+from Backend.VB_Components.Ai.MainAi import MainAi, MainCritic, DataGenerator
 from Backend.VB_Components.Ai.VAE import VAE
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.Resampler.CubicSplineInter import interp
@@ -26,48 +26,53 @@ halfHarms = int(global_consts.nHarmonics / 2) + 1
 class AIWrapper():
     """Wrapper class for the mandatory AI components of a Voicebank. Controls data pre- and postprocessing, state loading and saving, Hyperparameters, and both training and inference."""
 
-    def __init__(self, voicebank, device = torch.device("cpu"), hparams:dict = None) -> None:
+    def __init__(self, voicebank, device = torch.device("cpu"), hparams:dict = None, inferOnly:bool = False) -> None:
         """constructor taking a target device and dictionary of hyperparameters as input"""
 
+        self.inferOnly = inferOnly
         self.hparams = {
-            "crf_lr": 0.000055,
-            "crf_reg": 0.,
-            "crf_hlc": 1,
-            "crf_hls": 4000,
-            "crf_def_thrh" : 0.05,
-            "pred_lr": 1.,
-            "pred_reg": 0.,
-            "pred_rlc": 3,
-            "pred_rs": 1024,
-            "pred_drp":0.5,
-            "preddisc_lr": 1.,
-            "preddisc_reg": 0.,
-            "preddisc_rlc": 3,
-            "preddisc_rs": 1024,
-            "preddisc_drp":0.25,
-            "pred_guide_wgt": 1.,
-            "pred_train_asym": 4,
-            "latent_dim": 128
+            "tr_lr": 0.000055,
+            "tr_reg": 0.,
+            "tr_hlc": 1,
+            "tr_hls": 4000,
+            "tr_def_thrh" : 0.05,
+            "latent_dim": 128,
+            "main_blkA": [128, 3],
+            "main_blkB": [512, 2],
+            "main_blkC": [1024, 3, 5],
+            "main_lr": 1.,
+            "main_reg": 0.,
+            "main_drp":0.5,
+            "crt_blkA": [128, 3],
+            "crt_blkB": [512, 2],
+            "crt_blkC": [1024, 3, 5],
+            "crt_lr": 1.,
+            "crt_reg": 0.,
+            "crt_drp":0.25,
+            "vae_lr": 0.0001,
+            "gan_guide_wgt": 1.,
+            "gan_train_asym": 4,
         }
         if hparams:
             for i in hparams.keys():
                 self.hparams[i] = hparams[i]
         self.voicebank = voicebank
-        self.crfAi = SpecCrfAi(device = device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=int(self.hparams["crf_hlc"]), hiddenLayerSize=int(self.hparams["crf_hls"]))
-        self.predAi = SpecPredAi(device = device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=int(self.hparams["pred_rs"]), recLayerCount=int(self.hparams["pred_rlc"]), dropout = self.hparams["pred_drp"])
-        self.predAiDisc = SpecPredDiscriminator(device = device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]), dropout = self.hparams["preddisc_drp"])
-        self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
-        self.VAE = VAE(device = device, latent_dim = self.hparams["latent_dim"])
         self.device = device
         self.final = False
-        self.defectiveCrfBins = []
-        self.crfAiOptimizer = torch.optim.NAdam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
-        self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-        self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
-        self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr=0.0001)
-        self.criterion = nn.L1Loss()
-        self.guideCriterion = nn.MSELoss()
-        self.pretrainCriterion = nn.BCELoss()
+        self.defectiveTrBins = []
+        self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
+        self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
+        self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
+        if not self.inferOnly:
+            self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
+            self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
+            self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
+            self.mainAiOptimizer = torch.optim.Adadelta(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
+            self.mainCriticOptimizer = torch.optim.Adadelta(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+            self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr = self.VAE.learningRate)
+            self.criterion = nn.L1Loss()
+            self.guideCriterion = nn.MSELoss()
+            self.pretrainCriterion = nn.BCELoss()
         self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + halfHarms + 1,), device = self.device)
     
     @staticmethod
@@ -93,32 +98,32 @@ class AIWrapper():
             Dictionary containing the NN's epoch attribute (epoch), weights (state dict), optimizer state (optimizer state dict) and sample count attribute (sampleCount)"""
             
         if self.final:
-            aiState = {'crfAi_epoch': self.crfAi.epoch,
-                'crfAi_model_state_dict': self.crfAi.state_dict(),
-                'crfAi_sampleCount': self.crfAi.sampleCount,
-                'predAi_epoch': self.predAi.epoch,
-                'predAi_model_state_dict': self.predAi.state_dict(),
+            aiState = {'trAi_epoch': self.trAi.epoch,
+                'trAi_model_state_dict': self.trAi.state_dict(),
+                'trAi_sampleCount': self.trAi.sampleCount,
+                'mainAi_epoch': self.mainAi.epoch,
+                'mainAi_model_state_dict': self.mainAi.state_dict(),
                 'VAE_model_state_dict': self.VAE.state_dict(),
-                'predAi_sampleCount': self.predAi.sampleCount,
+                'mainAi_sampleCount': self.mainAi.sampleCount,
                 'deskew_premul': self.deskewingPremul,
-                'defective_crf_bins': self.defectiveCrfBins,
+                'defective_tr_bins': self.defectiveTrBins,
                 'final': True
             }
         else:
-            aiState = {'crfAi_epoch': self.crfAi.epoch,
-                'crfAi_model_state_dict': self.crfAi.state_dict(),
-                'crfAi_optimizer_state_dict': self.crfAiOptimizer.state_dict(),
-                'crfAi_sampleCount': self.crfAi.sampleCount,
-                'predAi_epoch': self.predAi.epoch,
-                'predAi_model_state_dict': self.predAi.state_dict(),
-                'predAiDisc_model_state_dict': self.predAiDisc.state_dict(),
+            aiState = {'trAi_epoch': self.trAi.epoch,
+                'trAi_model_state_dict': self.trAi.state_dict(),
+                'trAi_optimizer_state_dict': self.trAiOptimizer.state_dict(),
+                'trAi_sampleCount': self.trAi.sampleCount,
+                'mainAi_epoch': self.mainAi.epoch,
+                'mainAi_model_state_dict': self.mainAi.state_dict(),
+                'mainCritic_model_state_dict': self.mainCritic.state_dict(),
                 'VAE_model_state_dict': self.VAE.state_dict(),
-                'predAi_optimizer_state_dict': self.predAiOptimizer.state_dict(),
-                'predAiDisc_optimizer_state_dict': self.predAiDiscOptimizer.state_dict(),
+                'mainAi_optimizer_state_dict': self.mainAiOptimizer.state_dict(),
+                'mainCritic_optimizer_state_dict': self.mainCriticOptimizer.state_dict(),
                 'VAE_optimizer_state_dict': self.VAEOptimizer.state_dict(),
-                'predAi_sampleCount': self.predAi.sampleCount,
+                'mainAi_sampleCount': self.mainAi.sampleCount,
                 'deskew_premul': self.deskewingPremul,
-                'defective_crf_bins': self.defectiveCrfBins,
+                'defective_tr_bins': self.defectiveTrBins,
                 'final': False
             }
         return aiState
@@ -129,41 +134,43 @@ class AIWrapper():
         Arguments:
             aiState: Dictionary in the same format as returned by getState(), containing all necessary information about the NNs
             
-            mode: whether to load the weights for both NNs (None), only the phoneme crossfade Ai (crf), or only the prediction Ai (pred)
+            mode: whether to load the weights for both NNs (None), only the phoneme transition Ai (tr), or only the main Ai (main)
             
             reset: indicates whether the NNs and their optimizers should be reset before applying changed weights to them. Must be True when the dictionary contains weights
             for a NN using different hyperparameters than the currently active one."""
 
-        if (mode == None) or (mode == "crf"):
+        if (mode == None) or (mode == "tr"):
             if reset:
-                self.crfAi = SpecCrfAi(device = self.device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
-                if aiState["final"]:
-                    self.crfAiOptimizer = torch.optim.NAdam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
-            self.crfAi.epoch = aiState['crfAi_epoch']
-            self.crfAi.sampleCount = aiState["crfAi_sampleCount"]
-            self.crfAi.load_state_dict(aiState['crfAi_model_state_dict'])
+                self.trAi = TrAi(device = self.device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
+                if not aiState["final"] and not self.inferOnly:
+                    self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
+            self.trAi.epoch = aiState['trAi_epoch']
+            self.trAi.sampleCount = aiState["trAi_sampleCount"]
+            self.trAi.load_state_dict(aiState['trAi_model_state_dict'])
             if not aiState["final"]:
-                self.crfAiOptimizer.load_state_dict(aiState['crfAi_optimizer_state_dict'])
-        if (mode == None) or (mode == "pred"):
+                self.trAiOptimizer.load_state_dict(aiState['trAi_optimizer_state_dict'])
+            self.defectiveTrBins = aiState["defective_tr_bins"]
+        if (mode == None) or (mode == "main"):
             if reset:
-                self.predAi = SpecPredAi(device = self.device, learningRate=self.hparams["pred_lr"], regularization=self.hparams["pred_reg"], recSize=self.hparams["pred_rs"], recLayerCount=int(self.hparams["pred_rlc"]), dropout = self.hparams["pred_drp"])
-                self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]), dropout = self.hparams["preddisc_drp"])
-                if aiState["final"]:
-                    self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-                    self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
-            self.predAi.epoch = aiState["predAi_epoch"]
-            self.predAi.sampleCount = aiState["predAi_sampleCount"]
-            self.predAi.load_state_dict(aiState['predAi_model_state_dict'])
+                self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
+                self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
+                if not aiState["final"] and not self.inferOnly:
+                    self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
+                    self.mainAiOptimizer = torch.optim.Adadelta(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
+                    self.mainCriticOptimizer = torch.optim.Adadelta(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+                    self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr=self.VAE.learningRate)
+            self.mainAi.epoch = aiState["mainAi_epoch"]
+            self.mainAi.sampleCount = aiState["mainAi_sampleCount"]
+            self.mainAi.load_state_dict(aiState['mainAi_model_state_dict'])
             self.VAE.load_state_dict(aiState['VAE_model_state_dict'])
             self.deskewingPremul = aiState["deskew_premul"]
-            self.defectiveCrfBins = aiState["defective_crf_bins"]
-            if not aiState["final"]:
-                self.predAiDisc.load_state_dict(aiState['predAiDisc_model_state_dict'])
-                self.predAiOptimizer.load_state_dict(aiState['predAi_optimizer_state_dict'])
-                self.predAiDiscOptimizer.load_state_dict(aiState['predAiDisc_optimizer_state_dict'])
+            if not aiState["final"] and not self.inferOnly:
+                self.mainCritic.load_state_dict(aiState['mainCritic_model_state_dict'])
+                self.mainAiOptimizer.load_state_dict(aiState['mainAi_optimizer_state_dict'])
+                self.mainCriticOptimizer.load_state_dict(aiState['mainCritic_optimizer_state_dict'])
                 self.VAEOptimizer.load_state_dict(aiState['VAE_optimizer_state_dict'])
-        self.crfAi.eval()
-        self.predAi.eval()
+        self.trAi.eval()
+        self.mainAi.eval()
 
     def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int) -> torch.Tensor:
         """forward pass of both NNs for generating a transition between two phonemes, with data pre- and postprocessing
@@ -178,11 +185,11 @@ class AIWrapper():
             slopeFactor: integer expected to be between 0 and outputSize. Used for time remapping before the transition is calculated. Indicates where on the timeline 50% of the transition should have occured.
             
         Returns:
-            tuple of two Tensor objects, containing the interpolated audio spectrum without and with the prediction Ai applied to it, respectively."""
+            tuple of two Tensor objects, containing the interpolated audio spectrum without and with the main Ai applied to it, respectively."""
 
         
-        self.crfAi.eval()
-        self.crfAi.requires_grad_(False)
+        self.trAi.eval()
+        self.trAi.requires_grad_(False)
         phase1 = specharm1[halfHarms:2 * halfHarms]
         phase2 = specharm2[halfHarms:2 * halfHarms]
         phase3 = specharm3[halfHarms:2 * halfHarms]
@@ -197,8 +204,8 @@ class AIWrapper():
         harm4 = specharm4[:halfHarms]
         factor = math.log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.device), factor)
-        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, dec2bin(torch.tensor(embedding1, device = self.device), 32), dec2bin(torch.tensor(embedding2, device = self.device), 32), factor)).transpose(0, 1)
-        for i in self.defectiveCrfBins:
+        spectrum = torch.squeeze(self.trAi(spectrum1, spectrum2, spectrum3, spectrum4, dec2bin(torch.tensor(embedding1, device = self.device), 32), dec2bin(torch.tensor(embedding2, device = self.device), 32), factor)).transpose(0, 1)
+        for i in self.defectiveTrBins:
             spectrum[:, i] = torch.mean(torch.cat((spectrum[:, i - 1].unsqueeze(1), spectrum[:, i + 1].unsqueeze(1)), 1), 1)
         borderRange = torch.zeros((outputSize,), device = self.device)
         borderLimit = min(global_consts.crfBorderAbs, math.ceil(outputSize * global_consts.crfBorderRel))
@@ -228,26 +235,28 @@ class AIWrapper():
             harms[i] = torch.min(harms[i], harmLimit)
             harms[i] = torch.max(harms[i], torch.tensor([0.,], device = self.device))
         output = torch.cat((harms, phases, spectrum), 1)
-        prediction = self.predict(output)
-        return output, torch.squeeze(prediction)
+        refined = self.refine(output)
+        return output, torch.squeeze(refined)
 
-    def predict(self, specharm:torch.Tensor):
-        """forward pass through the prediction Ai, taking a specharm as input and predicting the next one in a sequence. Includes data pre- and postprocessing."""
+    def refine(self, specharm:torch.Tensor):
+        """forward pass through the main Ai, taking a specharm as input and refining it to sound more natural. Includes data pre- and postprocessing."""
 
-        self.predAi.eval()
-        self.predAi.requires_grad_(False)
-        latent = self.VAE.encoder(specharm)
+        self.mainAi.eval()
+        self.mainAi.requires_grad_(False)
+        self.VAE.eval()
+        self.VAE.requires_grad_(False)
+        latent = self.VAE.encoder(specharm / self.deskewingPremul)
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
-        prediction = self.predAi(latent, self.deskewingPremul, True)
-        output = self.VAE.decoder(torch.squeeze(prediction))
+        refined = self.mainAi(latent, True)
+        output = self.VAE.decoder(torch.squeeze(refined) * self.deskewingPremul)
         return torch.squeeze(output)
 
     def reset(self) -> None:
         """resets the hidden states and cell states of the AI's LSTM layers."""
 
-        self.predAi.resetState()
-        self.predAiDisc.resetState()
+        self.mainAi.resetState()
+        self.mainCritic.resetState()
 
     def finalize(self):
         self.final = True
@@ -267,11 +276,12 @@ class AIWrapper():
         Returns:
             None"""
         
-
+        if self.inferOnly:
+            raise Exception("Cannot start training since wrapper was initialized in inference-only mode")
         if reset:
-            self.crfAi = SpecCrfAi(self.device, self.hparams["crf_lr"], self.hparams["crf_hlc"], self.hparams["crf_hls"], self.hparams["crf_reg"])
-            self.crfAiOptimizer = torch.optim.NAdam(self.crfAi.parameters(), lr=self.crfAi.learningRate, weight_decay=self.crfAi.regularization)
-        self.crfAi.train()
+            self.trAi = TrAi(self.device, self.hparams["crf_lr"], self.hparams["crf_hlc"], self.hparams["crf_hls"], self.hparams["crf_reg"])
+            self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
+        self.trAi.train()
         if logging:
             csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_crf.csv"), 'w', newline='')
             fieldnames = ["epochs", "learning rate", "hidden layer count", "loss", "acc. sample count", "wtd. train loss"]
@@ -279,10 +289,10 @@ class AIWrapper():
         else:
             writer = None
 
-        if (self.crfAi.epoch == 0) or self.crfAi.epoch == epochs:
-            self.crfAi.epoch = epochs
+        if (self.trAi.epoch == 0) or self.trAi.epoch == epochs:
+            self.trAi.epoch = epochs
         else:
-            self.crfAi.epoch = None
+            self.trAi.epoch = None
         reportedLoss = 0.
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
@@ -296,22 +306,22 @@ class AIWrapper():
                 spectrum4 = data[-1, 2 * halfHarms:]
                 outputSize = data.size()[0] - 2
                 factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, embedding1, embedding2, factor).transpose(0, 1)
+                output = self.trAi(spectrum1, spectrum2, spectrum3, spectrum4, embedding1, embedding2, factor).transpose(0, 1)
                 target = data[2:, 2 * halfHarms:]
                 loss = self.criterion(output, target)
-                self.crfAiOptimizer.zero_grad()
+                self.trAiOptimizer.zero_grad()
                 loss.backward()
-                self.crfAiOptimizer.step()
+                self.trAiOptimizer.step()
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
-            self.crfAi.sampleCount += len(indata)
+            self.trAi.sampleCount += len(indata)
             reportedLoss = (reportedLoss * 99 + loss.data) / 100
             if writer != None:
                 results = {
                     "epochs": epoch,
-                    "learning rate": self.crfAi.learningRate,
-                    "hidden layer count": self.crfAi.hiddenLayerCount,
+                    "learning rate": self.trAi.learningRate,
+                    "hidden layer count": self.trAi.hiddenLayerCount,
                     "loss": loss.data,
-                    "acc. sample count": self.crfAi.sampleCount,
+                    "acc. sample count": self.trAi.sampleCount,
                     "wtd. train loss": reportedLoss
                 }
                 writer.writerow(results)
@@ -331,45 +341,48 @@ class AIWrapper():
                 spectrum4 = data[-1, 2 * halfHarms:]
                 outputSize = data.size()[0] - 2
                 factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, embedding1, embedding2, factor).transpose(0, 1)
+                output = self.trAi(spectrum1, spectrum2, spectrum3, spectrum4, embedding1, embedding2, factor).transpose(0, 1)
                 criterionA = torch.cat((torch.ones((outputSize, 1), device = self.device), output[:, 1:] / output[:, :-1]), 1)
                 criterionB = torch.cat((output[:, :-1] / output[:, 1:], torch.ones((outputSize, 1), device = self.device)), 1)
                 criterion += torch.mean(criterionA + criterionB, dim = 0)
                 criterionSteps += 1
             criterion /= criterionSteps
-            criterion = torch.less(criterion, torch.tensor([self.hparams["crf_def_thrh"],], device = self.device))
-        self.defectiveCrfBins = criterion.to_sparse().coalesce().indices()
-        print("defective Crf frequency bins:", self.defectiveCrfBins)
+            criterion = torch.less(criterion, torch.tensor([self.hparams["tr_def_thrh"],], device = self.device))
+        self.defectiveTrBins = criterion.to_sparse().coalesce().indices()
+        print("defective Tr. frequency bins:", self.defectiveTrBins)
     
-    def trainPred(self, indata, epochs:int=1, logging:bool = False, reset:bool = False) -> None:
+    def trainMain(self, indata, epochs:int=1, logging:bool = False, reset:bool = False) -> None:
         """trains the NN based on a dataset of specharm sequences"""
 
+        if self.inferOnly:
+            raise Exception("Cannot start training since wrapper was initialized in inference-only mode")
         scaler = torch.cuda.amp.GradScaler()
         if reset:
-            self.predAi = SpecPredAi(self.device, self.hparams["pred_lr"], self.hparams["pred_rlc"], self.hparams["pred_rs"], self.hparams["pred_reg"])
-            self.predAiDisc = SpecPredDiscriminator(device = self.device, learningRate=self.hparams["preddisc_lr"], regularization=self.hparams["preddisc_reg"], recSize=int(self.hparams["preddisc_rs"]), recLayerCount=int(self.hparams["preddisc_rlc"]))
-            self.predAiGenerator = DataGenerator(self.voicebank, self.crfAi)
-            self.predAiOptimizer = torch.optim.Adadelta(self.predAi.parameters(), lr=self.predAi.learningRate, weight_decay=self.predAi.regularization)
-            self.predAiDiscOptimizer = torch.optim.Adadelta(self.predAiDisc.parameters(), lr=self.predAiDisc.learningRate, weight_decay=self.predAiDisc.regularization)
-            self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"])
+            self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
+            self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
+            self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
+            self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
+            self.mainAiOptimizer = torch.optim.Adadelta(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
+            self.mainCriticOptimizer = torch.optim.Adadelta(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+            self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr = self.VAE.learningRate)
         else:
-            self.predAiGenerator.rebuildPool()
-        self.predAi.train()
-        self.predAi.requires_grad_(True)
-        self.predAiDisc.train()
-        self.predAiDisc.requires_grad_(True)
+            self.mainGenerator.rebuildPool()
+        self.mainAi.train()
+        self.mainAi.requires_grad_(True)
+        self.mainCritic.train()
+        self.mainCritic.requires_grad_(True)
         self.VAE.train()
         self.VAE.requires_grad_(True)
         if logging:
-            csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_pred.csv"), 'w', newline='')
+            csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_main.csv"), 'w', newline='')
             fieldnames = ["epochs", "learning rate", "hidden layer count", "spec. loss", "harm. loss", "acc. sample count", "wtd. spec. train loss" "wtd. harm. train loss"]
             writer = DictWriter(csvFile, fieldnames)
         else:
             writer = None
-        if (self.predAi.epoch == 0) or self.predAi.epoch == epochs:
-            self.predAi.epoch = epochs
+        if (self.mainAi.epoch == 0) or self.mainAi.epoch == epochs:
+            self.mainAi.epoch = epochs
         else:
-            self.predAi.epoch = None
+            self.mainAi.epoch = None
         total = 0
         for phoneme in self.voicebank.phonemeDict.values():
             if torch.isnan(phoneme[0].avgSpecharm).any():
@@ -389,39 +402,39 @@ class AIWrapper():
 
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                data = self.VAE.encoder(torch.squeeze(data))
+                data = self.VAE.encoder(torch.squeeze(data) / self.deskewingPremul)
                 self.reset()
-                synthBase = self.VAE.encoder(self.predAiGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12))
-                synthInput = self.predAi(synthBase, self.deskewingPremul, True)
+                synthBase = self.VAE.encoder(self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12) / self.deskewingPremul)
+                synthInput = self.mainAi(synthBase, True)
                 
-                self.predAiDiscOptimizer.zero_grad()
-                self.predAiDisc.resetState()
-                posDiscriminatorLoss = self.predAiDisc(data, self.deskewingPremul, True)[-1]
-                negDiscriminatorLoss = self.predAiDisc(synthInput.detach(), self.deskewingPremul, True)[-1]
+                self.mainCriticOptimizer.zero_grad()
+                self.mainCritic.resetState()
+                posDiscriminatorLoss = self.mainCritic(data, True)[-1]
+                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), True)[-1]
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
                 scaler.scale(discriminatorLoss).backward()
-                scaler.step(self.predAiDiscOptimizer)
+                scaler.step(self.mainCriticOptimizer)
                 
-                if index % self.hparams["pred_train_asym"] == 0:
-                    self.predAiOptimizer.zero_grad()
-                    self.predAiDisc.resetState()
-                    generatorLoss = self.predAiDisc(synthInput, self.deskewingPremul, True)[-1]
-                    guideLoss = self.hparams["pred_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
+                if index % self.hparams["gan_train_asym"] == 0:
+                    self.mainAiOptimizer.zero_grad()
+                    self.mainCritic.resetState()
+                    generatorLoss = self.mainCritic(synthInput, True)[-1]
+                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
                     scaler.scale(generatorLoss + guideLoss).backward()
-                    scaler.step(self.predAiOptimizer)
+                    scaler.step(self.mainAiOptimizer)
 
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
-            self.predAi.sampleCount += len(indata)
+            self.mainAi.sampleCount += len(indata)
             if writer != None:
                 results = {
                     "epochs": epoch,
-                    "learning rate": self.predAi.learningRate,
-                    "hidden layer count": self.predAi.recLayerCount,
+                    "learning rate": self.mainAi.learningRate,
+                    "hidden layer count": self.mainAi.recLayerCount,
                     "gen. loss": generatorLoss.data,
                     "disc. loss": discriminatorLoss.data,
-                    "acc. sample count": self.predAi.sampleCount,
+                    "acc. sample count": self.mainAi.sampleCount,
                 }
                 writer.writerow(results)
         if writer != None:
@@ -439,10 +452,10 @@ class AIWrapper():
             if writer != None:
                 results = {
                     "epochs": epoch,
-                    "learning rate": self.predAi.learningRate,
-                    "hidden layer count": self.predAi.recLayerCount,
+                    "learning rate": self.mainAi.learningRate,
+                    "hidden layer count": self.mainAi.recLayerCount,
                     "gen. loss": loss.data,
                     "disc. loss": "VAE",
-                    "acc. sample count": self.predAi.sampleCount,
+                    "acc. sample count": self.mainAi.sampleCount,
                 }
                 writer.writerow(results)

@@ -4,12 +4,13 @@ import torch.nn as nn
 import global_consts
 
 class VAE(nn.Module):
-    def __init__(self, device, latent_dim=128):
+    def __init__(self, device, latent_dim=128, learningRate:float = 0.0001):
         super().__init__()
 
         encoder_dim = global_consts.halfTripleBatchSize + global_consts.halfHarms
 
         self.device = device
+        self.learningRate = learningRate
 
         # encoder, decoder
         self.encoder = nn.Sequential(
