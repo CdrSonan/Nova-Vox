@@ -102,12 +102,17 @@ class Voicebank():
         self.stagedMainTrainSamples = []
         self.device = device
         if filepath != None:
-            self.loadMetadata(self.filepath)
-            self.loadPhonemeDict(self.filepath, False)
-            self.loadTrWeights(self.filepath)
-            self.loadMainWeights(self.filepath)
-            self.loadParameters(self.filepath, False)
-            self.loadWordDict(self.filepath, False)
+            data = torch.load(filepath, map_location = torch.device("cpu"))
+            if self.device == torch.device("cpu"):
+                data_ai = data
+            else:
+                data_ai = torch.load(filepath, map_location = self.device)
+            self.loadMetadata(self.filepath, data)
+            self.loadPhonemeDict(self.filepath, False, data)
+            self.loadTrWeights(self.filepath, data_ai)
+            self.loadMainWeights(self.filepath, data_ai)
+            self.loadParameters(self.filepath, False, data)
+            self.loadWordDict(self.filepath, False, data)
         
     def save(self, filepath:str) -> None:
         """saves the loaded Voicebank to a file"""
@@ -121,12 +126,13 @@ class Voicebank():
             "wordDict":self.wordDict
             }, filepath)
         
-    def loadMetadata(self, filepath:str) -> None:
+    def loadMetadata(self, filepath:str, data:dict=None) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
-        data = torch.load(filepath, map_location = torch.device("cpu"))
+        if not data:
+            data = torch.load(filepath, map_location = torch.device("cpu"))
         self.metadata = data["metadata"]
     
-    def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
+    def loadPhonemeDict(self, filepath:str, additive:bool, data:dict=None) -> None:
         """loads Phoneme data from a Voicebank file.
         
         Arguments:
@@ -136,8 +142,8 @@ class Voicebank():
         Returns:
             None"""
             
-            
-        data = torch.load(filepath, map_location = torch.device("cpu"))
+        if not data:
+            data = torch.load(filepath, map_location = torch.device("cpu"))
         if additive:
             for i in data["phonemeDict"].keys():
                 if i in self.phonemeDict.keys():
@@ -148,11 +154,15 @@ class Voicebank():
         else:
             self.phonemeDict = data["phonemeDict"]
     
-    def loadTrWeights(self, filepath:str) -> None:
+    def loadTrWeights(self, filepath:str, data:dict=None) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
-        aiState = torch.load(filepath, map_location = self.device)["aiState"]
-        hparams = torch.load(filepath, map_location = self.device)["hparams"]
+        if data:
+            aiState = data["aiState"]
+            hparams = data["hparams"]
+        else:
+            aiState = torch.load(filepath, map_location = self.device)["aiState"]
+            hparams = torch.load(filepath, map_location = self.device)["hparams"]
         self.ai.hparams["tr_lr"] = hparams["tr_lr"]
         self.ai.hparams["tr_reg"] = hparams["tr_reg"]
         self.ai.hparams["tr_hlc"] = hparams["tr_hlc"]
@@ -160,11 +170,15 @@ class Voicebank():
         self.ai.hparams["tr_def_thrh"] = hparams["tr_def_thrh"]
         self.ai.loadState(aiState, "tr", True)
 
-    def loadMainWeights(self, filepath:str) -> None:
+    def loadMainWeights(self, filepath:str, data:dict=None) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
-        aiState = torch.load(filepath, map_location = self.device)["aiState"]
-        hparams = torch.load(filepath, map_location = self.device)["hparams"]
+        if data:
+            aiState = data["aiState"]
+            hparams = data["hparams"]
+        else:
+            aiState = torch.load(filepath, map_location = self.device)["aiState"]
+            hparams = torch.load(filepath, map_location = self.device)["hparams"]
         self.ai.hparams["latent_dim"] = hparams["latent_dim"]
         self.ai.hparams["main_blkA"] = hparams["main_blkA"]
         self.ai.hparams["main_blkB"] = hparams["main_blkB"]
@@ -183,18 +197,22 @@ class Voicebank():
         self.ai.hparams["gan_train_asym"] = hparams["gan_train_asym"]
         self.ai.loadState(aiState, "main", True)
         
-    def loadParameters(self, filepath:str, additive:bool) -> None:
+    def loadParameters(self, filepath:str, additive:bool, data:dict=None) -> None:
         """currently placeholder"""
 
+        if not data:
+            pass
         if additive:
             pass
         else:
             pass
         
-    def loadWordDict(self, filepath:str, additive:bool) -> None:
+    def loadWordDict(self, filepath:str, additive:bool, data:dict=None) -> None:
         """currently placeholder"""
-
-        self.wordDict = torch.load(filepath, map_location = torch.device("cpu"))["wordDict"]
+        if data:
+            self.wordDict = data["wordDict"]
+        else:
+            self.wordDict = torch.load(filepath, map_location = torch.device("cpu"))["wordDict"]
         
     def addPhoneme(self, key:str, filepath:str) -> None:
         """adds a phoneme to the Voicebank's PhonemeDict.
@@ -416,25 +434,32 @@ class LiteVoicebank():
         self.filepath = filepath
         self.phonemeDict = dict()
         self.device = device
-        self.ai = AIWrapper(self, device, torch.load(filepath, map_location = self.device)["hparams"])
+        data = torch.load(filepath, map_location = torch.device("cpu"))
+        if self.device == torch.device("cpu"):
+            data_ai = data
+        else:
+            data_ai = torch.load(filepath, map_location = self.device)
+        self.ai = AIWrapper(self, device, data["hparams"], inferOnly = True)
         self.parameters = []
         self.wordDict = (dict(), [])
         self.stagedTrTrainSamples = []
         self.stagedMainTrainSamples = []
         if filepath != None:
-            self.loadMetadata(self.filepath)
-            self.loadPhonemeDict(self.filepath, False)
-            self.loadTrWeights(self.filepath)
-            self.loadMainWeights(self.filepath)
-            self.loadParameters(self.filepath, False)
-            self.loadWordDict(self.filepath, False)
+            self.loadMetadata(self.filepath, data)
+            self.loadPhonemeDict(self.filepath, False, data)
+            self.loadTrWeights(self.filepath, data_ai)
+            self.loadMainWeights(self.filepath, data_ai)
+            self.loadParameters(self.filepath, False, data)
+            self.loadWordDict(self.filepath, False, data)
         
-    def loadMetadata(self, filepath:str) -> None:
+    def loadMetadata(self, filepath:str, data:dict=None) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
-        data = torch.load(filepath, map_location = torch.device("cpu"))
+        
+        if not data:
+            data = torch.load(filepath, map_location = torch.device("cpu"))
         self.metadata = data["metadata"]
     
-    def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
+    def loadPhonemeDict(self, filepath:str, additive:bool, data:dict=None) -> None:
         """loads Phoneme data from a Voicebank file.
         
         Arguments:
@@ -444,8 +469,8 @@ class LiteVoicebank():
         Returns:
             None"""
             
-            
-        data = torch.load(filepath, map_location = torch.device("cpu"))
+        if not data:
+            data = torch.load(filepath, map_location = torch.device("cpu"))
         if additive:
             for i in data["phonemeDict"].keys():
                 if i in self.phonemeDict.keys():
@@ -456,35 +481,48 @@ class LiteVoicebank():
         else:
             self.phonemeDict = data["phonemeDict"]
     
-    def loadTrWeights(self, filepath:str) -> None:
+    def loadTrWeights(self, filepath:str, data:dict=None) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
-        aiState = torch.load(filepath, map_location = self.device)["aiState"]
-        hparams = torch.load(filepath, map_location = self.device)["hparams"]
+        if data:
+            aiState = data["aiState"]
+            hparams = data["hparams"]
+        else:
+            aiState = torch.load(filepath, map_location = self.device)["aiState"]
+            hparams = torch.load(filepath, map_location = self.device)["hparams"]
         self.ai.hparams["tr_hlc"] = hparams["tr_hlc"]
         self.ai.hparams["tr_hls"] = hparams["tr_hls"]
         self.ai.loadState(aiState, "tr", True)
 
-    def loadMainWeights(self, filepath:str) -> None:
+    def loadMainWeights(self, filepath:str, data:dict=None) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
-        aiState = torch.load(filepath, map_location = self.device)["aiState"]
-        hparams = torch.load(filepath, map_location = self.device)["hparams"]
+        if data:
+            aiState = data["aiState"]
+            hparams = data["hparams"]
+        else:
+            aiState = torch.load(filepath, map_location = self.device)["aiState"]
+            hparams = torch.load(filepath, map_location = self.device)["hparams"]
         self.ai.hparams["latent_dim"] = hparams["latent_dim"]
         self.ai.hparams["main_blkA"] = hparams["main_blkA"]
         self.ai.hparams["main_blkB"] = hparams["main_blkB"]
         self.ai.hparams["main_blkC"] = hparams["main_blkC"]
         self.ai.loadState(aiState, "main", True)
         
-    def loadParameters(self, filepath:str, additive:bool) -> None:
+    def loadParameters(self, filepath:str, additive:bool, data:dict=None) -> None:
         """currently placeholder"""
 
+        if data:
+            pass
         if additive:
             pass
         else:
             pass
         
-    def loadWordDict(self, filepath:str, additive:bool) -> None:
+    def loadWordDict(self, filepath:str, additive:bool, data:dict=None) -> None:
         """currently placeholder"""
 
-        self.wordDict = torch.load(filepath, map_location = self.device)["wordDict"]
+        if data:
+            self.wordDict = data["wordDict"]
+        else:
+            self.wordDict = torch.load(filepath, map_location = self.device)["wordDict"]

@@ -74,6 +74,8 @@ class AudioSample():
         self.isVoiced = True
         self.isPlosive = False
         
+        self.embedding = 0
+        
         self.expectedPitch = global_consts.defaultExpectedPitch
         self.searchRange = global_consts.defaultSearchRange
         self.voicedThrh = global_consts.defaultVoicedThrh
