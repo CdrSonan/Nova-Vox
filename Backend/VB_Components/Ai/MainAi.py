@@ -42,48 +42,48 @@ class MainAi(nn.Module):
         #self.decoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
         
         self.encoderA = nn.Sequential(
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.decoderA = nn.Sequential(
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
         self.decoderB = nn.Sequential(SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device),
-                                      nn.Linear(blockB[0], 10 * dim),
+                                      nn.Linear(blockB[0], 10 * dim, device = device),
                                       nn.Sigmoid())
         
-        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True)
+        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
         
         self.apply(init_weights)
 
@@ -107,12 +107,12 @@ class MainAi(nn.Module):
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
         if latent.size()[0] % 100 != 0:
-            padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, latent.size()[1:]), device = self.device)), 0)
+            padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, *latent.size()[1:]), device = self.device)), 0)
         else:
             padded = latent
 
         if level > 0:
-            skipA = self.encoderA(padded)
+            skipA = self.encoderA(padded.transpose(0 , 1))
         if level > 1:
             skipB, self.encoderBState = self.encoderB(skipA.reshape(1, skipA.size()[1] / 10, skipA.size()[2] * 10), self.encoderBState)
         if level > 2:
@@ -122,11 +122,11 @@ class MainAi(nn.Module):
             skipA += decodedB[0]
             self.decoderBState = decodedB[1]
         if level > 0:
-            output = latent + self.decoderA(skipA)
+            output = latent + self.decoderA(skipA).transpose(0 , 1)[:latent.size()[0]]
         else:
             output = latent
         
-        return output[:latent.size()[0]]
+        return output
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -142,50 +142,50 @@ class MainCritic(nn.Module):
         super().__init__()
         
         self.encoderA = nn.Sequential(
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.decoderA = nn.Sequential(
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2)),
-            nn.BatchNorm1d(blockA[0]),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
+            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
         self.decoderB = nn.Sequential(SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device),
-                                      nn.Linear(blockB[0], 10 * dim),
+                                      nn.Linear(blockB[0], 10 * dim, device = device),
                                       nn.Sigmoid())
         
-        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True)
+        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
         
-        self.final = nn.Linear(dim, 1)
+        self.final = nn.Linear(dim, 1, bias = False, device = device)
         
         self.apply(init_weights)
 
@@ -209,12 +209,12 @@ class MainCritic(nn.Module):
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
         if latent.size()[0] % 100 != 0:
-            padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, latent.size()[1:]), device = self.device)), 0)
+            padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, *latent.size()[1:]), device = self.device)), 0)
         else:
             padded = latent
 
         if level > 0:
-            skipA = self.encoderA(padded)
+            skipA = self.encoderA(padded.transpose(0 , 1))
         if level > 1:
             skipB, self.encoderBState = self.encoderB(skipA.reshape(1, skipA.size()[1] / 10, skipA.size()[2] * 10), self.encoderBState)
         if level > 2:
@@ -224,11 +224,11 @@ class MainCritic(nn.Module):
             skipA += decodedB[0]
             self.decoderBState = decodedB[1]
         if level > 0:
-            output = latent + self.decoderA(skipA)
+            output = latent + self.decoderA(skipA).transpose(0 , 1)[:latent.size()[0]]
         else:
             output = latent
         
-        return self.final(output[latent.size()[0] - 1])
+        return self.final(output[-1])
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""

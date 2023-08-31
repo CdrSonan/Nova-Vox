@@ -73,7 +73,7 @@ class AIWrapper():
             self.criterion = nn.L1Loss()
             self.guideCriterion = nn.MSELoss()
             self.pretrainCriterion = nn.BCELoss()
-        self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + global_consts.nHarmonics + 2,), device = self.device)
+        self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + global_consts.halfHarms + 1,), device = self.device)
     
     @staticmethod
     def dataLoader(data) -> DataLoader:
@@ -251,9 +251,9 @@ class AIWrapper():
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
         refined = self.mainAi(latent, True)
-        output = self.VAE.decoder(torch.squeeze(refined) * self.deskewingPremul)
+        output = self.VAE.decoder(torch.squeeze(refined)) * self.deskewingPremul
         output = torch.squeeze(output)
-        return torch.cat((output[:halfHarms], phases, output[halfHarms:]), 1)
+        return torch.cat((output[:, :halfHarms], phases, output[:, halfHarms:]), 1)
 
     def reset(self) -> None:
         """resets the hidden states and cell states of the AI's LSTM layers."""
@@ -391,11 +391,9 @@ class AIWrapper():
         for phoneme in self.voicebank.phonemeDict.values():
             if torch.isnan(phoneme[0].avgSpecharm).any():
                 continue
-            self.deskewingPremul[:halfHarms] += phoneme[0].avgSpecharm[:halfHarms].to(self.device)
-            self.deskewingPremul[2 * halfHarms:] += phoneme[0].avgSpecharm[halfHarms:].to(self.device)
+            self.deskewingPremul += phoneme[0].avgSpecharm.to(self.device)
             total += 1
-        self.deskewingPremul[:halfHarms] /= total
-        self.deskewingPremul[2 * halfHarms:] /= total
+        self.deskewingPremul /= total
         targetLength = 0
         total = 0
         for data in self.dataLoader(indata):

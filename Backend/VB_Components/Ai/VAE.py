@@ -15,15 +15,15 @@ class VAE(nn.Module):
         # encoder, decoder
         self.encoder = nn.Sequential(
             nn.Linear(encoder_dim, latent_dim * 2, device = self.device),
-            nn.GELU(0.2, inplace=True),
+            nn.GELU(),
             nn.Linear(latent_dim * 2, latent_dim, device = self.device),
-            nn.GELU(0.2, inplace=True)
+            nn.GELU()
         )
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, latent_dim * 2, device = self.device),
-            nn.GELU(0.2, inplace=True),
+            nn.GELU(),
             nn.Linear(latent_dim * 2, encoder_dim, device = self.device),
-            nn.GELU(0.2, inplace=True),
+            nn.GELU(),
         )
 
         # distribution parameters

@@ -474,7 +474,7 @@ class ChangeParam(UnifiedAction):
             oldData = middleLayer.trackList[middleLayer.activeTrack].steadiness[self.start:self.start + self.length]
         elif middleLayer.activeParam == "breathiness":
             oldData = middleLayer.trackList[middleLayer.activeTrack].breathiness[self.start:self.start + self.length]
-        elif middleLayer.activeParam == "AI Balance":
+        elif middleLayer.activeParam == "AI balance":
             oldData = middleLayer.trackList[middleLayer.activeTrack].aiBalance[self.start:self.start + self.length]
         elif middleLayer.activeParam == "loop":
             if self.section:
@@ -487,7 +487,7 @@ class ChangeParam(UnifiedAction):
             else:
                 oldData = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength[self.start:self.start + self.length]
         else:
-            oldData = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[self.activeParam].curve[self.start:self.start + self.length]
+            oldData = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam].curve[self.start:self.start + self.length]
         return ChangeParam(convertFormat(oldData, "list"), self.start, self.section)
 
     def uiCallback(self):
@@ -810,7 +810,7 @@ class ChangeVolume(UnifiedAction):
     def uiCallback(self):
         for i in middleLayer.ids["singerList"].children:
             if i.index == self.index:
-                i.children[0].children[0].children[0].children[0].children[2].children[0].value = middleLayer.trackList[middleLayer.activeTrack].volume
+                i.children[0].children[0].children[1].value = middleLayer.trackList[middleLayer.activeTrack].volume
                 break
     
     def merge(self, other):
