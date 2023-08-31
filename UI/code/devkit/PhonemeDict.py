@@ -77,7 +77,7 @@ class PhonemedictUi(Frame):
         self.phonemeList.addButton.pack(side = "right", fill = "x", expand = True)
         self.phonemeList.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sampleList = LabelFrame(self, text = loc["phon_list"])
+        self.sampleList = LabelFrame(self, text = loc["smp_list"])
         self.sampleList.list = Frame(self.sampleList)
         self.sampleList.list.lb = Listbox(self.sampleList.list)
         self.sampleList.list.lb.pack(side = "left",fill = "both", expand = True)
@@ -89,8 +89,6 @@ class PhonemedictUi(Frame):
         self.sampleList.list.lb.bind("<FocusOut>", self.onSmpListFocusOut)
         self.sampleList.list.sb["command"] = self.sampleList.list.lb.yview
         self.sampleList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
-        for i in loadedVB.phonemeDict.keys():
-            self.sampleList.list.lb.insert("end", i)
         self.sampleList.removeButton = SlimButton(self.sampleList)
         self.sampleList.removeButton["text"] = loc["remove"]
         self.sampleList.removeButton["command"] = self.onSmpRemovePress
@@ -315,6 +313,8 @@ class PhonemedictUi(Frame):
             index = self.phonemeList.list.lastFocusedIndex
             key = self.phonemeList.list.lb.get(index)
             sample = self.sampleList.list.lastFocusedIndex
+            if sample == None:
+                sample = 0
             self.sideBar.key.variable.set(key)
             if type(loadedVB.phonemeDict[key][0]).__name__ == "AudioSample":
                 self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key][sample].expectedPitch)
@@ -344,7 +344,7 @@ class PhonemedictUi(Frame):
             self.onSliderMove(0)
     
     def reloadSamples(self) -> None:
-        while len(self.sampleList.list.lb) > 0:
+        while self.sampleList.list.lb.size() > 0:
             self.sampleList.list.lb.delete(0)
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
@@ -532,8 +532,8 @@ class PhonemedictUi(Frame):
             ]
             reset = False
             if type(phoneme).__name__ == "AudioSample":
-                for j in range(len(oldValues)):
-                    if oldValues[j] != newValues[j]:
+                for i, j in zip(oldValues, newValues):
+                    if i != j:
                         reset = True
                         break
             if reset:
@@ -617,8 +617,8 @@ class PhonemedictUi(Frame):
         ]
         reset = False
         if type(phoneme).__name__ == "AudioSample":
-            for j in range(len(oldValues)):
-                if oldValues[j] != newValues[j]:
+            for i, j in zip(oldValues, newValues):
+                if i != j:
                     reset = True
                     break
         if reset:

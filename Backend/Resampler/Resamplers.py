@@ -165,10 +165,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                requiredSize,
                                timings)
-    import matplotlib.pyplot as plt
-    output_legacy = getPitch_legacy(vocalSegment, device)
-    plt.plot(output_legacy.cpu().numpy(), output.cpu().numpy())
-    return output_legacy
+    return output
 
 def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the pitch curve of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
@@ -176,7 +173,7 @@ def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Ten
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,], device = device)
     pitchDeltas = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].pitchDeltas
-    requiredSize = math.ceil(torch.max(pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize
+    requiredSize = math.ceil(torch.max(pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1)
     pitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].pitch.to(device = device)
     pitchDeltas = Loop.loopSamplerPitch(pitchDeltas, requiredSize, vocalSegment.repetititionSpacing, device = device)
     pitchDeltas -= pitch

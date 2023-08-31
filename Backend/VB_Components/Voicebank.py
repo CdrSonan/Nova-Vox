@@ -419,7 +419,7 @@ class LiteVoicebank():
         loadWordDict: currently placeholder"""
         
         
-    def __init__(self, filepath:str, device:torch.device = None) -> None:
+    def __init__(self, filepath:str, device:torch.device = torch.device("cpu")) -> None:
         """ Universal constructor for initialisation both from a Voicebank file, and of an empty/new Voicebank.
         
         Arguments:

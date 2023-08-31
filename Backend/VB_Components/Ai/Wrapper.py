@@ -73,7 +73,7 @@ class AIWrapper():
             self.criterion = nn.L1Loss()
             self.guideCriterion = nn.MSELoss()
             self.pretrainCriterion = nn.BCELoss()
-        self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + halfHarms + 1,), device = self.device)
+        self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + global_consts.nHarmonics + 2,), device = self.device)
     
     @staticmethod
     def dataLoader(data) -> DataLoader:
@@ -141,13 +141,13 @@ class AIWrapper():
 
         if (mode == None) or (mode == "tr"):
             if reset:
-                self.trAi = TrAi(device = self.device, learningRate=self.hparams["crf_lr"], regularization=self.hparams["crf_reg"], hiddenLayerCount=self.hparams["crf_hlc"], hiddenLayerSize=self.hparams["crf_hls"])
+                self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
                 if not aiState["final"] and not self.inferOnly:
                     self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
             self.trAi.epoch = aiState['trAi_epoch']
             self.trAi.sampleCount = aiState["trAi_sampleCount"]
             self.trAi.load_state_dict(aiState['trAi_model_state_dict'])
-            if not aiState["final"]:
+            if not aiState["final"] and not self.inferOnly:
                 self.trAiOptimizer.load_state_dict(aiState['trAi_optimizer_state_dict'])
             self.defectiveTrBins = aiState["defective_tr_bins"]
         if (mode == None) or (mode == "main"):
@@ -245,18 +245,22 @@ class AIWrapper():
         self.mainAi.requires_grad_(False)
         self.VAE.eval()
         self.VAE.requires_grad_(False)
-        latent = self.VAE.encoder(specharm / self.deskewingPremul)
+        phases = specharm[:, halfHarms:2 * halfHarms]
+        remainder = torch.cat((specharm[:, :halfHarms], specharm[:, 2 * halfHarms:]), 1)
+        latent = self.VAE.encoder(remainder / self.deskewingPremul)
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
         refined = self.mainAi(latent, True)
         output = self.VAE.decoder(torch.squeeze(refined) * self.deskewingPremul)
-        return torch.squeeze(output)
+        output = torch.squeeze(output)
+        return torch.cat((output[:halfHarms], phases, output[halfHarms:]), 1)
 
     def reset(self) -> None:
         """resets the hidden states and cell states of the AI's LSTM layers."""
 
         self.mainAi.resetState()
-        self.mainCritic.resetState()
+        if not self.inferOnly:
+            self.mainCritic.resetState()
 
     def finalize(self):
         self.final = True
@@ -279,11 +283,11 @@ class AIWrapper():
         if self.inferOnly:
             raise Exception("Cannot start training since wrapper was initialized in inference-only mode")
         if reset:
-            self.trAi = TrAi(self.device, self.hparams["crf_lr"], self.hparams["crf_hlc"], self.hparams["crf_hls"], self.hparams["crf_reg"])
+            self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
             self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
         self.trAi.train()
         if logging:
-            csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_crf.csv"), 'w', newline='')
+            csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_tr.csv"), 'w', newline='')
             fieldnames = ["epochs", "learning rate", "hidden layer count", "loss", "acc. sample count", "wtd. train loss"]
             writer = DictWriter(csvFile, fieldnames)
         else:
@@ -387,9 +391,11 @@ class AIWrapper():
         for phoneme in self.voicebank.phonemeDict.values():
             if torch.isnan(phoneme[0].avgSpecharm).any():
                 continue
-            self.deskewingPremul += phoneme[0].avgSpecharm.to(self.device)
+            self.deskewingPremul[:halfHarms] += phoneme[0].avgSpecharm[:halfHarms].to(self.device)
+            self.deskewingPremul[2 * halfHarms:] += phoneme[0].avgSpecharm[halfHarms:].to(self.device)
             total += 1
-        self.deskewingPremul /= total * 2.25
+        self.deskewingPremul[:halfHarms] /= total
+        self.deskewingPremul[2 * halfHarms:] /= total
         targetLength = 0
         total = 0
         for data in self.dataLoader(indata):
@@ -402,9 +408,13 @@ class AIWrapper():
 
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                data = self.VAE.encoder(torch.squeeze(data) / self.deskewingPremul)
+                data = torch.squeeze(data)
+                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
+                data = self.VAE.encoder(data / self.deskewingPremul)
                 self.reset()
-                synthBase = self.VAE.encoder(self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12) / self.deskewingPremul)
+                synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
+                synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
+                synthBase = self.VAE.encoder(synthBase / self.deskewingPremul)
                 synthInput = self.mainAi(synthBase, True)
                 
                 self.mainCriticOptimizer.zero_grad()

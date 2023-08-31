@@ -7,7 +7,7 @@ class VAE(nn.Module):
     def __init__(self, device, latent_dim=128, learningRate:float = 0.0001):
         super().__init__()
 
-        encoder_dim = global_consts.halfTripleBatchSize + global_consts.halfHarms
+        encoder_dim = global_consts.halfTripleBatchSize + global_consts.halfHarms + 1
 
         self.device = device
         self.learningRate = learningRate
@@ -15,15 +15,15 @@ class VAE(nn.Module):
         # encoder, decoder
         self.encoder = nn.Sequential(
             nn.Linear(encoder_dim, latent_dim * 2, device = self.device),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.GELU(0.2, inplace=True),
             nn.Linear(latent_dim * 2, latent_dim, device = self.device),
-            nn.LeakyReLU(0.2, inplace=True)
+            nn.GELU(0.2, inplace=True)
         )
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, latent_dim * 2, device = self.device),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.GELU(0.2, inplace=True),
             nn.Linear(latent_dim * 2, encoder_dim, device = self.device),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.GELU(0.2, inplace=True),
         )
 
         # distribution parameters

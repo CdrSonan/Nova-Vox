@@ -11,6 +11,12 @@ import csv
 from copy import copy
 from global_consts import controlPhonemes, consonantEndOffset
 
+def createKey(phoneme:str, expression:str):
+    if expression == "":
+        return phoneme
+    else:
+        return "_".join([phoneme, expression])
+
 def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix:str, expr:str, phonFile:str, convFile:str = None, forceJIS:bool = True) -> list:
     """Function for fetching Nova-Vox samples based on a line from an oto.ini file and phoneme list.
 
@@ -98,7 +104,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
     intermediate = offset + preuttr + min((fixed - preuttr) / 2, consonantEndOffset)
     output.append(UtauSample(filepath, 2, None, 0, None, 0, 0, 0, 0, 0))
     if len(sequence) == 1:
-        sharedKey = "_".join([sequence[0], expr])
+        sharedKey = createKey(sequence[0], expr)
         if typeSequence[0] == "V":
             sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False, 0x0000ff00)
             embedPart = 0x0000ff00
@@ -115,7 +121,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
         sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap, embedding = (0xf000ff00, embedPart))
         output.append(sample)
     elif len(sequence) == 2:
-        sharedKey = "_".join([sequence[1], expr])
+        sharedKey = createKey(sequence[1], expr)
         if typeSequence[1] == "V":
             sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False, 0x0000ff00)
             embedPart = 0x0000ff00
@@ -129,7 +135,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
             sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True, 0x000000ff)
             embedPart = 0x000000ff
         output.append(sample)
-        sharedKey = "_".join([sequence[0], expr])
+        sharedKey = createKey(sequence[0], expr)
         if typeSequence[0] == "V":
             sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap, embedding = (0x0000ff00, embedPart))
             output.append(sample)
@@ -149,7 +155,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
             sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap, embedding = (0x000000ff, embedPart))
             output.append(sample)
     elif len(sequence) == 3:
-        sharedKey = "_".join([sequence[1], expr])
+        sharedKey = createKey(sequence[1], expr)
         if typeSequence[1] == "V":
             sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, True, False, 0x0000ff00)
             embedPart = 0x0000ff00
@@ -163,7 +169,7 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
             sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, False, True, 0x000000ff)
             embedPart = 0x000000ff
         output.append(sample)
-        sharedKey = "_".join([sequence[2], expr])
+        sharedKey = createKey(sequence[2], expr)
         if typeSequence[2] == "V":
             sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False, 0x0000ff00)
             embedPart2 = 0x0000ff00

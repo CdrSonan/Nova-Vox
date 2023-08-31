@@ -9,6 +9,7 @@ import tkinter
 import tkinter.messagebox
 import logging
 import sys
+from ast import literal_eval
 
 import torch
 
@@ -299,15 +300,15 @@ class AdvSettingsUi(Frame):
             "tr_hls": self.hparams.tr_hls.variable.get(),
             "tr_def_thrh" : self.hparams.tr_def_thrh.variable.get(),
             "latent_dim": self.hparams.latent_dim.variable.get(),
-            "main_blkA": self.hparams.main_blkA.variable.get(),
-            "main_blkB": self.hparams.main_blkB.variable.get(),
-            "main_blkC": self.hparams.main_blkC.variable.get(),
+            "main_blkA": literal_eval(self.hparams.main_blkA.variable.get()),
+            "main_blkB": literal_eval(self.hparams.main_blkB.variable.get()),
+            "main_blkC": literal_eval(self.hparams.main_blkC.variable.get()),
             "main_lr": self.hparams.main_lr.variable.get(),
             "main_reg": self.hparams.main_reg.variable.get(),
             "main_drp": self.hparams.main_drp.variable.get(),
-            "crt_blkA": self.hparams.crt_blkA.variable.get(),
-            "crt_blkB": self.hparams.crt_blkB.variable.get(),
-            "crt_blkC": self.hparams.crt_blkC.variable.get(),
+            "crt_blkA": literal_eval(self.hparams.crt_blkA.variable.get()),
+            "crt_blkB": literal_eval(self.hparams.crt_blkB.variable.get()),
+            "crt_blkC": literal_eval(self.hparams.crt_blkC.variable.get()),
             "crt_lr": self.hparams.crt_lr.variable.get(),
             "crt_reg": self.hparams.crt_reg.variable.get(),
             "crt_drp": self.hparams.crt_drp.variable.get(),
