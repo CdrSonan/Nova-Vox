@@ -79,11 +79,11 @@ class MainAi(nn.Module):
         
         self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
-        self.decoderB = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], proj_size = 10 * dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
+        self.decoderB = nn.Sequential(SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device),
+                                      nn.Linear(blockB[0], 10 * dim),
+                                      nn.Sigmoid())
         
         self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True)
-
-        self.threshold = torch.nn.Threshold(0.001, 0.001)
         
         self.apply(init_weights)
 
@@ -97,8 +97,8 @@ class MainAi(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
 
-        self.encoderAState = (torch.zeros(blockA[1], 1, dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
-        self.decoderAState = (torch.zeros(blockA[1], 1, 10 * dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
+        #self.encoderAState = (torch.zeros(blockA[1], 1, dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
+        #self.decoderAState = (torch.zeros(blockA[1], 1, 10 * dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
         self.encoderBState = (torch.zeros(blockB[1], 1, dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         self.decoderBState = (torch.zeros(blockB[1], 1, 10 * dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         
@@ -112,7 +112,7 @@ class MainAi(nn.Module):
             padded = latent
 
         if level > 0:
-            skipA, self.encoderAState = self.encoderA(padded, self.encoderAState)
+            skipA = self.encoderA(padded)
         if level > 1:
             skipB, self.encoderBState = self.encoderB(skipA.reshape(1, skipA.size()[1] / 10, skipA.size()[2] * 10), self.encoderBState)
         if level > 2:
@@ -122,9 +122,7 @@ class MainAi(nn.Module):
             skipA += decodedB[0]
             self.decoderBState = decodedB[1]
         if level > 0:
-            decodedA = self.decoderA(skipA, self.decoderAState)
-            output = latent + decodedA[0]
-            self.decoderAState = decodedA[1]
+            output = latent + self.decoderA(skipA)
         else:
             output = latent
         
@@ -133,8 +131,8 @@ class MainAi(nn.Module):
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        self.encoderAState = (torch.zeros(self.blockAHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
-        self.decoderAState = (torch.zeros(self.blockAHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
+        #self.encoderAState = (torch.zeros(self.blockAHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
+        #self.decoderAState = (torch.zeros(self.blockAHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
         self.encoderBState = (torch.zeros(self.blockBHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
         self.decoderBState = (torch.zeros(self.blockBHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
 
@@ -143,17 +141,51 @@ class MainCritic(nn.Module):
     def __init__(self, dim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05) -> None:
         super().__init__()
         
-        self.encoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
+        self.encoderA = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+        )
         
-        self.decoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = 1, batch_first = True, dropout = dropout, device = device)
+        self.decoderA = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2)),
+            nn.BatchNorm1d(blockA[0]),
+            nn.Sigmoid(),
+        )
         
         self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
-        self.decoderB = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], proj_size = 10 * dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
+        self.decoderB = nn.Sequential(SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device),
+                                      nn.Linear(blockB[0], 10 * dim),
+                                      nn.Sigmoid())
         
-        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[0], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[2], dropout = dropout, activation = "gelu", batch_first = True)
-
-        self.threshold = torch.nn.Threshold(0.001, 0.001)
+        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True)
+        
+        self.final = nn.Linear(dim, 1)
         
         self.apply(init_weights)
 
@@ -167,8 +199,8 @@ class MainCritic(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
 
-        self.encoderAState = (torch.zeros(blockA[1], 1, dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
-        self.decoderAState = (torch.zeros(blockA[1], 1, 10 * dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
+        #self.encoderAState = (torch.zeros(blockA[1], 1, dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
+        #self.decoderAState = (torch.zeros(blockA[1], 1, 10 * dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
         self.encoderBState = (torch.zeros(blockB[1], 1, dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         self.decoderBState = (torch.zeros(blockB[1], 1, 10 * dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         
@@ -182,29 +214,27 @@ class MainCritic(nn.Module):
             padded = latent
 
         if level > 0:
-            skipA, self.encoderAState = self.encoderA(padded, self.encoderAState)
+            skipA = self.encoderA(padded)
         if level > 1:
-            skipB, self.encoderBState = self.encoderB(skipA, self.encoderBState)
+            skipB, self.encoderBState = self.encoderB(skipA.reshape(1, skipA.size()[1] / 10, skipA.size()[2] * 10), self.encoderBState)
         if level > 2:
             skipB += self.blockC(skipB, torch.roll(skipB, (0, 1, 0)), tgt_mask = torch.triu(torch.ones(skipB.size()[1], skipB.size()[1], device = self.device), diagonal = 1).bool())
         if level > 1:
-            decodedA = self.decoderB(skipB, self.decoderBState)
-            skipA += decodedA[0]
-            self.decoderBState = decodedA[1]
+            decodedB = self.decoderB(skipB, self.decoderBState).reshape(1, skipA.size()[1], skipA.size()[2])
+            skipA += decodedB[0]
+            self.decoderBState = decodedB[1]
         if level > 0:
-            decodedB = self.decoderA(skipA, self.decoderAState)
-            output = latent + decodedB[0]
-            self.decoderAState = decodedB[1]
+            output = latent + self.decoderA(skipA)
         else:
             output = latent
         
-        return output[latent.size()[0] - 1]
+        return self.final(output[latent.size()[0] - 1])
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        self.encoderAState = (torch.zeros(self.blockAHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
-        self.decoderAState = (torch.zeros(self.blockAHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
+        #self.encoderAState = (torch.zeros(self.blockAHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
+        #self.decoderAState = (torch.zeros(self.blockAHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
         self.encoderBState = (torch.zeros(self.blockBHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
         self.decoderBState = (torch.zeros(self.blockBHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
 

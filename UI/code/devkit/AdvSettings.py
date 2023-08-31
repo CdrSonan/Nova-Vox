@@ -13,7 +13,8 @@ import sys
 import torch
 
 from Backend.VB_Components.Ai.TrAi import TrAi
-from Backend.VB_Components.Ai.PredAi import SpecPredAi, SpecPredDiscriminator
+from Backend.VB_Components.Ai.MainAi import MainAi, MainCritic
+from Backend.VB_Components.Ai.VAE import VAE
 from Localization.devkit_localization import getLanguage
 from UI.code.devkit.Widgets import *
 loc = getLanguage()
@@ -39,148 +40,236 @@ class AdvSettingsUi(Frame):
 
         self.hparams = LabelFrame(self, text = loc["hparams"])
 
-        self.hparams.crf_lr = Frame(self.hparams)
-        self.hparams.crf_lr.variable = tkinter.DoubleVar(self.hparams.crf_lr)
-        self.hparams.crf_lr.variable.set(loadedVB.ai.hparams["crf_lr"])
-        self.hparams.crf_lr.entry = Entry(self.hparams.crf_lr)
-        self.hparams.crf_lr.entry["textvariable"] = self.hparams.crf_lr.variable
-        self.hparams.crf_lr.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_lr.display = Label(self.hparams.crf_lr)
-        self.hparams.crf_lr.display["text"] = loc["crf_lr"]
-        self.hparams.crf_lr.display.pack(side = "right", fill = "x")
-        self.hparams.crf_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.hparams.tr_lr = Frame(self.hparams)
+        self.hparams.tr_lr.variable = tkinter.DoubleVar(self.hparams.tr_lr)
+        self.hparams.tr_lr.variable.set(loadedVB.ai.hparams["tr_lr"])
+        self.hparams.tr_lr.entry = Entry(self.hparams.tr_lr)
+        self.hparams.tr_lr.entry["textvariable"] = self.hparams.tr_lr.variable
+        self.hparams.tr_lr.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.tr_lr.display = Label(self.hparams.tr_lr)
+        self.hparams.tr_lr.display["text"] = loc["tr_lr"]
+        self.hparams.tr_lr.display.pack(side = "right", fill = "x")
+        self.hparams.tr_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.crf_reg = Frame(self.hparams)
-        self.hparams.crf_reg.variable = tkinter.DoubleVar(self.hparams.crf_reg)
-        self.hparams.crf_reg.variable.set(loadedVB.ai.hparams["crf_reg"])
-        self.hparams.crf_reg.entry = Entry(self.hparams.crf_reg)
-        self.hparams.crf_reg.entry["textvariable"] = self.hparams.crf_reg.variable
-        self.hparams.crf_reg.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_reg.display = Label(self.hparams.crf_reg)
-        self.hparams.crf_reg.display["text"] = loc["crf_reg"]
-        self.hparams.crf_reg.display.pack(side = "right", fill = "x")
-        self.hparams.crf_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.hparams.tr_reg = Frame(self.hparams)
+        self.hparams.tr_reg.variable = tkinter.DoubleVar(self.hparams.tr_reg)
+        self.hparams.tr_reg.variable.set(loadedVB.ai.hparams["tr_reg"])
+        self.hparams.tr_reg.entry = Entry(self.hparams.tr_reg)
+        self.hparams.tr_reg.entry["textvariable"] = self.hparams.tr_reg.variable
+        self.hparams.tr_reg.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.tr_reg.display = Label(self.hparams.tr_reg)
+        self.hparams.tr_reg.display["text"] = loc["tr_reg"]
+        self.hparams.tr_reg.display.pack(side = "right", fill = "x")
+        self.hparams.tr_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.crf_hlc = Frame(self.hparams)
-        self.hparams.crf_hlc.variable = tkinter.IntVar(self.hparams.crf_hlc)
-        self.hparams.crf_hlc.variable.set(loadedVB.ai.hparams["crf_hlc"])
-        self.hparams.crf_hlc.entry = Spinbox(self.hparams.crf_hlc, from_ = 0, to = 128)
-        self.hparams.crf_hlc.entry["textvariable"] = self.hparams.crf_hlc.variable
-        self.hparams.crf_hlc.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_hlc.display = Label(self.hparams.crf_hlc)
-        self.hparams.crf_hlc.display["text"] = loc["crf_hlc"]
-        self.hparams.crf_hlc.display.pack(side = "right", fill = "x")
-        self.hparams.crf_hlc.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.hparams.tr_hlc = Frame(self.hparams)
+        self.hparams.tr_hlc.variable = tkinter.IntVar(self.hparams.tr_hlc)
+        self.hparams.tr_hlc.variable.set(loadedVB.ai.hparams["tr_hlc"])
+        self.hparams.tr_hlc.entry = Spinbox(self.hparams.tr_hlc, from_ = 0, to = 128)
+        self.hparams.tr_hlc.entry["textvariable"] = self.hparams.tr_hlc.variable
+        self.hparams.tr_hlc.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.tr_hlc.display = Label(self.hparams.tr_hlc)
+        self.hparams.tr_hlc.display["text"] = loc["tr_hlc"]
+        self.hparams.tr_hlc.display.pack(side = "right", fill = "x")
+        self.hparams.tr_hlc.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.crf_hls = Frame(self.hparams)
-        self.hparams.crf_hls.variable = tkinter.IntVar(self.hparams.crf_hls)
-        self.hparams.crf_hls.variable.set(loadedVB.ai.hparams["crf_hls"])
-        self.hparams.crf_hls.entry = Spinbox(self.hparams.crf_hls, from_ = 16, to = 4096)
-        self.hparams.crf_hls.entry["textvariable"] = self.hparams.crf_hls.variable
-        self.hparams.crf_hls.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_hls.display = Label(self.hparams.crf_hls)
-        self.hparams.crf_hls.display["text"] = loc["crf_hls"]
-        self.hparams.crf_hls.display.pack(side = "right", fill = "x")
-        self.hparams.crf_hls.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.hparams.tr_hls = Frame(self.hparams)
+        self.hparams.tr_hls.variable = tkinter.IntVar(self.hparams.tr_hls)
+        self.hparams.tr_hls.variable.set(loadedVB.ai.hparams["tr_hls"])
+        self.hparams.tr_hls.entry = Spinbox(self.hparams.tr_hls, from_ = 16, to = 4096)
+        self.hparams.tr_hls.entry["textvariable"] = self.hparams.tr_hls.variable
+        self.hparams.tr_hls.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.tr_hls.display = Label(self.hparams.tr_hls)
+        self.hparams.tr_hls.display["text"] = loc["tr_hls"]
+        self.hparams.tr_hls.display.pack(side = "right", fill = "x")
+        self.hparams.tr_hls.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.crf_def_thrh = Frame(self.hparams)
-        self.hparams.crf_def_thrh.variable = tkinter.DoubleVar(self.hparams.crf_def_thrh)
-        self.hparams.crf_def_thrh.variable.set(loadedVB.ai.hparams["crf_def_thrh"])
-        self.hparams.crf_def_thrh.entry = Entry(self.hparams.crf_def_thrh)
-        self.hparams.crf_def_thrh.entry["textvariable"] = self.hparams.crf_def_thrh.variable
-        self.hparams.crf_def_thrh.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.crf_def_thrh.display = Label(self.hparams.crf_def_thrh)
-        self.hparams.crf_def_thrh.display["text"] = loc["crf_def_thrh"]
-        self.hparams.crf_def_thrh.display.pack(side = "right", fill = "x")
-        self.hparams.crf_def_thrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.hparams.tr_def_thrh = Frame(self.hparams)
+        self.hparams.tr_def_thrh.variable = tkinter.DoubleVar(self.hparams.tr_def_thrh)
+        self.hparams.tr_def_thrh.variable.set(loadedVB.ai.hparams["tr_def_thrh"])
+        self.hparams.tr_def_thrh.entry = Entry(self.hparams.tr_def_thrh)
+        self.hparams.tr_def_thrh.entry["textvariable"] = self.hparams.tr_def_thrh.variable
+        self.hparams.tr_def_thrh.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.tr_def_thrh.display = Label(self.hparams.tr_def_thrh)
+        self.hparams.tr_def_thrh.display["text"] = loc["tr_def_thrh"]
+        self.hparams.tr_def_thrh.display.pack(side = "right", fill = "x")
+        self.hparams.tr_def_thrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.latent_dim = Frame(self.hparams)
+        self.hparams.latent_dim.variable = tkinter.IntVar(self.hparams.latent_dim)
+        self.hparams.latent_dim.variable.set(loadedVB.ai.hparams["latent_dim"])
+        self.hparams.latent_dim.entry = Spinbox(self.hparams.latent_dim, from_ = 1, to = 4096)
+        self.hparams.latent_dim.entry["textvariable"] = self.hparams.latent_dim.variable
+        self.hparams.latent_dim.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.latent_dim.display = Label(self.hparams.latent_dim)
+        self.hparams.latent_dim.display["text"] = loc["latent_dim"]
+        self.hparams.latent_dim.display.pack(side = "right", fill = "x")
+        self.hparams.latent_dim.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.main_blkA = Frame(self.hparams)
+        self.hparams.main_blkA.variable = tkinter.StringVar(self.hparams.main_blkA)
+        self.hparams.main_blkA.variable.set(str(loadedVB.ai.hparams["main_blkA"]))
+        self.hparams.main_blkA.entry = Entry(self.hparams.main_blkA)
+        self.hparams.main_blkA.entry["textvariable"] = self.hparams.main_blkA.variable
+        self.hparams.main_blkA.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.main_blkA.display = Label(self.hparams.main_blkA)
+        self.hparams.main_blkA.display["text"] = loc["main_blkA"]
+        self.hparams.main_blkA.display.pack(side = "right", fill = "x")
+        self.hparams.main_blkA.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.main_blkB = Frame(self.hparams)
+        self.hparams.main_blkB.variable = tkinter.StringVar(self.hparams.main_blkB)
+        self.hparams.main_blkB.variable.set(str(loadedVB.ai.hparams["main_blkB"]))
+        self.hparams.main_blkB.entry = Entry(self.hparams.main_blkB)
+        self.hparams.main_blkB.entry["textvariable"] = self.hparams.main_blkB.variable
+        self.hparams.main_blkB.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.main_blkB.display = Label(self.hparams.main_blkB)
+        self.hparams.main_blkB.display["text"] = loc["main_blkB"]
+        self.hparams.main_blkB.display.pack(side = "right", fill = "x")
+        self.hparams.main_blkB.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.main_blkC = Frame(self.hparams)
+        self.hparams.main_blkC.variable = tkinter.StringVar(self.hparams.main_blkC)
+        self.hparams.main_blkC.variable.set(str(loadedVB.ai.hparams["main_blkC"]))
+        self.hparams.main_blkC.entry = Entry(self.hparams.main_blkC)
+        self.hparams.main_blkC.entry["textvariable"] = self.hparams.main_blkC.variable
+        self.hparams.main_blkC.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.main_blkC.display = Label(self.hparams.main_blkC)
+        self.hparams.main_blkC.display["text"] = loc["main_blkC"]
+        self.hparams.main_blkC.display.pack(side = "right", fill = "x")
+        self.hparams.main_blkC.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.pred_lr = Frame(self.hparams)
-        self.hparams.pred_lr.variable = tkinter.DoubleVar(self.hparams.pred_lr)
-        self.hparams.pred_lr.variable.set(loadedVB.ai.hparams["pred_lr"])
-        self.hparams.pred_lr.entry = Entry(self.hparams.pred_lr)
-        self.hparams.pred_lr.entry["textvariable"] = self.hparams.pred_lr.variable
-        self.hparams.pred_lr.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.pred_lr.display = Label(self.hparams.pred_lr)
-        self.hparams.pred_lr.display["text"] = loc["pred_lr"]
-        self.hparams.pred_lr.display.pack(side = "right", fill = "x")
-        self.hparams.pred_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.hparams.main_lr = Frame(self.hparams)
+        self.hparams.main_lr.variable = tkinter.DoubleVar(self.hparams.main_lr)
+        self.hparams.main_lr.variable.set(loadedVB.ai.hparams["main_lr"])
+        self.hparams.main_lr.entry = Entry(self.hparams.main_lr)
+        self.hparams.main_lr.entry["textvariable"] = self.hparams.main_lr.variable
+        self.hparams.main_lr.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.main_lr.display = Label(self.hparams.main_lr)
+        self.hparams.main_lr.display["text"] = loc["main_lr"]
+        self.hparams.main_lr.display.pack(side = "right", fill = "x")
+        self.hparams.main_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.pred_reg = Frame(self.hparams)
-        self.hparams.pred_reg.variable = tkinter.DoubleVar(self.hparams.pred_reg)
-        self.hparams.pred_reg.variable.set(loadedVB.ai.hparams["pred_reg"])
-        self.hparams.pred_reg.entry = Entry(self.hparams.pred_reg)
-        self.hparams.pred_reg.entry["textvariable"] = self.hparams.pred_reg.variable
-        self.hparams.pred_reg.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.pred_reg.display = Label(self.hparams.pred_reg)
-        self.hparams.pred_reg.display["text"] = loc["pred_reg"]
-        self.hparams.pred_reg.display.pack(side = "right", fill = "x")
-        self.hparams.pred_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.hparams.main_reg = Frame(self.hparams)
+        self.hparams.main_reg.variable = tkinter.DoubleVar(self.hparams.main_reg)
+        self.hparams.main_reg.variable.set(loadedVB.ai.hparams["main_reg"])
+        self.hparams.main_reg.entry = Entry(self.hparams.main_reg)
+        self.hparams.main_reg.entry["textvariable"] = self.hparams.main_reg.variable
+        self.hparams.main_reg.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.main_reg.display = Label(self.hparams.main_reg)
+        self.hparams.main_reg.display["text"] = loc["main_reg"]
+        self.hparams.main_reg.display.pack(side = "right", fill = "x")
+        self.hparams.main_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.main_drp = Frame(self.hparams)
+        self.hparams.main_drp.variable = tkinter.DoubleVar(self.hparams.main_drp)
+        self.hparams.main_drp.variable.set(loadedVB.ai.hparams["main_drp"])
+        self.hparams.main_drp.entry = Entry(self.hparams.main_drp)
+        self.hparams.main_drp.entry["textvariable"] = self.hparams.main_drp.variable
+        self.hparams.main_drp.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.main_drp.display = Label(self.hparams.main_drp)
+        self.hparams.main_drp.display["text"] = loc["main_drp"]
+        self.hparams.main_drp.display.pack(side = "right", fill = "x")
+        self.hparams.main_drp.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.crt_blkA = Frame(self.hparams)
+        self.hparams.crt_blkA.variable = tkinter.StringVar(self.hparams.crt_blkA)
+        self.hparams.crt_blkA.variable.set(str(loadedVB.ai.hparams["crt_blkA"]))
+        self.hparams.crt_blkA.entry = Entry(self.hparams.crt_blkA)
+        self.hparams.crt_blkA.entry["textvariable"] = self.hparams.crt_blkA.variable
+        self.hparams.crt_blkA.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.crt_blkA.display = Label(self.hparams.crt_blkA)
+        self.hparams.crt_blkA.display["text"] = loc["crt_blkA"]
+        self.hparams.crt_blkA.display.pack(side = "right", fill = "x")
+        self.hparams.crt_blkA.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.crt_blkB = Frame(self.hparams)
+        self.hparams.crt_blkB.variable = tkinter.StringVar(self.hparams.crt_blkB)
+        self.hparams.crt_blkB.variable.set(str(loadedVB.ai.hparams["crt_blkB"]))
+        self.hparams.crt_blkB.entry = Entry(self.hparams.crt_blkB)
+        self.hparams.crt_blkB.entry["textvariable"] = self.hparams.crt_blkB.variable
+        self.hparams.crt_blkB.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.crt_blkB.display = Label(self.hparams.crt_blkB)
+        self.hparams.crt_blkB.display["text"] = loc["crt_blkB"]
+        self.hparams.crt_blkB.display.pack(side = "right", fill = "x")
+        self.hparams.crt_blkB.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.crt_blkC = Frame(self.hparams)
+        self.hparams.crt_blkC.variable = tkinter.StringVar(self.hparams.crt_blkC)
+        self.hparams.crt_blkC.variable.set(str(loadedVB.ai.hparams["crt_blkC"]))
+        self.hparams.crt_blkC.entry = Entry(self.hparams.crt_blkC)
+        self.hparams.crt_blkC.entry["textvariable"] = self.hparams.crt_blkC.variable
+        self.hparams.crt_blkC.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.crt_blkC.display = Label(self.hparams.crt_blkC)
+        self.hparams.crt_blkC.display["text"] = loc["crt_blkC"]
+        self.hparams.crt_blkC.display.pack(side = "right", fill = "x")
+        self.hparams.crt_blkC.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.pred_rlc = Frame(self.hparams)
-        self.hparams.pred_rlc.variable = tkinter.IntVar(self.hparams.pred_rlc)
-        self.hparams.pred_rlc.variable.set(loadedVB.ai.hparams["pred_rlc"])
-        self.hparams.pred_rlc.entry = Entry(self.hparams.pred_rlc)
-        self.hparams.pred_rlc.entry["textvariable"] = self.hparams.pred_rlc.variable
-        self.hparams.pred_rlc.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.pred_rlc.display = Label(self.hparams.pred_rlc)
-        self.hparams.pred_rlc.display["text"] = loc["pred_rlc"]
-        self.hparams.pred_rlc.display.pack(side = "right", fill = "x")
-        self.hparams.pred_rlc.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.hparams.crt_lr = Frame(self.hparams)
+        self.hparams.crt_lr.variable = tkinter.DoubleVar(self.hparams.crt_lr)
+        self.hparams.crt_lr.variable.set(loadedVB.ai.hparams["crt_lr"])
+        self.hparams.crt_lr.entry = Entry(self.hparams.crt_lr)
+        self.hparams.crt_lr.entry["textvariable"] = self.hparams.crt_lr.variable
+        self.hparams.crt_lr.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.crt_lr.display = Label(self.hparams.crt_lr)
+        self.hparams.crt_lr.display["text"] = loc["crt_lr"]
+        self.hparams.crt_lr.display.pack(side = "right", fill = "x")
+        self.hparams.crt_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
-        self.hparams.pred_rs = Frame(self.hparams)
-        self.hparams.pred_rs.variable = tkinter.IntVar(self.hparams.pred_rs)
-        self.hparams.pred_rs.variable.set(loadedVB.ai.hparams["pred_rs"])
-        self.hparams.pred_rs.entry = Spinbox(self.hparams.pred_rs, from_ = 16, to = 4096)
-        self.hparams.pred_rs.entry["textvariable"] = self.hparams.pred_rs.variable
-        self.hparams.pred_rs.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.pred_rs.display = Label(self.hparams.pred_rs)
-        self.hparams.pred_rs.display["text"] = loc["pred_rs"]
-        self.hparams.pred_rs.display.pack(side = "right", fill = "x")
-        self.hparams.pred_rs.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.hparams.predh_lr = Frame(self.hparams)
-        self.hparams.predh_lr.variable = tkinter.DoubleVar(self.hparams.predh_lr)
-        self.hparams.predh_lr.variable.set(loadedVB.ai.hparams["predh_lr"])
-        self.hparams.predh_lr.entry = Entry(self.hparams.predh_lr)
-        self.hparams.predh_lr.entry["textvariable"] = self.hparams.predh_lr.variable
-        self.hparams.predh_lr.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.predh_lr.display = Label(self.hparams.predh_lr)
-        self.hparams.predh_lr.display["text"] = loc["predh_lr"]
-        self.hparams.predh_lr.display.pack(side = "right", fill = "x")
-        self.hparams.predh_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.hparams.predh_reg = Frame(self.hparams)
-        self.hparams.predh_reg.variable = tkinter.DoubleVar(self.hparams.predh_reg)
-        self.hparams.predh_reg.variable.set(loadedVB.ai.hparams["predh_reg"])
-        self.hparams.predh_reg.entry = Entry(self.hparams.predh_reg)
-        self.hparams.predh_reg.entry["textvariable"] = self.hparams.predh_reg.variable
-        self.hparams.predh_reg.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.predh_reg.display = Label(self.hparams.predh_reg)
-        self.hparams.predh_reg.display["text"] = loc["predh_reg"]
-        self.hparams.predh_reg.display.pack(side = "right", fill = "x")
-        self.hparams.predh_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.hparams.predh_rlc = Frame(self.hparams)
-        self.hparams.predh_rlc.variable = tkinter.IntVar(self.hparams.predh_rlc)
-        self.hparams.predh_rlc.variable.set(loadedVB.ai.hparams["predh_rlc"])
-        self.hparams.predh_rlc.entry = Entry(self.hparams.predh_rlc)
-        self.hparams.predh_rlc.entry["textvariable"] = self.hparams.predh_rlc.variable
-        self.hparams.predh_rlc.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.predh_rlc.display = Label(self.hparams.predh_rlc)
-        self.hparams.predh_rlc.display["text"] = loc["predh_rlc"]
-        self.hparams.predh_rlc.display.pack(side = "right", fill = "x")
-        self.hparams.predh_rlc.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.hparams.predh_rs = Frame(self.hparams)
-        self.hparams.predh_rs.variable = tkinter.IntVar(self.hparams.predh_rs)
-        self.hparams.predh_rs.variable.set(loadedVB.ai.hparams["predh_rs"])
-        self.hparams.predh_rs.entry = Spinbox(self.hparams.predh_rs, from_ = 16, to = 4096)
-        self.hparams.predh_rs.entry["textvariable"] = self.hparams.predh_rs.variable
-        self.hparams.predh_rs.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.predh_rs.display = Label(self.hparams.predh_rs)
-        self.hparams.predh_rs.display["text"] = loc["predh_rs"]
-        self.hparams.predh_rs.display.pack(side = "right", fill = "x")
-        self.hparams.predh_rs.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        self.hparams.crt_reg = Frame(self.hparams)
+        self.hparams.crt_reg.variable = tkinter.DoubleVar(self.hparams.crt_reg)
+        self.hparams.crt_reg.variable.set(loadedVB.ai.hparams["crt_reg"])
+        self.hparams.crt_reg.entry = Entry(self.hparams.crt_reg)
+        self.hparams.crt_reg.entry["textvariable"] = self.hparams.crt_reg.variable
+        self.hparams.crt_reg.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.crt_reg.display = Label(self.hparams.crt_reg)
+        self.hparams.crt_reg.display["text"] = loc["crt_reg"]
+        self.hparams.crt_reg.display.pack(side = "right", fill = "x")
+        self.hparams.crt_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.crt_drp = Frame(self.hparams)
+        self.hparams.crt_drp.variable = tkinter.DoubleVar(self.hparams.crt_drp)
+        self.hparams.crt_drp.variable.set(loadedVB.ai.hparams["crt_drp"])
+        self.hparams.crt_drp.entry = Entry(self.hparams.crt_drp)
+        self.hparams.crt_drp.entry["textvariable"] = self.hparams.crt_drp.variable
+        self.hparams.crt_drp.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.crt_drp.display = Label(self.hparams.crt_drp)
+        self.hparams.crt_drp.display["text"] = loc["crt_drp"]
+        self.hparams.crt_drp.display.pack(side = "right", fill = "x")
+        self.hparams.crt_drp.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.vae_lr = Frame(self.hparams)
+        self.hparams.vae_lr.variable = tkinter.DoubleVar(self.hparams.vae_lr)
+        self.hparams.vae_lr.variable.set(loadedVB.ai.hparams["vae_lr"])
+        self.hparams.vae_lr.entry = Entry(self.hparams.vae_lr)
+        self.hparams.vae_lr.entry["textvariable"] = self.hparams.vae_lr.variable
+        self.hparams.vae_lr.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.vae_lr.display = Label(self.hparams.vae_lr)
+        self.hparams.vae_lr.display["text"] = loc["vae_lr"]
+        self.hparams.vae_lr.display.pack(side = "right", fill = "x")
+        self.hparams.vae_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.gan_guide_wgt = Frame(self.hparams)
+        self.hparams.gan_guide_wgt.variable = tkinter.DoubleVar(self.hparams.gan_guide_wgt)
+        self.hparams.gan_guide_wgt.variable.set(loadedVB.ai.hparams["gan_guide_wgt"])
+        self.hparams.gan_guide_wgt.entry = Entry(self.hparams.gan_guide_wgt)
+        self.hparams.gan_guide_wgt.entry["textvariable"] = self.hparams.gan_guide_wgt.variable
+        self.hparams.gan_guide_wgt.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.gan_guide_wgt.display = Label(self.hparams.gan_guide_wgt)
+        self.hparams.gan_guide_wgt.display["text"] = loc["gan_guide_wgt"]
+        self.hparams.gan_guide_wgt.display.pack(side = "right", fill = "x")
+        self.hparams.gan_guide_wgt.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.gan_train_asym = Frame(self.hparams)
+        self.hparams.gan_train_asym.variable = tkinter.IntVar(self.hparams.gan_train_asym)
+        self.hparams.gan_train_asym.variable.set(loadedVB.ai.hparams["gan_train_asym"])
+        self.hparams.gan_train_asym.entry = Spinbox(self.hparams.gan_train_asym, from_ = 1, to = 256)
+        self.hparams.gan_train_asym.entry["textvariable"] = self.hparams.gan_train_asym.variable
+        self.hparams.gan_train_asym.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.gan_train_asym.display = Label(self.hparams.gan_train_asym)
+        self.hparams.gan_train_asym.display["text"] = loc["gan_train_asym"]
+        self.hparams.gan_train_asym.display.pack(side = "right", fill = "x")
+        self.hparams.gan_train_asym.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.hparams.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
@@ -204,51 +293,102 @@ class AdvSettingsUi(Frame):
         global loadedVB
 
         hparams = {
-            "crf_lr": self.hparams.crf_lr.variable.get(),
-            "crf_reg": self.hparams.crf_reg.variable.get(),
-            "crf_hlc": self.hparams.crf_hlc.variable.get(),
-            "crf_hls": self.hparams.crf_hls.variable.get(),
-            "crf_def_thrh" : 0.05,
-            "pred_lr": self.hparams.pred_lr.variable.get(),
-            "pred_reg": self.hparams.pred_reg.variable.get(),
-            "pred_rlc": self.hparams.pred_rlc.variable.get(),
-            "pred_rs": self.hparams.pred_rs.variable.get(),
-            "predh_lr": self.hparams.predh_lr.variable.get(),
-            "predh_reg": self.hparams.predh_reg.variable.get(),
-            "predh_rlc": self.hparams.predh_rlc.variable.get(),
-            "predh_rs": self.hparams.predh_rs.variable.get()
+            "tr_lr": self.hparams.tr_lr.variable.get(),
+            "tr_reg": self.hparams.tr_reg.variable.get(),
+            "tr_hlc": self.hparams.tr_hlc.variable.get(),
+            "tr_hls": self.hparams.tr_hls.variable.get(),
+            "tr_def_thrh" : self.hparams.tr_def_thrh.variable.get(),
+            "latent_dim": self.hparams.latent_dim.variable.get(),
+            "main_blkA": self.hparams.main_blkA.variable.get(),
+            "main_blkB": self.hparams.main_blkB.variable.get(),
+            "main_blkC": self.hparams.main_blkC.variable.get(),
+            "main_lr": self.hparams.main_lr.variable.get(),
+            "main_reg": self.hparams.main_reg.variable.get(),
+            "main_drp": self.hparams.main_drp.variable.get(),
+            "crt_blkA": self.hparams.crt_blkA.variable.get(),
+            "crt_blkB": self.hparams.crt_blkB.variable.get(),
+            "crt_blkC": self.hparams.crt_blkC.variable.get(),
+            "crt_lr": self.hparams.crt_lr.variable.get(),
+            "crt_reg": self.hparams.crt_reg.variable.get(),
+            "crt_drp": self.hparams.crt_drp.variable.get(),
+            "vae_lr": self.hparams.vae_lr.variable.get(),
+            "gan_guide_wgt": self.hparams.gan_guide_wgt.variable.get(),
+            "gan_train_asym": self.hparams.gan_train_asym.variable.get()
         }
-        resetCrf = False
-        resetPred = False
-        if (loadedVB.ai.hparams["crf_hlc"] != hparams["crf_hlc"]) or (loadedVB.ai.hparams["crf_hls"] != hparams["crf_hls"]):
-            resetCrf = tkinter.messagebox.askokcancel(loc["warning"], loc["crf_warn"])
-        if loadedVB.ai.hparams["pred_rs"] != hparams["pred_rs"]:
-            resetPred = tkinter.messagebox.askokcancel(loc["warning"], loc["pred_warn"])
-        if ((loadedVB.ai.hparams["crf_lr"] != hparams["crf_lr"]) or (loadedVB.ai.hparams["crf_reg"] != hparams["crf_reg"])) and (resetCrf == False):
-            resetCrfOptim = tkinter.messagebox.askokcancel(loc["warning"], loc["crf_optim_warn"])
+        if (loadedVB.ai.hparams["tr_hlc"] != hparams["tr_hlc"]) or (loadedVB.ai.hparams["tr_hls"] != hparams["tr_hls"]):
+            resetTr = tkinter.messagebox.askokcancel(loc["warning"], loc["tr_warn"])
         else:
-            resetCrfOptim = True
-        if ((loadedVB.ai.hparams["pred_lr"] != hparams["pred_lr"]) or (loadedVB.ai.hparams["pred_reg"] != hparams["pred_reg"])) and (resetPred == False):
-            resetPredOptim = tkinter.messagebox.askokcancel(loc["warning"], loc["pred_optim_warn"])
+            resetTr = False
+        if any(any([i != j for i, j in zip(loadedVB.ai.hparams["main_blkA"], hparams["main_blkA"])]),
+               any([i != j for i, j in zip(loadedVB.ai.hparams["main_blkB"], hparams["main_blkB"])]),
+               any([i != j for i, j in zip(loadedVB.ai.hparams["main_blkC"], hparams["main_blkC"])]),
+               any([i != j for i, j in zip(loadedVB.ai.hparams["crt_blkA"], hparams["crt_blkA"])]),
+               any([i != j for i, j in zip(loadedVB.ai.hparams["crt_blkB"], hparams["crt_blkB"])]),
+               any([i != j for i, j in zip(loadedVB.ai.hparams["crt_blkC"], hparams["crt_blkC"])]),
+               loadedVB.ai.hparams["latent_dim"] != hparams["latent_dim"]
+           ):
+            resetMain = tkinter.messagebox.askokcancel(loc["warning"], loc["pred_warn"])
         else:
-            resetPredOptim = True
-        if resetCrf:
-            loadedVB.ai.hparams["crf_hlc"] = hparams["crf_hlc"]
-            loadedVB.ai.hparams["crf_hls"] = hparams["crf_hls"]
-            loadedVB.ai.crfAi = TrAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["crf_lr"], regularization=loadedVB.ai.hparams["crf_reg"], hiddenLayerCount=loadedVB.ai.hparams["crf_hlc"], hiddenLayerSize=loadedVB.ai.hparams["crf_hls"])
-        if resetPred:
-            loadedVB.ai.hparams["pred_rs"] = hparams["pred_rs"]
-            loadedVB.ai.predAi = SpecPredAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["pred_lr"], regularization=loadedVB.ai.hparams["pred_reg"], recSize=loadedVB.ai.hparams["rs"])
-            loadedVB.ai.predAiDisc = SpecPredDiscriminator(loadedVB.ai.device, loadedVB.ai.hparams["pred_lr"], loadedVB.ai.hparams["pred_rlc"], loadedVB.ai.hparams["pred_rs"], loadedVB.ai.hparams["pred_reg"])
-        if resetCrfOptim:
-            loadedVB.ai.hparams["crf_lr"] = hparams["crf_lr"]
-            loadedVB.ai.hparams["crf_reg"] = hparams["crf_reg"]
-            loadedVB.ai.crfAiOptimizer = torch.optim.NAdam(loadedVB.ai.crfAi.parameters(), lr=loadedVB.ai.crfAi.learningRate, weight_decay=loadedVB.ai.crfAi.regularization)
-        if resetPredOptim:
-            loadedVB.ai.hparams["pred_lr"] = hparams["pred_lr"]
-            loadedVB.ai.hparams["pred_reg"] = hparams["pred_reg"]
-            loadedVB.ai.predAiOptimizer = torch.optim.Adam(loadedVB.ai.predAi.parameters(), lr=loadedVB.ai.predAi.learningRate, weight_decay=loadedVB.ai.predAi.regularization)
-            self.predAiDiscOptimizer = torch.optim.Adam(loadedVB.ai.predAiDisc.parameters(), lr=loadedVB.ai.predAiDisc.learningRate, weight_decay=loadedVB.ai.predAiDisc.regularization)
+            resetMain = False
+        if resetTr:
+            resetTrOptim = True
+        elif ((loadedVB.ai.hparams["tr_lr"] != hparams["tr_lr"]) or (loadedVB.ai.hparams["tr_reg"] != hparams["tr_reg"])):
+            resetTrOptim = tkinter.messagebox.askokcancel(loc["warning"], loc["tr_optim_warn"])
+        else:
+            resetTrOptim = False
+        if resetMain:
+            resetMainOptim = True
+        elif ((loadedVB.ai.hparams["main_lr"] != hparams["main_lr"]) or (loadedVB.ai.hparams["main_reg"] != hparams["main_reg"]) or loadedVB.ai.hparams["vae_lr"] != hparams["vae_lr"]):
+            resetMainOptim = tkinter.messagebox.askokcancel(loc["warning"], loc["pred_optim_warn"])
+        else:
+            resetMainOptim = False
+        loadedVB.ai.hparams["tr_def_thrh"] = hparams["tr_def_thrh"]
+        loadedVB.ai.hparams["main_drp"] = hparams["main_drp"]
+        loadedVB.ai.hparams["crt_drp"] = hparams["crt_drp"]
+        loadedVB.ai.hparams["gan_guide_wgt"] = hparams["gan_guide_wgt"]
+        loadedVB.ai.hparams["gan_train_asym"] = hparams["gan_train_asym"]
+        if resetTr:
+            loadedVB.ai.hparams["tr_hlc"] = hparams["tr_hlc"]
+            loadedVB.ai.hparams["tr_hls"] = hparams["tr_hls"]
+            loadedVB.ai.trAi = TrAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["tr_lr"], regularization=loadedVB.ai.hparams["tr_reg"], hiddenLayerCount=loadedVB.ai.hparams["tr_hlc"], hiddenLayerSize=loadedVB.ai.hparams["tr_hls"])
+        if resetMain:
+            loadedVB.ai.hparams["latent_dim"] = hparams["latent_dim"]
+            loadedVB.ai.hparams["main_blkA"] = hparams["main_blkA"]
+            loadedVB.ai.hparams["main_blkB"] = hparams["main_blkB"]
+            loadedVB.ai.hparams["main_blkC"] = hparams["main_blkC"]
+            loadedVB.ai.hparams["crt_blkA"] = hparams["crt_blkA"]
+            loadedVB.ai.hparams["crt_blkB"] = hparams["crt_blkB"]
+            loadedVB.ai.hparams["crt_blkC"] = hparams["crt_blkC"]
+            loadedVB.ai.mainAi = MainAi(device = loadedVB.ai.device,
+                                        dim = loadedVB.ai.hparams["latent_dim"],
+                                        blockA = loadedVB.ai.hparams["main_blkA"],
+                                        blockB = loadedVB.ai.hparams["main_blkB"],
+                                        blockC = loadedVB.ai.hparams["main_blkC"],
+                                        learningRate=loadedVB.ai.hparams["main_lr"],
+                                        regularization=loadedVB.ai.hparams["main_reg"],
+                                        dropout = loadedVB.ai.hparams["main_drp"])
+            loadedVB.ai.mainCritic = MainCritic(device = loadedVB.ai.device,
+                                        dim = loadedVB.ai.hparams["latent_dim"],
+                                        blockA = loadedVB.ai.hparams["main_blkA"],
+                                        blockB = loadedVB.ai.hparams["main_blkB"],
+                                        blockC = loadedVB.ai.hparams["main_blkC"],
+                                        learningRate=loadedVB.ai.hparams["main_lr"],
+                                        regularization=loadedVB.ai.hparams["main_reg"],
+                                        dropout = loadedVB.ai.hparams["main_drp"])
+            loadedVB.ai.VAE = VAE(device = loadedVB.ai.device, latent_dim = loadedVB.ai.hparams["latent_dim"], learningRate=loadedVB.ai.hparams["vae_lr"])
+        if resetTrOptim:
+            loadedVB.ai.hparams["tr_lr"] = hparams["tr_lr"]
+            loadedVB.ai.hparams["tr_reg"] = hparams["tr_reg"]
+            loadedVB.ai.trAiOptimizer = torch.optim.NAdam(loadedVB.ai.trAi.parameters(), lr=loadedVB.ai.trAi.learningRate, weight_decay=loadedVB.ai.trAi.regularization)
+        if resetMainOptim:
+            loadedVB.ai.hparams["main_lr"] = hparams["main_lr"]
+            loadedVB.ai.hparams["main_reg"] = hparams["main_reg"]
+            loadedVB.ai.hparams["crt_lr"] = hparams["crt_lr"]
+            loadedVB.ai.hparams["crt_reg"] = hparams["crt_reg"]
+            loadedVB.ai.hparams["vae_lr"] = hparams["vae_lr"]
+            loadedVB.ai.mainAiOptimizer = torch.optim.Adam(loadedVB.ai.mainAi.parameters(), lr=loadedVB.ai.mainAi.learningRate, weight_decay=loadedVB.ai.mainAi.regularization)
+            loadedVB.ai.mainCriticOptimizer = torch.optim.Adam(loadedVB.ai.mainCritic.parameters(), lr=loadedVB.ai.mainCritic.learningRate, weight_decay=loadedVB.ai.mainCritic.regularization)
+            loadedVB.ai.VAEOptimizer = torch.optim.Adam(loadedVB.ai.VAE.parameters(), lr=loadedVB.ai.VAE.learningRate)
 
     def applyResampSettings(self) -> None:
         """placeholder function for saving resampler settings into the Voicebank file"""

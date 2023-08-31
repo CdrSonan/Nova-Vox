@@ -201,11 +201,11 @@ class CrfaiUi(Frame):
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        if loadedVB.ai.crfAi.epoch == None:
+        if loadedVB.ai.trAi.epoch == None:
             epoch = loc["varying"]
         else:
-            epoch = str(loadedVB.ai.crfAi.epoch)
-        self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])
+            epoch = str(loadedVB.ai.trAi.epoch)
+        self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.trAi.sampleCount) + loc["AI_stat_3"])
         self.statusLabel = Label(self)
         self.statusLabel["textvariable"] = self.statusVar
         self.statusLabel.pack(side = "top", fill = "x", expand = True, padx = 5)
@@ -348,7 +348,7 @@ class CrfaiUi(Frame):
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             self.phonemeList.list.lb.delete(0)
-        self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])
+        self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.trAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.trAi.sampleCount) + loc["AI_stat_3"])
         logging.info("Crfai train button callback completed")
         
     def onFinalizePress(self) -> None:
@@ -396,4 +396,4 @@ class CrfaiUi(Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.loadTrWeights(filepath)
-            self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.crfAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.crfAi.sampleCount) + loc["AI_stat_3"])
+            self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.trAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.trAi.sampleCount) + loc["AI_stat_3"])

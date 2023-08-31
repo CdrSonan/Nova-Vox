@@ -179,11 +179,11 @@ class PredaiUi(Frame):
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        if loadedVB.ai.predAi.epoch == None:
+        if loadedVB.ai.mainAi.epoch == None:
             epoch = loc["varying"]
         else:
-            epoch = str(loadedVB.ai.predAi.epoch)
-        self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.predAi.sampleCount) + loc["AI_stat_3"])
+            epoch = str(loadedVB.ai.mainAi.epoch)
+        self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.mainAi.sampleCount) + loc["AI_stat_3"])
         self.statusLabel = Label(self)
         self.statusLabel["textvariable"] = self.statusVar
         self.statusLabel.pack(side = "top", fill = "x", expand = True, padx = 5)
@@ -321,7 +321,7 @@ class PredaiUi(Frame):
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             self.phonemeList.list.lb.delete(0)
-        self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.predAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.predAi.sampleCount) + loc["AI_stat_3"])
+        self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.mainAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.mainAi.sampleCount) + loc["AI_stat_3"])
         logging.info("Crfai train button callback completed")
         
     def onFinalizePress(self) -> None:
@@ -371,4 +371,4 @@ class PredaiUi(Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.loadMainWeights(filepath)
-            self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.predAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.predAi.sampleCount) + loc["AI_stat_3"])
+            self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.mainAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.mainAi.sampleCount) + loc["AI_stat_3"])
