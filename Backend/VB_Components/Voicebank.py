@@ -76,7 +76,7 @@ class Voicebank():
         
         changePredTrainSampleFile: currently unused method that changes the file of a staged prediction Ai training sample
         
-        trainCrfAi: initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings
+        trainTrAi: initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings
         
         trainPredAi: initiates the training of the Voicebank's prediction Ai using all staged training samples and the Ai's settings"""
         
@@ -352,7 +352,7 @@ class Voicebank():
             stagedTrTrainSamples.append(((avgSpecharm + sample.specharm).to(device = self.device), sample.embedding))
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainCrf(stagedTrTrainSamples, epochs = epochs, logging = logging, reset = not additive)
+        self.ai.trainTr(stagedTrTrainSamples, epochs = epochs, logging = logging, reset = not additive)
         print("AI training complete")
 
     def trainMainAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
@@ -378,7 +378,7 @@ class Voicebank():
                 stagedMainTrainSamples.append((avgSpecharm + j.specharm).to(device = self.device))
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainPred(stagedMainTrainSamples, epochs = epochs, logging = logging, reset = not additive)
+        self.ai.trainMain(stagedMainTrainSamples, epochs = epochs, logging = logging, reset = not additive)
         print("AI training complete")
 
 class LiteVoicebank():

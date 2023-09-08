@@ -265,7 +265,7 @@ class AIWrapper():
     def finalize(self):
         self.final = True
 
-    def trainCrf(self, indata, epochs:int=1, logging:bool = False, reset:bool = False) -> None:
+    def trainTr(self, indata, epochs:int=1, logging:bool = False, reset:bool = False) -> None:
         """NN training with forward and backward passes, loss criterion and optimizer runs based on a dataset of spectral transition samples.
         
         Arguments:
@@ -453,6 +453,7 @@ class AIWrapper():
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
+                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
                 self.VAEOptimizer.zero_grad()
                 loss = self.VAE.training_step(data)
                 scaler.scale(loss).backward()

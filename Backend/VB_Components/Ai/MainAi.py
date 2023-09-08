@@ -42,36 +42,46 @@ class MainAi(nn.Module):
         #self.decoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
         
         self.encoderA = nn.Sequential(
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.decoderA = nn.Sequential(
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
@@ -83,7 +93,7 @@ class MainAi(nn.Module):
                                       nn.Linear(blockB[0], 10 * dim, device = device),
                                       nn.Sigmoid())
         
-        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
+        self.blockC = nn.Transformer(d_model = 10 * dim + 5, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
         
         self.apply(init_weights)
 
@@ -116,7 +126,14 @@ class MainAi(nn.Module):
         if level > 1:
             skipB, self.encoderBState = self.encoderB(skipA.reshape(1, skipA.size()[1] / 10, skipA.size()[2] * 10), self.encoderBState)
         if level > 2:
-            skipB += self.blockC(skipB, torch.roll(skipB, (0, 1, 0)), tgt_mask = torch.triu(torch.ones(skipB.size()[1], skipB.size()[1], device = self.device), diagonal = 1).bool())
+            positionalEncoding = torch.zeros((5, skipB.size()[2]), device = self.device)
+            positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 2)
+            positionalEncoding[1] = torch.cos(torch.arange(0, skipB.size()[2], device = self.device) * pi / 4)
+            positionalEncoding[2] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 8)
+            positionalEncoding[3] = torch.cos(torch.arange(0, skipB.size()[2], device = self.device) * pi / 16)
+            positionalEncoding[4] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 32)
+            transformerInput = torch.cat((skipB, positionalEncoding), 1)
+            skipB += self.blockC(transformerInput, transformerInput)[:, :skipB.size()[1]]
         if level > 1:
             decodedB = self.decoderB(skipB, self.decoderBState).reshape(1, skipA.size()[1], skipA.size()[2])
             skipA += decodedB[0]
@@ -142,36 +159,46 @@ class MainCritic(nn.Module):
         super().__init__()
         
         self.encoderA = nn.Sequential(
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.decoderA = nn.Sequential(
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
+            nn.ConstantPad1d((0, 0, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
@@ -183,7 +210,7 @@ class MainCritic(nn.Module):
                                       nn.Linear(blockB[0], 10 * dim, device = device),
                                       nn.Sigmoid())
         
-        self.blockC = nn.Transformer(d_model = 10 * dim, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
+        self.blockC = nn.Transformer(d_model = 10 * dim + 5, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
         
         self.final = nn.Linear(dim, 1, bias = False, device = device)
         
@@ -218,7 +245,14 @@ class MainCritic(nn.Module):
         if level > 1:
             skipB, self.encoderBState = self.encoderB(skipA.reshape(1, skipA.size()[1] / 10, skipA.size()[2] * 10), self.encoderBState)
         if level > 2:
-            skipB += self.blockC(skipB, torch.roll(skipB, (0, 1, 0)), tgt_mask = torch.triu(torch.ones(skipB.size()[1], skipB.size()[1], device = self.device), diagonal = 1).bool())
+            positionalEncoding = torch.zeros((5, skipB.size()[2]), device = self.device)
+            positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 2)
+            positionalEncoding[1] = torch.cos(torch.arange(0, skipB.size()[2], device = self.device) * pi / 4)
+            positionalEncoding[2] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 8)
+            positionalEncoding[3] = torch.cos(torch.arange(0, skipB.size()[2], device = self.device) * pi / 16)
+            positionalEncoding[4] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 32)
+            transformerInput = torch.cat((skipB, positionalEncoding), 1)
+            skipB += self.blockC(transformerInput, transformerInput)[:, :skipB.size()[1]]
         if level > 1:
             decodedB = self.decoderB(skipB, self.decoderBState).reshape(1, skipA.size()[1], skipA.size()[2])
             skipA += decodedB[0]
