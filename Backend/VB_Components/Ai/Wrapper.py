@@ -300,8 +300,8 @@ class AIWrapper():
         reportedLoss = 0.
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
-                embedding1 = dec2bin(torch.tensor(data[1][0], device = self.device), 32)
-                embedding2 = dec2bin(torch.tensor(data[1][1], device = self.device), 32)
+                embedding1 = dec2bin(data[1][0].to(self.device), 32)
+                embedding2 = dec2bin(data[1][1].to(self.device), 32)
                 data = data[0].to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
@@ -413,23 +413,25 @@ class AIWrapper():
                 synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
                 synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
                 synthBase = self.VAE.encoder(synthBase / self.deskewingPremul)
-                synthInput = self.mainAi(synthBase, True)
+                synthInput = self.mainAi(synthBase, 1)
                 
                 self.mainCriticOptimizer.zero_grad()
                 self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, True)[-1]
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), True)[-1]
+                posDiscriminatorLoss = self.mainCritic(data, 1)[-1]
+                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 1)[-1]
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
                 scaler.scale(discriminatorLoss).backward()
                 scaler.step(self.mainCriticOptimizer)
+                scaler.update()
                 
                 if index % self.hparams["gan_train_asym"] == 0:
                     self.mainAiOptimizer.zero_grad()
                     self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, True)[-1]
+                    generatorLoss = self.mainCritic(synthInput, 1)[-1]
                     guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
                     scaler.scale(generatorLoss + guideLoss).backward()
                     scaler.step(self.mainAiOptimizer)
+                    scaler.update()
 
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 
@@ -450,7 +452,7 @@ class AIWrapper():
 
     def trainVAE(self, indata, writer, epochs:int=1) -> None:
         scaler = torch.cuda.amp.GradScaler()
-        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
+        for epoch in tqdm(range(epochs), desc = "training VAE", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
                 data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
@@ -458,6 +460,8 @@ class AIWrapper():
                 loss = self.VAE.training_step(data)
                 scaler.scale(loss).backward()
                 scaler.step(self.VAEOptimizer)
+                scaler.update()
+            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
             if writer != None:
                 results = {
                     "epochs": epoch,
