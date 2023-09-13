@@ -40,18 +40,18 @@ class AIWrapper():
             "main_blkA": [128, 3],
             "main_blkB": [512, 2],
             "main_blkC": [1024, 3, 5],
-            "main_lr": 1.,
+            "main_lr": 0.0001,
             "main_reg": 0.,
             "main_drp":0.5,
             "crt_blkA": [128, 3],
             "crt_blkB": [512, 2],
             "crt_blkC": [1024, 3, 5],
-            "crt_lr": 1.,
+            "crt_lr": 0.0001,
             "crt_reg": 0.,
             "crt_drp":0.25,
             "vae_lr": 0.0001,
             "gan_guide_wgt": 1.,
-            "gan_train_asym": 4,
+            "gan_train_asym": 1,
         }
         if hparams:
             for i in hparams.keys():
@@ -67,8 +67,8 @@ class AIWrapper():
             self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
             self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
-            self.mainAiOptimizer = torch.optim.Adadelta(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
-            self.mainCriticOptimizer = torch.optim.Adadelta(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+            self.mainAiOptimizer = torch.optim.NAdam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
+            self.mainCriticOptimizer = torch.optim.NAdam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
             self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr = self.VAE.learningRate)
             self.criterion = nn.L1Loss()
             self.guideCriterion = nn.MSELoss()
@@ -156,8 +156,8 @@ class AIWrapper():
                 self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
                 if not aiState["final"] and not self.inferOnly:
                     self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
-                    self.mainAiOptimizer = torch.optim.Adadelta(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
-                    self.mainCriticOptimizer = torch.optim.Adadelta(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+                    self.mainAiOptimizer = torch.optim.NAdam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
+                    self.mainCriticOptimizer = torch.optim.NAdam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
                     self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr=self.VAE.learningRate)
             self.mainAi.epoch = aiState["mainAi_epoch"]
             self.mainAi.sampleCount = aiState["mainAi_sampleCount"]
@@ -247,11 +247,11 @@ class AIWrapper():
         self.VAE.requires_grad_(False)
         phases = specharm[:, halfHarms:2 * halfHarms]
         remainder = torch.cat((specharm[:, :halfHarms], specharm[:, 2 * halfHarms:]), 1)
-        latent = self.VAE.encoder(remainder / self.deskewingPremul)
+        latent = self.VAE.encode_infer(remainder / self.deskewingPremul)
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
-        refined = self.mainAi(latent, True)
-        output = self.VAE.decoder(torch.squeeze(refined)) * self.deskewingPremul
+        refined = self.mainAi(latent, 1)
+        output = self.VAE.decode(torch.squeeze(refined)) * self.deskewingPremul
         output = torch.squeeze(output)
         return torch.cat((output[:, :halfHarms], phases, output[:, halfHarms:]), 1)
 
@@ -360,14 +360,13 @@ class AIWrapper():
 
         if self.inferOnly:
             raise Exception("Cannot start training since wrapper was initialized in inference-only mode")
-        scaler = torch.cuda.amp.GradScaler()
         if reset:
             self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
             self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
             self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
-            self.mainAiOptimizer = torch.optim.Adadelta(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
-            self.mainCriticOptimizer = torch.optim.Adadelta(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+            self.mainAiOptimizer = torch.optim.NAdam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
+            self.mainCriticOptimizer = torch.optim.NAdam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
             self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr = self.VAE.learningRate)
         else:
             self.mainGenerator.rebuildPool()
@@ -389,7 +388,7 @@ class AIWrapper():
             self.mainAi.epoch = None
         total = 0
         for phoneme in self.voicebank.phonemeDict.values():
-            if torch.isnan(phoneme[0].avgSpecharm).any():
+            if torch.isnan(phoneme[0].avgSpecharm).any() or torch.isnan(phoneme[0].specharm).any():
                 continue
             self.deskewingPremul += phoneme[0].avgSpecharm.to(self.device)
             total += 1
@@ -408,11 +407,11 @@ class AIWrapper():
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
                 data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                data = self.VAE.encoder(data / self.deskewingPremul)
+                data = self.VAE.encode_infer(data / self.deskewingPremul)
                 self.reset()
                 synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
                 synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
-                synthBase = self.VAE.encoder(synthBase / self.deskewingPremul)
+                synthBase = self.VAE.encode_infer(synthBase / self.deskewingPremul)
                 synthInput = self.mainAi(synthBase, 1)
                 
                 self.mainCriticOptimizer.zero_grad()
@@ -420,18 +419,16 @@ class AIWrapper():
                 posDiscriminatorLoss = self.mainCritic(data, 1)[-1]
                 negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 1)[-1]
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
-                scaler.scale(discriminatorLoss).backward()
-                scaler.step(self.mainCriticOptimizer)
-                scaler.update()
+                discriminatorLoss.backward()
+                self.mainCriticOptimizer.step()
                 
                 if index % self.hparams["gan_train_asym"] == 0:
                     self.mainAiOptimizer.zero_grad()
                     self.mainCritic.resetState()
                     generatorLoss = self.mainCritic(synthInput, 1)[-1]
                     guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                    scaler.scale(generatorLoss + guideLoss).backward()
-                    scaler.step(self.mainAiOptimizer)
-                    scaler.update()
+                    (generatorLoss + guideLoss).backward()
+                    self.mainAiOptimizer.step()
 
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 
@@ -451,16 +448,14 @@ class AIWrapper():
             writer.close()
 
     def trainVAE(self, indata, writer, epochs:int=1) -> None:
-        scaler = torch.cuda.amp.GradScaler()
-        for epoch in tqdm(range(epochs), desc = "training VAE", position = 0, unit = "epochs"):
+        for epoch in tqdm(range(epochs * 20), desc = "training VAE", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
-                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
+                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1) / self.deskewingPremul
                 self.VAEOptimizer.zero_grad()
                 loss = self.VAE.training_step(data)
-                scaler.scale(loss).backward()
-                scaler.step(self.VAEOptimizer)
-                scaler.update()
+                loss.backward()
+                self.VAEOptimizer.step()
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
             if writer != None:
                 results = {

@@ -43,46 +43,46 @@ class MainAi(nn.Module):
         
         self.encoderA = nn.Sequential(
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
+            nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
+            nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.decoderA = nn.Sequential(
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
+            nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
+            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
+            nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device),
             nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
@@ -117,7 +117,7 @@ class MainAi(nn.Module):
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
         if latent.size()[0] % 100 != 0:
-            padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, *latent.size()[1:]), device = self.device)), 0)
+            padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, *latent.size()[1:]), device = self.device, dtype = latent.dtype)), 0)
         else:
             padded = latent
 

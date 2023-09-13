@@ -383,7 +383,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             phases = phaseShift(phases, -phases[1], phases.device)
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] = torch.cat((amplitudes, phases), 0)
         else:
-            audioSample.specharm[counter, :global_consts.nHarmonics + 2] *= 0.
+            audioSample.specharm[counter, :global_consts.nHarmonics + 2] = 0.
         counter += 1
     globalHarmFunction = torch.istft(globalHarmFunction.transpose(0, 1), global_consts.tripleBatchSize , global_consts.batchSize, global_consts.tripleBatchSize, length = audioSample.waveform.size()[0], onesided = True)
     audioSample.excitation = audioSample.waveform - globalHarmFunction
