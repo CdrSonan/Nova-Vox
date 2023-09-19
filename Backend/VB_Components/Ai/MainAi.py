@@ -44,54 +44,44 @@ class MainAi(nn.Module):
         self.encoderA = nn.Sequential(
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.decoderA = nn.Sequential(
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
-        self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
+        self.encoderB = HighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
-        self.decoderB = nn.Sequential(SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device),
-                                      nn.Linear(blockB[0], 10 * dim, device = device),
-                                      nn.Sigmoid())
+        self.decoderB = HighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
+        self.decoderBPost = nn.Sequential(nn.Linear(blockB[0], 10 * dim, device = device),
+                                          nn.Sigmoid())
         
         self.blockC = nn.Transformer(d_model = 10 * dim + 5, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
         
@@ -107,10 +97,8 @@ class MainAi(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
 
-        #self.encoderAState = (torch.zeros(blockA[1], 1, dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
-        #self.decoderAState = (torch.zeros(blockA[1], 1, 10 * dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
         self.encoderBState = (torch.zeros(blockB[1], 1, dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
-        self.decoderBState = (torch.zeros(blockB[1], 1, 10 * dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
+        self.decoderBState = (torch.zeros(blockB[1], 1, blockB[0], device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         
 
     def forward(self, latent:torch.Tensor, level:int) -> torch.Tensor:
@@ -124,19 +112,19 @@ class MainAi(nn.Module):
         if level > 0:
             skipA = self.encoderA(padded.transpose(0 , 1))
         if level > 1:
-            skipB, self.encoderBState = self.encoderB(skipA.reshape(1, skipA.size()[1] / 10, skipA.size()[2] * 10), self.encoderBState)
+            skipB, self.encoderBState = self.encoderB(skipA.reshape((skipA.size()[0] * 10, int(skipA.size()[1] / 10))).transpose(0 , 1), self.encoderBState)
         if level > 2:
-            positionalEncoding = torch.zeros((5, skipB.size()[2]), device = self.device)
-            positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 2)
-            positionalEncoding[1] = torch.cos(torch.arange(0, skipB.size()[2], device = self.device) * pi / 4)
-            positionalEncoding[2] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 8)
-            positionalEncoding[3] = torch.cos(torch.arange(0, skipB.size()[2], device = self.device) * pi / 16)
-            positionalEncoding[4] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 32)
-            transformerInput = torch.cat((skipB, positionalEncoding), 1)
+            positionalEncoding = torch.zeros((5, skipB.size()[1]), device = self.device)
+            positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 2)
+            positionalEncoding[1] = torch.cos(torch.arange(0, skipB.size()[1], device = self.device) * pi / 4)
+            positionalEncoding[2] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 8)
+            positionalEncoding[3] = torch.cos(torch.arange(0, skipB.size()[1], device = self.device) * pi / 16)
+            positionalEncoding[4] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 32)
+            transformerInput = torch.cat((skipB, positionalEncoding), 0)
             skipB += self.blockC(transformerInput, transformerInput)[:, :skipB.size()[1]]
         if level > 1:
-            decodedB = self.decoderB(skipB, self.decoderBState).reshape(1, skipA.size()[1], skipA.size()[2])
-            skipA += decodedB[0]
+            decodedB = self.decoderB(skipB, self.decoderBState)
+            skipA += self.decoderBPost(decodedB[0]).transpose(0 , 1).reshape((skipA.size()[0], skipA.size()[1]))
             self.decoderBState = decodedB[1]
         if level > 0:
             output = latent + self.decoderA(skipA).transpose(0 , 1)[:latent.size()[0]]
@@ -148,10 +136,8 @@ class MainAi(nn.Module):
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        #self.encoderAState = (torch.zeros(self.blockAHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
-        #self.decoderAState = (torch.zeros(self.blockAHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
         self.encoderBState = (torch.zeros(self.blockBHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
-        self.decoderBState = (torch.zeros(self.blockBHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
+        self.decoderBState = (torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
 
 class MainCritic(nn.Module):
     
@@ -161,54 +147,44 @@ class MainCritic(nn.Module):
         self.encoderA = nn.Sequential(
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.decoderA = nn.Sequential(
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
             nn.ConstantPad1d((2, 2), 0),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
-            nn.InstanceNorm1d(blockA[0], device = device),
             nn.Sigmoid(),
         )
         
         self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
         
-        self.decoderB = nn.Sequential(SpecNormHighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device),
-                                      nn.Linear(blockB[0], 10 * dim, device = device),
-                                      nn.Sigmoid())
+        self.decoderB = HighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
+        self.decoderBPost = nn.Sequential(nn.Linear(blockB[0], 10 * dim, device = device),
+                                          nn.Sigmoid())
         
         self.blockC = nn.Transformer(d_model = 10 * dim + 5, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
         
@@ -226,10 +202,8 @@ class MainCritic(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
 
-        #self.encoderAState = (torch.zeros(blockA[1], 1, dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
-        #self.decoderAState = (torch.zeros(blockA[1], 1, 10 * dim, device = self.device), torch.zeros(blockA[1], 1, blockA[0], device = self.device))
         self.encoderBState = (torch.zeros(blockB[1], 1, dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
-        self.decoderBState = (torch.zeros(blockB[1], 1, 10 * dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
+        self.decoderBState = (torch.zeros(blockB[1], 1, blockB[0], device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         
 
     def forward(self, latent:torch.Tensor, level:int) -> torch.Tensor:
@@ -243,19 +217,19 @@ class MainCritic(nn.Module):
         if level > 0:
             skipA = self.encoderA(padded.transpose(0 , 1))
         if level > 1:
-            skipB, self.encoderBState = self.encoderB(skipA.reshape(1, skipA.size()[1] / 10, skipA.size()[2] * 10), self.encoderBState)
+            skipB, self.encoderBState = self.encoderB(skipA.reshape((skipA.size()[0] * 10, int(skipA.size()[1] / 10))).transpose(0 , 1), self.encoderBState)
         if level > 2:
-            positionalEncoding = torch.zeros((5, skipB.size()[2]), device = self.device)
-            positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 2)
-            positionalEncoding[1] = torch.cos(torch.arange(0, skipB.size()[2], device = self.device) * pi / 4)
-            positionalEncoding[2] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 8)
-            positionalEncoding[3] = torch.cos(torch.arange(0, skipB.size()[2], device = self.device) * pi / 16)
-            positionalEncoding[4] = torch.sin(torch.arange(0, skipB.size()[2], device = self.device) * pi / 32)
-            transformerInput = torch.cat((skipB, positionalEncoding), 1)
+            positionalEncoding = torch.zeros((5, skipB.size()[1]), device = self.device)
+            positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 2)
+            positionalEncoding[1] = torch.cos(torch.arange(0, skipB.size()[1], device = self.device) * pi / 4)
+            positionalEncoding[2] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 8)
+            positionalEncoding[3] = torch.cos(torch.arange(0, skipB.size()[1], device = self.device) * pi / 16)
+            positionalEncoding[4] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 32)
+            transformerInput = torch.cat((skipB, positionalEncoding), 0)
             skipB += self.blockC(transformerInput, transformerInput)[:, :skipB.size()[1]]
         if level > 1:
-            decodedB = self.decoderB(skipB, self.decoderBState).reshape(1, skipA.size()[1], skipA.size()[2])
-            skipA += decodedB[0]
+            decodedB = self.decoderB(skipB, self.decoderBState)
+            skipA += self.decoderBPost(decodedB[0]).transpose(0 , 1).reshape((skipA.size()[0], skipA.size()[1]))
             self.decoderBState = decodedB[1]
         if level > 0:
             output = latent + self.decoderA(skipA).transpose(0 , 1)[:latent.size()[0]]
@@ -267,10 +241,8 @@ class MainCritic(nn.Module):
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        #self.encoderAState = (torch.zeros(self.blockAHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
-        #self.decoderAState = (torch.zeros(self.blockAHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockAHParams[1], 1, self.blockAHParams[0], device = self.device))
         self.encoderBState = (torch.zeros(self.blockBHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
-        self.decoderBState = (torch.zeros(self.blockBHParams[1], 1, 10 * self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
+        self.decoderBState = (torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
 
 class DataGenerator:
     """generates synthetic data for the discriminator to train on"""

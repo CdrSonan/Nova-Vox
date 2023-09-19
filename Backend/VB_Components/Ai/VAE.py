@@ -18,6 +18,8 @@ class VAE(nn.Module):
             nn.ReLU(),
             nn.Linear(latent_dim * 2, latent_dim * 2, device = self.device),
             nn.ReLU(),
+            nn.Linear(latent_dim * 2, latent_dim * 2, device = self.device),
+            nn.ReLU(),
             nn.Linear(latent_dim * 2, latent_dim, device = self.device),
             nn.ReLU()
         )
@@ -26,7 +28,10 @@ class VAE(nn.Module):
             nn.ReLU(),
             nn.Linear(latent_dim * 2, latent_dim * 2, device = self.device),
             nn.ReLU(),
-            nn.Linear(latent_dim * 2, input_dim, device = self.device)
+            nn.Linear(latent_dim * 2, latent_dim * 2, device = self.device),
+            nn.ReLU(),
+            nn.Linear(latent_dim * 2, input_dim, device = self.device),
+            nn.ReLU()
         )
     
         self.mean = nn.Linear(latent_dim, latent_dim, device = self.device)

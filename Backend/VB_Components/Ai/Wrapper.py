@@ -67,8 +67,8 @@ class AIWrapper():
             self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
             self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
-            self.mainAiOptimizer = torch.optim.NAdam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
-            self.mainCriticOptimizer = torch.optim.NAdam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+            self.mainAiOptimizer = torch.optim.Adam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
+            self.mainCriticOptimizer = torch.optim.Adam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, amsgrad=True)
             self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr = self.VAE.learningRate)
             self.criterion = nn.L1Loss()
             self.guideCriterion = nn.MSELoss()
@@ -156,8 +156,8 @@ class AIWrapper():
                 self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
                 if not aiState["final"] and not self.inferOnly:
                     self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
-                    self.mainAiOptimizer = torch.optim.NAdam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
-                    self.mainCriticOptimizer = torch.optim.NAdam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+                    self.mainAiOptimizer = torch.optim.Adam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
+                    self.mainCriticOptimizer = torch.optim.Adam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, amsgrad=True)
                     self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr=self.VAE.learningRate)
             self.mainAi.epoch = aiState["mainAi_epoch"]
             self.mainAi.sampleCount = aiState["mainAi_sampleCount"]
@@ -250,7 +250,7 @@ class AIWrapper():
         latent = self.VAE.encode_infer(remainder / self.deskewingPremul)
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
-        refined = self.mainAi(latent, 1)
+        refined = self.mainAi(latent, 2)
         output = self.VAE.decode(torch.squeeze(refined)) * self.deskewingPremul
         output = torch.squeeze(output)
         return torch.cat((output[:, :halfHarms], phases, output[:, halfHarms:]), 1)
@@ -365,8 +365,8 @@ class AIWrapper():
             self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
             self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
-            self.mainAiOptimizer = torch.optim.NAdam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
-            self.mainCriticOptimizer = torch.optim.NAdam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+            self.mainAiOptimizer = torch.optim.Adam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
+            self.mainCriticOptimizer = torch.optim.Adam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, amsgrad=True)
             self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr = self.VAE.learningRate)
         else:
             self.mainGenerator.rebuildPool()
@@ -411,8 +411,10 @@ class AIWrapper():
                 self.reset()
                 synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
                 synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
+                print(torch.any(torch.isnan(synthBase)))
                 synthBase = self.VAE.encode_infer(synthBase / self.deskewingPremul)
-                synthInput = self.mainAi(synthBase, 1)
+                self.mainAi.resetState()
+                synthInput = self.mainAi(synthBase, 2)
                 
                 self.mainCriticOptimizer.zero_grad()
                 self.mainCritic.resetState()
@@ -421,7 +423,7 @@ class AIWrapper():
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer.step()
-                
+
                 if index % self.hparams["gan_train_asym"] == 0:
                     self.mainAiOptimizer.zero_grad()
                     self.mainCritic.resetState()
@@ -448,7 +450,7 @@ class AIWrapper():
             writer.close()
 
     def trainVAE(self, indata, writer, epochs:int=1) -> None:
-        for epoch in tqdm(range(epochs * 20), desc = "training VAE", position = 0, unit = "epochs"):
+        for epoch in tqdm(range(epochs * 8), desc = "training VAE", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
                 data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1) / self.deskewingPremul

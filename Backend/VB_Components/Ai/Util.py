@@ -131,7 +131,11 @@ class HighwayLSTM(nn.Module):
     def __init__(self, input_size:int, hidden_size:int, dropout:float, device:torch.device, **kwargs) -> None:
         super().__init__()
         self.lstm = nn.LSTM(input_size = input_size, hidden_size = hidden_size, **kwargs, device = device)
-        self.highway = nn.Linear(input_size, hidden_size, bias = False, device = device)
+        if "proj_size" in kwargs:
+            highwayOut = kwargs["proj_size"]
+        else:
+            highwayOut = hidden_size
+        self.highway = nn.Linear(input_size, highwayOut, bias = False, device = device)
         self.dropout = nn.Dropout(dropout)
         self.sigmoid = nn.Sigmoid()
 
@@ -146,6 +150,7 @@ class SpecNormHighwayLSTM(HighwayLSTM):
         for i in self.lstm._all_weights:
             for j in i:
                 self.lstm = nn.utils.parametrizations.spectral_norm(self.lstm, name = j)
+        self.highway = nn.utils.parametrizations.spectral_norm(self.highway)
 
 def init_weights(module:nn.Module) -> None:
     if isinstance(module, nn.Linear):
