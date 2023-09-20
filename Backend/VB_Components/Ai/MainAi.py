@@ -112,7 +112,7 @@ class MainAi(nn.Module):
         if level > 0:
             skipA = self.encoderA(padded.transpose(0 , 1))
         if level > 1:
-            skipB, self.encoderBState = self.encoderB(skipA.reshape((skipA.size()[0] * 10, int(skipA.size()[1] / 10))).transpose(0 , 1), self.encoderBState)
+            skipB, self.encoderBState = self.encoderB(skipA.clone().reshape((skipA.size()[0] * 10, int(skipA.size()[1] / 10))).transpose(0 , 1), self.encoderBState)
         if level > 2:
             positionalEncoding = torch.zeros((5, skipB.size()[1]), device = self.device)
             positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 2)
@@ -124,10 +124,12 @@ class MainAi(nn.Module):
             skipB += self.blockC(transformerInput, transformerInput)[:, :skipB.size()[1]]
         if level > 1:
             decodedB = self.decoderB(skipB, self.decoderBState)
-            skipA += self.decoderBPost(decodedB[0]).transpose(0 , 1).reshape((skipA.size()[0], skipA.size()[1]))
+            skipAout = skipA + self.decoderBPost(decodedB[0]).transpose(0 , 1).reshape((skipA.size()[0], skipA.size()[1]))
             self.decoderBState = decodedB[1]
+        else:
+            skipAout = skipA
         if level > 0:
-            output = latent + self.decoderA(skipA).transpose(0 , 1)[:latent.size()[0]]
+            output = latent + self.decoderA(skipAout).transpose(0 , 1)[:latent.size()[0]]
         else:
             output = latent
         
@@ -217,7 +219,7 @@ class MainCritic(nn.Module):
         if level > 0:
             skipA = self.encoderA(padded.transpose(0 , 1))
         if level > 1:
-            skipB, self.encoderBState = self.encoderB(skipA.reshape((skipA.size()[0] * 10, int(skipA.size()[1] / 10))).transpose(0 , 1), self.encoderBState)
+            skipB, self.encoderBState = self.encoderB(skipA.clone().reshape((skipA.size()[0] * 10, int(skipA.size()[1] / 10))).transpose(0 , 1), self.encoderBState)
         if level > 2:
             positionalEncoding = torch.zeros((5, skipB.size()[1]), device = self.device)
             positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 2)
@@ -229,10 +231,12 @@ class MainCritic(nn.Module):
             skipB += self.blockC(transformerInput, transformerInput)[:, :skipB.size()[1]]
         if level > 1:
             decodedB = self.decoderB(skipB, self.decoderBState)
-            skipA += self.decoderBPost(decodedB[0]).transpose(0 , 1).reshape((skipA.size()[0], skipA.size()[1]))
+            skipAout = skipA + self.decoderBPost(decodedB[0]).transpose(0 , 1).reshape((skipA.size()[0], skipA.size()[1]))
             self.decoderBState = decodedB[1]
+        else:
+            skipAout = skipA
         if level > 0:
-            output = latent + self.decoderA(skipA).transpose(0 , 1)[:latent.size()[0]]
+            output = latent + self.decoderA(skipAout).transpose(0 , 1)[:latent.size()[0]]
         else:
             output = latent
         
@@ -298,7 +302,7 @@ class DataGenerator:
         else:
             shortMultiplier = longMultiplier = length / (numLongPhonemes * self.longAvg + numShortPhonemes * self.shortAvg)
             
-        borders = [0, int(self.voicebank.phonemeDict[phonemeSequence[0]][0].specharm.size()[0] / 4), int(self.voicebank.phonemeDict[phonemeSequence[0]][0].specharm.size()[0] / 2)]
+        """borders = [0, int(self.voicebank.phonemeDict[phonemeSequence[0]][0].specharm.size()[0] / 4), int(self.voicebank.phonemeDict[phonemeSequence[0]][0].specharm.size()[0] / 2)]
         referencePoint = self.voicebank.phonemeDict[phonemeSequence[0]][0].specharm.size()[0]
         for i, phoneme in enumerate(phonemeSequence):
             transitionLength = int(min(self.voicebank.phonemeDict[phonemeSequence[i]][0].specharm.size()[0] / 4, self.voicebank.phonemeDict[phonemeSequence[i - 1]][0].specharm.size()[0] / 4))
@@ -308,7 +312,22 @@ class DataGenerator:
             if phoneme in self.shortPool:
                 referencePoint += self.voicebank.phonemeDict[phonemeSequence[i]][0].specharm.size()[0] * shortMultiplier
             else:
-                referencePoint += self.voicebank.phonemeDict[phonemeSequence[i]][0].specharm.size()[0] * longMultiplier
+                referencePoint += self.voicebank.phonemeDict[phonemeSequence[i]][0].specharm.size()[0] * longMultiplier"""
+        phonemes = [self.voicebank.phonemeDict[i][0] for i in phonemeSequence]
+        borders = [0, 25]
+        for i, phoneme in enumerate(phonemes):
+            if phonemeSequence[i] in self.shortPool:
+                length = phoneme.specharm.size()[0] * shortMultiplier
+            else:
+                length = phoneme.specharm.size()[0] * longMultiplier
+            borders.append(borders[-1] + min(0.2 * length, 25))
+            borders.append(borders[-2] + max(0.8 * length, length - 25))
+            borders.append(borders[-3] + length)
+        borders.append(borders[-1] + 25)
+        borders = [int(i + random.normalvariate(0, noise[0] * 25)) for i in borders]
+        for i in range(1, len(borders)):
+            if borders[i] <= borders[i - 1]:
+                borders[i] = borders[i - 1] + 5
         borderLength = borders[-1] - borders[0]
         sequence = VocalSequence(borderLength,
                                  borders,
@@ -331,6 +350,7 @@ class DataGenerator:
                                  [],
                                  None
         )
+        print("borders:", sequence.borders)
         return sequence, embeddings
 
     def synthesize(self, noise:list, length:int, phonemeLength:int = None) -> torch.Tensor:
@@ -341,6 +361,7 @@ class DataGenerator:
         for i in range(1, sequence.phonemeLength - 1):
             output[sequence.borders[3*i+2]:sequence.borders[3*i+3]] = getSpecharm(VocalSegment(sequence, self.voicebank, i, self.crfAi.device), self.crfAi.device)
         output[sequence.borders[-4]:sequence.borders[-1]] = getSpecharm(VocalSegment(sequence, self.voicebank, sequence.phonemeLength - 1, self.crfAi.device), self.crfAi.device)
+        print("nan1", torch.any(torch.isnan(output)))
         for i in range(1, sequence.phonemeLength):
             output[sequence.borders[3*i]:sequence.borders[3*i+2]] = self.crfWrapper(output[sequence.borders[3*i] - 1],
                                                                                output[sequence.borders[3*i]],
@@ -351,7 +372,7 @@ class DataGenerator:
                                                                                sequence.borders[3*i+2] - sequence.borders[3*i],
                                                                                sequence.pitch[sequence.borders[3*i]:sequence.borders[3*i+2]],
                                                                                (sequence.borders[3*i+1] - sequence.borders[3*i])/(sequence.borders[3*i+2] - sequence.borders[3*i]))
-            
+        print("nan2", torch.any(torch.isnan(output)))
         return output
     
     def crfWrapper(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int):

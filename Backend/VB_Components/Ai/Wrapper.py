@@ -402,6 +402,8 @@ class AIWrapper():
         targetLength /= total
         
         self.trainVAE(indata, writer, epochs)
+        
+        torch.autograd.set_detect_anomaly(True, check_nan=False)
 
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
@@ -418,8 +420,8 @@ class AIWrapper():
                 
                 self.mainCriticOptimizer.zero_grad()
                 self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, 1)[-1]
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 1)[-1]
+                posDiscriminatorLoss = self.mainCritic(data, 2)[-1]
+                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 2)[-1]
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer.step()
@@ -427,7 +429,7 @@ class AIWrapper():
                 if index % self.hparams["gan_train_asym"] == 0:
                     self.mainAiOptimizer.zero_grad()
                     self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 1)[-1]
+                    generatorLoss = self.mainCritic(synthInput, 2)[-1]
                     guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
                     (generatorLoss + guideLoss).backward()
                     self.mainAiOptimizer.step()
