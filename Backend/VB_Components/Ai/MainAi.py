@@ -7,6 +7,7 @@
 
 import random
 from math import floor, pi, ceil, log
+from copy import copy
 
 import torch
 import torch.nn as nn
@@ -21,6 +22,7 @@ from Backend.Resampler.PhaseShift import phaseInterp
 from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
+input_dim = global_consts.halfTripleBatchSize + halfHarms + 1
 
 
 class MainAi(nn.Module):
@@ -37,9 +39,26 @@ class MainAi(nn.Module):
 
         super().__init__()
         
-        #self.encoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
-        
-        #self.decoderA = SpecNormHighwayLSTM(input_size = dim, hidden_size = blockA[0], num_layers = blockA[1], proj_size = dim, batch_first = True, dropout = dropout, device = device)
+        self.baseEncoder = nn.Sequential(
+            nn.Linear(input_dim, dim * 2, device = device),
+            nn.ReLU(),
+            nn.Linear(dim * 2, dim * 2, device = device),
+            nn.ReLU(),
+            nn.Linear(dim * 2, dim * 2, device = device),
+            nn.ReLU(),
+            nn.Linear(dim * 2, dim, device = device),
+            nn.ReLU()
+        )
+        self.baseDecoder = nn.Sequential(
+            nn.Linear(dim, dim * 2, device = device),
+            nn.ReLU(),
+            nn.Linear(dim * 2, dim * 2, device = device),
+            nn.ReLU(),
+            nn.Linear(dim * 2, dim * 2, device = device),
+            nn.ReLU(),
+            nn.Linear(dim * 2, input_dim, device = device),
+            nn.ReLU()
+        )
         
         self.encoderA = nn.Sequential(
             nn.ConstantPad1d((2, 2), 0),
@@ -101,9 +120,11 @@ class MainAi(nn.Module):
         self.decoderBState = (torch.zeros(blockB[1], 1, blockB[0], device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         
 
-    def forward(self, latent:torch.Tensor, level:int) -> torch.Tensor:
+    def forward(self, input:torch.Tensor, level:int) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
+        latent = self.baseEncoder(input)
+        
         if latent.size()[0] % 100 != 0:
             padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, *latent.size()[1:]), device = self.device, dtype = latent.dtype)), 0)
         else:
@@ -133,7 +154,7 @@ class MainAi(nn.Module):
         else:
             output = latent
         
-        return output
+        return self.baseDecoder(output)
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -145,6 +166,27 @@ class MainCritic(nn.Module):
     
     def __init__(self, dim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05) -> None:
         super().__init__()
+        
+        self.baseEncoder = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim, dim * 2, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
+            nn.ReLU()
+        )
+        self.baseDecoder = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Linear(dim, dim * 2, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
+            nn.ReLU()
+        )
         
         self.encoderA = nn.Sequential(
             nn.ConstantPad1d((2, 2), 0),
@@ -208,9 +250,11 @@ class MainCritic(nn.Module):
         self.decoderBState = (torch.zeros(blockB[1], 1, blockB[0], device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         
 
-    def forward(self, latent:torch.Tensor, level:int) -> torch.Tensor:
+    def forward(self, input:torch.Tensor, level:int) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
+        latent = self.baseEncoder(input)
+        
         if latent.size()[0] % 100 != 0:
             padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, *latent.size()[1:]), device = self.device)), 0)
         else:
@@ -240,7 +284,7 @@ class MainCritic(nn.Module):
         else:
             output = latent
         
-        return self.final(output[-1])
+        return self.final(self.baseDecoder(output[-1]))
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -325,9 +369,14 @@ class DataGenerator:
             borders.append(borders[-3] + length)
         borders.append(borders[-1] + 25)
         borders = [int(i + random.normalvariate(0, noise[0] * 25)) for i in borders]
+        if borders[0] < 0:
+            borders[0] = 0
         for i in range(1, len(borders)):
             if borders[i] <= borders[i - 1]:
                 borders[i] = borders[i - 1] + 5
+        initialBorder = copy(borders[0])
+        for i in range(len(borders)):
+            borders[i] -= initialBorder
         borderLength = borders[-1] - borders[0]
         sequence = VocalSequence(borderLength,
                                  borders,
@@ -350,7 +399,6 @@ class DataGenerator:
                                  [],
                                  None
         )
-        print("borders:", sequence.borders)
         return sequence, embeddings
 
     def synthesize(self, noise:list, length:int, phonemeLength:int = None) -> torch.Tensor:
@@ -361,7 +409,6 @@ class DataGenerator:
         for i in range(1, sequence.phonemeLength - 1):
             output[sequence.borders[3*i+2]:sequence.borders[3*i+3]] = getSpecharm(VocalSegment(sequence, self.voicebank, i, self.crfAi.device), self.crfAi.device)
         output[sequence.borders[-4]:sequence.borders[-1]] = getSpecharm(VocalSegment(sequence, self.voicebank, sequence.phonemeLength - 1, self.crfAi.device), self.crfAi.device)
-        print("nan1", torch.any(torch.isnan(output)))
         for i in range(1, sequence.phonemeLength):
             output[sequence.borders[3*i]:sequence.borders[3*i+2]] = self.crfWrapper(output[sequence.borders[3*i] - 1],
                                                                                output[sequence.borders[3*i]],
@@ -372,7 +419,6 @@ class DataGenerator:
                                                                                sequence.borders[3*i+2] - sequence.borders[3*i],
                                                                                sequence.pitch[sequence.borders[3*i]:sequence.borders[3*i+2]],
                                                                                (sequence.borders[3*i+1] - sequence.borders[3*i])/(sequence.borders[3*i+2] - sequence.borders[3*i]))
-        print("nan2", torch.any(torch.isnan(output)))
         return output
     
     def crfWrapper(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int):

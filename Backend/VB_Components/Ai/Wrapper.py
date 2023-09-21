@@ -247,12 +247,14 @@ class AIWrapper():
         self.VAE.requires_grad_(False)
         phases = specharm[:, halfHarms:2 * halfHarms]
         remainder = torch.cat((specharm[:, :halfHarms], specharm[:, 2 * halfHarms:]), 1)
-        latent = self.VAE.encode_infer(remainder / self.deskewingPremul)
+        #latent = self.VAE.encode_infer(remainder / self.deskewingPremul)
+        latent = remainder / self.deskewingPremul
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
         refined = self.mainAi(latent, 2)
-        output = self.VAE.decode(torch.squeeze(refined)) * self.deskewingPremul
-        output = torch.squeeze(output)
+        #output = self.VAE.decode(torch.squeeze(refined)) * self.deskewingPremul
+        #output = torch.squeeze(output)
+        output = torch.squeeze(refined) * self.deskewingPremul
         return torch.cat((output[:, :halfHarms], phases, output[:, halfHarms:]), 1)
 
     def reset(self) -> None:
@@ -401,7 +403,7 @@ class AIWrapper():
             total += 1
         targetLength /= total
         
-        self.trainVAE(indata, writer, epochs)
+        #self.trainVAE(indata, writer, epochs)
         
         torch.autograd.set_detect_anomaly(True, check_nan=False)
 
@@ -409,12 +411,13 @@ class AIWrapper():
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
                 data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                data = self.VAE.encode_infer(data / self.deskewingPremul)
+                #data = self.VAE.encode_infer(data / self.deskewingPremul)
+                data /= self.deskewingPremul
                 self.reset()
                 synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
                 synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
-                print(torch.any(torch.isnan(synthBase)))
-                synthBase = self.VAE.encode_infer(synthBase / self.deskewingPremul)
+                #synthBase = self.VAE.encode_infer(synthBase / self.deskewingPremul)
+                synthBase /= self.deskewingPremul
                 self.mainAi.resetState()
                 synthInput = self.mainAi(synthBase, 2)
                 
