@@ -66,7 +66,7 @@ class GuideRelLoss(nn.Module):
         forward: calculates relative loss based on input and target tensors after successful initialisation."""
     
     
-    def __init__(self, weight=None, size_average=True, threshold = 0.5, device = 'cpu'):
+    def __init__(self, weight=None, size_average=True, threshold = 0.2, device = 'cpu'):
         """basic class constructor.
         
         Arguments:
@@ -168,7 +168,10 @@ class SpecNormLSTM(nn.Module):
     
     def __init__(self, input_size:int, hidden_size:int, dropout:float, device:torch.device, **kwargs) -> None:
         super().__init__()
-        self.lstm = nn.LSTM(input_size = input_size, hidden_size = hidden_size, **kwargs, device = device)
+        self.lstm = nn.RNN(input_size = input_size, hidden_size = hidden_size, **kwargs, device = device)
         for i in self.lstm._all_weights:
             for j in i:
                 self.lstm = nn.utils.parametrizations.spectral_norm(self.lstm, name = j)
+    
+    def forward(self, x:torch.Tensor, state:torch.Tensor) -> torch.Tensor:
+        return self.lstm(x, state)

@@ -25,6 +25,61 @@ halfHarms = int(global_consts.nHarmonics / 2) + 1
 input_dim = global_consts.halfTripleBatchSize + halfHarms + 1
 
 
+class EncoderBlock(nn.Module):
+    
+    def __init__(self, dim:int, numLayers:int, attnExtension:int, device:torch.device) -> None:
+        super().__init__()
+        self.dim = dim
+        self.numLayers = numLayers
+        self.attnExtension = attnExtension
+        self.device = device
+        self.cnn = nn.Sequential(
+            *[nn.Sequential(
+                nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
+                nn.ReLU(),
+              ) for i in range(self.numLayers)]
+        )
+        self.attention = nn.MultiheadAttention(embed_dim = 5 * self.dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device)
+        
+    def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
+        src = self.cnn(input.transpose(0, 1)).transpose(0, 1)
+        tgt = src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5))
+        mask = torch.ones((int(src.size()[0] / 5), src.size()[0]), device = self.device, dtype = torch.bool)
+        for i in range(int(src.size()[0] / 5)):
+            lower = max(0, i * 5 - self.attnExtension)
+            upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
+            mask[i, lower:upper] = False
+        attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
+        return src, attnOutput
+
+class DecoderBlock(nn.Module):
+    
+    def __init__(self, dim:int, numLayers:int, attnExtension:int, device:torch.device) -> None:
+        super().__init__()
+        self.dim = dim
+        self.numLayers = numLayers
+        self.attnExtension = attnExtension
+        self.device = device
+        self.cnn = nn.Sequential(
+            *[nn.Sequential(
+                nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
+                nn.ReLU(),
+              ) for i in range(self.numLayers)]
+        )
+        self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = 5 * self.dim, vdim = 5 * self.dim, num_heads = 4, dropout = 0.05, device = self.device)
+        
+    def forward(self, src:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
+        tgt = src.clone().reshape((src.size()[0] * 5, int(src.size()[1] / 5)))
+        mask = torch.ones((self.dim, self.dim / 5), device = self.device, dtype = torch.bool)
+        for i in range(self.dim / 5):
+            lower = max(0, i * 5 - self.attnExtension)
+            upper = min(self.dim, (i + 1) * 5 + self.attnExtension)
+            mask[lower:upper, i] = False
+        attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
+        cnnInput = (attnOutput + residual).transpose(0, 1)
+        return self.cnn(cnnInput).transpose(0, 1)
+
+
 class MainAi(nn.Module):
     """Class for the Ai postprocessing/spectral prediction component.
     
@@ -44,8 +99,6 @@ class MainAi(nn.Module):
             nn.ReLU(),
             nn.Linear(dim * 2, dim * 2, device = device),
             nn.ReLU(),
-            nn.Linear(dim * 2, dim * 2, device = device),
-            nn.ReLU(),
             nn.Linear(dim * 2, dim, device = device),
             nn.ReLU()
         )
@@ -54,55 +107,21 @@ class MainAi(nn.Module):
             nn.ReLU(),
             nn.Linear(dim * 2, dim * 2, device = device),
             nn.ReLU(),
-            nn.Linear(dim * 2, dim * 2, device = device),
-            nn.ReLU(),
             nn.Linear(dim * 2, input_dim, device = device),
             nn.ReLU()
         )
         
-        self.encoderA = nn.Sequential(
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device),
-            nn.Sigmoid(),
-        )
+        self.encoderA = EncoderBlock(dim, blockA[0], blockA[1], device)
         
-        self.decoderA = nn.Sequential(
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device),
-            nn.Sigmoid(),
-        )
+        self.decoderA = DecoderBlock(dim, blockA[0], blockA[1], device)
         
-        self.encoderB = HighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
+        self.encoderB = EncoderBlock(5 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = HighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
-        self.decoderBPost = nn.Sequential(nn.Linear(blockB[0], 10 * dim, device = device),
-                                          nn.Sigmoid())
+        self.decoderB = DecoderBlock(5 * dim, blockB[0], blockB[1], device)
         
-        self.blockC = nn.Transformer(d_model = 10 * dim + 5, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
+        self.encoderC = EncoderBlock(25 * dim, blockC[0], blockC[1], device)
+        
+        self.decoderC = DecoderBlock(25 * dim, blockC[0], blockC[1], device)
         
         self.apply(init_weights)
 
@@ -115,9 +134,6 @@ class MainAi(nn.Module):
         self.regularization = regularization
         self.epoch = 0
         self.sampleCount = 0
-
-        self.encoderBState = (torch.zeros(blockB[1], 1, dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
-        self.decoderBState = (torch.zeros(blockB[1], 1, blockB[0], device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         
 
     def forward(self, input:torch.Tensor, level:int) -> torch.Tensor:
@@ -125,42 +141,35 @@ class MainAi(nn.Module):
 
         latent = self.baseEncoder(input)
         
-        if latent.size()[0] % 100 != 0:
-            padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, *latent.size()[1:]), device = self.device, dtype = latent.dtype)), 0)
+        if latent.size()[0] % 125 != 0:
+            padded = torch.cat((latent, torch.zeros((125 - latent.size()[0] % 125, *latent.size()[1:]), device = self.device, dtype = latent.dtype)), 0)
         else:
             padded = latent
 
         if level > 0:
-            skipA = self.encoderA(padded.transpose(0 , 1))
+            resA, encA = self.encoderA(padded)
         if level > 1:
-            skipB, self.encoderBState = self.encoderB(skipA.clone().reshape((skipA.size()[0] * 10, int(skipA.size()[1] / 10))).transpose(0 , 1), self.encoderBState)
+            resB, encB = self.encoderB(encA)
         if level > 2:
-            positionalEncoding = torch.zeros((5, skipB.size()[1]), device = self.device)
-            positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 2)
-            positionalEncoding[1] = torch.cos(torch.arange(0, skipB.size()[1], device = self.device) * pi / 4)
-            positionalEncoding[2] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 8)
-            positionalEncoding[3] = torch.cos(torch.arange(0, skipB.size()[1], device = self.device) * pi / 16)
-            positionalEncoding[4] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 32)
-            transformerInput = torch.cat((skipB, positionalEncoding), 0)
-            skipB += self.blockC(transformerInput, transformerInput)[:, :skipB.size()[1]]
+            resC, encC = self.encoderC(encB)
+            decC = self.decoderC(encC, resC)
+        else:
+            decC = encB
         if level > 1:
-            decodedB = self.decoderB(skipB, self.decoderBState)
-            skipAout = skipA + self.decoderBPost(decodedB[0]).transpose(0 , 1).reshape((skipA.size()[0], skipA.size()[1]))
-            self.decoderBState = decodedB[1]
+            decB = self.decoderB(decC, resB)
         else:
-            skipAout = skipA
+            decB = encA
         if level > 0:
-            output = latent + self.decoderA(skipAout).transpose(0 , 1)[:latent.size()[0]]
+            decA = self.decoderA(decB, resA)
         else:
-            output = latent
+            decA = padded
         
-        return self.baseDecoder(output)
+        return self.baseDecoder(decA[:latent.size()[0]])
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        self.encoderBState = (torch.zeros(self.blockBHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
-        self.decoderBState = (torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
+        pass
 
 class MainCritic(nn.Module):
     
@@ -172,8 +181,6 @@ class MainCritic(nn.Module):
             nn.ReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
             nn.ReLU(),
-            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
-            nn.ReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
             nn.ReLU()
         )
@@ -182,55 +189,21 @@ class MainCritic(nn.Module):
             nn.ReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
             nn.ReLU(),
-            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
-            nn.ReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
             nn.ReLU()
         )
         
-        self.encoderA = nn.Sequential(
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-        )
+        self.encoderA = EncoderBlock(dim, blockA[0], blockA[1], device)
         
-        self.decoderA = nn.Sequential(
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(dim, blockA[0], 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], blockA[0], 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-            nn.ConstantPad1d((2, 2), 0),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(blockA[0], dim, 5, padding = 2, device = device)),
-            nn.Sigmoid(),
-        )
+        self.decoderA = DecoderBlock(dim, blockA[0], blockA[1], device)
         
-        self.encoderB = SpecNormHighwayLSTM(input_size = 10 * dim, hidden_size = blockB[0], proj_size = dim, num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
+        self.encoderB = EncoderBlock(5 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = HighwayLSTM(input_size = dim, hidden_size = blockB[0], num_layers = blockB[1], batch_first = True, dropout = dropout, device = device)
-        self.decoderBPost = nn.Sequential(nn.Linear(blockB[0], 10 * dim, device = device),
-                                          nn.Sigmoid())
+        self.decoderB = DecoderBlock(5 * dim, blockB[0], blockB[1], device)
         
-        self.blockC = nn.Transformer(d_model = 10 * dim + 5, nhead = blockC[2], num_encoder_layers = blockC[1], num_decoder_layers = blockC[1], dim_feedforward = blockC[0], dropout = dropout, activation = "gelu", batch_first = True, device = device)
+        self.encoderC = EncoderBlock(25 * dim, blockC[0], blockC[1], device)
+        
+        self.decoderC = DecoderBlock(25 * dim, blockC[0], blockC[1], device)
         
         self.final = nn.Linear(dim, 1, bias = False, device = device)
         
@@ -245,9 +218,6 @@ class MainCritic(nn.Module):
         self.regularization = regularization
         self.epoch = 0
         self.sampleCount = 0
-
-        self.encoderBState = (torch.zeros(blockB[1], 1, dim, device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
-        self.decoderBState = (torch.zeros(blockB[1], 1, blockB[0], device = self.device), torch.zeros(blockB[1], 1, blockB[0], device = self.device))
         
 
     def forward(self, input:torch.Tensor, level:int) -> torch.Tensor:
@@ -255,42 +225,35 @@ class MainCritic(nn.Module):
 
         latent = self.baseEncoder(input)
         
-        if latent.size()[0] % 100 != 0:
-            padded = torch.cat((latent, torch.zeros((100 - latent.size()[0] % 100, *latent.size()[1:]), device = self.device)), 0)
+        if latent.size()[0] % 125 != 0:
+            padded = torch.cat((latent, torch.zeros((125 - latent.size()[0] % 125, *latent.size()[1:]), device = self.device)), 0)
         else:
             padded = latent
 
         if level > 0:
-            skipA = self.encoderA(padded.transpose(0 , 1))
+            resA, encA = self.encoderA(padded)
         if level > 1:
-            skipB, self.encoderBState = self.encoderB(skipA.clone().reshape((skipA.size()[0] * 10, int(skipA.size()[1] / 10))).transpose(0 , 1), self.encoderBState)
+            resB, encB = self.encoderB(encA)
         if level > 2:
-            positionalEncoding = torch.zeros((5, skipB.size()[1]), device = self.device)
-            positionalEncoding[0] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 2)
-            positionalEncoding[1] = torch.cos(torch.arange(0, skipB.size()[1], device = self.device) * pi / 4)
-            positionalEncoding[2] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 8)
-            positionalEncoding[3] = torch.cos(torch.arange(0, skipB.size()[1], device = self.device) * pi / 16)
-            positionalEncoding[4] = torch.sin(torch.arange(0, skipB.size()[1], device = self.device) * pi / 32)
-            transformerInput = torch.cat((skipB, positionalEncoding), 0)
-            skipB += self.blockC(transformerInput, transformerInput)[:, :skipB.size()[1]]
+            resC, encC = self.encoderC(encB)
+            decC = self.decoderC(encC, resC)
+        else:
+            decC = encB
         if level > 1:
-            decodedB = self.decoderB(skipB, self.decoderBState)
-            skipAout = skipA + self.decoderBPost(decodedB[0]).transpose(0 , 1).reshape((skipA.size()[0], skipA.size()[1]))
-            self.decoderBState = decodedB[1]
+            decB = self.decoderB(decC, resB)
         else:
-            skipAout = skipA
+            decB = encA
         if level > 0:
-            output = latent + self.decoderA(skipAout).transpose(0 , 1)[:latent.size()[0]]
+            decA = self.decoderA(decB, resA)
         else:
-            output = latent
+            decA = padded
         
-        return self.final(self.baseDecoder(output[-1]))
+        return self.final(self.baseDecoder(decA[-1]))
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
 
-        self.encoderBState = (torch.zeros(self.blockBHParams[1], 1, self.dim, device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
-        self.decoderBState = (torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device), torch.zeros(self.blockBHParams[1], 1, self.blockBHParams[0], device = self.device))
+        pass
 
 class DataGenerator:
     """generates synthetic data for the discriminator to train on"""
