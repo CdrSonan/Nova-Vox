@@ -154,15 +154,31 @@ class SpecNormHighwayLSTM(HighwayLSTM):
 
 def init_weights(module:nn.Module) -> None:
     if isinstance(module, nn.Linear):
-        nn.init.xavier_uniform_(module.weight)
-        if module.bias != None:
-            nn.init.zeros_(module.bias)
+        nn.init.xavier_uniform_(module.weight, gain = 2)
+    if isinstance(module, nn.Conv1d):
+        nn.init.xavier_uniform_(module.weight, gain = 2)
+    if isinstance(module, nn.MultiheadAttention):
+        if module.in_proj_weight != None:
+            nn.init.xavier_uniform_(module.in_proj_weight)
+        if module.out_proj.weight != None:
+            nn.init.xavier_uniform_(module.out_proj.weight)
+        nn.init.xavier_uniform_(module.q_proj_weight)
+        nn.init.xavier_uniform_(module.k_proj_weight)
+        nn.init.xavier_uniform_(module.v_proj_weight)
     if isinstance(module, nn.LSTM):
         for name, param in module.named_parameters():
-            if 'bias' in name:
-                nn.init.zeros_(param)
-            elif 'weight' in name:
+            if 'weight' in name:
                 nn.init.xavier_uniform_(param)
+
+def norm_attention(attention:nn.MultiheadAttention) -> nn.MultiheadAttention:
+    if attention.in_proj_weight != None:
+        attention.in_proj_weight = nn.utils.parametrizations.spectral_norm(attention.in_proj_weight)
+    if attention.out_proj.weight != None:
+        attention.out_proj = nn.utils.parametrizations.spectral_norm(attention.out_proj)
+    attention = nn.utils.parametrizations.spectral_norm(attention, name = "q_proj_weight")
+    attention = nn.utils.parametrizations.spectral_norm(attention, name = "k_proj_weight")
+    attention = nn.utils.parametrizations.spectral_norm(attention, name = "v_proj_weight")
+    return attention
 
 class SpecNormLSTM(nn.Module):
     

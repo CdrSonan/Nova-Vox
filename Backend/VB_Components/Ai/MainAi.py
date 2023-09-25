@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
-from Backend.VB_Components.Ai.Util import HighwayLSTM, SpecNormHighwayLSTM, SpecNormLSTM, init_weights
+from Backend.VB_Components.Ai.Util import init_weights, norm_attention
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.Resampler.Resamplers import getSpecharm
@@ -27,56 +27,122 @@ input_dim = global_consts.halfTripleBatchSize + halfHarms + 1
 
 class EncoderBlock(nn.Module):
     
-    def __init__(self, dim:int, numLayers:int, attnExtension:int, device:torch.device) -> None:
+    def __init__(self, dim:int, proj_dim:int, numLayers:int, attnExtension:int, device:torch.device) -> None:
         super().__init__()
         self.dim = dim
+        self.proj_dim = proj_dim
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
-                nn.ReLU(),
+                nn.Sigmoid(),
               ) for i in range(self.numLayers)]
         )
-        self.attention = nn.MultiheadAttention(embed_dim = 5 * self.dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device)
+        self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device)
+        self.projector = nn.Linear(self.dim * 5, self.proj_dim, device = self.device)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
         src = self.cnn(input.transpose(0, 1)).transpose(0, 1)
-        tgt = src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5))
-        mask = torch.ones((int(src.size()[0] / 5), src.size()[0]), device = self.device, dtype = torch.bool)
-        for i in range(int(src.size()[0] / 5)):
+        tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
+        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool) #The shape of the 2D attn_mask is torch.Size([640, 128]), but should be (400, 2000). (from encoder A)
+        for i in range(tgt.size()[0]):
             lower = max(0, i * 5 - self.attnExtension)
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[i, lower:upper] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        return src, attnOutput
+        #return src, attnOutput
+        return src, tgt
 
 class DecoderBlock(nn.Module):
     
-    def __init__(self, dim:int, numLayers:int, attnExtension:int, device:torch.device) -> None:
+    def __init__(self, dim:int, proj_dim:int, numLayers:int, attnExtension:int, device:torch.device) -> None:
         super().__init__()
         self.dim = dim
+        self.proj_dim = proj_dim
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
-                nn.ReLU(),
+                nn.Sigmoid(),
               ) for i in range(self.numLayers)]
         )
-        self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = 5 * self.dim, vdim = 5 * self.dim, num_heads = 4, dropout = 0.05, device = self.device)
+        self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device)
+        self.projector = nn.Linear(self.proj_dim, self.dim * 5, device = self.device)
         
     def forward(self, src:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
-        tgt = src.clone().reshape((src.size()[0] * 5, int(src.size()[1] / 5)))
-        mask = torch.ones((self.dim, self.dim / 5), device = self.device, dtype = torch.bool)
-        for i in range(self.dim / 5):
+        tgt = self.projector(src.clone()).reshape((-1, self.dim))
+        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
+        for i in range(src.size()[0]):
             lower = max(0, i * 5 - self.attnExtension)
-            upper = min(self.dim, (i + 1) * 5 + self.attnExtension)
+            upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[lower:upper, i] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        cnnInput = (attnOutput + residual).transpose(0, 1)
+        #cnnInput = (attnOutput + residual).transpose(0, 1)
+        cnnInput = (tgt + residual).transpose(0, 1)
+        return self.cnn(cnnInput).transpose(0, 1)
+
+class NormEncoderBlock(nn.Module):
+    
+    def __init__(self, dim:int, proj_dim:int, numLayers:int, attnExtension:int, device:torch.device) -> None:
+        super().__init__()
+        self.dim = dim
+        self.proj_dim = proj_dim
+        self.numLayers = numLayers
+        self.attnExtension = attnExtension
+        self.device = device
+        self.cnn = nn.Sequential(
+            *[nn.Sequential(
+                nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
+                nn.Sigmoid(),
+              ) for i in range(self.numLayers)]
+        )
+        self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device))
+        self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.dim * 5, self.proj_dim, device = self.device))
+        
+    def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
+        src = self.cnn(input.transpose(0, 1)).transpose(0, 1)
+        tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
+        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool) #The shape of the 2D attn_mask is torch.Size([640, 128]), but should be (400, 2000). (from encoder A)
+        for i in range(tgt.size()[0]):
+            lower = max(0, i * 5 - self.attnExtension)
+            upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
+            mask[i, lower:upper] = False
+        attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
+        #return src, attnOutput
+        return src, tgt
+
+class NormDecoderBlock(nn.Module):
+    
+    def __init__(self, dim:int, proj_dim:int, numLayers:int, attnExtension:int, device:torch.device) -> None:
+        super().__init__()
+        self.dim = dim
+        self.proj_dim = proj_dim
+        self.numLayers = numLayers
+        self.attnExtension = attnExtension
+        self.device = device
+        self.cnn = nn.Sequential(
+            *[nn.Sequential(
+                nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
+                nn.Sigmoid(),
+              ) for i in range(self.numLayers)]
+        )
+        self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device))
+        self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim, self.dim * 5, device = self.device))
+        
+    def forward(self, src:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
+        tgt = self.projector(src.clone()).reshape((-1, self.dim))
+        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
+        for i in range(src.size()[0]):
+            lower = max(0, i * 5 - self.attnExtension)
+            upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
+            mask[lower:upper, i] = False
+        attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
+        #cnnInput = (attnOutput + residual).transpose(0, 1)
+        cnnInput = (tgt + residual).transpose(0, 1)
         return self.cnn(cnnInput).transpose(0, 1)
 
 
@@ -111,17 +177,17 @@ class MainAi(nn.Module):
             nn.ReLU()
         )
         
-        self.encoderA = EncoderBlock(dim, blockA[0], blockA[1], device)
+        self.encoderA = EncoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.decoderA = DecoderBlock(dim, blockA[0], blockA[1], device)
+        self.decoderA = DecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = EncoderBlock(5 * dim, blockB[0], blockB[1], device)
+        self.encoderB = EncoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = DecoderBlock(5 * dim, blockB[0], blockB[1], device)
+        self.decoderB = DecoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = EncoderBlock(25 * dim, blockC[0], blockC[1], device)
+        self.encoderC = EncoderBlock(10 * dim, 15 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = DecoderBlock(25 * dim, blockC[0], blockC[1], device)
+        self.decoderC = DecoderBlock(10 * dim, 15 * dim, blockC[0], blockC[1], device)
         
         self.apply(init_weights)
 
@@ -148,18 +214,16 @@ class MainAi(nn.Module):
 
         if level > 0:
             resA, encA = self.encoderA(padded)
-        if level > 1:
-            resB, encB = self.encoderB(encA)
-        if level > 2:
-            resC, encC = self.encoderC(encB)
-            decC = self.decoderC(encC, resC)
-        else:
-            decC = encB
-        if level > 1:
-            decB = self.decoderB(decC, resB)
-        else:
-            decB = encA
-        if level > 0:
+            if level > 1:
+                resB, encB = self.encoderB(encA)
+                if level > 2:
+                    resC, encC = self.encoderC(encB)
+                    decC = self.decoderC(encC, resC)
+                else:
+                    decC = encB
+                decB = self.decoderB(decC, resB)
+            else:
+                decB = encA
             decA = self.decoderA(decB, resA)
         else:
             decA = padded
@@ -193,19 +257,19 @@ class MainCritic(nn.Module):
             nn.ReLU()
         )
         
-        self.encoderA = EncoderBlock(dim, blockA[0], blockA[1], device)
+        self.encoderA = NormEncoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.decoderA = DecoderBlock(dim, blockA[0], blockA[1], device)
+        self.decoderA = NormDecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = EncoderBlock(5 * dim, blockB[0], blockB[1], device)
+        self.encoderB = NormEncoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = DecoderBlock(5 * dim, blockB[0], blockB[1], device)
+        self.decoderB = NormDecoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = EncoderBlock(25 * dim, blockC[0], blockC[1], device)
+        self.encoderC = NormEncoderBlock(10 * dim, 15 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = DecoderBlock(25 * dim, blockC[0], blockC[1], device)
+        self.decoderC = NormDecoderBlock(10 * dim, 15 * dim, blockC[0], blockC[1], device)
         
-        self.final = nn.Linear(dim, 1, bias = False, device = device)
+        self.final = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, bias = False, device = device))
         
         self.apply(init_weights)
 
@@ -232,23 +296,21 @@ class MainCritic(nn.Module):
 
         if level > 0:
             resA, encA = self.encoderA(padded)
-        if level > 1:
-            resB, encB = self.encoderB(encA)
-        if level > 2:
-            resC, encC = self.encoderC(encB)
-            decC = self.decoderC(encC, resC)
-        else:
-            decC = encB
-        if level > 1:
-            decB = self.decoderB(decC, resB)
-        else:
-            decB = encA
-        if level > 0:
+            if level > 1:
+                resB, encB = self.encoderB(encA)
+                if level > 2:
+                    resC, encC = self.encoderC(encB)
+                    decC = self.decoderC(encC, resC)
+                else:
+                    decC = encB
+                decB = self.decoderB(decC, resB)
+            else:
+                decB = encA
             decA = self.decoderA(decB, resA)
         else:
             decA = padded
         
-        return self.final(self.baseDecoder(decA[-1]))
+        return torch.mean(self.final(self.baseDecoder(decA)))
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""

@@ -37,15 +37,15 @@ class AIWrapper():
             "tr_hls": 4000,
             "tr_def_thrh" : 0.05,
             "latent_dim": 128,
-            "main_blkA": [10, 3],
-            "main_blkB": [10, 3],
-            "main_blkC": [10, 3],
+            "main_blkA": [3, 1],
+            "main_blkB": [3, 1],
+            "main_blkC": [3, 1],
             "main_lr": 0.0001,
             "main_reg": 0.,
             "main_drp":0.1,
-            "crt_blkA": [10, 3],
-            "crt_blkB": [10, 3],
-            "crt_blkC": [10, 3],
+            "crt_blkA": [3, 1],
+            "crt_blkB": [3, 1],
+            "crt_blkC": [3, 1],
             "crt_lr": 0.0001,
             "crt_reg": 0.,
             "crt_drp":0.1,
@@ -62,14 +62,12 @@ class AIWrapper():
         self.defectiveTrBins = []
         self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
         self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
-        self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
         if not self.inferOnly:
             self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
             self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
             self.mainAiOptimizer = torch.optim.Adam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
             self.mainCriticOptimizer = torch.optim.Adam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, amsgrad=True)
-            self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr = self.VAE.learningRate)
             self.criterion = nn.L1Loss()
             self.guideCriterion = nn.MSELoss()
             self.pretrainCriterion = nn.BCELoss()
@@ -103,7 +101,6 @@ class AIWrapper():
                 'trAi_sampleCount': self.trAi.sampleCount,
                 'mainAi_epoch': self.mainAi.epoch,
                 'mainAi_model_state_dict': self.mainAi.state_dict(),
-                'VAE_model_state_dict': self.VAE.state_dict(),
                 'mainAi_sampleCount': self.mainAi.sampleCount,
                 'deskew_premul': self.deskewingPremul,
                 'defective_tr_bins': self.defectiveTrBins,
@@ -117,10 +114,8 @@ class AIWrapper():
                 'mainAi_epoch': self.mainAi.epoch,
                 'mainAi_model_state_dict': self.mainAi.state_dict(),
                 'mainCritic_model_state_dict': self.mainCritic.state_dict(),
-                'VAE_model_state_dict': self.VAE.state_dict(),
                 'mainAi_optimizer_state_dict': self.mainAiOptimizer.state_dict(),
                 'mainCritic_optimizer_state_dict': self.mainCriticOptimizer.state_dict(),
-                'VAE_optimizer_state_dict': self.VAEOptimizer.state_dict(),
                 'mainAi_sampleCount': self.mainAi.sampleCount,
                 'deskew_premul': self.deskewingPremul,
                 'defective_tr_bins': self.defectiveTrBins,
@@ -153,22 +148,18 @@ class AIWrapper():
         if (mode == None) or (mode == "main"):
             if reset:
                 self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
-                self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
                 if not aiState["final"] and not self.inferOnly:
                     self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
                     self.mainAiOptimizer = torch.optim.Adam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
                     self.mainCriticOptimizer = torch.optim.Adam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, amsgrad=True)
-                    self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr=self.VAE.learningRate)
             self.mainAi.epoch = aiState["mainAi_epoch"]
             self.mainAi.sampleCount = aiState["mainAi_sampleCount"]
             self.mainAi.load_state_dict(aiState['mainAi_model_state_dict'])
-            self.VAE.load_state_dict(aiState['VAE_model_state_dict'])
             self.deskewingPremul = aiState["deskew_premul"]
             if not aiState["final"] and not self.inferOnly:
                 self.mainCritic.load_state_dict(aiState['mainCritic_model_state_dict'])
                 self.mainAiOptimizer.load_state_dict(aiState['mainAi_optimizer_state_dict'])
                 self.mainCriticOptimizer.load_state_dict(aiState['mainCritic_optimizer_state_dict'])
-                self.VAEOptimizer.load_state_dict(aiState['VAE_optimizer_state_dict'])
         self.trAi.eval()
         self.mainAi.eval()
 
@@ -243,17 +234,12 @@ class AIWrapper():
 
         self.mainAi.eval()
         self.mainAi.requires_grad_(False)
-        self.VAE.eval()
-        self.VAE.requires_grad_(False)
         phases = specharm[:, halfHarms:2 * halfHarms]
         remainder = torch.cat((specharm[:, :halfHarms], specharm[:, 2 * halfHarms:]), 1)
-        #latent = self.VAE.encode_infer(remainder / self.deskewingPremul)
         latent = remainder / self.deskewingPremul
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
         refined = self.mainAi(latent, 2)
-        #output = self.VAE.decode(torch.squeeze(refined)) * self.deskewingPremul
-        #output = torch.squeeze(output)
         output = torch.squeeze(refined) * self.deskewingPremul
         return torch.cat((output[:, :halfHarms], phases, output[:, halfHarms:]), 1)
 
@@ -366,18 +352,14 @@ class AIWrapper():
             self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
             self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
-            self.VAE = VAE(device = self.device, latent_dim = self.hparams["latent_dim"], learningRate=self.hparams["vae_lr"])
             self.mainAiOptimizer = torch.optim.Adam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
             self.mainCriticOptimizer = torch.optim.Adam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, amsgrad=True)
-            self.VAEOptimizer = torch.optim.Adam(self.VAE.parameters(), lr = self.VAE.learningRate)
         else:
             self.mainGenerator.rebuildPool()
         self.mainAi.train()
         self.mainAi.requires_grad_(True)
         self.mainCritic.train()
         self.mainCritic.requires_grad_(True)
-        self.VAE.train()
-        self.VAE.requires_grad_(True)
         if logging:
             csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_main.csv"), 'w', newline='')
             fieldnames = ["epochs", "learning rate", "hidden layer count", "spec. loss", "harm. loss", "acc. sample count", "wtd. spec. train loss" "wtd. harm. train loss"]
@@ -402,21 +384,101 @@ class AIWrapper():
             targetLength += data.size()[0]
             total += 1
         targetLength /= total
-        
-        #self.trainVAE(indata, writer, epochs)
-        
-        torch.autograd.set_detect_anomaly(True, check_nan=False)
 
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
                 data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                #data = self.VAE.encode_infer(data / self.deskewingPremul)
                 data /= self.deskewingPremul
                 self.reset()
                 synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
                 synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
-                #synthBase = self.VAE.encode_infer(synthBase / self.deskewingPremul)
+                synthBase /= self.deskewingPremul
+                self.mainAi.resetState()
+                synthInput = self.mainAi(synthBase, 0)
+                
+                self.mainCriticOptimizer.zero_grad()
+                self.mainCritic.resetState()
+                posDiscriminatorLoss = self.mainCritic(data, 0)
+                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 0)
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
+                discriminatorLoss.backward()
+                self.mainCriticOptimizer.step()
+
+                if index % self.hparams["gan_train_asym"] == 0:
+                    self.mainAiOptimizer.zero_grad()
+                    self.mainCritic.resetState()
+                    generatorLoss = self.mainCritic(synthInput, 0)
+                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
+                    (generatorLoss + guideLoss).backward()
+                    self.mainAiOptimizer.step()
+
+                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
+                
+            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
+            self.mainAi.sampleCount += len(indata)
+            if writer != None:
+                results = {
+                    "epochs": epoch,
+                    "learning rate": self.mainAi.learningRate,
+                    "hidden layer count": self.mainAi.recLayerCount,
+                    "gen. loss": generatorLoss.data,
+                    "disc. loss": discriminatorLoss.data,
+                    "acc. sample count": self.mainAi.sampleCount,
+                }
+                writer.writerow(results)
+        
+        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
+            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
+                data = torch.squeeze(data)
+                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
+                data /= self.deskewingPremul
+                self.reset()
+                synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
+                synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
+                synthBase /= self.deskewingPremul
+                self.mainAi.resetState()
+                synthInput = self.mainAi(synthBase, 1)
+                
+                self.mainCriticOptimizer.zero_grad()
+                self.mainCritic.resetState()
+                posDiscriminatorLoss = self.mainCritic(data, 1)[-1]
+                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 1)[-1]
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
+                discriminatorLoss.backward()
+                self.mainCriticOptimizer.step()
+
+                if index % self.hparams["gan_train_asym"] == 0:
+                    self.mainAiOptimizer.zero_grad()
+                    self.mainCritic.resetState()
+                    generatorLoss = self.mainCritic(synthInput, 1)[-1]
+                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
+                    (generatorLoss + guideLoss).backward()
+                    self.mainAiOptimizer.step()
+
+                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
+                
+            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
+            self.mainAi.sampleCount += len(indata)
+            if writer != None:
+                results = {
+                    "epochs": epoch,
+                    "learning rate": self.mainAi.learningRate,
+                    "hidden layer count": self.mainAi.recLayerCount,
+                    "gen. loss": generatorLoss.data,
+                    "disc. loss": discriminatorLoss.data,
+                    "acc. sample count": self.mainAi.sampleCount,
+                }
+                writer.writerow(results)
+        
+        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
+            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
+                data = torch.squeeze(data)
+                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
+                data /= self.deskewingPremul
+                self.reset()
+                synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
+                synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
                 synthBase /= self.deskewingPremul
                 self.mainAi.resetState()
                 synthInput = self.mainAi(synthBase, 2)
@@ -451,26 +513,49 @@ class AIWrapper():
                     "acc. sample count": self.mainAi.sampleCount,
                 }
                 writer.writerow(results)
-        if writer != None:
-            writer.close()
-
-    def trainVAE(self, indata, writer, epochs:int=1) -> None:
-        for epoch in tqdm(range(epochs * 8), desc = "training VAE", position = 0, unit = "epochs"):
+        
+        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
-                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1) / self.deskewingPremul
-                self.VAEOptimizer.zero_grad()
-                loss = self.VAE.training_step(data)
-                loss.backward()
-                self.VAEOptimizer.step()
-            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
+                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
+                data /= self.deskewingPremul
+                self.reset()
+                synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
+                synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
+                synthBase /= self.deskewingPremul
+                self.mainAi.resetState()
+                synthInput = self.mainAi(synthBase, 3)
+                
+                self.mainCriticOptimizer.zero_grad()
+                self.mainCritic.resetState()
+                posDiscriminatorLoss = self.mainCritic(data, 3)[-1]
+                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 3)[-1]
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
+                discriminatorLoss.backward()
+                self.mainCriticOptimizer.step()
+
+                if index % self.hparams["gan_train_asym"] == 0:
+                    self.mainAiOptimizer.zero_grad()
+                    self.mainCritic.resetState()
+                    generatorLoss = self.mainCritic(synthInput, 3)[-1]
+                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
+                    (generatorLoss + guideLoss).backward()
+                    self.mainAiOptimizer.step()
+
+                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
+                
+            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
+            self.mainAi.sampleCount += len(indata)
             if writer != None:
                 results = {
                     "epochs": epoch,
                     "learning rate": self.mainAi.learningRate,
                     "hidden layer count": self.mainAi.recLayerCount,
-                    "gen. loss": loss.data,
-                    "disc. loss": "VAE",
+                    "gen. loss": generatorLoss.data,
+                    "disc. loss": discriminatorLoss.data,
                     "acc. sample count": self.mainAi.sampleCount,
                 }
                 writer.writerow(results)
+        
+        if writer != None:
+            writer.close()
