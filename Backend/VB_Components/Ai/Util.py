@@ -154,9 +154,9 @@ class SpecNormHighwayLSTM(HighwayLSTM):
 
 def init_weights(module:nn.Module) -> None:
     if isinstance(module, nn.Linear):
-        nn.init.xavier_uniform_(module.weight, gain = 2)
+        nn.init.xavier_uniform_(module.weight)
     if isinstance(module, nn.Conv1d):
-        nn.init.xavier_uniform_(module.weight, gain = 2)
+        nn.init.xavier_uniform_(module.weight)
     if isinstance(module, nn.MultiheadAttention):
         if module.in_proj_weight != None:
             nn.init.xavier_uniform_(module.in_proj_weight)

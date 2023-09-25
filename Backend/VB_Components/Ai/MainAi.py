@@ -37,8 +37,9 @@ class EncoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
-                nn.Sigmoid(),
-              ) for i in range(self.numLayers)]
+                nn.ReLU(),
+              ) for i in range(self.numLayers)],
+            #nn.LayerNorm([self.dim,], device = self.device)
         )
         self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device)
         self.projector = nn.Linear(self.dim * 5, self.proj_dim, device = self.device)
@@ -52,8 +53,7 @@ class EncoderBlock(nn.Module):
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[i, lower:upper] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        #return src, attnOutput
-        return src, tgt
+        return src, attnOutput
 
 class DecoderBlock(nn.Module):
     
@@ -67,8 +67,9 @@ class DecoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
-                nn.Sigmoid(),
-              ) for i in range(self.numLayers)]
+                nn.ReLU(),
+              ) for i in range(self.numLayers)],
+            #nn.LayerNorm([self.dim,], device = self.device)
         )
         self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device)
         self.projector = nn.Linear(self.proj_dim, self.dim * 5, device = self.device)
@@ -81,8 +82,7 @@ class DecoderBlock(nn.Module):
             upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[lower:upper, i] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        #cnnInput = (attnOutput + residual).transpose(0, 1)
-        cnnInput = (tgt + residual).transpose(0, 1)
+        cnnInput = (attnOutput + residual).transpose(0, 1)
         return self.cnn(cnnInput).transpose(0, 1)
 
 class NormEncoderBlock(nn.Module):
@@ -97,8 +97,9 @@ class NormEncoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
-                nn.Sigmoid(),
-              ) for i in range(self.numLayers)]
+                nn.ReLU(),
+              ) for i in range(self.numLayers)],
+            #nn.LayerNorm([self.dim,], device = self.device)
         )
         self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device))
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.dim * 5, self.proj_dim, device = self.device))
@@ -112,8 +113,7 @@ class NormEncoderBlock(nn.Module):
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[i, lower:upper] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        #return src, attnOutput
-        return src, tgt
+        return src, attnOutput
 
 class NormDecoderBlock(nn.Module):
     
@@ -127,8 +127,9 @@ class NormDecoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
-                nn.Sigmoid(),
-              ) for i in range(self.numLayers)]
+                nn.ReLU(),
+              ) for i in range(self.numLayers)],
+            #nn.LayerNorm([self.dim,], device = self.device)
         )
         self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device))
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim, self.dim * 5, device = self.device))
@@ -141,8 +142,7 @@ class NormDecoderBlock(nn.Module):
             upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[lower:upper, i] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        #cnnInput = (attnOutput + residual).transpose(0, 1)
-        cnnInput = (tgt + residual).transpose(0, 1)
+        cnnInput = (attnOutput + residual).transpose(0, 1)
         return self.cnn(cnnInput).transpose(0, 1)
 
 

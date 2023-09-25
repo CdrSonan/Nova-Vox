@@ -384,49 +384,6 @@ class AIWrapper():
             targetLength += data.size()[0]
             total += 1
         targetLength /= total
-
-        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
-            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                data = torch.squeeze(data)
-                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                data /= self.deskewingPremul
-                self.reset()
-                synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
-                synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
-                synthBase /= self.deskewingPremul
-                self.mainAi.resetState()
-                synthInput = self.mainAi(synthBase, 0)
-                
-                self.mainCriticOptimizer.zero_grad()
-                self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, 0)
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 0)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
-                discriminatorLoss.backward()
-                self.mainCriticOptimizer.step()
-
-                if index % self.hparams["gan_train_asym"] == 0:
-                    self.mainAiOptimizer.zero_grad()
-                    self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 0)
-                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                    (generatorLoss + guideLoss).backward()
-                    self.mainAiOptimizer.step()
-
-                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
-                
-            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
-            self.mainAi.sampleCount += len(indata)
-            if writer != None:
-                results = {
-                    "epochs": epoch,
-                    "learning rate": self.mainAi.learningRate,
-                    "hidden layer count": self.mainAi.recLayerCount,
-                    "gen. loss": generatorLoss.data,
-                    "disc. loss": discriminatorLoss.data,
-                    "acc. sample count": self.mainAi.sampleCount,
-                }
-                writer.writerow(results)
         
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
@@ -442,8 +399,8 @@ class AIWrapper():
                 
                 self.mainCriticOptimizer.zero_grad()
                 self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, 1)[-1]
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 1)[-1]
+                posDiscriminatorLoss = self.mainCritic(data, 1)
+                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 1)
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer.step()
@@ -451,7 +408,7 @@ class AIWrapper():
                 if index % self.hparams["gan_train_asym"] == 0:
                     self.mainAiOptimizer.zero_grad()
                     self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 1)[-1]
+                    generatorLoss = self.mainCritic(synthInput, 1)
                     guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
                     (generatorLoss + guideLoss).backward()
                     self.mainAiOptimizer.step()
@@ -485,8 +442,8 @@ class AIWrapper():
                 
                 self.mainCriticOptimizer.zero_grad()
                 self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, 2)[-1]
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 2)[-1]
+                posDiscriminatorLoss = self.mainCritic(data, 2)
+                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 2)
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer.step()
@@ -494,7 +451,7 @@ class AIWrapper():
                 if index % self.hparams["gan_train_asym"] == 0:
                     self.mainAiOptimizer.zero_grad()
                     self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 2)[-1]
+                    generatorLoss = self.mainCritic(synthInput, 2)
                     guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
                     (generatorLoss + guideLoss).backward()
                     self.mainAiOptimizer.step()
@@ -528,8 +485,8 @@ class AIWrapper():
                 
                 self.mainCriticOptimizer.zero_grad()
                 self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, 3)[-1]
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 3)[-1]
+                posDiscriminatorLoss = self.mainCritic(data, 3)
+                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 3)
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer.step()
@@ -537,7 +494,7 @@ class AIWrapper():
                 if index % self.hparams["gan_train_asym"] == 0:
                     self.mainAiOptimizer.zero_grad()
                     self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 3)[-1]
+                    generatorLoss = self.mainCritic(synthInput, 3)
                     guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
                     (generatorLoss + guideLoss).backward()
                     self.mainAiOptimizer.step()
