@@ -421,7 +421,6 @@ class AIWrapper():
                 results = {
                     "epochs": epoch,
                     "learning rate": self.mainAi.learningRate,
-                    "hidden layer count": self.mainAi.recLayerCount,
                     "gen. loss": generatorLoss.data,
                     "disc. loss": discriminatorLoss.data,
                     "acc. sample count": self.mainAi.sampleCount,
@@ -464,7 +463,6 @@ class AIWrapper():
                 results = {
                     "epochs": epoch,
                     "learning rate": self.mainAi.learningRate,
-                    "hidden layer count": self.mainAi.recLayerCount,
                     "gen. loss": generatorLoss.data,
                     "disc. loss": discriminatorLoss.data,
                     "acc. sample count": self.mainAi.sampleCount,
@@ -507,7 +505,6 @@ class AIWrapper():
                 results = {
                     "epochs": epoch,
                     "learning rate": self.mainAi.learningRate,
-                    "hidden layer count": self.mainAi.recLayerCount,
                     "gen. loss": generatorLoss.data,
                     "disc. loss": discriminatorLoss.data,
                     "acc. sample count": self.mainAi.sampleCount,

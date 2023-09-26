@@ -119,8 +119,7 @@ def gradientPenalty(model, real, fake, device):
     alpha = torch.rand(1, 1, device=device)
     interpolates = alpha * real[:limit] + ((1 - alpha) * fake[:limit])
     interpolates.requires_grad_(True)
-    with torch.backends.cudnn.flags(enabled=False):
-        disc_interpolates = model(interpolates)
+    disc_interpolates = model(interpolates)
     output = torch.ones_like(disc_interpolates, device=device)
     gradient = torch.autograd.grad(outputs=disc_interpolates, inputs=interpolates, grad_outputs=output, create_graph=True, retain_graph=True, only_inputs=True)[0]
     result = ((gradient.norm(2, dim=1) - 1) ** 2).mean()
@@ -172,7 +171,7 @@ def init_weights(module:nn.Module) -> None:
 
 def norm_attention(attention:nn.MultiheadAttention) -> nn.MultiheadAttention:
     if attention.in_proj_weight != None:
-        attention.in_proj_weight = nn.utils.parametrizations.spectral_norm(attention.in_proj_weight)
+        attention = nn.utils.parametrizations.spectral_norm(attention, name = "in_proj_weight")
     if attention.out_proj.weight != None:
         attention.out_proj = nn.utils.parametrizations.spectral_norm(attention.out_proj)
     attention = nn.utils.parametrizations.spectral_norm(attention, name = "q_proj_weight")

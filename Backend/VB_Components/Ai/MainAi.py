@@ -39,13 +39,13 @@ class EncoderBlock(nn.Module):
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
-            #nn.LayerNorm([self.dim,], device = self.device)
         )
+        self.norm = nn.LayerNorm([self.dim,], device = self.device)
         self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device)
         self.projector = nn.Linear(self.dim * 5, self.proj_dim, device = self.device)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
-        src = self.cnn(input.transpose(0, 1)).transpose(0, 1)
+        src = self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1))
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool) #The shape of the 2D attn_mask is torch.Size([640, 128]), but should be (400, 2000). (from encoder A)
         for i in range(tgt.size()[0]):
@@ -69,8 +69,8 @@ class DecoderBlock(nn.Module):
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
-            #nn.LayerNorm([self.dim,], device = self.device)
         )
+        self.norm = nn.LayerNorm([self.dim,], device = self.device)
         self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device)
         self.projector = nn.Linear(self.proj_dim, self.dim * 5, device = self.device)
         
@@ -82,7 +82,7 @@ class DecoderBlock(nn.Module):
             upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[lower:upper, i] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        cnnInput = (attnOutput + residual).transpose(0, 1)
+        cnnInput = self.norm(attnOutput + residual).transpose(0, 1)
         return self.cnn(cnnInput).transpose(0, 1)
 
 class NormEncoderBlock(nn.Module):
@@ -99,13 +99,13 @@ class NormEncoderBlock(nn.Module):
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
-            #nn.LayerNorm([self.dim,], device = self.device)
         )
+        self.norm = nn.LayerNorm([self.dim,], device = self.device)
         self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device))
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.dim * 5, self.proj_dim, device = self.device))
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
-        src = self.cnn(input.transpose(0, 1)).transpose(0, 1)
+        src = self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1))
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool) #The shape of the 2D attn_mask is torch.Size([640, 128]), but should be (400, 2000). (from encoder A)
         for i in range(tgt.size()[0]):
@@ -129,8 +129,8 @@ class NormDecoderBlock(nn.Module):
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
-            #nn.LayerNorm([self.dim,], device = self.device)
         )
+        self.norm = nn.LayerNorm([self.dim,], device = self.device)
         self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device))
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim, self.dim * 5, device = self.device))
         
@@ -142,7 +142,7 @@ class NormDecoderBlock(nn.Module):
             upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[lower:upper, i] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        cnnInput = (attnOutput + residual).transpose(0, 1)
+        cnnInput = self.norm(attnOutput + residual).transpose(0, 1)
         return self.cnn(cnnInput).transpose(0, 1)
 
 
