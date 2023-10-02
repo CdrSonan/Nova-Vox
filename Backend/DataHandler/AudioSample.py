@@ -57,15 +57,19 @@ class AudioSample():
         Loads the selected audio file (based on filepath string) into the waveform property and resamples it to the desired sample rate"""
         
         
-        loadedData = torchaudio.load(filepath)
-        self.filepath = filepath
-        self.waveform = loadedData[0][0]
-        sampleRate = loadedData[1]
-        del loadedData
-        transform = torchaudio.transforms.Resample(sampleRate, global_consts.sampleRate)
-        self.waveform = transform(self.waveform)
-        del transform
-        del sampleRate
+        if filepath not in (None, ""):
+            loadedData = torchaudio.load(filepath)
+            self.filepath = filepath
+            self.waveform = loadedData[0][0]
+            sampleRate = loadedData[1]
+            del loadedData
+            transform = torchaudio.transforms.Resample(sampleRate, global_consts.sampleRate)
+            self.waveform = transform(self.waveform)
+            del transform
+            del sampleRate
+        else:
+            self.filepath = ""
+            self.waveform = torch.tensor([], dtype = float)
         self.pitchDeltas = torch.tensor([], dtype = int)
         self.pitch = torch.tensor([global_consts.defaultExpectedPitch], dtype = int)
         self.specharm = torch.tensor([[]], dtype = float)
@@ -143,7 +147,7 @@ class AISample():
     def convert(self, batch:bool = False):
         """converts the AISample sample to an AudioSample instance. If the batch flag is set, the waveform is divided and the parts are wrapped into individual AUdioSample instances, which are then returned as a list."""
         def createAudioSample() -> AudioSample:
-            audioSample = AudioSample(self.filepath)
+            audioSample = AudioSample(None)
             audioSample.waveform = self.waveform
             audioSample.isVoiced = self.isVoiced
             audioSample.isPlosive = self.isPlosive

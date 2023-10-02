@@ -6,6 +6,7 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import math
+from statistics import mean
 from os import path, getenv
 from csv import DictWriter
 from tqdm.auto import tqdm
@@ -15,7 +16,7 @@ from torch.utils.data.dataloader import DataLoader
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.MainAi import MainAi, MainCritic, DataGenerator
-from Backend.VB_Components.Ai.VAE import VAE
+from Backend.VB_Components.Ai.Util import gradientPenalty
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.Resampler.CubicSplineInter import interp
 from Util import dec2bin
@@ -40,17 +41,17 @@ class AIWrapper():
             "main_blkA": [3, 1],
             "main_blkB": [3, 1],
             "main_blkC": [3, 1],
-            "main_lr": 0.0001,
-            "main_reg": 0.,
+            "main_lr": 0.0003,
+            "main_reg": 0.001,
             "main_drp":0.1,
             "crt_blkA": [3, 1],
             "crt_blkB": [3, 1],
             "crt_blkC": [3, 1],
             "crt_lr": 0.0001,
-            "crt_reg": 0.,
+            "crt_reg": 0.01,
             "crt_drp":0.1,
-            "vae_lr": 0.0001,
-            "gan_guide_wgt": 0.5,
+            "vae_lr": 0.0003,
+            "gan_guide_wgt": 0.1,
             "gan_train_asym": 1,
         }
         if hparams:
@@ -362,7 +363,7 @@ class AIWrapper():
         self.mainCritic.requires_grad_(True)
         if logging:
             csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_main.csv"), 'w', newline='')
-            fieldnames = ["epochs", "learning rate", "hidden layer count", "spec. loss", "harm. loss", "acc. sample count", "wtd. spec. train loss" "wtd. harm. train loss"]
+            fieldnames = ["pos.", "neg.", "disc.", "gen.", "encA", "encB", "encC", "decA", "decB", "decC", "baseEnc", "baseDec", "CEncA", "CEncB", "CEncC", "CDecA", "CDecB", "CDecC", "CBaseEnc", "CBaseDec", "final"]
             writer = DictWriter(csvFile, fieldnames)
         else:
             writer = None
@@ -395,97 +396,14 @@ class AIWrapper():
                 synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
                 synthBase /= self.deskewingPremul
                 self.mainAi.resetState()
-                synthInput = self.mainAi(synthBase, 1)
-                
-                self.mainCriticOptimizer.zero_grad()
-                self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, 1)
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 1)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
-                discriminatorLoss.backward()
-                self.mainCriticOptimizer.step()
-
-                if index % self.hparams["gan_train_asym"] == 0:
-                    self.mainAiOptimizer.zero_grad()
-                    self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 1)
-                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                    (generatorLoss + guideLoss).backward()
-                    self.mainAiOptimizer.step()
-
-                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
-                
-            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
-            self.mainAi.sampleCount += len(indata)
-            if writer != None:
-                results = {
-                    "epochs": epoch,
-                    "learning rate": self.mainAi.learningRate,
-                    "gen. loss": generatorLoss.data,
-                    "disc. loss": discriminatorLoss.data,
-                    "acc. sample count": self.mainAi.sampleCount,
-                }
-                writer.writerow(results)
-        
-        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
-            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                data = torch.squeeze(data)
-                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                data /= self.deskewingPremul
-                self.reset()
-                synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
-                synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
-                synthBase /= self.deskewingPremul
-                self.mainAi.resetState()
-                synthInput = self.mainAi(synthBase, 2)
-                
-                self.mainCriticOptimizer.zero_grad()
-                self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, 2)
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 2)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
-                discriminatorLoss.backward()
-                self.mainCriticOptimizer.step()
-
-                if index % self.hparams["gan_train_asym"] == 0:
-                    self.mainAiOptimizer.zero_grad()
-                    self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 2)
-                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                    (generatorLoss + guideLoss).backward()
-                    self.mainAiOptimizer.step()
-
-                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
-                
-            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
-            self.mainAi.sampleCount += len(indata)
-            if writer != None:
-                results = {
-                    "epochs": epoch,
-                    "learning rate": self.mainAi.learningRate,
-                    "gen. loss": generatorLoss.data,
-                    "disc. loss": discriminatorLoss.data,
-                    "acc. sample count": self.mainAi.sampleCount,
-                }
-                writer.writerow(results)
-        
-        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
-            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                data = torch.squeeze(data)
-                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                data /= self.deskewingPremul
-                self.reset()
-                synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
-                synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
-                synthBase /= self.deskewingPremul
-                self.mainAi.resetState()
                 synthInput = self.mainAi(synthBase, 3)
                 
                 self.mainCriticOptimizer.zero_grad()
                 self.mainCritic.resetState()
                 posDiscriminatorLoss = self.mainCritic(data, 3)
                 negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 3)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss
+                penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 25 * penalty
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer.step()
 
@@ -498,18 +416,34 @@ class AIWrapper():
                     self.mainAiOptimizer.step()
 
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
+                if writer != None:
+                    results = {
+                        "pos.": posDiscriminatorLoss.data.item(),
+                        "neg.": negDiscriminatorLoss.data.item(),
+                        "disc.": discriminatorLoss.data.item(), 
+                        "gen.": generatorLoss.data.item(),
+                        "encA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "encB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "encC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderC.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "decA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "decB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "decC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderC.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "baseEnc": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseEncoder.modules() if isinstance(i, nn.Linear)]),
+                        "baseDec": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseDecoder.modules() if isinstance(i, nn.Linear)]),
+                        "CEncA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "CEncB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "CEncC": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderC.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "CDecA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "CDecB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "CDecC": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderC.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "CBaseEnc": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseEncoder.modules() if isinstance(i, nn.Linear)]),
+                        "CBaseDec": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseDecoder.modules() if isinstance(i, nn.Linear)]),
+                        "final": torch.mean(torch.abs(self.mainCritic.final.parametrizations.weight.original.grad)).item()
+                    }
+                    writer.writerow(results)
                 
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
             self.mainAi.sampleCount += len(indata)
-            if writer != None:
-                results = {
-                    "epochs": epoch,
-                    "learning rate": self.mainAi.learningRate,
-                    "gen. loss": generatorLoss.data,
-                    "disc. loss": discriminatorLoss.data,
-                    "acc. sample count": self.mainAi.sampleCount,
-                }
-                writer.writerow(results)
         
         if writer != None:
-            writer.close()
+            csvFile.close()

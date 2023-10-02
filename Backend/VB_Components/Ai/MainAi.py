@@ -40,14 +40,13 @@ class EncoderBlock(nn.Module):
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
         )
-        self.norm = nn.LayerNorm([self.dim,], device = self.device)
         self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device)
         self.projector = nn.Linear(self.dim * 5, self.proj_dim, device = self.device)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
-        src = self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1))
+        src = self.cnn(input.transpose(0, 1)).transpose(0, 1)
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
-        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool) #The shape of the 2D attn_mask is torch.Size([640, 128]), but should be (400, 2000). (from encoder A)
+        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
             lower = max(0, i * 5 - self.attnExtension)
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
@@ -70,7 +69,6 @@ class DecoderBlock(nn.Module):
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
         )
-        self.norm = nn.LayerNorm([self.dim,], device = self.device)
         self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device)
         self.projector = nn.Linear(self.proj_dim, self.dim * 5, device = self.device)
         
@@ -82,7 +80,7 @@ class DecoderBlock(nn.Module):
             upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[lower:upper, i] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        cnnInput = self.norm(attnOutput + residual).transpose(0, 1)
+        cnnInput = (attnOutput + residual).transpose(0, 1)
         return self.cnn(cnnInput).transpose(0, 1)
 
 class NormEncoderBlock(nn.Module):
@@ -97,7 +95,7 @@ class NormEncoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
-                nn.ReLU(),
+                nn.Tanh(),
               ) for i in range(self.numLayers)],
         )
         self.norm = nn.LayerNorm([self.dim,], device = self.device)
@@ -107,7 +105,7 @@ class NormEncoderBlock(nn.Module):
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
         src = self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1))
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
-        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool) #The shape of the 2D attn_mask is torch.Size([640, 128]), but should be (400, 2000). (from encoder A)
+        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
             lower = max(0, i * 5 - self.attnExtension)
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
@@ -127,7 +125,7 @@ class NormDecoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
-                nn.ReLU(),
+                nn.Tanh(),
               ) for i in range(self.numLayers)],
         )
         self.norm = nn.LayerNorm([self.dim,], device = self.device)
@@ -177,17 +175,19 @@ class MainAi(nn.Module):
             nn.ReLU()
         )
         
+        self.baseResidual = nn.Dropout()
+        
         self.encoderA = EncoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
         self.decoderA = DecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = EncoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
+        self.encoderB = EncoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = DecoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
+        self.decoderB = DecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = EncoderBlock(10 * dim, 15 * dim, blockC[0], blockC[1], device)
+        self.encoderC = EncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = DecoderBlock(10 * dim, 15 * dim, blockC[0], blockC[1], device)
+        self.decoderC = DecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
         self.apply(init_weights)
 
@@ -228,7 +228,7 @@ class MainAi(nn.Module):
         else:
             decA = padded
         
-        return self.baseDecoder(decA[:latent.size()[0]])
+        return self.baseDecoder(decA[:latent.size()[0]] + self.baseResidual(latent))
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -257,17 +257,19 @@ class MainCritic(nn.Module):
             nn.ReLU()
         )
         
+        self.baseResidual = nn.Dropout()
+        
         self.encoderA = NormEncoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
         self.decoderA = NormDecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = NormEncoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
+        self.encoderB = NormEncoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = NormDecoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
+        self.decoderB = NormDecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = NormEncoderBlock(10 * dim, 15 * dim, blockC[0], blockC[1], device)
+        self.encoderC = NormEncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = NormDecoderBlock(10 * dim, 15 * dim, blockC[0], blockC[1], device)
+        self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
         self.final = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, bias = False, device = device))
         
@@ -310,7 +312,7 @@ class MainCritic(nn.Module):
         else:
             decA = padded
         
-        return torch.mean(self.final(self.baseDecoder(decA)))
+        return torch.mean(self.final(self.baseDecoder(decA[:latent.size()[0]] + self.baseResidual(latent))))
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
