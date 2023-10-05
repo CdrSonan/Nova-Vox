@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
-from Backend.VB_Components.Ai.Util import init_weights, norm_attention
+from Backend.VB_Components.Ai.Util import init_weights_logistic, init_weights_rectifier, norm_attention
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.Resampler.Resamplers import getSpecharm
@@ -42,9 +42,12 @@ class EncoderBlock(nn.Module):
         )
         self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device)
         self.projector = nn.Linear(self.dim * 5, self.proj_dim, device = self.device)
+        self.resDropout = nn.Dropout()
+        self.skip = nn.Dropout(0.1)
+        self.apply(init_weights_rectifier)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
-        src = self.cnn(input.transpose(0, 1)).transpose(0, 1)
+        src = self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input)
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
@@ -52,7 +55,7 @@ class EncoderBlock(nn.Module):
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[i, lower:upper] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        return src, attnOutput
+        return self.resDropout(src), attnOutput
 
 class DecoderBlock(nn.Module):
     
@@ -71,6 +74,8 @@ class DecoderBlock(nn.Module):
         )
         self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device)
         self.projector = nn.Linear(self.proj_dim, self.dim * 5, device = self.device)
+        self.skip = nn.Dropout(0.1)
+        self.apply(init_weights_rectifier)
         
     def forward(self, src:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
         tgt = self.projector(src.clone()).reshape((-1, self.dim))
@@ -80,8 +85,8 @@ class DecoderBlock(nn.Module):
             upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[lower:upper, i] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        cnnInput = (attnOutput + residual).transpose(0, 1)
-        return self.cnn(cnnInput).transpose(0, 1)
+        cnnInput = attnOutput + residual
+        return self.cnn(cnnInput.transpose(0, 1)).transpose(0, 1) + self.skip(cnnInput)
 
 class NormEncoderBlock(nn.Module):
     
@@ -101,9 +106,12 @@ class NormEncoderBlock(nn.Module):
         self.norm = nn.LayerNorm([self.dim,], device = self.device)
         self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device))
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.dim * 5, self.proj_dim, device = self.device))
+        self.resDropout = nn.Dropout()
+        self.skip = nn.Dropout(0.1)
+        self.apply(init_weights_logistic)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
-        src = self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1))
+        src = self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input))
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
@@ -111,7 +119,7 @@ class NormEncoderBlock(nn.Module):
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[i, lower:upper] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        return src, attnOutput
+        return self.resDropout(src), attnOutput
 
 class NormDecoderBlock(nn.Module):
     
@@ -131,6 +139,8 @@ class NormDecoderBlock(nn.Module):
         self.norm = nn.LayerNorm([self.dim,], device = self.device)
         self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device))
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim, self.dim * 5, device = self.device))
+        self.skip = nn.Dropout(0.1)
+        self.apply(init_weights_logistic)
         
     def forward(self, src:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
         tgt = self.projector(src.clone()).reshape((-1, self.dim))
@@ -140,8 +150,8 @@ class NormDecoderBlock(nn.Module):
             upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[lower:upper, i] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        cnnInput = self.norm(attnOutput + residual).transpose(0, 1)
-        return self.cnn(cnnInput).transpose(0, 1)
+        cnnInput = self.norm(attnOutput + residual)
+        return self.cnn(cnnInput.transpose(0, 1)).transpose(0, 1) + self.skip(cnnInput)
 
 
 class MainAi(nn.Module):
@@ -189,7 +199,8 @@ class MainAi(nn.Module):
         
         self.decoderC = DecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
-        self.apply(init_weights)
+        self.baseEncoder.apply(init_weights_rectifier)
+        self.baseDecoder.apply(init_weights_rectifier)
 
         self.device = device
         self.learningRate = learningRate
@@ -273,7 +284,9 @@ class MainCritic(nn.Module):
         
         self.final = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, bias = False, device = device))
         
-        self.apply(init_weights)
+        self.baseEncoder.apply(init_weights_rectifier)
+        self.baseDecoder.apply(init_weights_rectifier)
+        self.final.apply(init_weights_rectifier)
 
         self.device = device
         self.learningRate = learningRate

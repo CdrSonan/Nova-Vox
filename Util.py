@@ -73,3 +73,12 @@ def dec2bin(x:torch.Tensor, bits:int) -> torch.Tensor:
 def bin2dec(b:torch.Tensor, bits:int) -> torch.Tensor:
     mask = 2 ** torch.arange(bits - 1, -1, -1).to(b.device, b.dtype)
     return torch.sum(mask * b, -1)
+
+class SecureDict(dict):
+    
+    def __init__(self, *args, default = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.default = default
+    
+    def __getitem__(self, __key):
+        return super().__getitem__(__key) if __key in self else (self.default if self.default is not None else __key)

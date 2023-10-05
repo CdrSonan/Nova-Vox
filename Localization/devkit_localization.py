@@ -5,12 +5,13 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+from Util import SecureDict
 from MiddleLayer.IniParser import readSettings
 
 def getLanguage():
     """reads language settings and returns a dictionary with all locale-specific strings required by the devkit. // ロカール指定のストリングに辞書を作のために言語設定の登録する。"""
     
-    locale = dict()
+    locale = SecureDict()
     lang = readSettings()["language"]
     if lang == "en":
         locale["version_label"] = "NovaVox Devkit "

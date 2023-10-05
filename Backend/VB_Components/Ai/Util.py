@@ -5,6 +5,8 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+from math import sqrt
+
 import torch
 import torch.nn as nn
 import global_consts
@@ -151,12 +153,20 @@ class SpecNormHighwayLSTM(HighwayLSTM):
                 self.lstm = nn.utils.parametrizations.spectral_norm(self.lstm, name = j)
         self.highway = nn.utils.parametrizations.spectral_norm(self.highway)
 
-def init_weights(module:nn.Module) -> None:
+def init_weights_yilmaz_poli(weight:torch.Tensor) -> None:
+    n_inputs = weight.size()[1]
+    mean = max(-1, -8/n_inputs)
+    var = 1 / sqrt(n_inputs)
+    nn.init.normal_(weight, mean, var)
+
+def init_weights_logistic(module:nn.Module) -> None:
     if isinstance(module, nn.Linear):
-        nn.init.xavier_uniform_(module.weight)
+        #nn.init.xavier_uniform_(module.weight)
+        init_weights_yilmaz_poli(module.weight)
     if isinstance(module, nn.Conv1d):
-        nn.init.xavier_uniform_(module.weight)
-    if isinstance(module, nn.MultiheadAttention):
+        #nn.init.xavier_uniform_(module.weight)
+        init_weights_yilmaz_poli(module.weight)
+    """if isinstance(module, nn.MultiheadAttention):
         if module.in_proj_weight != None:
             nn.init.xavier_uniform_(module.in_proj_weight)
         if module.out_proj.weight != None:
@@ -167,7 +177,14 @@ def init_weights(module:nn.Module) -> None:
     if isinstance(module, nn.LSTM):
         for name, param in module.named_parameters():
             if 'weight' in name:
-                nn.init.xavier_uniform_(param)
+                nn.init.xavier_uniform_(param)"""
+
+def init_weights_rectifier(module:nn.Module) -> None:
+    if isinstance(module, nn.Linear):
+        nn.init.kaiming_uniform_(module.weight, nonlinearity='relu')
+    if isinstance(module, nn.Conv1d):
+        nn.init.kaiming_uniform_(module.weight, nonlinearity='relu')
+    
 
 def norm_attention(attention:nn.MultiheadAttention) -> nn.MultiheadAttention:
     if attention.in_proj_weight != None:

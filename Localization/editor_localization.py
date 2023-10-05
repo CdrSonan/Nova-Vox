@@ -5,12 +5,13 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+from Util import SecureDict
 from MiddleLayer.IniParser import readSettings
 
 def getLanguage():
     """reads language settings and returns a dictionary with all locale-specific strings required by the editor."""
 
-    locale = dict()
+    locale = SecureDict()
     lang = readSettings()["language"]
     if lang == "en":
         #API interface
@@ -68,6 +69,7 @@ def getLanguage():
         #settings side panel
         locale["language"] = "Language:"
         locale["accelerator"] = "Accelerator:"
+        locale["undo_limit"] = "Undo limit:"
         #locale["hybrid"] = "hybrid"
         locale["TPU"] = "Tensor Cores:"
         locale["enabled"] = "enabled"
@@ -149,6 +151,7 @@ def getLanguage():
         #settings side panel
         locale["language"] = "言語:"
         locale["accelerator"] = "アクセラレータ:"
+        locale["undo_limit"] = "アンドゥの制限:"
         #locale["hybrid"] = "ハイブリッド"
         locale["TPU"] = "Tensorのコーア:"
         locale["enabled"] = "使用可能"

@@ -471,6 +471,8 @@ class MiddleLayer(Widget):
         transitionPoint2 = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
         if index == 0:
             previousHeight = None
+        elif self.trackList[self.activeTrack].notes[index].phonemeStart == self.trackList[self.activeTrack].notes[index].phonemeEnd:
+            previousHeight = None
         elif self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
             previousHeight = None
             oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart + 2]))
@@ -482,7 +484,9 @@ class MiddleLayer(Widget):
                 transitionPoint1 = (transitionPoint1 + self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length) / 2
         if index == len(self.trackList[self.activeTrack].notes) - 1:
             nextHeight = None
-        elif self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] == "_autopause":
+        elif self.trackList[self.activeTrack].notes[index + 1].phonemeStart == self.trackList[self.activeTrack].notes[index + 1].phonemeEnd:
+            nextHeight = None
+        elif self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] == "_autopause":#fails when notes[index + 1] is the last note and contains no phonemes
             nextHeight = None
             oldEnd = max(oldEnd, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd]))
         else:

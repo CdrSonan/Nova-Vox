@@ -121,7 +121,6 @@ if __name__ == '__main__':
     Config.set('input', 'mouse', 'mouse,disable_multitouch')
     Config.set('kivy', 'window_icon','icon/nova-vox-logo-2-color.png' )
     Config.set('kivy', 'default_font', ['MSGothic', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc'])
-    Config.write()
 
     Builder.load_file("UI/kv/Util.kv")
     Builder.load_file("UI/kv/SingerPanel.kv")

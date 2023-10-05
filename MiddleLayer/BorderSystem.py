@@ -67,7 +67,7 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
             segmentLengths.extend([transitionLength, i - 2 * transitionLength, transitionLength])
         else:
             segmentLengths.extend([global_consts.refTransitionLength, None, global_consts.refTransitionLength])
-    if index == len(track.notes) - 1 or followingAutopause:
+    if index == len(track.notes) - 1 or followingAutopause or track.notes[index].phonemeEnd == len(track.phonemes):
         segmentLengths.append(global_consts.refTransitionLength)
 
     """if referenceLength and not compression:
@@ -121,7 +121,7 @@ def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tu
     if index > 0 and not autopause:
         effectiveStart += 1
     end = effectiveStart + len(segmentLengths)
-    if index < len(track.notes) - 1 and not followingAutopause:
+    if not (index == len(track.notes) - 1 or followingAutopause or track.notes[index].phonemeEnd == len(track.phonemes)):
         end -= 1
         segmentLengths = segmentLengths[:-1]
     track.borders[effectiveStart:end] = segmentLengths

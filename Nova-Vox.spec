@@ -26,7 +26,7 @@ common_datas = [("settings.ini", "."),
     ("UI/assets/TrackList/*", "UI/assets/TrackList"),
     ("./lib/torchaudio", "./torchaudio"),
     ("./lib/ttkthemes", "./ttkthemes"),
-    ("./lib/release", "./lib/release")]
+    ("./lib/Release", "./lib/Release")]
 # !!! IMPORTANT !!!
 #the folder in ./lib must be set up to contain the same files as the respective folders in the site_packages dir of your Python installation.
 #THey must be added manually here because the PyInstaller hooks for these packages don't exist or are currently broken.
