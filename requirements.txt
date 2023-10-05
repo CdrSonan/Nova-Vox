@@ -19,7 +19,7 @@ matplotlib==3.6.3
 numpy==1.24.1
 packaging==23.0
 pefile==2022.5.30
-Pillow==9.4.0
+Pillow==10.0.1
 pycparser==2.21
 Pygments==2.15.0
 pyinstaller==5.6.2
@@ -37,4 +37,4 @@ torch==1.13.1+cu117
 torchaudio==0.13.1+cu117
 tqdm==4.64.1
 typing_extensions==4.4.0
-urllib3==1.26.14
+urllib3==1.26.17
