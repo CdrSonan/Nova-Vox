@@ -34,20 +34,24 @@ class EncoderBlock(nn.Module):
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
+        self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
         )
-        self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device)
-        self.projector = nn.Linear(self.dim * 5, self.proj_dim, device = self.device)
-        self.resDropout = nn.Dropout()
+        self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim + self.nPosEmbeddings, vdim = self.dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device)
+        self.projector = nn.Linear((self.dim + self.nPosEmbeddings) * 5, self.proj_dim, device = self.device)
+        self.resDropout = nn.Dropout(0.2)
         self.skip = nn.Dropout(0.1)
         self.apply(init_weights_rectifier)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
-        src = self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input)
+        posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
+        for i in range(self.nPosEmbeddings):
+            posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
+        src = torch.cat((self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input), posEmbeddings), 1)
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
@@ -55,7 +59,7 @@ class EncoderBlock(nn.Module):
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[i, lower:upper] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        return self.resDropout(src), attnOutput
+        return self.resDropout(src[:, :self.dim]), attnOutput
 
 class DecoderBlock(nn.Module):
     
@@ -66,18 +70,23 @@ class DecoderBlock(nn.Module):
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
+        self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
         )
-        self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device)
-        self.projector = nn.Linear(self.proj_dim, self.dim * 5, device = self.device)
+        self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim + self.nPosEmbeddings, vdim = self.proj_dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device)
+        self.projector = nn.Linear(self.proj_dim + self.nPosEmbeddings, self.dim * 5, device = self.device)
         self.skip = nn.Dropout(0.1)
         self.apply(init_weights_rectifier)
         
-    def forward(self, src:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
+    def forward(self, input:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
+        posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
+        for i in range(self.nPosEmbeddings):
+            posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
+        src = torch.cat((input, posEmbeddings), 1)
         tgt = self.projector(src.clone()).reshape((-1, self.dim))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(src.size()[0]):
@@ -97,6 +106,7 @@ class NormEncoderBlock(nn.Module):
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
+        self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
@@ -104,14 +114,17 @@ class NormEncoderBlock(nn.Module):
               ) for i in range(self.numLayers)],
         )
         self.norm = nn.LayerNorm([self.dim,], device = self.device)
-        self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim, vdim = self.dim, num_heads = 4, dropout = 0.05, device = self.device))
-        self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.dim * 5, self.proj_dim, device = self.device))
-        self.resDropout = nn.Dropout()
+        self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim + self.nPosEmbeddings, vdim = self.dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device))
+        self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear((self.dim + self.nPosEmbeddings) * 5, self.proj_dim, device = self.device))
+        self.resDropout = nn.Dropout(0.2)
         self.skip = nn.Dropout(0.1)
         self.apply(init_weights_logistic)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
-        src = self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input))
+        posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
+        for i in range(self.nPosEmbeddings):
+            posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
+        src = torch.cat((self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input), posEmbeddings), 1)
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
@@ -119,7 +132,7 @@ class NormEncoderBlock(nn.Module):
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[i, lower:upper] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        return self.resDropout(src), attnOutput
+        return self.resDropout(src[:, :self.dim]), attnOutput
 
 class NormDecoderBlock(nn.Module):
     
@@ -130,6 +143,7 @@ class NormDecoderBlock(nn.Module):
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
+        self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
@@ -137,12 +151,16 @@ class NormDecoderBlock(nn.Module):
               ) for i in range(self.numLayers)],
         )
         self.norm = nn.LayerNorm([self.dim,], device = self.device)
-        self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim, vdim = self.proj_dim, num_heads = 4, dropout = 0.05, device = self.device))
-        self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim, self.dim * 5, device = self.device))
+        self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim + self.nPosEmbeddings, vdim = self.proj_dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device))
+        self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim + self.nPosEmbeddings, self.dim * 5, device = self.device))
         self.skip = nn.Dropout(0.1)
         self.apply(init_weights_logistic)
         
-    def forward(self, src:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
+    def forward(self, input:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
+        posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
+        for i in range(self.nPosEmbeddings):
+            posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
+        src = torch.cat((input, posEmbeddings), 1)
         tgt = self.projector(src.clone()).reshape((-1, self.dim))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(src.size()[0]):
@@ -171,15 +189,11 @@ class MainAi(nn.Module):
         self.baseEncoder = nn.Sequential(
             nn.Linear(input_dim, dim * 2, device = device),
             nn.ReLU(),
-            nn.Linear(dim * 2, dim * 2, device = device),
-            nn.ReLU(),
             nn.Linear(dim * 2, dim, device = device),
             nn.ReLU()
         )
         self.baseDecoder = nn.Sequential(
             nn.Linear(dim, dim * 2, device = device),
-            nn.ReLU(),
-            nn.Linear(dim * 2, dim * 2, device = device),
             nn.ReLU(),
             nn.Linear(dim * 2, input_dim, device = device),
             nn.ReLU()
@@ -254,15 +268,11 @@ class MainCritic(nn.Module):
         self.baseEncoder = nn.Sequential(
             nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim, dim * 2, device = device)),
             nn.ReLU(),
-            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
-            nn.ReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
             nn.ReLU()
         )
         self.baseDecoder = nn.Sequential(
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim, dim * 2, device = device)),
-            nn.ReLU(),
-            nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim * 2, device = device)),
             nn.ReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
             nn.ReLU()

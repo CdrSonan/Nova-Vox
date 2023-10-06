@@ -192,7 +192,6 @@ class Voicebank():
         self.ai.hparams["crt_lr"] = hparams["crt_lr"]
         self.ai.hparams["crt_reg"] = hparams["crt_reg"]
         self.ai.hparams["crt_drp"] = hparams["crt_drp"]
-        self.ai.hparams["vae_lr"] = hparams["vae_lr"]
         self.ai.hparams["gan_guide_wgt"] = hparams["gan_guide_wgt"]
         self.ai.hparams["gan_train_asym"] = hparams["gan_train_asym"]
         self.ai.loadState(aiState, "main", True)

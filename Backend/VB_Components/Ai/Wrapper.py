@@ -16,7 +16,7 @@ from torch.utils.data.dataloader import DataLoader
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.MainAi import MainAi, MainCritic, DataGenerator
-from Backend.VB_Components.Ai.Util import gradientPenalty
+from Backend.VB_Components.Ai.Util import gradientPenalty, GuideRelLoss
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.Resampler.CubicSplineInter import interp
 from Util import dec2bin
@@ -38,19 +38,18 @@ class AIWrapper():
             "tr_hls": 4000,
             "tr_def_thrh" : 0.05,
             "latent_dim": 128,
-            "main_blkA": [3, 1],
-            "main_blkB": [3, 1],
-            "main_blkC": [3, 1],
-            "main_lr": 0.0003,
-            "main_reg": 0.001,
+            "main_blkA": [3, 20],
+            "main_blkB": [3, 20],
+            "main_blkC": [3, 20],
+            "main_lr": 0.0002,
+            "main_reg": 0.,
             "main_drp":0.1,
-            "crt_blkA": [3, 1],
-            "crt_blkB": [3, 1],
-            "crt_blkC": [3, 1],
-            "crt_lr": 0.0001,
+            "crt_blkA": [3, 20],
+            "crt_blkB": [3, 20],
+            "crt_blkC": [3, 20],
+            "crt_lr": 0.0002,
             "crt_reg": 0.01,
             "crt_drp":0.1,
-            "vae_lr": 0.0003,
             "gan_guide_wgt": 0.1,
             "gan_train_asym": 1,
         }
@@ -70,8 +69,7 @@ class AIWrapper():
             self.mainAiOptimizer = torch.optim.Adam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
             self.mainCriticOptimizer = torch.optim.Adam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, amsgrad=True)
             self.criterion = nn.L1Loss()
-            self.guideCriterion = nn.MSELoss()
-            self.pretrainCriterion = nn.BCELoss()
+            self.guideCriterion = GuideRelLoss()
         self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + global_consts.halfHarms + 1,), device = self.device)
     
     @staticmethod

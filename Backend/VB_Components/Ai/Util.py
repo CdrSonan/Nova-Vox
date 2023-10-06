@@ -86,6 +86,7 @@ class GuideRelLoss(nn.Module):
         else:
             self.weight = torch.tensor(weight, device=device)
         self.threshold = torch.tensor(threshold, device=device)
+        self.exponent = torch.tensor(2, device=device)
  
     def forward(self, inputs:torch.Tensor, targets:torch.Tensor) -> float:  
         """calculates relative loss based on input and target tensors after successful initialisation.
@@ -98,7 +99,7 @@ class GuideRelLoss(nn.Module):
         Returns:
             Relative error value calculated from the difference between input and target Tensor as Float"""
         
-        error = (torch.abs(inputs - targets) + 0.001)# / (targets + 0.001)
+        error = (torch.pow(inputs - targets, self.exponent) + 0.001) / (targets + 0.001)
         out = torch.mean(torch.max(error - self.threshold, torch.tensor([0,], device = self.threshold.device))) * self.weight
         return out
 
