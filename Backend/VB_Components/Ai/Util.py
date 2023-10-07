@@ -185,6 +185,12 @@ def init_weights_rectifier(module:nn.Module) -> None:
         nn.init.kaiming_uniform_(module.weight, nonlinearity='relu')
     if isinstance(module, nn.Conv1d):
         nn.init.kaiming_uniform_(module.weight, nonlinearity='relu')
+
+def init_weights_rectifier_leaky(module:nn.Module) -> None:
+    if isinstance(module, nn.Linear):
+        nn.init.kaiming_uniform_(module.weight)
+    if isinstance(module, nn.Conv1d):
+        nn.init.kaiming_uniform_(module.weight)
     
 
 def norm_attention(attention:nn.MultiheadAttention) -> nn.MultiheadAttention:

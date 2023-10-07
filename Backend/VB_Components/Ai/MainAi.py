@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
-from Backend.VB_Components.Ai.Util import init_weights_logistic, init_weights_rectifier, norm_attention
+from Backend.VB_Components.Ai.Util import init_weights_logistic, init_weights_rectifier, init_weights_rectifier_leaky, norm_attention
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.Resampler.Resamplers import getSpecharm
@@ -124,7 +124,7 @@ class NormEncoderBlock(nn.Module):
         posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
         for i in range(self.nPosEmbeddings):
             posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
-        src = torch.cat((self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input), posEmbeddings), 1)
+        src = torch.cat((self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1)) + self.skip(input), posEmbeddings), 1)
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
@@ -267,18 +267,18 @@ class MainCritic(nn.Module):
         
         self.baseEncoder = nn.Sequential(
             nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim, dim * 2, device = device)),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
-            nn.ReLU()
+            nn.LeakyReLU()
         )
         self.baseDecoder = nn.Sequential(
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim, dim * 2, device = device)),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
-            nn.ReLU()
+            nn.LeakyReLU()
         )
         
-        self.baseResidual = nn.Dropout()
+        self.baseResidual = nn.Identity()#nn.Dropout(0.1)
         
         self.encoderA = NormEncoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
@@ -294,8 +294,8 @@ class MainCritic(nn.Module):
         
         self.final = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, bias = False, device = device))
         
-        self.baseEncoder.apply(init_weights_rectifier)
-        self.baseDecoder.apply(init_weights_rectifier)
+        self.baseEncoder.apply(init_weights_rectifier_leaky)
+        self.baseDecoder.apply(init_weights_rectifier_leaky)
         self.final.apply(init_weights_rectifier)
 
         self.device = device

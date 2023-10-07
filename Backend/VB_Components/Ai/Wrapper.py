@@ -69,7 +69,7 @@ class AIWrapper():
             self.mainAiOptimizer = torch.optim.Adam(self.mainAi.parameters(), lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
             self.mainCriticOptimizer = torch.optim.Adam(self.mainCritic.parameters(), lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, amsgrad=True)
             self.criterion = nn.L1Loss()
-            self.guideCriterion = GuideRelLoss()
+            self.guideCriterion = GuideRelLoss(device = self.device)
         self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + global_consts.halfHarms + 1,), device = self.device)
     
     @staticmethod
@@ -396,6 +396,15 @@ class AIWrapper():
                 self.mainAi.resetState()
                 synthInput = self.mainAi(synthBase, 3)
                 
+                if index % self.hparams["gan_train_asym"] == 0:
+                    self.mainAiOptimizer.zero_grad()
+                    self.mainCriticOptimizer.zero_grad()
+                    self.mainCritic.resetState()
+                    generatorLoss = self.mainCritic(synthInput, 3)
+                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
+                    (generatorLoss + guideLoss).backward()
+                    self.mainAiOptimizer.step()
+                
                 self.mainCriticOptimizer.zero_grad()
                 self.mainCritic.resetState()
                 posDiscriminatorLoss = self.mainCritic(data, 3)
@@ -404,14 +413,6 @@ class AIWrapper():
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 25 * penalty
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer.step()
-
-                if index % self.hparams["gan_train_asym"] == 0:
-                    self.mainAiOptimizer.zero_grad()
-                    self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 3)
-                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                    (generatorLoss + guideLoss).backward()
-                    self.mainAiOptimizer.step()
 
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 if writer != None:
