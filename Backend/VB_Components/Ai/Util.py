@@ -68,7 +68,7 @@ class GuideRelLoss(nn.Module):
         forward: calculates relative loss based on input and target tensors after successful initialisation."""
     
     
-    def __init__(self, weight=None, size_average=True, threshold = 0.2, device = 'cpu'):
+    def __init__(self, weight=None, size_average=True, threshold = 0.1, device = 'cpu'):
         """basic class constructor.
         
         Arguments:

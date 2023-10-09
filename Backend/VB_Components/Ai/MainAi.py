@@ -6,7 +6,7 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import random
-from math import floor, pi, ceil, log
+from math import floor, ceil, log
 from copy import copy
 
 import torch
@@ -43,7 +43,7 @@ class EncoderBlock(nn.Module):
         )
         self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim + self.nPosEmbeddings, vdim = self.dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device)
         self.projector = nn.Linear((self.dim + self.nPosEmbeddings) * 5, self.proj_dim, device = self.device)
-        self.resDropout = nn.Dropout(0.2)
+        self.resDropout = nn.Dropout(0.1)
         self.skip = nn.Dropout(0.1)
         self.apply(init_weights_rectifier)
         
@@ -110,21 +110,21 @@ class NormEncoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
-                nn.Tanh(),
+                nn.ReLU(),
               ) for i in range(self.numLayers)],
         )
-        self.norm = nn.LayerNorm([self.dim,], device = self.device)
+        self.norm = nn.LayerNorm([self.dim,], device = self.device, elementwise_affine = False)
         self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim + self.nPosEmbeddings, vdim = self.dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device))
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear((self.dim + self.nPosEmbeddings) * 5, self.proj_dim, device = self.device))
-        self.resDropout = nn.Dropout(0.2)
+        self.resDropout = nn.Dropout(0.1)
         self.skip = nn.Dropout(0.1)
-        self.apply(init_weights_logistic)
+        self.apply(init_weights_rectifier)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
         posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
         for i in range(self.nPosEmbeddings):
             posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
-        src = torch.cat((self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1)) + self.skip(input), posEmbeddings), 1)
+        src = torch.cat((self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input)), posEmbeddings), 1)
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
@@ -147,14 +147,14 @@ class NormDecoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
-                nn.Tanh(),
+                nn.ReLU(),
               ) for i in range(self.numLayers)],
         )
-        self.norm = nn.LayerNorm([self.dim,], device = self.device)
+        self.norm = nn.LayerNorm([self.dim,], device = self.device, elementwise_affine = False)
         self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim + self.nPosEmbeddings, vdim = self.proj_dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device))
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim + self.nPosEmbeddings, self.dim * 5, device = self.device))
         self.skip = nn.Dropout(0.1)
-        self.apply(init_weights_logistic)
+        self.apply(init_weights_rectifier)
         
     def forward(self, input:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
         posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
@@ -168,8 +168,8 @@ class NormDecoderBlock(nn.Module):
             upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[lower:upper, i] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        cnnInput = self.norm(attnOutput + residual)
-        return self.cnn(cnnInput.transpose(0, 1)).transpose(0, 1) + self.skip(cnnInput)
+        cnnInput = attnOutput + residual
+        return self.norm(self.cnn(cnnInput.transpose(0, 1)).transpose(0, 1) + self.skip(cnnInput))
 
 
 class MainAi(nn.Module):
@@ -199,19 +199,19 @@ class MainAi(nn.Module):
             nn.ReLU()
         )
         
-        self.baseResidual = nn.Dropout()
+        self.baseResidual = nn.Dropout(0.1)
         
         self.encoderA = EncoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
         self.decoderA = DecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = EncoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
+        self.encoderB = EncoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = DecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
+        self.decoderB = DecoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = EncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.encoderC = EncoderBlock(10 * dim, 5 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = DecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.decoderC = DecoderBlock(10 * dim, 5 * dim, blockC[0], blockC[1], device)
         
         self.baseEncoder.apply(init_weights_rectifier)
         self.baseDecoder.apply(init_weights_rectifier)
@@ -245,13 +245,13 @@ class MainAi(nn.Module):
                     resC, encC = self.encoderC(encB)
                     decC = self.decoderC(encC, resC)
                 else:
-                    decC = encB
+                    decC = torch.zeros_like(encB)
                 decB = self.decoderB(decC, resB)
             else:
-                decB = encA
+                decB = torch.zeros_like(encA)
             decA = self.decoderA(decB, resA)
         else:
-            decA = padded
+            decA = torch.zeros_like(padded)
         
         return self.baseDecoder(decA[:latent.size()[0]] + self.baseResidual(latent))
 
@@ -278,19 +278,19 @@ class MainCritic(nn.Module):
             nn.LeakyReLU()
         )
         
-        self.baseResidual = nn.Identity()#nn.Dropout(0.1)
+        self.baseResidual = nn.Dropout(0.1)
         
         self.encoderA = NormEncoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
         self.decoderA = NormDecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = NormEncoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
+        self.encoderB = NormEncoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = NormDecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
+        self.decoderB = NormDecoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = NormEncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.encoderC = NormEncoderBlock(10 * dim, 5 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.decoderC = NormDecoderBlock(10 * dim, 5 * dim, blockC[0], blockC[1], device)
         
         self.final = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, bias = False, device = device))
         
@@ -327,13 +327,13 @@ class MainCritic(nn.Module):
                     resC, encC = self.encoderC(encB)
                     decC = self.decoderC(encC, resC)
                 else:
-                    decC = encB
+                    decC = torch.zeros_like(encB)
                 decB = self.decoderB(decC, resB)
             else:
-                decB = encA
+                decB = torch.zeros_like(encA)
             decA = self.decoderA(decB, resA)
         else:
-            decA = padded
+            decA = torch.zeros_like(padded)
         
         return torch.mean(self.final(self.baseDecoder(decA[:latent.size()[0]] + self.baseResidual(latent))))
 
