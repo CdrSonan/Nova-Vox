@@ -205,13 +205,22 @@ class MainAi(nn.Module):
         
         self.decoderA = DecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = EncoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
+        self.encoderB = EncoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = DecoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
+        self.decoderB = DecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = EncoderBlock(10 * dim, 5 * dim, blockC[0], blockC[1], device)
+        #self.encoderC = NormEncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = DecoderBlock(10 * dim, 5 * dim, blockC[0], blockC[1], device)
+        #self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        
+        self.blockC = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 10 * dim, 3, padding = 1, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 8 * dim, 3, padding = 1, device = device)),
+            nn.ReLU(),
+        )
         
         self.baseEncoder.apply(init_weights_rectifier)
         self.baseDecoder.apply(init_weights_rectifier)
@@ -242,8 +251,7 @@ class MainAi(nn.Module):
             if level > 1:
                 resB, encB = self.encoderB(encA)
                 if level > 2:
-                    resC, encC = self.encoderC(encB)
-                    decC = self.decoderC(encC, resC)
+                    decC = self.blockC(encB.transpose(0, 1)).transpose(0, 1)
                 else:
                     decC = torch.zeros_like(encB)
                 decB = self.decoderB(decC, resB)
@@ -253,7 +261,7 @@ class MainAi(nn.Module):
         else:
             decA = torch.zeros_like(padded)
         
-        return self.baseDecoder(decA[:latent.size()[0]] + self.baseResidual(latent))
+        return self.baseDecoder(decA[:latent.size()[0]] + self.baseResidual(latent)) + input
 
     def resetState(self) -> None:
         """resets the hidden states and cell states of the LSTM layers. Should be called between training or inference runs."""
@@ -284,13 +292,22 @@ class MainCritic(nn.Module):
         
         self.decoderA = NormDecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = NormEncoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
+        self.encoderB = NormEncoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = NormDecoderBlock(5 * dim, 10 * dim, blockB[0], blockB[1], device)
+        self.decoderB = NormDecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = NormEncoderBlock(10 * dim, 5 * dim, blockC[0], blockC[1], device)
+        #self.encoderC = NormEncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = NormDecoderBlock(10 * dim, 5 * dim, blockC[0], blockC[1], device)
+        #self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        
+        self.blockC = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 10 * dim, 3, padding = 1, device = device)),
+            nn.ReLU(),
+            nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 8 * dim, 3, padding = 1, device = device)),
+            nn.ReLU(),
+        )
         
         self.final = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, bias = False, device = device))
         
@@ -324,8 +341,7 @@ class MainCritic(nn.Module):
             if level > 1:
                 resB, encB = self.encoderB(encA)
                 if level > 2:
-                    resC, encC = self.encoderC(encB)
-                    decC = self.decoderC(encC, resC)
+                    decC = self.blockC(encB.transpose(0, 1)).transpose(0, 1)
                 else:
                     decC = torch.zeros_like(encB)
                 decB = self.decoderB(decC, resB)
