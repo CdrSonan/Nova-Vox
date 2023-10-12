@@ -39,18 +39,18 @@ class AIWrapper():
             "tr_def_thrh" : 0.05,
             "latent_dim": 128,
             "main_blkA": [3, 20],
-            "main_blkB": [3, 20],
+            "main_blkB": [3, 5],
             "main_blkC": [3, 5],
             "main_lr": 0.0002,
             "main_reg": 0.,
             "main_drp":0.1,
             "crt_blkA": [3, 20],
-            "crt_blkB": [3, 20],
+            "crt_blkB": [3, 5],
             "crt_blkC": [3, 5],
             "crt_lr": 0.0002,
             "crt_reg": 0.01,
             "crt_drp":0.1,
-            "gan_guide_wgt": 0.2,
+            "gan_guide_wgt": 0.05,
             "gan_train_asym": 1,
             "gan_far_freq": 10,
         }
@@ -443,7 +443,7 @@ class AIWrapper():
                     writer.writerow(results)
                 
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
-            self.mainAi.sampleCount += len(indata)
+            self.mainAi.sampleCount += len(indata)"""
         
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
@@ -503,19 +503,13 @@ class AIWrapper():
                     writer.writerow(results)
                 
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
-            self.mainAi.sampleCount += len(indata)"""
+            self.mainAi.sampleCount += len(indata)
         
-        gan_far_sample = None
-        gan_far_score = math.inf
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                if index % self.hparams["gan_far_freq"] == self.hparams["gan_far_freq"] - 1:
-                    data = gan_far_sample
-                    gan_far_score = math.inf
-                else:
-                    data = torch.squeeze(data)
-                    data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                    data /= self.deskewingPremul
+                data = torch.squeeze(data)
+                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
+                data /= self.deskewingPremul
                 self.reset()
                 synthBase = self.mainGenerator.synthesize([0.2, 0.3, 0.4, 0.5], targetLength, 12)
                 synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
@@ -540,10 +534,6 @@ class AIWrapper():
                 discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 25 * penalty
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer.step()
-                
-                if negDiscriminatorLoss.data.item() < gan_far_score:
-                    gan_far_score = negDiscriminatorLoss.data.item()
-                    gan_far_sample = synthInput.detach().clone()
 
                 tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
                 if writer != None:
@@ -624,18 +614,18 @@ class AIWrapper():
                         "gen.": generatorLoss.data.item(),
                         "encA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
                         "encB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "encC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.blockC.modules() if isinstance(i, nn.Conv1d)]),
+                        "encC": 0,
                         "decA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
                         "decB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "decC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.blockC.modules() if isinstance(i, nn.Conv1d)]),
+                        "decC": 0,
                         "baseEnc": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseEncoder.modules() if isinstance(i, nn.Linear)]),
                         "baseDec": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseDecoder.modules() if isinstance(i, nn.Linear)]),
                         "CEncA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
                         "CEncB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "CEncC": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.blockC.modules() if isinstance(i, nn.Conv1d)]),
+                        "CEncC": 0,
                         "CDecA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
                         "CDecB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "CDecC": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.blockC.cnn.modules() if isinstance(i, nn.Conv1d)]),
+                        "CDecC": 0,
                         "CBaseEnc": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseEncoder.modules() if isinstance(i, nn.Linear)]),
                         "CBaseDec": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseDecoder.modules() if isinstance(i, nn.Linear)]),
                         "final": torch.mean(torch.abs(self.mainCritic.final.parametrizations.weight.original.grad)).item()

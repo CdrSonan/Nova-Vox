@@ -213,14 +213,14 @@ class MainAi(nn.Module):
         
         #self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
-        self.blockC = nn.Sequential(
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device)),
+        """self.blockC = nn.Sequential(
+            nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device),
             nn.ReLU(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 10 * dim, 3, padding = 1, device = device)),
+            nn.Conv1d(10 * dim, 10 * dim, 3, padding = 1, device = device),
             nn.ReLU(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 8 * dim, 3, padding = 1, device = device)),
+            nn.Conv1d(10 * dim, 8 * dim, 3, padding = 1, device = device),
             nn.ReLU(),
-        )
+        )"""
         
         self.baseEncoder.apply(init_weights_rectifier)
         self.baseDecoder.apply(init_weights_rectifier)
@@ -251,7 +251,7 @@ class MainAi(nn.Module):
             if level > 1:
                 resB, encB = self.encoderB(encA)
                 if level > 2:
-                    decC = self.blockC(encB.transpose(0, 1)).transpose(0, 1)
+                    decC = encB
                 else:
                     decC = torch.zeros_like(encB)
                 decB = self.decoderB(decC, resB)
@@ -300,14 +300,14 @@ class MainCritic(nn.Module):
         
         #self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
-        self.blockC = nn.Sequential(
+        """self.blockC = nn.Sequential(
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device)),
             nn.ReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 10 * dim, 3, padding = 1, device = device)),
             nn.ReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 8 * dim, 3, padding = 1, device = device)),
             nn.ReLU(),
-        )
+        )"""
         
         self.final = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, bias = False, device = device))
         
@@ -341,7 +341,7 @@ class MainCritic(nn.Module):
             if level > 1:
                 resB, encB = self.encoderB(encA)
                 if level > 2:
-                    decC = self.blockC(encB.transpose(0, 1)).transpose(0, 1)
+                    decC = encB
                 else:
                     decC = torch.zeros_like(encB)
                 decB = self.decoderB(decC, resB)
