@@ -83,7 +83,7 @@ begin
     'Select the folder in which Setup should install Voicebanks, Parameters and Addon files, then click Next. You can change this folder later in the settings panel.',
     False, '');
   DataDirPage.Add('');
-  DataDirPage.Values[0] := ExpandConstant('{userappdata}\Nova-Vox');
+  DataDirPage.Values[0] := ExpandConstant('{commondocs}\Nova-Vox');
 end;
 
 function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo, MemoTypeInfo,
