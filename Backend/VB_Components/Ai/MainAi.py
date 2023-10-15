@@ -34,14 +34,17 @@ class EncoderBlock(nn.Module):
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
-        self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
         )
-        self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim + self.nPosEmbeddings, vdim = self.dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device)
+        if self.attnExtension is not None:
+            self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
+            self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim + self.nPosEmbeddings, vdim = self.dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device)
+        else:
+            self.nPosEmbeddings = 0
         self.projector = nn.Linear((self.dim + self.nPosEmbeddings) * 5, self.proj_dim, device = self.device)
         self.resDropout = nn.Dropout(0.1)
         self.skip = nn.Dropout(0.1)
@@ -53,6 +56,8 @@ class EncoderBlock(nn.Module):
             posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
         src = torch.cat((self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input), posEmbeddings), 1)
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
+        if self.attnExtension is None:
+            return self.resDropout(src[:, :self.dim]), tgt
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
             lower = max(0, i * 5 - self.attnExtension)
@@ -70,14 +75,17 @@ class DecoderBlock(nn.Module):
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
-        self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device),
                 nn.ReLU(),
               ) for i in range(self.numLayers)],
         )
-        self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim + self.nPosEmbeddings, vdim = self.proj_dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device)
+        if self.attnExtension is not None:
+            self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
+            self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim + self.nPosEmbeddings, vdim = self.proj_dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device)
+        else:
+            self.nPosEmbeddings = 0
         self.projector = nn.Linear(self.proj_dim + self.nPosEmbeddings, self.dim * 5, device = self.device)
         self.skip = nn.Dropout(0.1)
         self.apply(init_weights_rectifier)
@@ -88,13 +96,16 @@ class DecoderBlock(nn.Module):
             posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
         src = torch.cat((input, posEmbeddings), 1)
         tgt = self.projector(src.clone()).reshape((-1, self.dim))
-        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
-        for i in range(src.size()[0]):
-            lower = max(0, i * 5 - self.attnExtension)
-            upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
-            mask[lower:upper, i] = False
-        attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        cnnInput = attnOutput + residual
+        if self.attnExtension is None:
+            cnnInput = tgt + residual
+        else:
+            mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
+            for i in range(src.size()[0]):
+                lower = max(0, i * 5 - self.attnExtension)
+                upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
+                mask[lower:upper, i] = False
+            attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
+            cnnInput = attnOutput + residual
         return self.cnn(cnnInput.transpose(0, 1)).transpose(0, 1) + self.skip(cnnInput)
 
 class NormEncoderBlock(nn.Module):
@@ -106,7 +117,6 @@ class NormEncoderBlock(nn.Module):
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
-        self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
@@ -114,7 +124,11 @@ class NormEncoderBlock(nn.Module):
               ) for i in range(self.numLayers)],
         )
         self.norm = nn.LayerNorm([self.dim,], device = self.device, elementwise_affine = False)
-        self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim + self.nPosEmbeddings, vdim = self.dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device))
+        if self.attnExtension is not None:
+            self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
+            self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim + self.nPosEmbeddings, vdim = self.dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device))
+        else:
+            self.nPosEmbeddings = 0
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear((self.dim + self.nPosEmbeddings) * 5, self.proj_dim, device = self.device))
         self.resDropout = nn.Dropout(0.1)
         self.skip = nn.Dropout(0.1)
@@ -126,6 +140,8 @@ class NormEncoderBlock(nn.Module):
             posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
         src = torch.cat((self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input)), posEmbeddings), 1)
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
+        if self.attnExtension is None:
+            return self.resDropout(src[:, :self.dim]), tgt
         mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
         for i in range(tgt.size()[0]):
             lower = max(0, i * 5 - self.attnExtension)
@@ -143,7 +159,6 @@ class NormDecoderBlock(nn.Module):
         self.numLayers = numLayers
         self.attnExtension = attnExtension
         self.device = device
-        self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
@@ -151,7 +166,11 @@ class NormDecoderBlock(nn.Module):
               ) for i in range(self.numLayers)],
         )
         self.norm = nn.LayerNorm([self.dim,], device = self.device, elementwise_affine = False)
-        self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim + self.nPosEmbeddings, vdim = self.proj_dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device))
+        if self.attnExtension is not None:
+            self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
+            self.attention = norm_attention(nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim + self.nPosEmbeddings, vdim = self.proj_dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device))
+        else:
+            self.nPosEmbeddings = 0
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim + self.nPosEmbeddings, self.dim * 5, device = self.device))
         self.skip = nn.Dropout(0.1)
         self.apply(init_weights_rectifier)
@@ -162,13 +181,16 @@ class NormDecoderBlock(nn.Module):
             posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
         src = torch.cat((input, posEmbeddings), 1)
         tgt = self.projector(src.clone()).reshape((-1, self.dim))
-        mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
-        for i in range(src.size()[0]):
-            lower = max(0, i * 5 - self.attnExtension)
-            upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
-            mask[lower:upper, i] = False
-        attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        cnnInput = attnOutput + residual
+        if self.attnExtension is None:
+            cnnInput = tgt + residual
+        else:
+            mask = torch.ones((tgt.size()[0], src.size()[0]), device = self.device, dtype = torch.bool)
+            for i in range(src.size()[0]):
+                lower = max(0, i * 5 - self.attnExtension)
+                upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
+                mask[lower:upper, i] = False
+            attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
+            cnnInput = attnOutput + residual
         return self.norm(self.cnn(cnnInput.transpose(0, 1)).transpose(0, 1) + self.skip(cnnInput))
 
 
@@ -209,9 +231,9 @@ class MainAi(nn.Module):
         
         self.decoderB = DecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        #self.encoderC = NormEncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.encoderC = EncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
-        #self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.decoderC = DecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
         """self.blockC = nn.Sequential(
             nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device),
@@ -251,7 +273,8 @@ class MainAi(nn.Module):
             if level > 1:
                 resB, encB = self.encoderB(encA)
                 if level > 2:
-                    decC = encB
+                    resC, encC = self.encoderC(encB)
+                    decC = self.decoderC(encC, resC)
                 else:
                     decC = torch.zeros_like(encB)
                 decB = self.decoderB(decC, resB)
@@ -296,9 +319,9 @@ class MainCritic(nn.Module):
         
         self.decoderB = NormDecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
         
-        #self.encoderC = NormEncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.encoderC = NormEncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
-        #self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
         
         """self.blockC = nn.Sequential(
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device)),
@@ -341,7 +364,8 @@ class MainCritic(nn.Module):
             if level > 1:
                 resB, encB = self.encoderB(encA)
                 if level > 2:
-                    decC = encB
+                    resC, encC = self.encoderC(encB)
+                    decC = self.decoderC(encC, resC)
                 else:
                     decC = torch.zeros_like(encB)
                 decB = self.decoderB(decC, resB)
@@ -375,54 +399,32 @@ class DataGenerator:
         else:
             self.longPool = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
             self.shortPool = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive]
-        if len(self.shortPool) == 0:
-            self.shortAvg = 0
-        else:
-            self.shortAvg = sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in self.shortPool]) / len(self.shortPool)
-        if len(self.longPool) == 0:
-            self.longAvg = 0
-        else:
-            self.longAvg = sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in self.longPool]) / len(self.longPool)
 
-    def makeSequence(self, noise:list, length:int = None, phonemeLength:int = None) -> torch.Tensor:
+    def makeSequence(self, noise:list, targetLength:int = None, phonemeLength:int = None) -> torch.Tensor:
         if self.mode == "reclist":
             if phonemeLength is None:
                 raise ValueError("Length must be specified for reclist mode")
-            longPhoneme = random.choice(self.longPool)
-            shortPhonemes = [random.choice(self.shortPool) for i in range(floor(phonemeLength / 2))]
+            longPhonemes = [random.choice(self.longPool) for _ in range(ceil(phonemeLength / 2))]
+            shortPhoneme = random.choice(self.shortPool)
             phonemeSequence = []
             i = phonemeLength - 1
             while i > 0:
                 if i % 2 == 0:
-                    phonemeSequence.append(shortPhonemes[floor(i / 2)])
+                    phonemeSequence.append(shortPhoneme)
                 else:
-                    phonemeSequence.append(longPhoneme)
+                    phonemeSequence.append(longPhonemes[floor(i / 2)])
                 i -= 1
         elif self.mode == "natural":
             phonemeSequence = random.choice(self.voicebank.wordDict[0].values())
         else:
             raise ValueError("Invalid mode for Data Generator")
         embeddings = [self.voicebank.phonemeDict[i][0].embedding for i in phonemeSequence]
-        numShortPhonemes = sum([1 for i in phonemeSequence if i in self.shortPool])
-        numLongPhonemes = sum([1 for i in phonemeSequence if i in self.longPool])
-        effectiveLength = length - numShortPhonemes * self.shortAvg
+        effectiveLength = targetLength - sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in phonemeSequence if i in self.shortPool])
         if effectiveLength >= 0:
             shortMultiplier = 1
-            longMultiplier = effectiveLength / (numLongPhonemes * self.longAvg)
+            longMultiplier = effectiveLength / sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in phonemeSequence if i in self.longPool])
         else:
-            shortMultiplier = longMultiplier = length / (numLongPhonemes * self.longAvg + numShortPhonemes * self.shortAvg)
-            
-        """borders = [0, int(self.voicebank.phonemeDict[phonemeSequence[0]][0].specharm.size()[0] / 4), int(self.voicebank.phonemeDict[phonemeSequence[0]][0].specharm.size()[0] / 2)]
-        referencePoint = self.voicebank.phonemeDict[phonemeSequence[0]][0].specharm.size()[0]
-        for i, phoneme in enumerate(phonemeSequence):
-            transitionLength = int(min(self.voicebank.phonemeDict[phonemeSequence[i]][0].specharm.size()[0] / 4, self.voicebank.phonemeDict[phonemeSequence[i - 1]][0].specharm.size()[0] / 4))
-            borders.append(int(referencePoint - (1 + random.uniform(-0.2, 0.2) * noise[0]) * transitionLength) - 1)
-            borders.append(int(referencePoint + random.uniform(-0.2, 0.2) * noise[0] * transitionLength))
-            borders.append(int(referencePoint + (1 + random.uniform(-0.2, 0.2) * noise[0]) * transitionLength) + 1)
-            if phoneme in self.shortPool:
-                referencePoint += self.voicebank.phonemeDict[phonemeSequence[i]][0].specharm.size()[0] * shortMultiplier
-            else:
-                referencePoint += self.voicebank.phonemeDict[phonemeSequence[i]][0].specharm.size()[0] * longMultiplier"""
+            shortMultiplier = longMultiplier = targetLength / sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in phonemeSequence])
         phonemes = [self.voicebank.phonemeDict[i][0] for i in phonemeSequence]
         borders = [0, 25]
         for i, phoneme in enumerate(phonemes):
@@ -434,7 +436,8 @@ class DataGenerator:
             borders.append(borders[-2] + max(0.8 * length, length - 25))
             borders.append(borders[-3] + length)
         borders.append(borders[-1] + 25)
-        borders = [int(i + random.normalvariate(0, noise[0] * 25)) for i in borders]
+        borders = [i + random.normalvariate(0, noise[0] * 25) for i in borders]
+        borders = [int(i * targetLength / borders[-1]) for i in borders]
         if borders[0] < 0:
             borders[0] = 0
         for i in range(1, len(borders)):
@@ -447,10 +450,10 @@ class DataGenerator:
         sequence = VocalSequence(borderLength,
                                  borders,
                                  phonemeSequence,
-                                 [0 for i in range(len(phonemeSequence))],
-                                 [0 for i in range(len(phonemeSequence))],
+                                 [0 if i > 0 else 1 for i in range(len(phonemeSequence))],
+                                 [0 if i < len(phonemeSequence) - 1 else 1 for i in range(len(phonemeSequence))],
                                  torch.tensor([random.uniform(0, 1) * noise[1] for i in range(len(phonemeSequence))], device = self.crfAi.device),
-                                 torch.tensor([random.uniform(0, 1) * noise[1] for i in range(len(phonemeSequence))], device = self.crfAi.device),
+                                 torch.tensor([random.uniform(0, 1) * noise[1] + 0.5 for i in range(len(phonemeSequence))], device = self.crfAi.device),
                                  torch.full((borderLength,), 300.5, device = self.crfAi.device),#pitch
                                  torch.full((borderLength,), random.uniform(-1, 1) * noise[2], device = self.crfAi.device),#steadiness
                                  torch.full((borderLength,), random.uniform(-1, 1) * noise[3], device = self.crfAi.device),#breathiness
