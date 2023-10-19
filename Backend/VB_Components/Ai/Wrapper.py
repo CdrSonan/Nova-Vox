@@ -45,10 +45,10 @@ class AIWrapper():
             "main_reg": 0.,
             "main_drp":0.1,
             "crt_blkA": [3, 2],
-            "crt_blkB": [3, 2],
-            "crt_blkC": [3, 2],
+            "crt_blkB": [1, None],
+            "crt_blkC": [1, 2],
             "crt_lr": 0.0005,
-            "crt_reg": 0.01,
+            "crt_reg": 0.02,
             "crt_drp":0.1,
             "gan_guide_wgt": 0.05,
             "gan_train_asym": 1,
@@ -378,126 +378,6 @@ class AIWrapper():
             total += 1
         self.deskewingPremul /= total
         
-        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
-            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                data = torch.squeeze(data)
-                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                data /= self.deskewingPremul
-                self.reset()
-                synthBase = self.mainGenerator.synthesize([0.1, 0., 0., 0.], data.size()[0], 14)
-                synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
-                synthBase /= self.deskewingPremul
-                self.mainAi.resetState()
-                synthInput = self.mainAi(synthBase, 1)
-                
-                if index % self.hparams["gan_train_asym"] == 0:
-                    self.mainAiOptimizer.zero_grad()
-                    self.mainCriticOptimizer.zero_grad()
-                    self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 1)
-                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                    (generatorLoss + guideLoss).backward()
-                    self.mainAiOptimizer.step()
-                
-                self.mainCriticOptimizer.zero_grad()
-                self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, 1)
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 1)
-                penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 1, self.device)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 25 * penalty
-                discriminatorLoss.backward()
-                self.mainCriticOptimizer.step()
-
-                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
-                if writer != None:
-                    results = {
-                        "pos.": posDiscriminatorLoss.data.item(),
-                        "neg.": negDiscriminatorLoss.data.item(),
-                        "disc.": discriminatorLoss.data.item(), 
-                        "gen.": generatorLoss.data.item(),
-                        "encA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "encB": 0,
-                        "encC": 0,
-                        "decA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "decB": 0,
-                        "decC": 0,
-                        "baseEnc": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseEncoder.modules() if isinstance(i, nn.Linear)]),
-                        "baseDec": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseDecoder.modules() if isinstance(i, nn.Linear)]),
-                        "CEncA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "CEncB": 0,
-                        "CEncC": 0,
-                        "CDecA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "CDecB": 0,
-                        "CDecC": 0,
-                        "CBaseEnc": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseEncoder.modules() if isinstance(i, nn.Linear)]),
-                        "CBaseDec": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseDecoder.modules() if isinstance(i, nn.Linear)]),
-                        "final": torch.mean(torch.abs(self.mainCritic.final.parametrizations.weight.original.grad)).item()
-                    }
-                    writer.writerow(results)
-                
-            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
-            self.mainAi.sampleCount += len(indata)
-        
-        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
-            for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
-                data = torch.squeeze(data)
-                data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                data /= self.deskewingPremul
-                self.reset()
-                synthBase = self.mainGenerator.synthesize([0.1, 0., 0., 0.], data.size()[0], 14)
-                synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
-                synthBase /= self.deskewingPremul
-                self.mainAi.resetState()
-                synthInput = self.mainAi(synthBase, 2)
-                
-                if index % self.hparams["gan_train_asym"] == 0:
-                    self.mainAiOptimizer.zero_grad()
-                    self.mainCriticOptimizer.zero_grad()
-                    self.mainCritic.resetState()
-                    generatorLoss = self.mainCritic(synthInput, 2)
-                    guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
-                    (generatorLoss + guideLoss).backward()
-                    self.mainAiOptimizer.step()
-                
-                self.mainCriticOptimizer.zero_grad()
-                self.mainCritic.resetState()
-                posDiscriminatorLoss = self.mainCritic(data, 2)
-                negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 2)
-                penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 2, self.device)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 25 * penalty
-                discriminatorLoss.backward()
-                self.mainCriticOptimizer.step()
-
-                tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))
-                if writer != None:
-                    results = {
-                        "pos.": posDiscriminatorLoss.data.item(),
-                        "neg.": negDiscriminatorLoss.data.item(),
-                        "disc.": discriminatorLoss.data.item(), 
-                        "gen.": generatorLoss.data.item(),
-                        "encA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "encB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "encC": 0,
-                        "decA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "decB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "decC": 0,
-                        "baseEnc": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseEncoder.modules() if isinstance(i, nn.Linear)]),
-                        "baseDec": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseDecoder.modules() if isinstance(i, nn.Linear)]),
-                        "CEncA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "CEncB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "CEncC": 0,
-                        "CDecA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "CDecB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]),
-                        "CDecC": 0,
-                        "CBaseEnc": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseEncoder.modules() if isinstance(i, nn.Linear)]),
-                        "CBaseDec": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseDecoder.modules() if isinstance(i, nn.Linear)]),
-                        "final": torch.mean(torch.abs(self.mainCritic.final.parametrizations.weight.original.grad)).item()
-                    }
-                    writer.writerow(results)
-                
-            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, generatorLoss.data))
-            self.mainAi.sampleCount += len(indata)
-        
         gan_far_sample = None
         gan_far_score = math.inf
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
@@ -530,7 +410,7 @@ class AIWrapper():
                 posDiscriminatorLoss = self.mainCritic(data, 3)
                 negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 3)
                 penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 25 * penalty
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 100 * penalty
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer.step()
                 

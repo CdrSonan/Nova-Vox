@@ -120,7 +120,7 @@ class NormEncoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
-                nn.ReLU(),
+                nn.Tanh(),
               ) for i in range(self.numLayers)],
         )
         self.norm = nn.LayerNorm([self.dim,], device = self.device, elementwise_affine = False)
@@ -132,7 +132,7 @@ class NormEncoderBlock(nn.Module):
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear((self.dim + self.nPosEmbeddings) * 5, self.proj_dim, device = self.device))
         self.resDropout = nn.Dropout(0.1)
         self.skip = nn.Dropout(0.1)
-        self.apply(init_weights_rectifier)
+        self.apply(init_weights_logistic)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
         posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
@@ -162,7 +162,7 @@ class NormDecoderBlock(nn.Module):
         self.cnn = nn.Sequential(
             *[nn.Sequential(
                 nn.utils.parametrizations.spectral_norm(nn.Conv1d(self.dim, self.dim, 3, padding = 1, device = self.device)),
-                nn.ReLU(),
+                nn.Tanh(),
               ) for i in range(self.numLayers)],
         )
         self.norm = nn.LayerNorm([self.dim,], device = self.device, elementwise_affine = False)
@@ -173,7 +173,7 @@ class NormDecoderBlock(nn.Module):
             self.nPosEmbeddings = 0
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim + self.nPosEmbeddings, self.dim * 5, device = self.device))
         self.skip = nn.Dropout(0.1)
-        self.apply(init_weights_rectifier)
+        self.apply(init_weights_logistic)
         
     def forward(self, input:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
         posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
@@ -223,17 +223,17 @@ class MainAi(nn.Module):
         
         self.baseResidual = nn.Dropout(0.1)
         
-        self.encoderA = EncoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
+        self.encoderA = EncoderBlock(dim, 2 * dim, blockA[0], blockA[1], device)
         
-        self.decoderA = DecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
+        self.decoderA = DecoderBlock(dim, 2 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = EncoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
+        self.encoderB = EncoderBlock(2 * dim, 3 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = DecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
+        self.decoderB = DecoderBlock(2 * dim, 3 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = EncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.encoderC = EncoderBlock(3 * dim, 4 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = DecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.decoderC = DecoderBlock(3 * dim, 4 * dim, blockC[0], blockC[1], device)
         
         """self.blockC = nn.Sequential(
             nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device),
@@ -311,17 +311,17 @@ class MainCritic(nn.Module):
         
         self.baseResidual = nn.Dropout(0.1)
         
-        self.encoderA = NormEncoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
+        self.encoderA = NormEncoderBlock(dim, 2 * dim, blockA[0], blockA[1], device)
         
-        self.decoderA = NormDecoderBlock(dim, 5 * dim, blockA[0], blockA[1], device)
+        self.decoderA = NormDecoderBlock(dim, 2 * dim, blockA[0], blockA[1], device)
         
-        self.encoderB = NormEncoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
+        self.encoderB = NormEncoderBlock(2 * dim, 3 * dim, blockB[0], blockB[1], device)
         
-        self.decoderB = NormDecoderBlock(5 * dim, 8 * dim, blockB[0], blockB[1], device)
+        self.decoderB = NormDecoderBlock(2 * dim, 3 * dim, blockB[0], blockB[1], device)
         
-        self.encoderC = NormEncoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.encoderC = NormEncoderBlock(3 * dim, 4 * dim, blockC[0], blockC[1], device)
         
-        self.decoderC = NormDecoderBlock(8 * dim, 10 * dim, blockC[0], blockC[1], device)
+        self.decoderC = NormDecoderBlock(3 * dim, 4 * dim, blockC[0], blockC[1], device)
         
         """self.blockC = nn.Sequential(
             nn.utils.parametrizations.spectral_norm(nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device)),
@@ -365,6 +365,7 @@ class MainCritic(nn.Module):
                 resB, encB = self.encoderB(encA)
                 if level > 2:
                     resC, encC = self.encoderC(encB)
+                    encC *= 0
                     decC = self.decoderC(encC, resC)
                 else:
                     decC = torch.zeros_like(encB)
