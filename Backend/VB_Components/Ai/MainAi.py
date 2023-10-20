@@ -365,7 +365,6 @@ class MainCritic(nn.Module):
                 resB, encB = self.encoderB(encA)
                 if level > 2:
                     resC, encC = self.encoderC(encB)
-                    encC *= 0
                     decC = self.decoderC(encC, resC)
                 else:
                     decC = torch.zeros_like(encB)
