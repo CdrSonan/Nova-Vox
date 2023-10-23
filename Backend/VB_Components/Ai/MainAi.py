@@ -130,8 +130,8 @@ class NormEncoderBlock(nn.Module):
         else:
             self.nPosEmbeddings = 0
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear((self.dim + self.nPosEmbeddings) * 5, self.proj_dim, device = self.device))
-        self.resDropout = nn.Dropout(0.1)
-        self.skip = nn.Dropout(0.1)
+        self.resDropout = nn.Dropout(0.5)
+        self.skip = nn.Dropout(0.5)
         self.apply(init_weights_logistic)
         
     def forward(self, input:torch.Tensor) -> (torch.Tensor, torch.Tensor):
@@ -172,7 +172,7 @@ class NormDecoderBlock(nn.Module):
         else:
             self.nPosEmbeddings = 0
         self.projector = nn.utils.parametrizations.spectral_norm(nn.Linear(self.proj_dim + self.nPosEmbeddings, self.dim * 5, device = self.device))
-        self.skip = nn.Dropout(0.1)
+        self.skip = nn.Dropout(0.5)
         self.apply(init_weights_logistic)
         
     def forward(self, input:torch.Tensor, residual:torch.Tensor) -> torch.Tensor:
