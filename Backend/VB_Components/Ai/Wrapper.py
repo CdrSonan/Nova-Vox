@@ -37,22 +37,21 @@ class AIWrapper():
             "tr_hlc": 1,
             "tr_hls": 4000,
             "tr_def_thrh" : 0.05,
-            "latent_dim": 128,
-            "main_blkA": [3, 2],
-            "main_blkB": [3, 2],
-            "main_blkC": [3, 2],
+            "latent_dim": 256,
+            "main_blkA": [2, 5],
+            "main_blkB": [2, 5],
+            "main_blkC": [2, 5],
             "main_lr": 0.0005,
             "main_reg": 0.,
             "main_drp":0.1,
-            "crt_blkA": [3, 2],
-            "crt_blkB": [3, 2],
-            "crt_blkC": [3, 2],
-            "crt_lr": 0.0005,
+            "crt_blkA": [2, 5],
+            "crt_blkB": [2, 5],
+            "crt_blkC": [2, 5],
+            "crt_lr": 0.0001,
             "crt_reg": 0.02,
             "crt_drp":0.1,
             "gan_guide_wgt": 0.05,
             "gan_train_asym": 1,
-            "gan_far_freq": 10,
         }
         if hparams:
             for i in hparams.keys():
@@ -398,7 +397,7 @@ class AIWrapper():
             total += 1
         self.deskewingPremul /= total
         
-        """for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
+        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
                 data = torch.squeeze(data)
                 data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
@@ -424,8 +423,8 @@ class AIWrapper():
                 self.mainCritic.resetState()
                 posDiscriminatorLoss = self.mainCritic(data, 1)
                 negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 1)
-                #penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss# + 100 * penalty
+                penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 25 * penalty
                 discriminatorLoss.backward()
                 self.mainCriticOptimizer[0].step()
                 self.mainCriticOptimizer[1].step()
@@ -455,7 +454,7 @@ class AIWrapper():
                         "CBaseDec": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseDecoder.modules() if isinstance(i, nn.Linear)]),
                         "final": torch.mean(torch.abs(self.mainCritic.final.parametrizations.weight.original.grad)).item()
                     }
-                    writer.writerow(results)"""
+                    writer.writerow(results)
                     
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples")):
@@ -484,10 +483,9 @@ class AIWrapper():
                 self.mainCritic.resetState()
                 posDiscriminatorLoss = self.mainCritic(data, 2)
                 negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 2)
-                #penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss# + 100 * penalty
+                penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 25 * penalty
                 discriminatorLoss.backward()
-                self.mainCriticOptimizer[0].step()
                 self.mainCriticOptimizer[1].step()
                 self.mainCriticOptimizer[2].step()
 
@@ -545,10 +543,9 @@ class AIWrapper():
                 self.mainCritic.resetState()
                 posDiscriminatorLoss = self.mainCritic(data, 3)
                 negDiscriminatorLoss = self.mainCritic(synthInput.detach(), 3)
-                #penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
-                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss# + 100 * penalty
+                penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
+                discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss + 25 * penalty
                 discriminatorLoss.backward()
-                #self.mainCriticOptimizer[1].step()
                 self.mainCriticOptimizer[2].step()
                 self.mainCriticOptimizer[3].step()
 
