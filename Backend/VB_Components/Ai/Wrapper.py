@@ -51,7 +51,7 @@ class AIWrapper():
             "crt_lr": 0.0002,
             "crt_reg": 0.02,
             "crt_drp":0.5,
-            "gan_guide_wgt": 0.02,
+            "gan_guide_wgt": 0.,
             "gan_train_asym": 1,
             "fargan_interval": 10,
         }

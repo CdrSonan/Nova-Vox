@@ -1,2 +1,0 @@
-This file serves no function apart from making Git and PyInstaller track this folder. (empty folders cause issues)
-It will be removed once there are actual files here.
