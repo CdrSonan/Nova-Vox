@@ -41,9 +41,9 @@ class RootUi(Frame):
         self.createWidgets()
         self.master.wm_title(loc["no_vb"])
         if (sys.platform.startswith('win')): 
-            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+            self.master.iconbitmap("assets/icon/nova-vox-logo-black.ico")
         else:
-            logo = tkinter.PhotoImage(file="icon/nova-vox-logo-black.gif")
+            logo = tkinter.PhotoImage(file="assets/icon/nova-vox-logo-black.gif")
             self.master.call('wm', 'iconphoto', self.master._w, logo)
 
         accelerator = readSettings()["accelerator"]

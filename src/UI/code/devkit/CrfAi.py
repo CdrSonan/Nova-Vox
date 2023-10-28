@@ -27,7 +27,7 @@ class CrfaiUi(Frame):
         self.createWidgets()
         self.master.wm_title(loc["crfai_lbl"])
         if (sys.platform.startswith('win')): 
-            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+            self.master.iconbitmap("assets/icon/nova-vox-logo-black.ico")
         
     def createWidgets(self) -> None:
         """creates all widgets of the window. Called once during initialization"""

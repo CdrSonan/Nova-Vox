@@ -34,7 +34,7 @@ class PhonemedictUi(Frame):
         self.createWidgets()
         self.master.wm_title(loc["phon_lbl"])
         if (sys.platform.startswith('win')): 
-            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+            self.master.iconbitmap("assets/icon/nova-vox-logo-black.ico")
         
     def createWidgets(self) -> None:
         """Initializes all widgets of the Phoneme Dict UI window."""
