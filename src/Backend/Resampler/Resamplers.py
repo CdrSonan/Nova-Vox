@@ -90,21 +90,24 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     for i, pitch in enumerate(pitches):
         lowerPitchIndices = torch.where(pitches[lowerPitchIndices] < pitch < vocalSegment.pitch, torch.tensor(i, device = device), lowerPitchIndices)
         upperPitchIndices = torch.where(pitches[upperPitchIndices] > pitch > vocalSegment.pitch, torch.tensor(i, device = device), upperPitchIndices)
-    ratio = torch.where(upperPitchIndices == lowerPitchIndices, torch.zeros([len(pitches),], device = device), torch.pow(torch.sin(abs(vocalSegment.pitch - pitches[lowerPitchIndices]) / abs(pitches[upperPitchIndices] - pitches[lowerPitchIndices]) * math.pi / 2)), 2)
-    avgSpecharm = (ratio * phoneme.specharm[upperPitchIndices] + (1 - ratio) * phoneme.specharm[lowerPitchIndices]).to(device)
-    C_Bridge.resampler.resampleSpecharm(ctypes.cast(avgSpecharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
-                               ctypes.cast(phoneme.specharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+    ratio = torch.where(upperPitchIndices == lowerPitchIndices,
+                        torch.zeros([len(pitches),], device = device),
+                        torch.pow(torch.sin(abs(vocalSegment.pitch - pitches[lowerPitchIndices]) / abs(pitches[upperPitchIndices] - pitches[lowerPitchIndices]) * math.pi / 2), 2))
+    ratio = ratio.unsqueeze(1)
+    avgSpecharm = (ratio * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][upperPitchIndices].avgSpecharm + (1 - ratio) * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][lowerPitchIndices].avgSpecharm).to(device)
+    C_Bridge.resampler.resampleSpecharm(ctypes.cast(avgSpecharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
+                               ctypes.cast(phoneme.specharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.specharm.size()[0]),
-                               ctypes.cast(vocalSegment.steadiness.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+                               ctypes.cast(vocalSegment.steadiness.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                ctypes.c_float(vocalSegment.repetititionSpacing.item()),
                                int(vocalSegment.startCap),
                                int(vocalSegment.endCap),
-                               ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+                               ctypes.cast(output.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                timings,
                                global_consts.config)
     return output
     
-def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the specharm of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":

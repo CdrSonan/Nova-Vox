@@ -503,7 +503,10 @@ class ChangePitch(UnifiedAction):
             middleLayer.submitNamedPhonParamChange(True, "pitch", start, data)
         super().__init__(action, data, start, *args, **kwargs)
         self.start = start
-        self.size = data.size()[0]
+        if type(data) == list:
+            self.size = len(data)
+        else:
+            self.size = data.size()[0]
 
     def inverseAction(self):
         return ChangePitch(middleLayer.trackList[middleLayer.activeTrack].pitch[self.start:self.start + self.size], self.start)
