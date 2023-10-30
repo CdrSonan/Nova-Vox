@@ -19,6 +19,7 @@ import API.Ops
 
 from kivy.clock import mainthread
 from kivy.core.window import Window
+from kivy.metrics import dp
 
 from math import floor, ceil
 
@@ -35,7 +36,6 @@ class NoteProperties(Bubble):
     def on_parent(self, instance, value) -> None:
         for i in self.content.children:
             i.reference = self.reference
-        return super().on_parent(instance, value)
 
 class PhonemeSelector(Bubble):
     """class for the phoneme selection menu for notes not in phoneme mode with multiple available pronunciations"""
@@ -47,12 +47,12 @@ class PhonemeSelector(Bubble):
         self.options = options
         self.index = index
         self.word = word
-        for i in range(len(self.options)):
+        for i in range(len(self.options)):#TODO: check if Kivy version upgrade affected widget addition syntax
             self.content.add_widget(ReferencingButton(text = self.options[i], reference = self, on_press = lambda a : API.Ops.ChangeLyrics(self.index, self.word, i)()))
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
-        if not (self.collide_point(*self.to_widget(*pos)) or self.reference.collide_point(*self.children[0].to_widget(*pos))):
+        if not (self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))) or self.reference.collide_point(*self.children[0].to_widget(dp(pos[0]), dp(pos[1])))):
             self.reference.remove_widget(self)
         
 
@@ -73,7 +73,7 @@ class Note(ManagedToggleButton):
 
     def on_mouseover(self, window, pos):
         super().on_mouseover(window, pos)
-        if self.propertiesBubble and not (self.collide_point(*self.to_widget(*pos)) or self.children[0].collide_point(*self.children[0].to_widget(*pos))):
+        if self.propertiesBubble and not (self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))) or self.children[0].collide_point(*self.children[0].to_widget(dp(pos[0]), dp(pos[1])))):
             self.remove_widget(self.propertiesBubble)
             self.propertiesBubble = None
 
@@ -187,12 +187,12 @@ class Note(ManagedToggleButton):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
-        API.Ops.RemoveNote(self.index)()
         for i in self.parent.parent.notes:
             if i.index > self.index:
                 i.index -= 1
         self.parent.parent.notes.remove(self)
         self.parent.remove_widget(self)
+        API.Ops.RemoveNote(self.index)()
 
     def changeLyrics(self, text:str, focus = False) -> None:
         """changes the lyrics of the note"""
@@ -247,10 +247,10 @@ class PianoRollOctaveBackground(FloatLayout):
         self.tooltip = None
 
     def on_mouseover(self, window, pos):
-        if self.parent.collide_point(*self.to_parent(*pos)):
+        if self.parent.collide_point(*self.to_parent(dp(pos[0]), dp(pos[1]))):
             if self.tooltip != None:
                 self.parent.remove_widget(self.tooltip)
-            index = floor((self.to_widget(pos[0], pos[1])[1] - self.y) * 12 / self.height)
+            index = floor((self.to_widget(dp(pos[0]), dp(pos[1]))[1] - self.y) * 12 / self.height)
             if (index < 0) or (index > 11):
                 return
             text = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
@@ -269,7 +269,7 @@ class PianoRollOctaveBackground(FloatLayout):
                                     text = text[index] + str(self.index),
                                     color = (0, 0, 0, 1))
             self.parent.add_widget(self.tooltip)
-        elif (not self.parent.parent.collide_point(*self.to_parent(*pos))) and self.tooltip != None:
+        elif (not self.parent.parent.collide_point(*self.to_parent(dp(pos[0]), dp(pos[1])))) and self.tooltip != None:
             self.parent.remove_widget(self.tooltip)
             self.tooltip = None
 

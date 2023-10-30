@@ -210,7 +210,7 @@ class MainAi(nn.Module):
         resetState: resets the hidden states and cell states of the internal LSTM layers"""
 
 
-    def __init__(self, dim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05) -> None:
+    def __init__(self, dim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
         """basic constructor accepting the learning rate and other hyperparameters as input"""
 
         super().__init__()
@@ -263,7 +263,12 @@ class MainAi(nn.Module):
         self.regularization = regularization
         self.epoch = 0
         self.sampleCount = 0
-        
+    
+    def __new__(cls, dim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
+        instance = super().__new__(cls)
+        if compile:
+            instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
+        return instance
 
     def forward(self, input:torch.Tensor, level:int) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
@@ -302,7 +307,7 @@ class MainAi(nn.Module):
 
 class MainCritic(nn.Module):
     
-    def __init__(self, dim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05) -> None:
+    def __init__(self, dim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
         super().__init__()
         
         self.baseEncoder = nn.Sequential(
@@ -360,6 +365,11 @@ class MainCritic(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
         
+    def __new__(cls, dim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
+        instance = super().__new__(cls)
+        if compile:
+            instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
+        return instance
 
     def forward(self, input:torch.Tensor, level:int) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""

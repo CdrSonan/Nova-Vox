@@ -320,16 +320,19 @@ class WorddictUi(Frame):
 
         global loadedVB
 
-        if len(loadedVB.wordDict[1]) >= len("new") - 1 and "new" in loadedVB.wordDict[1][len("new") - 1].keys():
+        self.syllableUpdate("")
+        self.syllableMappingUpdate("")
+        if len(loadedVB.wordDict[1]) >= len("new") and "new" in loadedVB.wordDict[1][len("new") - 1].keys():
             i = 1
-            while len(loadedVB.wordDict[1]) >= len("new" + str(i)) - 1 and "new" + str(i) in loadedVB.wordDict[1][len("new" + str(i)) - 1].keys():
+            while len(loadedVB.wordDict[1]) >= len("new" + str(i)) and "new" + str(i) in loadedVB.wordDict[1][len("new" + str(i)) - 1].keys():
                 i += 1
             self.syllableList.list.lb.insert("end", "new" + str(i))
-            while len(loadedVB.wordDict[1]) < len("new" + str(i)) - 1:
+            while len(loadedVB.wordDict[1]) < len("new" + str(i)):
                 loadedVB.wordDict[1].append(dict())
-            loadedVB.wordDict[1][len("new" + str(i))]["new" + str(i)] = ""
+            loadedVB.wordDict[1][len("new" + str(i)) - 1]["new" + str(i)] = ""
+            return
         self.syllableList.list.lb.insert("end", "new")
-        while len(loadedVB.wordDict[1]) < len("new") - 1:
+        while len(loadedVB.wordDict[1]) < len("new"):
             loadedVB.wordDict[1].append(dict())
         loadedVB.wordDict[1][len("new") - 1]["new"] = ""
 
@@ -342,7 +345,7 @@ class WorddictUi(Frame):
             item = self.syllableList.list.lb.get(self.syllableList.list.lastFocusedIndex)
             del loadedVB.wordDict[1][len(item) - 1][item]
             while len(loadedVB.wordDict[1][-1]) == 0:
-                    del loadedVB.wordDict[1][-1]
+                del loadedVB.wordDict[1][-1]
             self.syllableList.list.lb.delete(self.syllableList.list.lastFocusedIndex)
             self.syllableList.list.lastFocusedIndex = None
 
@@ -377,7 +380,7 @@ class WorddictUi(Frame):
             if syllable != newSyllable:
                 while len(loadedVB.wordDict[1]) < len(newSyllable) - 1:
                     loadedVB.wordDict[1].append(dict())
-                if syllable in loadedVB.wordDict[1][len(newSyllable) - 1].keys():
+                if newSyllable in loadedVB.wordDict[1][len(newSyllable) - 1].keys():
                     tkinter.messagebox.showerror(loc["error"], loc["worddict_syllable_exists_error"])
                     self.syllableSettings.syllable.variable.set(syllable)
                     return

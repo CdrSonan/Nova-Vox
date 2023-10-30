@@ -486,7 +486,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             remoteConnection.put(StatusChange(i, j, 3))
 
                     #final rendering and istft of pause-to-pause segment
-                    if ((j > 0) & interOutput) or (j == lastPoint):
+                    if (j > 0) & (interOutput or (j == lastPoint)):
                         logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
                         if aiActive:
                             startPoint = internalInputs.borders[3 * firstPoint]
@@ -533,6 +533,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                             waveform += excitationSignal.to(device = torch.device("cpu"))
                             remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
+                        print("check", firstPoint, lastPoint, j)
                         remoteConnection.put(StatusChange(i, j - 1, 5))
                     if j > 0 and internalInputs.endCaps[j - 1] == True:
                         aiActive = False

@@ -12,6 +12,7 @@ from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.core.window import Window
 from kivy.app import App
+from kivy.metrics import dp
 
 import API.Ops
 
@@ -24,7 +25,7 @@ class AdaptiveSpace(AnchorLayout):
 
     def on_mouseover(self, window, pos):
         root = App.get_running_app().root
-        if self.collide_point(*self.to_widget(*pos)) and root.cursorPrio <= 1:
+        if self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))) and root.cursorPrio <= 1:
             Window.set_system_cursor("crosshair")
             root.cursorSource = self
             root.cursorPrio = 1

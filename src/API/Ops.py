@@ -715,8 +715,6 @@ class ChangeLyrics(UnifiedAction):
                     phonemes.append(phoneme)
                 elif i in middleLayer.trackList[middleLayer.activeTrack].phonemeLengths:
                     phonemes.append(i)
-            if phonemes == [""]or phonemes == []:
-                phonemes = ["pau"]
             offset = len(phonemes) - middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeEnd + middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart
             middleLayer.offsetPhonemes(index, offset, futurePhonemes = phonemes)
             middleLayer.trackList[middleLayer.activeTrack].phonemes[middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart:middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeEnd] = phonemes

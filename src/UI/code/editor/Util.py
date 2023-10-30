@@ -20,6 +20,7 @@ from kivy.uix.label import Label
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.app import App
+from kivy.metrics import dp
 
 def fullRoot(widget):
     root = widget
@@ -62,7 +63,7 @@ class TooltipBehavior(object):
         self._tooltip.pos = pos
         Clock.unschedule(self.display_tooltip) # cancel scheduled event since I moved the cursor
         self.close_tooltip() # close if it's opened
-        if self.collide_point(*self.to_widget(*pos)):
+        if self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))):
             Clock.schedule_once(self.display_tooltip, 1)
 
     def close_tooltip(self, *args):
@@ -81,7 +82,7 @@ class ImageButton(ButtonBehavior, Image, TooltipBehavior):
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
-        if self.collide_point(*self.to_widget(*pos)):
+        if self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))):
             self.color = (0.5, 0.5, 0.5, 1.)
         else:
             self.color = (1., 1., 1., 1.)
@@ -110,7 +111,7 @@ class ImageToggleButton(ToggleButtonBehavior, Image, TooltipBehavior):
             root = App.get_running_app().root
             if "accColor" in dir(root):
                 self.color = root.accColor
-        elif self.collide_point(*self.to_widget(*pos)):
+        elif self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))):
             self.color = (0.5, 0.5, 0.5, 1.)
         else:
             self.color = (1., 1., 1., 1.)
@@ -132,7 +133,7 @@ class ManagedButton(Button, TooltipBehavior):
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
-        if self.collide_point(*self.to_widget(*pos)):
+        if self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))):
             self.background_color = (0.5, 0.5, 0.5, 1.)
         else:
             self.background_color = (1., 1., 1., 1.)
@@ -161,7 +162,7 @@ class ManagedToggleButton(ToggleButton, TooltipBehavior):
             root = App.get_running_app().root
             if "accColor" in dir(root):
                 self.background_color = root.accColor
-        elif self.collide_point(*self.to_widget(*pos)):
+        elif self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))):
             self.background_color = (0.5, 0.5, 0.5, 1.)
         else:
             self.background_color = (1., 1., 1., 1.)
@@ -181,7 +182,7 @@ class ManagedSpinnerOptn(SpinnerOption):
         Window.bind(mouse_pos=self.on_mouseover)
 
     def on_mouseover(self, window, pos):
-        if self.collide_point(*self.to_widget(*pos)):
+        if self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))):
             self.background_color = (0.5, 0.5, 0.5, 1.)
         else:
             self.background_color = (1., 1., 1., 1.)
@@ -206,7 +207,7 @@ class ManagedSpinner(Spinner, TooltipBehavior):
             root = App.get_running_app().root
             if "accColor" in dir(root):
                 self.background_color = root.accColor
-        elif self.collide_point(*self.to_widget(*pos)):
+        elif self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))):
             self.background_color = (0.5, 0.5, 0.5, 1.)
         else:
             self.background_color = (1., 1., 1., 1.)
@@ -224,7 +225,7 @@ class ManagedSplitterStrip(Button):
 
     def on_mouseover(self, window, pos):
         root = App.get_running_app().root
-        if self.collide_point(*self.to_widget(*pos)) and root.cursorPrio <= 1:
+        if self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))) and root.cursorPrio <= 1:
             self.background_color = (0.5, 0.5, 0.5, 1.)
             if self.parent.sizable_from[0] in ('t', 'b'):
                 Window.set_system_cursor("size_ns")
@@ -258,7 +259,7 @@ class CursorAwareView(ModalView):
 
     def on_mouseover(self, window, pos):
         root = App.get_running_app().root
-        if self.collide_point(*self.to_widget(*pos)) and root.cursorPrio <= 2:
+        if self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))) and root.cursorPrio <= 2:
             Window.set_system_cursor("arrow")
             root.cursorSource = self
             root.cursorPrio = 2

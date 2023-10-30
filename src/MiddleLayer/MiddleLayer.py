@@ -156,8 +156,9 @@ class MiddleLayer(Widget):
         self.submitOffset(False, phonIndex, offset, addition)
                 
         start, end = recalculateBorders(index, self.trackList[self.activeTrack], None)
-        if index > 0 and self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] != "_autopause":
-            start = min(start, recalculateBorders(index - 1, self.trackList[self.activeTrack], None)[0])
+        if index > 0 and self.trackList[self.activeTrack].notes[index].phonemeStart != self.trackList[self.activeTrack].notes[index].phonemeEnd:
+            if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] != "_autopause":
+                start = min(start, recalculateBorders(index - 1, self.trackList[self.activeTrack], None)[0])
         start = min(start, 3 * phonIndex)
 
         for i in range(start, end):
