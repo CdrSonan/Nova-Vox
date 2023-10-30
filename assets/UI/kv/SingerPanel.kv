@@ -11,7 +11,7 @@
     size_hint: (0.9, 0.9)
     title: "track settings"
     separator_color: app.root.accColor
-    background: "UI/assets/Toolbar/overlayfull.png"
+    background: "assets/UI/Toolbar/overlayfull.png"
     overlay_color: [0, 0, 0, 0]
     BoxLayout:
         orientation: "horizontal"
@@ -82,8 +82,8 @@
     ManagedToggleButton:
         size_hint: (None, None)
         size: (self.parent.width - 20, self.parent.height - 20)
-        background_normal: "UI/assets/TrackList/SingerBGNew.png"
-        background_down: "UI/assets/TrackList/SingerBGNew.png"
+        background_normal: "assets/UI/TrackList/SingerBGNew.png"
+        background_down: "assets/UI/TrackList/SingerBGNew.png"
         group: "SingerPanels"
         allow_no_selection: False
         on_state: if self.state == 'down': self.parent.changeTrack()
@@ -108,15 +108,15 @@
                 orientation: "horizontal"
                 ImageButton:
                     #singer/track settings button
-                    source: "UI/assets/TrackList/SingerGrey01new.png"
+                    source: "assets/UI/TrackList/SingerGrey01new.png"
                     on_press: self.parent.parent.parent.parent.openSettings()
                 ImageButton:
                     #copy/duplicate button
-                    source: "UI/assets/TrackList/SingerGrey02new.png"
+                    source: "assets/UI/TrackList/SingerGrey02new.png"
                     on_press: self.parent.parent.parent.parent.copyTrack()
                 ImageButton:
                     #delete button
-                    source: "UI/assets/TrackList/SingerGrey03new.png"
+                    source: "assets/UI/TrackList/SingerGrey03new.png"
                     on_press: self.parent.parent.parent.parent.deleteTrack()
             Slider:
                 #volume slider

@@ -18,7 +18,7 @@
     size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
     pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
-    background: "UI/assets/Toolbar/overlay.png"
+    background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     BoxLayout:
         padding: 10
@@ -53,7 +53,7 @@
     size: (400, 400)
     title: "render settings"
     separator_color: app.root.accColor
-    background: "UI/assets/Toolbar/overlayfull.png"
+    background: "assets/UI/Toolbar/overlayfull.png"
     overlay_color: [0, 0, 0, 0]
     BoxLayout:
         padding: 10
@@ -113,7 +113,7 @@
     size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
     pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
-    background: "UI/assets/Toolbar/overlay.png"
+    background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     on_open: self.listVoicebanks()
     BoxLayout:
@@ -165,7 +165,7 @@
                 size_hint_y: None
                 height: 80 * app.root.uiScale
                 id: singer_image
-                source: "UI/assets/TrackList/SingerGrey04.png"
+                source: "assets/UI/TrackList/SingerGrey04.png"
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -189,7 +189,7 @@
     size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
     pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
-    background: "UI/assets/Toolbar/overlay.png"
+    background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     on_open: self.listParams()
     BoxLayout:
@@ -271,7 +271,7 @@
     size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
     pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
-    background: "UI/assets/Toolbar/overlay.png"
+    background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     on_open: self.loadCache()
     on_pre_dismiss: self.saveCache()
@@ -296,7 +296,7 @@
     size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
     pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
-    background: "UI/assets/Toolbar/overlay.png"
+    background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
     on_open: self.readSettings()
     on_pre_dismiss: self.writeSettings()
@@ -402,8 +402,8 @@
             id: settings_audioLatency
             size_hint_y: None
             height: max(30 * app.root.uiScale, self.minimum_height)
-            background_normal: "UI/assets/Toolbar/Adaptive07new.png"
-            background_active: "UI/assets/Toolbar/Adaptive07new.png"
+            background_normal: "assets/UI/Toolbar/Adaptive07new.png"
+            background_active: "assets/UI/Toolbar/Adaptive07new.png"
             background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
             foreground_color: (1., 1., 1., 1.)
             halign: "center"
@@ -417,8 +417,8 @@
             id: settings_undoLimit
             size_hint_y: None
             height: max(30 * app.root.uiScale, self.minimum_height)
-            background_normal: "UI/assets/Toolbar/Adaptive07new.png"
-            background_active: "UI/assets/Toolbar/Adaptive07new.png"
+            background_normal: "assets/UI/Toolbar/Adaptive07new.png"
+            background_active: "assets/UI/Toolbar/Adaptive07new.png"
             background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
             foreground_color: (1., 1., 1., 1.)
             halign: "center"
@@ -457,8 +457,8 @@
             size_hint_y: None
             height: max(30 * app.root.uiScale, self.minimum_height)
             on_text_validate: self.parent.parent.applyColors()
-            background_normal: "UI/assets/Toolbar/Adaptive07new.png"
-            background_active: "UI/assets/Toolbar/Adaptive07new.png"
+            background_normal: "assets/UI/Toolbar/Adaptive07new.png"
+            background_active: "assets/UI/Toolbar/Adaptive07new.png"
             background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
             foreground_color: (1., 1., 1., 1.)
             halign: "center"

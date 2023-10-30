@@ -25,7 +25,7 @@ class WorddictUi(Frame):
         self.createWidgets()
         self.master.wm_title(loc["worddict_lbl"])
         if (sys.platform.startswith('win')): 
-            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+            self.master.iconbitmap("assets/icon/nova-vox-logo-black.ico")
 
     def createWidgets(self):
         """initialize all widgets belonging to the UI"""

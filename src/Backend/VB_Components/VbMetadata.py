@@ -29,7 +29,7 @@ class VbMetadata():
             
         self.name = ""
         self.sampleRate = 48000
-        self.image = Image.open("src/UI/assets/TrackList/SingerGrey04.png").resize((200, 200), resample = 1)
+        self.image = Image.open("assets/UI/TrackList/SingerGrey04.png").resize((200, 200), resample = 1)
         self.version = "1.0"
         self.description = ""
         self.license = ""

@@ -43,7 +43,7 @@ class UtauImportUi(Frame):
         self.createWidgets()
         self.master.wm_title(loc["utau_lbl"])
         if (sys.platform.startswith('win')): 
-            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+            self.master.iconbitmap("assets/icon/nova-vox-logo-black.ico")
         self.sampleList = []
         self.playing = False
         

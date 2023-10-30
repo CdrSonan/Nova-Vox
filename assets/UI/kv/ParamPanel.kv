@@ -1,17 +1,17 @@
 #:kivy 2.0.0
 
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-<LicensePanel>:
-    size_hint: (0.5, 0.5)
-    title: app.root.loc["NV_license_title"]
-    separator_color: app.root.accColor
-    background: "UI/assets/Toolbar/overlayfull.png"
-    overlay_color: [0, 0, 0, 0]
-    Label:
-        text: 'Contributors and Licenses will go here'
+<ParamPanel>:
+    size_hint_y: None
+    height: 36
+    background_normal: "assets/UI/Toolbar/Adaptive07new.png"
+    background_down: "assets/UI/Toolbar/Adaptive07new.png"
+    group: "parameters"
+    allow_no_selection: False
+    on_state: self.changeParam() if (self.state == "down") else None

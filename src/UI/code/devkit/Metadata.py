@@ -27,7 +27,7 @@ class MetadataUi(Frame):
         self.createWidgets()
         self.master.wm_title(loc["metadat_lbl"])
         if (sys.platform.startswith('win')): 
-            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+            self.master.iconbitmap("assets/icon/nova-vox-logo-black.ico")
         
     def createWidgets(self) -> None:
         """initializes all widgets of the Metadata window. Called once during initialization"""
@@ -47,7 +47,7 @@ class MetadataUi(Frame):
 
         self.image = Frame(self)
         self.image.variable = tkinter.StringVar(self.image)
-        self.image.variable.set("UI/assets/TrackList/SingerGrey04.png")
+        self.image.variable.set("assets/UI/TrackList/SingerGrey04.png")
         self.image.entry = Button(self.image)
         self.image.entry["text"] = loc["change"]
         self.image.entry["command"] = self.onImagePress

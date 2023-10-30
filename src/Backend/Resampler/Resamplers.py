@@ -9,7 +9,6 @@ import math
 import torch
 import torch.nn.functional
 import torchaudio
-torchaudio.set_audio_backend("soundfile")
 import ctypes
 
 import C_Bridge

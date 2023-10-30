@@ -15,25 +15,25 @@ common_excludes = ["torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 
 common_imports = ["torch", "torchaudio", "soundfile"]
 
-common_datas = [("settings.ini", "."),
-    ("icon/*", "icon"),
-    ("UI/kv/*", "UI/kv"),
-    ("UI/assets/ParamList/*","UI/assets/ParamList"),
-    ("UI/assets/PianoRoll/*", "UI/assets/PianoRoll"),
-    ("UI/assets/SideBar/*", "UI/assets/SideBar"),
-    ("UI/assets/Toolbar/*", "UI/assets/Toolbar"),
-    ("UI/assets/TopBar/*", "UI/assets/TopBar"),
-    ("UI/assets/TrackList/*", "UI/assets/TrackList"),
-    ("./lib/torchaudio", "./torchaudio"),
-    ("./lib/ttkthemes", "./ttkthemes"),
-    ("./lib/Release", "./lib/Release")]
+common_datas = [("../assets/settings.ini", "./assets"),
+    ("../assets/icon/*", "assets/icon"),
+    ("../assets/UI/kv/*", "assets/UI/kv"),
+    ("../assets/UI/ParamList/*","assets/UI/ParamList"),
+    ("../assets/UI/PianoRoll/*", "assets/UI/PianoRoll"),
+    ("../assets/UI/SideBar/*", "assets/UI/SideBar"),
+    ("../assets/UI/Toolbar/*", "assets/UI/Toolbar"),
+    ("../assets/UI/TopBar/*", "assets/UI/TopBar"),
+    ("../assets/UI/TrackList/*", "assets/UI/TrackList"),
+    #("../lib/torchaudio", "./torchaudio"),
+    #("../lib/ttkthemes", "./ttkthemes"),
+    ("../bin", "./bin")]
 # !!! IMPORTANT !!!
 #the folder in ./lib must be set up to contain the same files as the respective folders in the site_packages dir of your Python installation.
 #THey must be added manually here because the PyInstaller hooks for these packages don't exist or are currently broken.
 
 block_cipher = None
 
-a_editor = Analysis(['editor_runtime.py'],
+a_editor = Analysis(['../src/editor_runtime.py'],
                     pathex=[specpath],
                     binaries=[],
                     datas=common_datas,
@@ -47,7 +47,7 @@ a_editor = Analysis(['editor_runtime.py'],
                     cipher=block_cipher,
                     noarchive=False)
 
-a_devkit = Analysis(['devkit_runtime.py'],
+a_devkit = Analysis(['../src/devkit_runtime.py'],
                     pathex=[specpath],
                     binaries=[],
                     datas=common_datas,
@@ -63,7 +63,7 @@ a_devkit = Analysis(['devkit_runtime.py'],
 
 MERGE( (a_editor, 'editor_runtime', 'Nova-Vox Editor'), (a_devkit, 'devkit_runtime', 'Nova-Vox Devkit') )
 
-splash = Splash('icon/splash_new.png',
+splash = Splash('../assets/icon/splash_new.png',
                 binaries=a_editor.binaries,
                 datas=a_editor.datas,
                 text_pos=(200, 167),
@@ -87,7 +87,7 @@ exe_editor = EXE(pyz_editor,
                  strip=False,
                  upx=True,
                  console=True,
-                 icon = os.path.join(specpath, 'icon\\nova-vox-logo-2-color.ico'),
+                 icon = '..\\assets\\icon\\nova-vox-logo-2-color.ico',
                  disable_windowed_traceback=False,
                  target_arch=None,
                  codesign_identity=None,
@@ -115,7 +115,7 @@ exe_devkit = EXE(pyz_devkit,
                  strip=False,
                  upx=True,
                  console=True,
-                 icon = os.path.join(specpath, 'icon\\nova-vox-logo-black.ico'),
+                 icon = '..\\assets\\icon\\nova-vox-logo-black.ico',
                  disable_windowed_traceback=False,
                  target_arch=None,
                  codesign_identity=None,
@@ -124,10 +124,10 @@ exe_devkit = EXE(pyz_devkit,
 coll_devkit = COLLECT(exe_devkit,
                       a_devkit.binaries,
                       a_devkit.zipfiles,
-                      a_devkit.datas, 
+                      a_devkit.datas,
                       strip=False,
                       upx=True,
                       upx_exclude=[],
                       name='devkit_build')
 
-os.replace(os.path.join(specpath, 'dist\\devkit_build\\Nova-Vox Devkit.exe'), os.path.join(specpath, 'dist\\Nova-Vox\\Nova-Vox Devkit.exe'))
+os.replace('.\\dist\\devkit_build\\Nova-Vox Devkit.exe', '.\\dist\\Nova-Vox\\Nova-Vox Devkit.exe')

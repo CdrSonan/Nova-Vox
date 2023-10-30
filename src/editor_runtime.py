@@ -92,7 +92,7 @@ if __name__ == '__main__':
     from UI.code.editor.Main import NovaVoxUI
     class NovaVoxApp(App):
         def build(self):
-            self.icon = path.join("icon", "nova-vox-logo-2-color.png")
+            self.icon = path.join("assets/icon", "nova-vox-logo-2-color.png")
             ui = NovaVoxUI()
             Clock.schedule_interval(ui.update, UPDATEINTERVAL)
             return ui
@@ -122,16 +122,16 @@ if __name__ == '__main__':
     Config.set('kivy', 'window_icon','icon/nova-vox-logo-2-color.png' )
     Config.set('kivy', 'default_font', ['MSGothic', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc'])
 
-    Builder.load_file("UI/kv/Util.kv")
-    Builder.load_file("UI/kv/SingerPanel.kv")
-    Builder.load_file("UI/kv/ParamPanel.kv")
-    Builder.load_file("UI/kv/Note.kv")
-    Builder.load_file("UI/kv/PianoRoll.kv")
-    Builder.load_file("UI/kv/AdaptiveSpace.kv")
-    Builder.load_file("UI/kv/SidePanels.kv")
-    Builder.load_file("UI/kv/LicensePanel.kv")
-    Builder.load_file("UI/kv/NodeEditor.kv")
-    Builder.load_file("UI/kv/NovaVox.kv")
+    Builder.load_file("assets/UI/kv/Util.kv")
+    Builder.load_file("assets/UI/kv/SingerPanel.kv")
+    Builder.load_file("assets/UI/kv/ParamPanel.kv")
+    Builder.load_file("assets/UI/kv/Note.kv")
+    Builder.load_file("assets/UI/kv/PianoRoll.kv")
+    Builder.load_file("assets/UI/kv/AdaptiveSpace.kv")
+    Builder.load_file("assets/UI/kv/SidePanels.kv")
+    Builder.load_file("assets/UI/kv/LicensePanel.kv")
+    Builder.load_file("assets/UI/kv/NodeEditor.kv")
+    Builder.load_file("assets/UI/kv/NovaVox.kv")
 
     logging.info("starting render manager")
     if pyi_splash.is_alive():

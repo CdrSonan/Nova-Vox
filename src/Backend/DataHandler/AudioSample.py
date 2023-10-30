@@ -7,7 +7,6 @@
 
 import torchaudio
 import torch
-torchaudio.set_audio_backend("soundfile")
 import global_consts
 
 class AudioSample():

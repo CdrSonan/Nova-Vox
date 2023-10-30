@@ -15,7 +15,6 @@ import torch
 
 from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.MainAi import MainAi, MainCritic
-from Backend.VB_Components.Ai.VAE import VAE
 from Localization.devkit_localization import getLanguage
 from UI.code.devkit.Widgets import *
 loc = getLanguage()
@@ -32,7 +31,7 @@ class AdvSettingsUi(Frame):
         self.createWidgets()
         self.master.wm_title(loc["advsettings"])
         if (sys.platform.startswith('win')): 
-            self.master.iconbitmap("icon/nova-vox-logo-black.ico")
+            self.master.iconbitmap("assets/icon/nova-vox-logo-black.ico")
         
     def createWidgets(self) -> None:
         """initializes all widgets of the adv. AI settings window. Called once during initialization"""
@@ -376,7 +375,6 @@ class AdvSettingsUi(Frame):
                                         learningRate=loadedVB.ai.hparams["main_lr"],
                                         regularization=loadedVB.ai.hparams["main_reg"],
                                         dropout = loadedVB.ai.hparams["main_drp"])
-            loadedVB.ai.VAE = VAE(device = loadedVB.ai.device, latent_dim = loadedVB.ai.hparams["latent_dim"], learningRate=loadedVB.ai.hparams["vae_lr"])
         if resetTrOptim:
             loadedVB.ai.hparams["tr_lr"] = hparams["tr_lr"]
             loadedVB.ai.hparams["tr_reg"] = hparams["tr_reg"]
