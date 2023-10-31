@@ -443,14 +443,15 @@ class DataGenerator:
             phonemeSequence = random.choice(self.voicebank.wordDict[0].values())
         else:
             raise ValueError("Invalid mode for Data Generator")
-        embeddings = [self.voicebank.phonemeDict[i][0].embedding for i in phonemeSequence]
-        effectiveLength = targetLength - sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in phonemeSequence if i in self.shortPool])
+        idx = [random.randint(0, len(self.voicebank.phonemeDict[i]) - 1) for i in phonemeSequence]
+        embeddings = [self.voicebank.phonemeDict[i][idx[i]].embedding for i in phonemeSequence]
+        effectiveLength = targetLength - sum([self.voicebank.phonemeDict[i][idx[i]].specharm.size()[0] for i in phonemeSequence if i in self.shortPool])
         if effectiveLength >= 0:
             shortMultiplier = 1
-            longMultiplier = effectiveLength / sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in phonemeSequence if i in self.longPool])
+            longMultiplier = effectiveLength / sum([self.voicebank.phonemeDict[i][idx[i]].specharm.size()[0] for i in phonemeSequence if i in self.longPool])
         else:
-            shortMultiplier = longMultiplier = targetLength / sum([self.voicebank.phonemeDict[i][0].specharm.size()[0] for i in phonemeSequence])
-        phonemes = [self.voicebank.phonemeDict[i][0] for i in phonemeSequence]
+            shortMultiplier = longMultiplier = targetLength / sum([self.voicebank.phonemeDict[i][idx[i]].specharm.size()[0] for i in phonemeSequence])
+        phonemes = [self.voicebank.phonemeDict[i][idx[i]] for i in phonemeSequence]
         borders = [0, 25]
         for i, phoneme in enumerate(phonemes):
             if phonemeSequence[i] in self.shortPool:

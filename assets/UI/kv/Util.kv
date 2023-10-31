@@ -48,7 +48,7 @@
     size_hint: (None, None)
     size: (400, self.ids["content"].height + 50)
     separator_color: app.root.accColor
-    Label:
+    ManagedLabel:
         id: content
         text: self.parent.parent.parent.message
         text_size: root.width, None

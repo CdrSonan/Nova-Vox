@@ -46,7 +46,7 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     audioSample.excitation = torch.complex(audioSample.excitation[:batches * (global_consts.halfTripleBatchSize + 1)], audioSample.excitation[batches * (global_consts.halfTripleBatchSize + 1):])
     audioSample.excitation = audioSample.excitation.reshape((batches, global_consts.halfTripleBatchSize + 1))
 
-def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
+def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) -> None:
     length = floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     audioSample.excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = audioSample.waveform.device)
     audioSample.specharm = torch.zeros((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device = audioSample.waveform.device)

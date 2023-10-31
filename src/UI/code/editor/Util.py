@@ -72,6 +72,12 @@ class TooltipBehavior(object):
     def display_tooltip(self, *args):
         Window.add_widget(self._tooltip)
 
+class ManagedLabel(Label, TooltipBehavior):
+    """a "managed" label that automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs, font_context = 'directory://assets/UI/fonts')
+
 class ImageButton(ButtonBehavior, Image, TooltipBehavior):
     """a "managed" button that displays an image instead of text, automatically sets its appeareance to match the app theme, and includes mouseover functionality"""
 

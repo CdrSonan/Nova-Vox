@@ -43,7 +43,7 @@ if __name__ == '__main__':
     if pyi_splash.is_alive():
         pyi_splash.update_text("importing utility libraries...")
     import sys
-    from os import getenv, path, makedirs
+    from os import getenv, path, makedirs, environ
     from traceback import print_exc
     if pyi_splash.is_alive():
         pyi_splash.update_text("starting logging process...")
@@ -75,6 +75,7 @@ if __name__ == '__main__':
 
     if pyi_splash.is_alive():
         pyi_splash.update_text("loading UI libraries...")
+    #environ['KIVY_TEXT'] = 'pango'
     from kivy.app import App
     from kivy.core.window import Window
     from kivy.lang import Builder
@@ -120,8 +121,12 @@ if __name__ == '__main__':
     Config.set('graphics', 'window_state', windowState)
     Config.set('input', 'mouse', 'mouse,disable_multitouch')
     Config.set('kivy', 'window_icon','icon/nova-vox-logo-2-color.png' )
-    Config.set('kivy', 'default_font', ['MSGothic', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc', 'C:/Windows/fonts/msgothic.ttc'])
-
+    Config.set('kivy', 'default_font', ['Atkinson-Hyperlegible',
+                                        '../assets/UI/fonts/Atkinson-Hyperlegible-Regular-102.ttf',
+                                        '../assets/UI/fonts/Atkinson-Hyperlegible-Italic-102.ttf',
+                                        '../assets/UI/fonts/Atkinson-Hyperlegible-Bold-102.ttf',
+                                        '../assets/UI/fonts/Atkinson-Hyperlegible-BoldItalic-102.ttf'])
+    Config.write()
     Builder.load_file("assets/UI/kv/Util.kv")
     Builder.load_file("assets/UI/kv/SingerPanel.kv")
     Builder.load_file("assets/UI/kv/ParamPanel.kv")

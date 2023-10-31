@@ -32,7 +32,7 @@
                 orientation: "lr-tb"
                 padding: 10
                 spacing: 10
-                Label:
+                ManagedLabel:
                     text: app.root.loc["main_voice"]
                     size_hint_y: None
                     height: 30
@@ -42,7 +42,7 @@
                     text_autoupdate: True
                     size_hint_y: None
                     height: 30
-                Label:
+                ManagedLabel:
                     text: app.root.loc["mixin_voice"]
                     size_hint_y: None
                     height: 30
@@ -87,7 +87,7 @@
         group: "SingerPanels"
         allow_no_selection: False
         on_state: if self.state == 'down': self.parent.changeTrack()
-        Label:
+        ManagedLabel:
             size_hint: (1, None)
             height: 30
             x: self.parent.x
