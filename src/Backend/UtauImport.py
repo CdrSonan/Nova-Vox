@@ -17,7 +17,7 @@ def createKey(phoneme:str, expression:str):
     else:
         return "_".join([phoneme, expression])
 
-def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix:str, expr:str, phonFile:str, convFile:str = None, forceJIS:bool = True) -> list:
+def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix:str, expr:str, pitch:float, phonFile:str, convFile:str = None, forceJIS:bool = True) -> list:
     """Function for fetching Nova-Vox samples based on a line from an oto.ini file and phoneme list.
 
     Parameters:
@@ -102,89 +102,89 @@ def fetchSamples(filename:str, properties:list, otoPath:str, prefix:str, postfix
     output = []
     filepath = path.join(otoPath, filename)
     intermediate = offset + preuttr + min((fixed - preuttr) / 2, consonantEndOffset)
-    output.append(UtauSample(filepath, 2, None, 0, None, 0, 0, 0, 0, 0))
+    output.append(UtauSample(filepath, 2, None, 0, None, 0, 0, 0, 0, 0, pitch))
     if len(sequence) == 1:
         sharedKey = createKey(sequence[0], expr)
         if typeSequence[0] == "V":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False, 0x0000ff00)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, True, False, 0x0000ff00)
             embedPart = 0x0000ff00
         elif typeSequence[0] == "C":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False, 0x00000000)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, False, False, 0x00000000)
             embedPart = 0x00000000
         elif typeSequence[0] == "T":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, True, 0x0000ffff)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, True, True, 0x0000ffff)
             embedPart = 0x0000ffff
         elif typeSequence[0] == "P":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True, 0x000000ff)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, False, True, 0x000000ff)
             embedPart = 0x000000ff
         output.append(sample)
-        sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap, embedding = (0xf000ff00, embedPart))
+        sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap, pitch, embedding = (0xf000ff00, embedPart))
         output.append(sample)
     elif len(sequence) == 2:
         sharedKey = createKey(sequence[1], expr)
         if typeSequence[1] == "V":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False, 0x0000ff00)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, True, False, 0x0000ff00)
             embedPart = 0x0000ff00
         elif typeSequence[1] == "C":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False, 0x00000000)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, False, False, 0x00000000)
             embedPart = 0x00000000
         elif typeSequence[1] == "T":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, True, 0x0000ffff)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, True, True, 0x0000ffff)
             embedPart = 0x0000ffff
         elif typeSequence[1] == "P":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True, 0x000000ff)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, False, True, 0x000000ff)
             embedPart = 0x000000ff
         output.append(sample)
         sharedKey = createKey(sequence[0], expr)
         if typeSequence[0] == "V":
-            sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap, embedding = (0x0000ff00, embedPart))
+            sample = UtauSample(filepath, 1, None, offset + overlap, offset + fixed, offset, fixed, blank, preuttr, overlap, pitch, embedding = (0x0000ff00, embedPart))
             output.append(sample)
         elif typeSequence[0] == "C":
-            sample = UtauSample(filepath, 0, sharedKey, offset, intermediate, offset, fixed, blank, preuttr, overlap, False, False, 0x00000000)
+            sample = UtauSample(filepath, 0, sharedKey, offset, intermediate, offset, fixed, blank, preuttr, overlap, pitch, False, False, 0x00000000)
             output.append(sample)
-            sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap, embedding = (0x00000000, embedPart))
+            sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap, pitch, embedding = (0x00000000, embedPart))
             output.append(sample)
         elif typeSequence[0] == "T":
-            sample = UtauSample(filepath, 0, sharedKey, offset, intermediate, offset, fixed, blank, preuttr, overlap, True, True, 0x0000ffff)
+            sample = UtauSample(filepath, 0, sharedKey, offset, intermediate, offset, fixed, blank, preuttr, overlap, pitch, True, True, 0x0000ffff)
             output.append(sample)
-            sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap, embedding = (0x0000ffff, embedPart))
+            sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap, pitch, embedding = (0x0000ffff, embedPart))
             output.append(sample)
         elif typeSequence[0] == "P":
-            sample = UtauSample(filepath, 0, sharedKey, offset, intermediate, offset, fixed, blank, preuttr, overlap, False, True, 0x000000ff)
+            sample = UtauSample(filepath, 0, sharedKey, offset, intermediate, offset, fixed, blank, preuttr, overlap, pitch, False, True, 0x000000ff)
             output.append(sample)
-            sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap, embedding = (0x000000ff, embedPart))
+            sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap, pitch, embedding = (0x000000ff, embedPart))
             output.append(sample)
     elif len(sequence) == 3:
         sharedKey = createKey(sequence[1], expr)
         if typeSequence[1] == "V":
-            sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, True, False, 0x0000ff00)
+            sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, pitch, True, False, 0x0000ff00)
             embedPart = 0x0000ff00
         elif typeSequence[1] == "C":
-            sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, False, False, 0x00000000)
+            sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, pitch, False, False, 0x00000000)
             embedPart = 0x00000000
         elif typeSequence[1] == "T":
-            sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, True, True, 0x0000ffff)
+            sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, pitch, True, True, 0x0000ffff)
             embedPart = 0x0000ffff
         elif typeSequence[1] == "P":
-            sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, False, True, 0x000000ff)
+            sample = UtauSample(filepath, 0, sharedKey, offset + (overlap + preuttr) / 2, intermediate, offset, fixed, blank, preuttr, overlap, pitch, False, True, 0x000000ff)
             embedPart = 0x000000ff
         output.append(sample)
         sharedKey = createKey(sequence[2], expr)
         if typeSequence[2] == "V":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, False, 0x0000ff00)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, True, False, 0x0000ff00)
             embedPart2 = 0x0000ff00
         elif typeSequence[2] == "C":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, False, 0x00000000)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, False, False, 0x00000000)
             embedPart2 = 0x00000000
         elif typeSequence[2] == "T":
-            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, True, True, 0x0000ffff)
+            sample = UtauSample(filepath, 0, sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, True, True, 0x0000ffff)
             embedPart2 = 0x0000ffff
         elif typeSequence[2] == "P":
-            sample = UtauSample(filepath, 0,sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, False, True, 0x000000ff)
+            sample = UtauSample(filepath, 0,sharedKey, offset + fixed, None, offset, fixed, blank, preuttr, overlap, pitch, False, True, 0x000000ff)
             embedPart2 = 0x000000ff
         output.append(sample)
-        sample = UtauSample(filepath, 1, None, offset, offset + (overlap + preuttr) / 2, offset, fixed, blank, preuttr, overlap, embedding = (0xf000ff00, embedPart))
+        sample = UtauSample(filepath, 1, None, offset, offset + (overlap + preuttr) / 2, offset, fixed, blank, preuttr, overlap, pitch, embedding = (0xf000ff00, embedPart))
         output.append(sample)
-        sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap, embedding = (embedPart, embedPart2))
+        sample = UtauSample(filepath, 1, None, intermediate, offset + fixed, offset, fixed, blank, preuttr, overlap, pitch, embedding = (embedPart, embedPart2))
         output.append(sample)
     return output

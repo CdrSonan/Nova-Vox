@@ -16,20 +16,16 @@ common_excludes = ["torchvision", "altgraph", "future", "pefile", "pyinstaller"]
 common_imports = ["torch", "torchaudio", "soundfile"]
 
 common_datas = [("../assets/settings.ini", "./assets"),
-    ("../assets/icon/*", "assets/icon"),
-    ("../assets/UI/kv/*", "assets/UI/kv"),
-    ("../assets/UI/ParamList/*","assets/UI/ParamList"),
-    ("../assets/UI/PianoRoll/*", "assets/UI/PianoRoll"),
-    ("../assets/UI/SideBar/*", "assets/UI/SideBar"),
-    ("../assets/UI/Toolbar/*", "assets/UI/Toolbar"),
-    ("../assets/UI/TopBar/*", "assets/UI/TopBar"),
-    ("../assets/UI/TrackList/*", "assets/UI/TrackList"),
-    #("../lib/torchaudio", "./torchaudio"),
-    #("../lib/ttkthemes", "./ttkthemes"),
-    ("../bin", "./bin")]
-# !!! IMPORTANT !!!
-#the folder in ./lib must be set up to contain the same files as the respective folders in the site_packages dir of your Python installation.
-#THey must be added manually here because the PyInstaller hooks for these packages don't exist or are currently broken.
+                ("../assets/icon/*", "assets/icon"),
+                ("../assets/UI/kv/*", "assets/UI/kv"),
+                ("../assets/UI/ParamList/*","assets/UI/ParamList"),
+                ("../assets/UI/PianoRoll/*", "assets/UI/PianoRoll"),
+                ("../assets/UI/SideBar/*", "assets/UI/SideBar"),
+                ("../assets/UI/Toolbar/*", "assets/UI/Toolbar"),
+                ("../assets/UI/TopBar/*", "assets/UI/TopBar"),
+                ("../assets/UI/TrackList/*", "assets/UI/TrackList"),
+                ("../assets/UI/fonts/*", "assets/UI/fonts"),
+                ("../bin", "./bin")]
 
 block_cipher = None
 

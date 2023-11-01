@@ -15,6 +15,7 @@ from ast import literal_eval
 
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
+from kivy.metrics import dp
 from kivy.properties import NumericProperty, ColorProperty, ObjectProperty, DictProperty
 
 from MiddleLayer.MiddleLayer import MiddleLayer
@@ -216,8 +217,8 @@ class NovaVoxUI(Widget):
                 if dir != "":
                     saveNVX(dir, middleLayer)
         tkui.destroy()
-        uiCfg = {"windowWidth":Window.width,
-                 "windowHeight":Window.height,
+        uiCfg = {"windowWidth":int(Window.width / dp(1)),
+                 "windowHeight":int(Window.height / dp(1)),
                  "windowState": Window.fullscreen,
                  "mainSplitter": self.ids["mainSplitter"].width / self.ids["mainSplitter"].parent.width,
                  "sideSplitter": self.ids["sideSplitter"].height / self.ids["sideSplitter"].parent.height,

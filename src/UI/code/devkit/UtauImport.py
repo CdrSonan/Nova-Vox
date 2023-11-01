@@ -192,6 +192,17 @@ class UtauImportUi(Frame):
         self.otoSettings.addExpr.display["text"] = loc["addExpr"]
         self.otoSettings.addExpr.display.pack(side = "right", fill = "x")
         self.otoSettings.addExpr.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        #pitch selection
+        self.otoSettings.pitch = Frame(self.otoSettings)
+        self.otoSettings.pitch.variable = tkinter.DoubleVar(self.otoSettings.pitch)
+        self.otoSettings.pitch.entry = Spinbox(self.otoSettings.pitch, from_ = 60, to = 1200, increment = 1)
+        self.otoSettings.pitch.entry["textvariable"] = self.otoSettings.pitch.variable
+        self.otoSettings.pitch.entry.pack(side = "right", fill = "x")
+        self.otoSettings.pitch.display = Label(self.otoSettings.pitch)
+        self.otoSettings.pitch.display["text"] = loc["pitch"]
+        self.otoSettings.pitch.display.pack(side = "right", fill = "x")
+        self.otoSettings.pitch.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         #language selection
         languages = os.listdir(os.path.join(self.phoneticsPath, "Lists"))
@@ -401,6 +412,8 @@ class UtauImportUi(Frame):
         index = self.phonemeList.list.lastFocusedIndex
         if self.sampleList[index]._type == 0:
             loadedVB.addPhonemeUtau(self.sampleList[index])
+        elif self.sampleList[0]._type == 2:
+            loadedVB.addMainTrainSampleUtau(self.sampleList[index])
         else:
             loadedVB.addTrTrainSampleUtau(self.sampleList[index])
         self.sideBar._type.variable.set(0)
@@ -482,7 +495,16 @@ class UtauImportUi(Frame):
                 properties = row[1].split(",")
                 occuredError = None
                 try:
-                    fetchedSamples = fetchSamples(filename, properties, otoPath, self.otoSettings.stripPrefix.variable.get(), self.otoSettings.stripPostfix.variable.get(), self.otoSettings.addExpr.variable.get(), phonemePath, conversionPath, self.otoSettings.forceJIS.variable.get())
+                    fetchedSamples = fetchSamples(filename,
+                                                  properties,
+                                                  otoPath,
+                                                  self.otoSettings.stripPrefix.variable.get(),
+                                                  self.otoSettings.stripPostfix.variable.get(),
+                                                  self.otoSettings.addExpr.variable.get(),
+                                                  self.otoSettings.pitch.variable.get(),
+                                                  phonemePath,
+                                                  conversionPath,
+                                                  self.otoSettings.forceJIS.variable.get())
                     for sample in fetchedSamples:
                         if sample._type == 1 and self.otoSettings.typeSelector.variableTrans.get():
                             #transition sample

@@ -76,29 +76,7 @@ if __name__ == '__main__':
     if pyi_splash.is_alive():
         pyi_splash.update_text("loading UI libraries...")
     #environ['KIVY_TEXT'] = 'pango'
-    from kivy.app import App
-    from kivy.core.window import Window
-    from kivy.lang import Builder
-    from kivy.clock import Clock
     from kivy.config import Config
-    from kivy.base import ExceptionManager
-    from MiddleLayer.ErrorHandler import ErrorHandler
-    if settings["lowspecmode"] == "disabled":
-        UPDATEINTERVAL = 0.25
-    elif settings["lowspecmode"] == "enabled":
-        UPDATEINTERVAL = 2.
-    else:
-        print("could not read low-spec mode setting. low-spec mode has been disabled by default.")
-        UPDATEINTERVAL = 0.25
-    from UI.code.editor.Main import NovaVoxUI
-    class NovaVoxApp(App):
-        def build(self):
-            self.icon = path.join("assets/icon", "nova-vox-logo-2-color.png")
-            ui = NovaVoxUI()
-            Clock.schedule_interval(ui.update, UPDATEINTERVAL)
-            return ui
-    Window.minimum_height = 500
-    Window.minimum_width = 800
     from csv import reader
     uiCfg = {}
     try:
@@ -120,13 +98,40 @@ if __name__ == '__main__':
         windowState = "visible"
     Config.set('graphics', 'window_state', windowState)
     Config.set('input', 'mouse', 'mouse,disable_multitouch')
-    Config.set('kivy', 'window_icon','icon/nova-vox-logo-2-color.png' )
-    Config.set('kivy', 'default_font', ['Atkinson-Hyperlegible',
-                                        '../assets/UI/fonts/Atkinson-Hyperlegible-Regular-102.ttf',
-                                        '../assets/UI/fonts/Atkinson-Hyperlegible-Italic-102.ttf',
-                                        '../assets/UI/fonts/Atkinson-Hyperlegible-Bold-102.ttf',
-                                        '../assets/UI/fonts/Atkinson-Hyperlegible-BoldItalic-102.ttf'])
-    Config.write()
+    Config.set('kivy', 'window_icon','icon/nova-vox-logo-2-color.png')
+    Config.set('kivy', 'default_font', ['HanSans',
+                                        './assets/UI/fonts/SourceHanSans-VF.ttf',
+                                        './assets/UI/fonts/SourceHanSans-VF.ttf',
+                                        './assets/UI/fonts/SourceHanSans-VF.ttf',
+                                        './assets/UI/fonts/SourceHanSans-VF.ttf'])
+    if settings["lowspecmode"] == "disabled":
+        UPDATEINTERVAL = 0.25
+    elif settings["lowspecmode"] == "enabled":
+        UPDATEINTERVAL = 2.
+    else:
+        print("could not read low-spec mode setting. low-spec mode has been disabled by default.")
+        UPDATEINTERVAL = 0.25
+    from kivy.app import App
+    from kivy.core.window import Window
+    from kivy.core.text import LabelBase
+    LabelBase.register(name='HanSans',
+                       fn_regular='./assets/UI/fonts/SourceHanSans-VF.ttf',
+                       fn_italic='./assets/UI/fonts/SourceHanSans-VF.ttf',
+                       fn_bold='./assets/UI/fonts/SourceHanSans-VF.ttf',
+                       fn_bolditalic='./assets/UI/fonts/SourceHanSans-VF.ttf')
+    from kivy.lang import Builder
+    from kivy.clock import Clock
+    from kivy.base import ExceptionManager
+    from MiddleLayer.ErrorHandler import ErrorHandler
+    from UI.code.editor.Main import NovaVoxUI
+    class NovaVoxApp(App):
+        def build(self):
+            self.icon = path.join("assets/icon", "nova-vox-logo-2-color.png")
+            ui = NovaVoxUI()
+            Clock.schedule_interval(ui.update, UPDATEINTERVAL)
+            return ui
+    Window.minimum_height = 500
+    Window.minimum_width = 800
     Builder.load_file("assets/UI/kv/Util.kv")
     Builder.load_file("assets/UI/kv/SingerPanel.kv")
     Builder.load_file("assets/UI/kv/ParamPanel.kv")

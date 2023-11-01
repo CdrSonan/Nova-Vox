@@ -20,7 +20,7 @@ class UtauSample():
         convert: returns a Nova-Vox compatible AudioSample or AISample object of the sample"""
 
 
-    def __init__(self, filepath:str, _type:int, key:str, start:float, end:float, offset:float, fixed:float, blank:float, preuttr:float, overlap:float, isVoiced:bool = True, isPlosive:bool = False, embedding:int = 0) -> None:
+    def __init__(self, filepath:str, _type:int, key:str, start:float, end:float, offset:float, fixed:float, blank:float, preuttr:float, overlap:float, pitch:float, isVoiced:bool = True, isPlosive:bool = False, embedding:int = 0) -> None:
         """initialises the object based on both UTAU and Nova-Vox sample properties.
         
         Arguments:
@@ -78,6 +78,7 @@ class UtauSample():
         self.audioSample.isVoiced = isVoiced
         self.audioSample.isPlosive = isPlosive
         self.audioSample.embedding = embedding
+        self.audioSample.expectedPitch = pitch
 
     def updateHandle(self) -> None:
         """updates the handle of the sample, which is used to represent it in the devkit UI, to reflect changed sample properties"""
