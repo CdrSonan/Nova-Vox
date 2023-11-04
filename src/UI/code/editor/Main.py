@@ -81,7 +81,7 @@ class NovaVoxUI(Widget):
             return None
         try:
             if change.type == "status":
-                print("recv status update ", change.track, change.index, change.value)
+                #print("recv status update ", change.track, change.index, change.value)
                 middleLayer.updateRenderStatus(change.track, change.index, change.value)
             elif change.type == "updateAudio":
                 #print("recv audio update ", change.track, change.index, change.value)
@@ -95,6 +95,7 @@ class NovaVoxUI(Widget):
             elif change.type == "deletion":
                 middleLayer.deletions.pop(0)
             elif change.type == "offsetApplied":
+                #print("recv offset applied ", change.track, change.index, change.value)
                 middleLayer.trackList[change.track].offsets.pop(0)
             elif change.type == "error":
                 handleRendererException(change.value)

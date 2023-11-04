@@ -96,12 +96,16 @@ class Note(ManagedToggleButton):
 
         global middleLayer
         from UI.code.editor.Main import middleLayer
+        if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) == 0:
+            return
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
         effPhonemeStart = reference.phonemeStart
         if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
             if index == effPhonemeStart:
                 return
             effPhonemeStart += 1
+        if index - effPhonemeStart >= len(self.statusBars) or index - effPhonemeStart < 0:
+            return
         self.canvas.remove(self.statusBars[index - effPhonemeStart])
         del self.statusBars[index - effPhonemeStart]
         rectanglePos = (self.pos[0] + (index - effPhonemeStart) / (reference.phonemeEnd - effPhonemeStart) * self.width, self.pos[1] + self.height * status / 5.)

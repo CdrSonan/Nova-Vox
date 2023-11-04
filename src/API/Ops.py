@@ -637,7 +637,7 @@ class MoveNote(UnifiedAction):
                     iterationStart += 1
             if index + 1 == len(middleLayer.trackList[middleLayer.activeTrack].notes):
                 iterationEnd += 1
-            elif middleLayer.trackList[middleLayer.activeTrack].phonemes[iterationEnd] == "_autopause":
+            elif len(middleLayer.trackList[middleLayer.activeTrack].phonemes) > iterationEnd and middleLayer.trackList[middleLayer.activeTrack].phonemes[iterationEnd] == "_autopause":
                 iterationEnd += 1
             for i in range(iterationStart, iterationEnd):
                 middleLayer.trackList[middleLayer.activeTrack].borders[3 * i] += x - middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos

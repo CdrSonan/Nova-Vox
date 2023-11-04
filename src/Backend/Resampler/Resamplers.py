@@ -83,17 +83,19 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                      offset = offset)
     phoneme = getClosestSample(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey], torch.mean(vocalSegment.pitch))
     pitches = [i.pitch for i in vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey]]
-    lowerPitchIndices = torch.full([len(pitches),], pitches.index(min(pitches)), device = device)
-    upperPitchIndices = torch.full([len(pitches),], pitches.index(max(pitches)), device = device)
+    lowerPitchIndices = torch.full([vocalSegment.pitch.size()[0],], pitches.index(min(pitches)), device = device)
+    upperPitchIndices = torch.full([vocalSegment.pitch.size()[0],], pitches.index(max(pitches)), device = device)
     pitches = torch.tensor(pitches, device = device)
     for i, pitch in enumerate(pitches):
-        lowerPitchIndices = torch.where(pitches[lowerPitchIndices] < pitch < vocalSegment.pitch, torch.tensor(i, device = device), lowerPitchIndices)
-        upperPitchIndices = torch.where(pitches[upperPitchIndices] > pitch > vocalSegment.pitch, torch.tensor(i, device = device), upperPitchIndices)
+        lowerPitchIndices = torch.where(torch.logical_and(torch.lt(pitches[lowerPitchIndices], pitch), torch.lt(pitch, vocalSegment.pitch)), torch.tensor(i, device = device), lowerPitchIndices)
+        upperPitchIndices = torch.where(torch.logical_and(torch.gt(pitches[upperPitchIndices], pitch), torch.gt(pitch, vocalSegment.pitch)), torch.tensor(i, device = device), upperPitchIndices)
     ratio = torch.where(upperPitchIndices == lowerPitchIndices,
-                        torch.zeros([len(pitches),], device = device),
+                        torch.zeros([vocalSegment.pitch.size()[0],], device = device),
                         torch.pow(torch.sin(abs(vocalSegment.pitch - pitches[lowerPitchIndices]) / abs(pitches[upperPitchIndices] - pitches[lowerPitchIndices]) * math.pi / 2), 2))
-    ratio = ratio.unsqueeze(1)
-    avgSpecharm = (ratio * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][upperPitchIndices].avgSpecharm + (1 - ratio) * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][lowerPitchIndices].avgSpecharm).to(device)
+    avgSpecharm = torch.zeros([global_consts.halfTripleBatchSize + global_consts.halfHarms + 1], device = device)
+    for i in range(vocalSegment.pitch.size()[0]):
+        avgSpecharm += (ratio[i] * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][upperPitchIndices[i]].avgSpecharm + (1 - ratio[i]) * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][lowerPitchIndices[i]].avgSpecharm).to(device)
+    avgSpecharm /= vocalSegment.pitch.size()[0]
     C_Bridge.resampler.resampleSpecharm(ctypes.cast(avgSpecharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                ctypes.cast(phoneme.specharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.specharm.size()[0]),
@@ -169,7 +171,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                timings)
     return output
 
-def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the pitch curve of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":

@@ -661,14 +661,17 @@ class PhonemedictUi(Frame):
         logging.info("Phonemedict OK button callback")
         global loadedVB
         if self.phonemeList.list.lb.size() == 0:
+            self.master.destroy()
             return
         index = self.phonemeList.list.lastFocusedIndex
         if index == None:
+            self.master.destroy()
             return
         key = self.phonemeList.list.lb.get(index)
         self.onKeyChange(None)
         sample = self.sampleList.list.lastFocusedIndex
         if sample == None:
+            self.master.destroy()
             return
         if type(loadedVB.phonemeDict[key][sample]).__name__ == "AudioSample":
             self.onPitchUpdateTrigger(None)

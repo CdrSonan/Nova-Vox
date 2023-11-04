@@ -52,7 +52,7 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor,
     amplitudeContinuity *= amplitudes
 
     effectiveSpectrum = torch.linspace(0, global_consts.nHarmonics / 2 * (global_consts.halfTripleBatchSize + 1) / pitch, int(global_consts.nHarmonics / 2) + 1, device = spectrum.device)
-    effectiveSpectrum = torch.min(effectiveSpectrum, torch.full_like(effectiveSpectrum, global_consts.halfTripleBatchSize + 1))
+    effectiveSpectrum = torch.min(effectiveSpectrum, torch.full_like(effectiveSpectrum, global_consts.halfTripleBatchSize))
     effectiveSpectrum = spectrum[effectiveSpectrum.to(torch.long)]
     amplitudeDelta = torch.sqrt(amplitudes)
     amplitudeDelta /= effectiveSpectrum.unsqueeze(1)
