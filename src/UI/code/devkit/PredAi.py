@@ -129,6 +129,16 @@ class PredaiUi(Frame):
         self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
         self.sideBar.sBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
         
+        self.sideBar.exprKey = Frame(self.sideBar)
+        self.sideBar.exprKey.variable = tkinter.StringVar(self.sideBar.exprKey, "")
+        self.sideBar.exprKey.entry = Entry(self.sideBar.exprKey)
+        self.sideBar.exprKey.entry["textvariable"] = self.sideBar.exprKey.variable
+        self.sideBar.exprKey.entry.pack(side = "right", fill = "x")
+        self.sideBar.exprKey.display = Label(self.sideBar.exprKey)
+        self.sideBar.exprKey.display["text"] = loc["exprKey"]
+        self.sideBar.exprKey.display.pack(side = "right", fill = "x")
+        self.sideBar.exprKey.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
         self.sideBar.epochs = Frame(self.sideBar)
         self.sideBar.epochs.variable = tkinter.IntVar(self.sideBar.epochs, 1)
         self.sideBar.epochs.entry = Spinbox(self.sideBar.epochs, from_ = 1, to = 100)
@@ -216,6 +226,7 @@ class PredaiUi(Frame):
             self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedMainTrainSamples[index].specDepth)
             self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedMainTrainSamples[index].tempWidth)
             self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedMainTrainSamples[index].tempDepth)
+            self.sideBar.exprKey.variable.set(loadedVB.stagedMainTrainSamples[index].key)
             
     def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""
@@ -237,6 +248,7 @@ class PredaiUi(Frame):
         loadedVB.stagedMainTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
         loadedVB.stagedMainTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
         loadedVB.stagedMainTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
+        loadedVB.stagedMainTrainSamples[index].key = self.sideBar.exprKey.variable.get()
 
     def onPitBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the pitch search settings of the currently selected sample to all samples"""
@@ -340,6 +352,7 @@ class PredaiUi(Frame):
         self.sideBar.specSmooth.depthEntry["state"] = "disabled"
         self.sideBar.tempSmooth.widthEntry["state"] = "disabled"
         self.sideBar.tempSmooth.depthEntry["state"] = "disabled"
+        self.sideBar.exprKey.entry["state"] = "disabled"
         self.sideBar.epochs.entry["state"] = "disabled"
         self.sideBar.trainButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
@@ -352,6 +365,7 @@ class PredaiUi(Frame):
         self.sideBar.specSmooth.depthEntry["state"] = "normal"
         self.sideBar.tempSmooth.widthEntry["state"] = "normal"
         self.sideBar.tempSmooth.depthEntry["state"] = "normal"
+        self.sideBar.exprKey.entry["state"] = "normal"
         self.sideBar.epochs.entry["state"] = "normal"
         self.sideBar.trainButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"

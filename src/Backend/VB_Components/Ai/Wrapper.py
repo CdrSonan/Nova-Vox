@@ -54,6 +54,7 @@ class AIWrapper():
             "gan_guide_wgt": 0.1,
             "gan_train_asym": 1,
             "fargan_interval": 10,
+            "embeddingDim": 32,
         }
         if hparams:
             for i in hparams.keys():
@@ -63,19 +64,20 @@ class AIWrapper():
         self.final = False
         self.defectiveTrBins = []
         self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
-        self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
+        self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
+        self.mainEmbedding = {"": torch.zeros((self.hparams["embeddingDim"],), device = self.device)}
         if not self.inferOnly:
-            self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
+            self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
             self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
             self.mainAiOptimizer = [torch.optim.AdamW([*self.mainAi.baseEncoder.parameters(), *self.mainAi.baseDecoder.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
                                     torch.optim.AdamW([*self.mainAi.encoderA.parameters(), *self.mainAi.decoderA.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
-                                    torch.optim.AdamW([*self.mainAi.encoderB.parameters(), *self.mainAi.decoderB.parameters()], lr=self.mainAi.learningRate * 10, weight_decay=self.mainAi.regularization),
-                                    torch.optim.AdamW([*self.mainAi.encoderC.parameters(), *self.mainAi.decoderC.parameters()], lr=self.mainAi.learningRate * 100, weight_decay=self.mainAi.regularization)]
+                                    torch.optim.AdamW([*self.mainAi.encoderB.parameters(), *self.mainAi.decoderB.parameters()], lr=self.mainAi.learningRate * 4, weight_decay=self.mainAi.regularization),
+                                    torch.optim.AdamW([*self.mainAi.encoderC.parameters(), *self.mainAi.decoderC.parameters()], lr=self.mainAi.learningRate * 16, weight_decay=self.mainAi.regularization)]
             self.mainCriticOptimizer = [torch.optim.AdamW([*self.mainCritic.baseEncoder.parameters(), *self.mainCritic.baseDecoder.parameters(), *self.mainCritic.final.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization),
                                         torch.optim.AdamW([*self.mainCritic.encoderA.parameters(), *self.mainCritic.decoderA.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization),
-                                        torch.optim.AdamW([*self.mainCritic.encoderB.parameters(), *self.mainCritic.decoderB.parameters()], lr=self.mainCritic.learningRate * 10, weight_decay=self.mainCritic.regularization),
-                                        torch.optim.AdamW([*self.mainCritic.encoderC.parameters(), *self.mainCritic.decoderC.parameters()], lr=self.mainCritic.learningRate * 100, weight_decay=self.mainCritic.regularization)]
+                                        torch.optim.AdamW([*self.mainCritic.encoderB.parameters(), *self.mainCritic.decoderB.parameters()], lr=self.mainCritic.learningRate * 4, weight_decay=self.mainCritic.regularization),
+                                        torch.optim.AdamW([*self.mainCritic.encoderC.parameters(), *self.mainCritic.decoderC.parameters()], lr=self.mainCritic.learningRate * 16, weight_decay=self.mainCritic.regularization)]
             self.criterion = nn.L1Loss()
             self.guideCriterion = GuideRelLoss(device = self.device, threshold = 0.07)
         self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + global_consts.halfHarms + 1,), device = self.device)
@@ -109,6 +111,7 @@ class AIWrapper():
                 'mainAi_epoch': self.mainAi.epoch,
                 'mainAi_model_state_dict': self.mainAi.state_dict(),
                 'mainAi_sampleCount': self.mainAi.sampleCount,
+                'mainAI_embedding': self.mainEmbedding,
                 'deskew_premul': self.deskewingPremul,
                 'defective_tr_bins': self.defectiveTrBins,
                 'final': True
@@ -124,6 +127,7 @@ class AIWrapper():
                 'mainAi_optimizer_state_dict': [i.state_dict() for i in self.mainAiOptimizer],
                 'mainCritic_optimizer_state_dict': [i.state_dict() for i in self.mainCriticOptimizer],
                 'mainAi_sampleCount': self.mainAi.sampleCount,
+                'mainAI_embedding': self.mainEmbedding,
                 'deskew_premul': self.deskewingPremul,
                 'defective_tr_bins': self.defectiveTrBins,
                 'final': False
@@ -154,20 +158,23 @@ class AIWrapper():
             self.defectiveTrBins = aiState["defective_tr_bins"]
         if (mode == None) or (mode == "main"):
             if reset:
-                self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
+                self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
                 if not aiState["final"] and not self.inferOnly:
-                    self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
+                    self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
                     self.mainAiOptimizer = [torch.optim.AdamW([*self.mainAi.baseEncoder.parameters(), *self.mainAi.baseDecoder.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
                                             torch.optim.AdamW([*self.mainAi.encoderA.parameters(), *self.mainAi.decoderA.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
-                                            torch.optim.AdamW([*self.mainAi.encoderB.parameters(), *self.mainAi.decoderB.parameters()], lr=self.mainAi.learningRate * 10, weight_decay=self.mainAi.regularization),
-                                            torch.optim.AdamW([*self.mainAi.encoderC.parameters(), *self.mainAi.decoderC.parameters()], lr=self.mainAi.learningRate * 100, weight_decay=self.mainAi.regularization)]
+                                            torch.optim.AdamW([*self.mainAi.encoderB.parameters(), *self.mainAi.decoderB.parameters()], lr=self.mainAi.learningRate * 4, weight_decay=self.mainAi.regularization),
+                                            torch.optim.AdamW([*self.mainAi.encoderC.parameters(), *self.mainAi.decoderC.parameters()], lr=self.mainAi.learningRate * 16, weight_decay=self.mainAi.regularization)]
                     self.mainCriticOptimizer = [torch.optim.AdamW([*self.mainCritic.baseEncoder.parameters(), *self.mainCritic.baseDecoder.parameters(), *self.mainCritic.final.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization),
                                                 torch.optim.AdamW([*self.mainCritic.encoderA.parameters(), *self.mainCritic.decoderA.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization),
-                                                torch.optim.AdamW([*self.mainCritic.encoderB.parameters(), *self.mainCritic.decoderB.parameters()], lr=self.mainCritic.learningRate * 10, weight_decay=self.mainCritic.regularization),
-                                                torch.optim.AdamW([*self.mainCritic.encoderC.parameters(), *self.mainCritic.decoderC.parameters()], lr=self.mainCritic.learningRate * 100, weight_decay=self.mainCritic.regularization)]
+                                                torch.optim.AdamW([*self.mainCritic.encoderB.parameters(), *self.mainCritic.decoderB.parameters()], lr=self.mainCritic.learningRate * 4, weight_decay=self.mainCritic.regularization),
+                                                torch.optim.AdamW([*self.mainCritic.encoderC.parameters(), *self.mainCritic.decoderC.parameters()], lr=self.mainCritic.learningRate * 16, weight_decay=self.mainCritic.regularization)]
             self.mainAi.epoch = aiState["mainAi_epoch"]
             self.mainAi.sampleCount = aiState["mainAi_sampleCount"]
             self.mainAi.load_state_dict(aiState['mainAi_model_state_dict'])
+            self.mainEmbedding = aiState["mainAI_embedding"]
+            for i in self.mainEmbedding.keys():
+                self.mainEmbedding[i] = self.mainEmbedding[i].to(self.device)
             self.deskewingPremul = aiState["deskew_premul"]
             if not aiState["final"] and not self.inferOnly:
                 self.mainCritic.load_state_dict(aiState['mainCritic_model_state_dict'])
@@ -178,7 +185,7 @@ class AIWrapper():
         self.trAi.eval()
         self.mainAi.eval()
 
-    def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int) -> torch.Tensor:
+    def interpolate(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, expression1:str, expression2:str, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int) -> torch.Tensor:
         """forward pass of both NNs for generating a transition between two phonemes, with data pre- and postprocessing
         
         Arguments:
@@ -241,10 +248,14 @@ class AIWrapper():
             harms[i] = torch.min(harms[i], harmLimit)
             harms[i] = torch.max(harms[i], torch.tensor([0.,], device = self.device))
         output = torch.cat((harms, phases, spectrum), 1)
-        refined = self.refine(output)
+        if expression1 == expression2:
+            expression = expression1
+        else:
+            expression = ""
+        refined = self.refine(output, expression)
         return output, torch.squeeze(refined)
 
-    def refine(self, specharm:torch.Tensor):
+    def refine(self, specharm:torch.Tensor, expression:str = "") -> torch.Tensor:
         """forward pass through the main Ai, taking a specharm as input and refining it to sound more natural. Includes data pre- and postprocessing."""
 
         self.mainAi.eval()
@@ -254,7 +265,9 @@ class AIWrapper():
         latent = remainder / self.deskewingPremul
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
-        refined = self.mainAi(latent, 1)
+        if expression not in self.mainEmbedding.keys():
+            expression = ""
+        refined = self.mainAi(latent, 4, self.mainEmbedding[expression])
         output = torch.squeeze(refined) * self.deskewingPremul
         return torch.cat((output[:, :halfHarms], phases, output[:, halfHarms:]), 1)
 
@@ -364,17 +377,17 @@ class AIWrapper():
         if self.inferOnly:
             raise Exception("Cannot start training since wrapper was initialized in inference-only mode")
         if reset:
-            self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
-            self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
+            self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
+            self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
             self.mainAiOptimizer = [torch.optim.AdamW([*self.mainAi.baseEncoder.parameters(), *self.mainAi.baseDecoder.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
                                     torch.optim.AdamW([*self.mainAi.encoderA.parameters(), *self.mainAi.decoderA.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
-                                    torch.optim.AdamW([*self.mainAi.encoderB.parameters(), *self.mainAi.decoderB.parameters()], lr=self.mainAi.learningRate * 10, weight_decay=self.mainAi.regularization),
-                                    torch.optim.AdamW([*self.mainAi.encoderC.parameters(), *self.mainAi.decoderC.parameters()], lr=self.mainAi.learningRate * 100, weight_decay=self.mainAi.regularization)]
+                                    torch.optim.AdamW([*self.mainAi.encoderB.parameters(), *self.mainAi.decoderB.parameters()], lr=self.mainAi.learningRate * 4, weight_decay=self.mainAi.regularization),
+                                    torch.optim.AdamW([*self.mainAi.encoderC.parameters(), *self.mainAi.decoderC.parameters()], lr=self.mainAi.learningRate * 16, weight_decay=self.mainAi.regularization)]
             self.mainCriticOptimizer = [torch.optim.AdamW([*self.mainCritic.baseEncoder.parameters(), *self.mainCritic.baseDecoder.parameters(), *self.mainCritic.final.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization),
                                         torch.optim.AdamW([*self.mainCritic.encoderA.parameters(), *self.mainCritic.decoderA.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization),
-                                        torch.optim.AdamW([*self.mainCritic.encoderB.parameters(), *self.mainCritic.decoderB.parameters()], lr=self.mainCritic.learningRate * 10, weight_decay=self.mainCritic.regularization),
-                                        torch.optim.AdamW([*self.mainCritic.encoderC.parameters(), *self.mainCritic.decoderC.parameters()], lr=self.mainCritic.learningRate * 100, weight_decay=self.mainCritic.regularization)]
+                                        torch.optim.AdamW([*self.mainCritic.encoderB.parameters(), *self.mainCritic.decoderB.parameters()], lr=self.mainCritic.learningRate * 4, weight_decay=self.mainCritic.regularization),
+                                        torch.optim.AdamW([*self.mainCritic.encoderC.parameters(), *self.mainCritic.decoderC.parameters()], lr=self.mainCritic.learningRate * 16, weight_decay=self.mainCritic.regularization)]
         else:
             self.mainGenerator.rebuildPool()
         self.mainAi.train()
@@ -402,14 +415,14 @@ class AIWrapper():
         fargan_smp = None
         fargan_score = math.inf
         
-        steps = [(0, (True, False, False, False), (True, False, False, False)),
+        phases = [(0, (True, False, False, False), (True, False, False, False)),
                  (1, (True, True, False, False), (True, True, False, False)),
                  (2, (True, True, True, False), (False, True, True, False)),
                  (3, (False, True, True, True), (False, False, True, True)),
                  (4, (False, False, True, True), (False, False, False, True))]
         
-        for stepIdx, step in enumerate(steps):
-            for epoch in tqdm(range(epochs), desc = "training step " + str(stepIdx), position = 1, unit = "epochs"):
+        for phaseIdx, phase in enumerate(phases):
+            for epoch in tqdm(range(epochs), desc = "training phase " + str(phaseIdx + 1), position = 1, unit = "epochs"):
                 for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 0, total = len(indata), unit = "samples")):
                     if index % self.hparams["fargan_interval"] == self.hparams["fargan_interval"] - 1:
                         data = fargan_smp
@@ -423,18 +436,18 @@ class AIWrapper():
                     synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
                     synthBase /= self.deskewingPremul
                     self.mainAi.resetState()
-                    synthInput = self.mainAi(synthBase, step[0])
+                    synthInput = self.mainAi(synthBase, phase[0])
                     
                     if index % self.hparams["gan_train_asym"] == 0:
                         self.mainAi.zero_grad()
                         self.mainCritic.zero_grad()
                         self.mainCritic.resetState()
-                        generatorLoss = self.mainCritic(synthInput, step[0])
+                        generatorLoss = self.mainCritic(synthInput, phase[0])
                         guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
                         (generatorLoss + guideLoss).backward()
                         torch.nn.utils.clip_grad_norm_(self.mainAi.parameters(), 1.)
                         for i in range(len(self.mainAiOptimizer)):
-                            if step[1][i]:
+                            if phase[1][i]:
                                 self.mainAiOptimizer[i].step()
                         with torch.no_grad():
                             for param in self.mainAi.parameters():
@@ -442,14 +455,14 @@ class AIWrapper():
                     
                     self.mainCritic.zero_grad()
                     self.mainCritic.resetState()
-                    posDiscriminatorLoss = self.mainCritic(data, step[0])
-                    negDiscriminatorLoss = self.mainCritic(synthInput.detach(), step[0])
+                    posDiscriminatorLoss = self.mainCritic(data, phase[0])
+                    negDiscriminatorLoss = self.mainCritic(synthInput.detach(), phase[0])
                     #penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
                     discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss# + 25 * penalty
                     discriminatorLoss.backward()
                     torch.nn.utils.clip_grad_norm_(self.mainCritic.parameters(), 1.)
                     for i in range(len(self.mainCriticOptimizer)):
-                        if step[2][i]:
+                        if phase[2][i]:
                             self.mainCriticOptimizer[i].step()
                     with torch.no_grad():
                         for param in self.mainCritic.parameters():
@@ -466,20 +479,20 @@ class AIWrapper():
                             "neg.": negDiscriminatorLoss.data.item(),
                             "disc.": discriminatorLoss.data.item(), 
                             "gen.": generatorLoss.data.item(),
-                            "encA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 0 else 0.,
-                            "encB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 1 else 0.,
-                            "encC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderC.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 2 else 0.,
-                            "decA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 0 else 0.,
-                            "decB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 1 else 0.,
-                            "decC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderC.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 2 else 0.,
+                            "encA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 0 else 0.,
+                            "encB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 1 else 0.,
+                            "encC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderC.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 2 else 0.,
+                            "decA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 0 else 0.,
+                            "decB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 1 else 0.,
+                            "decC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderC.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 2 else 0.,
                             "baseEnc": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseEncoder.modules() if isinstance(i, nn.Linear)]),
                             "baseDec": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.baseDecoder.modules() if isinstance(i, nn.Linear)]),
-                            "CEncA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 0 else 0.,
-                            "CEncB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 1 else 0.,
-                            "CEncC": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderC.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 2 else 0.,
-                            "CDecA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 0 else 0.,
-                            "CDecB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 1 else 0.,
-                            "CDecC": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderC.cnn.modules() if isinstance(i, nn.Conv1d)]) if step[0] > 2 else 0.,
+                            "CEncA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderA.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 0 else 0.,
+                            "CEncB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderB.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 1 else 0.,
+                            "CEncC": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.encoderC.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 2 else 0.,
+                            "CDecA": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderA.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 0 else 0.,
+                            "CDecB": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderB.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 1 else 0.,
+                            "CDecC": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.decoderC.cnn.modules() if isinstance(i, nn.Conv1d)]) if phase[0] > 2 else 0.,
                             "CBaseEnc": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseEncoder.modules() if isinstance(i, nn.Linear)]),
                             "CBaseDec": mean([torch.mean(torch.abs(i.parametrizations.weight.original.grad)).item() for i in self.mainCritic.baseDecoder.modules() if isinstance(i, nn.Linear)]),
                             "final": torch.mean(torch.abs(self.mainCritic.final.parametrizations.weight.original.grad)).item()

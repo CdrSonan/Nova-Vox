@@ -78,6 +78,7 @@ class AudioSample():
         self.isPlosive = False
         
         self.embedding = 0
+        self.key = None
         
         self.expectedPitch = global_consts.defaultExpectedPitch
         self.searchRange = global_consts.defaultSearchRange
@@ -134,6 +135,7 @@ class AISample():
         self.isPlosive = False
         
         self.embedding = 0
+        self.key = None
         
         self.expectedPitch = global_consts.defaultExpectedPitch
         self.searchRange = global_consts.defaultSearchRange
@@ -151,6 +153,7 @@ class AISample():
             audioSample.isVoiced = self.isVoiced
             audioSample.isPlosive = self.isPlosive
             audioSample.embedding = self.embedding
+            audioSample.key = self.key
             audioSample.expectedPitch = self.expectedPitch
             audioSample.searchRange = self.searchRange
             audioSample.voicedThrh = self.voicedThrh

@@ -54,12 +54,7 @@ class UtauSample():
 
         self.audioSample = AISample(filepath)
         self._type = _type
-        if self._type == 0:
-            self.key = key
-        elif self._type == 1:
-            self.key = None
-        else:
-            self.key = None
+        self.key = key
         self.start = start
         if end == None:
             if blank >= 0:
@@ -79,6 +74,7 @@ class UtauSample():
         self.audioSample.isPlosive = isPlosive
         self.audioSample.embedding = embedding
         self.audioSample.expectedPitch = pitch
+        self.audioSample.key = self.key
 
     def updateHandle(self) -> None:
         """updates the handle of the sample, which is used to represent it in the devkit UI, to reflect changed sample properties"""

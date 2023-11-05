@@ -87,7 +87,7 @@ def loopSamplerPitch(inputTensor:torch.Tensor, targetSize:int, repetititionSpaci
     repetititionSpacing = math.ceil(repetititionSpacing * inputTensor.size()[0] / 2)
     requiredTensors = math.ceil((targetSize - repetititionSpacing) / (inputTensor.size()[0] - repetititionSpacing))
     if requiredTensors <= 1:
-        outputTensor = inputTensor.to(device = device, copy = True)
+        outputTensor = inputTensor.to(device = device, dtype = torch.float, copy = True)
     else:
         outputTensor = torch.zeros(requiredTensors * (inputTensor.size()[0] - repetititionSpacing) + repetititionSpacing, device = device)
         workingTensor = inputTensor.to(device = device, copy = True)

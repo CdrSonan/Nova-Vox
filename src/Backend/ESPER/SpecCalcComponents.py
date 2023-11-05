@@ -71,7 +71,7 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor,
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
     """calculates a spectrum based on an adaptation of the True Envelope Estimator algorithm. Used for low-frequency area, as it can produce artifacting in high-frequency area"""
 
-    specWidth = int(global_consts.tripleBatchSize / (audioSample.specWidth + 3))
+    specWidth = int(global_consts.tripleBatchSize / (audioSample.specWidth + 3) / max(audioSample.expectedPitch / 440., 1.))
     spectra = signalsAbs.clone()
     for i in range(audioSample.specDepth):
         spectra = torch.maximum(spectra, signalsAbs)

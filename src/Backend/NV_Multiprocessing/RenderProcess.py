@@ -386,6 +386,21 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
 
                             #calculate CrfAi transitions as required
                             logging.info("performing pitch shift of sample " + str(j) + ", sequence " + str(i))
+                            previousExpression = internalInputs.phonemes[j].split("_")
+                            if len(previousExpression) > 1:
+                                previousExpression = previousExpression[-1]
+                            else:
+                                expression = ""
+                            expression = internalInputs.phonemes[j].split("_")
+                            if len(expression) > 1:
+                                expression = expression[-1]
+                            else:
+                                expression = ""
+                            nextExpression = internalInputs.phonemes[j].split("_")
+                            if len(nextExpression) > 1:
+                                nextExpression = nextExpression[-1]
+                            else:
+                                nextExpression = ""
                             if internalInputs.startCaps[j]:
                                 windowStart = internalInputs.borders[3 * j]
                                 windowStartEx = internalInputs.borders[3 * j]
@@ -408,6 +423,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     specB.to(device = device_ai),
                                     voicebank.phonemeDict[internalInputs.phonemes[j - 1]][0].embedding,
                                     voicebank.phonemeDict[internalInputs.phonemes[j]][0].embedding,
+                                    previousExpression,
+                                    expression,
                                     internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j],
                                     internalInputs.pitch[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]],
                                     internalInputs.borders[3 * j + 1] - internalInputs.borders[3 * j]
@@ -428,7 +445,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 excitation.write(nextExcitation[0:internalInputs.borders[3 * j + 5] - windowEndEx], windowEndEx, internalInputs.borders[3 * j + 5])
                             aiSpec = torch.roll(currentSpectrum, (-1,), (0,))
                             aiSpec[0] = currentSpectrum[0]
-                            aiSpec = torch.squeeze(voicebank.ai.refine(aiSpec.to(device = device_ai))).to(device = device_rs)
+                            aiSpec = torch.squeeze(voicebank.ai.refine(aiSpec.to(device = device_ai), expression)).to(device = device_rs)
                             aiBalance = internalInputs.aiBalance[windowStart:windowEnd].unsqueeze(1).to(device = device_rs)
                             aiSpec = (0.5 - 0.5 * aiBalance) * currentSpectrum + (0.5 + 0.5 * aiBalance) * aiSpec
                             pitchOffset = currentPitch[windowStart - internalInputs.borders[3 * j]:windowEnd - internalInputs.borders[3 * j]]
@@ -454,6 +471,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     specB.to(device = device_ai),
                                     voicebank.phonemeDict[internalInputs.phonemes[j]][0].embedding,
                                     voicebank.phonemeDict[internalInputs.phonemes[j + 1]][0].embedding,
+                                    expression,
+                                    nextExpression,
                                     internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3],
                                     internalInputs.pitch[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]],
                                     internalInputs.borders[3 * j + 4] - internalInputs.borders[3 * j + 3]

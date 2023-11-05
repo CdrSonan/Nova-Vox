@@ -181,10 +181,12 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     pitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].pitch.to(device = device)
     pitchDeltas = Loop.loopSamplerPitch(pitchDeltas, requiredSize, vocalSegment.repetititionSpacing, device = device)
     pitchDeltas -= pitch
+    print(vocalSegment.startCap, vocalSegment.endCap)
     if vocalSegment.startCap == False:
         factor = math.log(0.5, (vocalSegment.start2 - vocalSegment.start1) / (vocalSegment.start3 - vocalSegment.start1))
         slope = torch.linspace(0, 1, (vocalSegment.start3 - vocalSegment.start1), device = device)
         slope = torch.pow(slope, factor)
+        print(pitchDeltas, slope)
         pitchDeltas[:vocalSegment.start3 - vocalSegment.start1] *= slope
     if vocalSegment.endCap == False:
         factor = math.log(0.5, (vocalSegment.end3 - vocalSegment.end2) / (vocalSegment.end3 - vocalSegment.end1))

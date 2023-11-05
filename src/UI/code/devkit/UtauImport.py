@@ -287,10 +287,6 @@ class UtauImportUi(Frame):
             sample = self.sampleList[index]
             self.sideBar._type.variable.set(sample._type)
             self.sideBar.key.variable.set(sample.key)
-            if sample.key == None:
-                self.disableButtons()
-            else:
-                self.enableButtons()
             self.sideBar.start.variable.set(sample.start)
             self.sideBar.end.variable.set(sample.end)
             self.updateDiagram()
@@ -302,16 +298,6 @@ class UtauImportUi(Frame):
         logging.info("UTAU sample list focus loss callback")
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
-        
-    def disableButtons(self) -> None:
-        """Helper function disabling the key button"""
-
-        self.sideBar.key.entry["state"] = "disabled"
-    
-    def enableButtons(self) -> None:
-        """Helper function enabling the key button"""
-
-        self.sideBar.key.entry["state"] = "normal"
 
     def onTypeChange(self, event = None) -> None:
         """UI Frontend function for changing the type (phoneme or transition) of a sample"""
@@ -319,10 +305,6 @@ class UtauImportUi(Frame):
         logging.info("Utau sample type change callback")
         index = self.phonemeList.list.lastFocusedIndex
         self.sampleList[index]._type = self.sideBar._type.variable.get()
-        if self.sideBar._type.variable.get():
-            self.disableButtons()
-        else:
-            self.enableButtons()
     
     def onAddPress(self) -> None:
         """UI Frontend function for adding a sample to the SampleList"""

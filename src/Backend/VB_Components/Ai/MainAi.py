@@ -210,13 +210,13 @@ class MainAi(nn.Module):
         resetState: resets the hidden states and cell states of the internal LSTM layers"""
 
 
-    def __init__(self, dim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
+    def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
         """basic constructor accepting the learning rate and other hyperparameters as input"""
 
         super().__init__()
         
         self.baseEncoder = nn.Sequential(
-            nn.Linear(input_dim, dim * 2, device = device),
+            nn.Linear(input_dim + embedDim, dim * 2, device = device),
             nn.Softplus(),
             nn.Linear(dim * 2, dim, device = device),
             nn.Softplus()
@@ -242,15 +242,6 @@ class MainAi(nn.Module):
         
         self.decoderC = DecoderBlock(3 * dim, 4 * dim, blockC[0], blockC[1], device)
         
-        """self.blockC = nn.Sequential(
-            nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device),
-            nn.ReLU(),
-            nn.Conv1d(10 * dim, 10 * dim, 3, padding = 1, device = device),
-            nn.ReLU(),
-            nn.Conv1d(10 * dim, 8 * dim, 3, padding = 1, device = device),
-            nn.ReLU(),
-        )"""
-        
         self.baseEncoder.apply(init_weights_rectifier_leaky)
         self.baseDecoder.apply(init_weights_rectifier_leaky)
 
@@ -264,16 +255,16 @@ class MainAi(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
     
-    def __new__(cls, dim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
+    def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
         instance = super().__new__(cls)
         if compile:
             instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
         return instance
 
-    def forward(self, input:torch.Tensor, level:int) -> torch.Tensor:
+    def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
-        latent = self.baseEncoder(input)
+        latent = self.baseEncoder(torch.cat((input, embedding.unsqueeze(0)), 1))
         
         if latent.size()[0] % 125 != 0:
             padded = torch.cat((latent, torch.zeros((125 - latent.size()[0] % 125, *latent.size()[1:]), device = self.device, dtype = latent.dtype)), 0)
@@ -307,11 +298,11 @@ class MainAi(nn.Module):
 
 class MainCritic(nn.Module):
     
-    def __init__(self, dim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
+    def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
         super().__init__()
         
         self.baseEncoder = nn.Sequential(
-            nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim, dim * 2, device = device)),
+            nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim + embedDim, dim * 2, device = device)),
             nn.LeakyReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
             nn.LeakyReLU()
@@ -320,8 +311,6 @@ class MainCritic(nn.Module):
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim, dim * 2, device = device)),
             nn.LeakyReLU(),
             nn.utils.parametrizations.spectral_norm(nn.Linear(dim * 2, dim, device = device)),
-            #nn.Softplus(),
-            #nn.Softmax(dim = 1)
             nn.LeakyReLU()
         )
         
@@ -338,15 +327,6 @@ class MainCritic(nn.Module):
         self.encoderC = NormEncoderBlock(3 * dim, 4 * dim, blockC[0], blockC[1], device)
         
         self.decoderC = NormDecoderBlock(3 * dim, 4 * dim, blockC[0], blockC[1], device)
-        
-        """self.blockC = nn.Sequential(
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(8 * dim, 10 * dim, 3, padding = 1, device = device)),
-            nn.ReLU(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 10 * dim, 3, padding = 1, device = device)),
-            nn.ReLU(),
-            nn.utils.parametrizations.spectral_norm(nn.Conv1d(10 * dim, 8 * dim, 3, padding = 1, device = device)),
-            nn.ReLU(),
-        )"""
         
         self.final = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, bias = False, device = device))
         
@@ -365,16 +345,16 @@ class MainCritic(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
         
-    def __new__(cls, dim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
+    def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
         instance = super().__new__(cls)
         if compile:
             instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
         return instance
 
-    def forward(self, input:torch.Tensor, level:int) -> torch.Tensor:
+    def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
-        latent = self.baseEncoder(input)
+        latent = self.baseEncoder(torch.cat((input, embedding.unsqueeze(0)), 1))
         
         if latent.size()[0] % 125 != 0:
             padded = torch.cat((latent, torch.zeros((125 - latent.size()[0] % 125, *latent.size()[1:]), device = self.device)), 0)
@@ -444,14 +424,14 @@ class DataGenerator:
         else:
             raise ValueError("Invalid mode for Data Generator")
         idx = [random.randint(0, len(self.voicebank.phonemeDict[i]) - 1) for i in phonemeSequence]
-        embeddings = [self.voicebank.phonemeDict[i][idx[i]].embedding for i in phonemeSequence]
-        effectiveLength = targetLength - sum([self.voicebank.phonemeDict[i][idx[i]].specharm.size()[0] for i in phonemeSequence if i in self.shortPool])
+        embeddings = [self.voicebank.phonemeDict[phoneme][idx[i]].embedding for i, phoneme in enumerate(phonemeSequence)]
+        effectiveLength = targetLength - sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence) if phoneme in self.shortPool])
         if effectiveLength >= 0:
             shortMultiplier = 1
-            longMultiplier = effectiveLength / sum([self.voicebank.phonemeDict[i][idx[i]].specharm.size()[0] for i in phonemeSequence if i in self.longPool])
+            longMultiplier = effectiveLength / sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence) if phoneme in self.longPool])
         else:
-            shortMultiplier = longMultiplier = targetLength / sum([self.voicebank.phonemeDict[i][idx[i]].specharm.size()[0] for i in phonemeSequence])
-        phonemes = [self.voicebank.phonemeDict[i][idx[i]] for i in phonemeSequence]
+            shortMultiplier = longMultiplier = targetLength / sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence)])
+        phonemes = [self.voicebank.phonemeDict[phoneme][idx[i]] for i, phoneme in enumerate(phonemeSequence)]
         borders = [0, 25]
         for i, phoneme in enumerate(phonemes):
             if phonemeSequence[i] in self.shortPool:
@@ -478,8 +458,8 @@ class DataGenerator:
                                  phonemeSequence,
                                  [0 if i > 0 else 1 for i in range(len(phonemeSequence))],
                                  [0 if i < len(phonemeSequence) - 1 else 1 for i in range(len(phonemeSequence))],
-                                 torch.tensor([random.uniform(0, 1) * noise[1] for i in range(len(phonemeSequence))], device = self.crfAi.device),
-                                 torch.tensor([random.uniform(0, 1) * noise[1] + 0.5 for i in range(len(phonemeSequence))], device = self.crfAi.device),
+                                 torch.tensor([random.uniform(0, 1) * noise[1] for _ in range(len(phonemeSequence))], device = self.crfAi.device),
+                                 torch.tensor([random.uniform(0, 1) * noise[1] + 0.5 for _ in range(len(phonemeSequence))], device = self.crfAi.device),
                                  torch.full((borderLength,), 300.5, device = self.crfAi.device),#pitch
                                  torch.full((borderLength,), random.uniform(-1, 1) * noise[2], device = self.crfAi.device),#steadiness
                                  torch.full((borderLength,), random.uniform(-1, 1) * noise[3], device = self.crfAi.device),#breathiness
