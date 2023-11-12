@@ -71,9 +71,9 @@ def calculateAmplitudeContinuity(amplitudes:torch.Tensor, spectrum:torch.Tensor,
 def lowRangeSmooth(audioSample: AudioSample, signalsAbs:torch.Tensor) -> torch.Tensor:
     """calculates a spectrum based on an adaptation of the True Envelope Estimator algorithm. Used for low-frequency area, as it can produce artifacting in high-frequency area"""
 
-    specWidth = int(global_consts.tripleBatchSize / (audioSample.specWidth + 3) / max(audioSample.expectedPitch / 440., 1.))
+    specWidth = int(global_consts.tripleBatchSize / (audioSample.specWidth + 3) / max(audioSample.expectedPitch / 150., 1.))
     spectra = signalsAbs.clone()
-    for i in range(audioSample.specDepth):
+    for _ in range(audioSample.specDepth):
         spectra = torch.maximum(spectra, signalsAbs)
         spectra = torch.fft.rfft(spectra, dim = 1)
         cutoffWindow = torch.zeros(spectra.size()[1], device = spectra.device)
@@ -88,7 +88,7 @@ def highRangeSmooth(audioSample:AudioSample, signalsAbs:torch.Tensor) -> torch.T
     workingSpectra = signalsAbs.clone()
     workingSpectra = torch.cat((workingSpectra, torch.tile(torch.unsqueeze(workingSpectra[:, -1], 1), (1, audioSample.specDepth))), 1)
     spectra = workingSpectra.clone()
-    for i in range(audioSample.specDepth):
+    for _ in range(audioSample.specDepth):
         for j in range(1, audioSample.specWidth + 1):
             spectra = torch.roll(workingSpectra, -j, dims = 1) + spectra + torch.roll(workingSpectra, j, dims = 1)
         spectra = spectra / (2 * audioSample.specWidth + 1)
@@ -110,7 +110,7 @@ def finalizeSpectra(audioSample:AudioSample, lowSpectra:torch.Tensor, highSpectr
     workingSpectra = torch.cat((torch.tile(torch.unsqueeze(workingSpectra[0], 0), (audioSample.tempDepth, 1)), workingSpectra, torch.tile(torch.unsqueeze(workingSpectra[-1], 0), (audioSample.tempDepth, 1))), 0)
     spectra = workingSpectra.clone()
     if audioSample.tempDepth > 0:
-        for i in range(audioSample.tempDepth):
+        for _ in range(audioSample.tempDepth):
             for j in range(1, audioSample.tempWidth + 1):
                 spectra = torch.roll(workingSpectra, -j, dims = 0) + spectra + torch.roll(workingSpectra, j, dims = 0)
             spectra = spectra / (2 * audioSample.tempWidth + 1)

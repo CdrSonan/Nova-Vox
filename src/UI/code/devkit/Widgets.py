@@ -38,7 +38,7 @@ class Checkbutton(TkCheckbutton):
 
 class Radiobutton(TkRadiobutton):
     def __init__(self, master, text, value, variable, command) -> None:
-        super().__init__(master, activebackground="#2d0033", activeforeground="#FFF", background="#333333", disabledforeground="#666", foreground="#FFF", selectcolor="#FFF", text=text, value=value, variable=variable, command=command)
+        super().__init__(master, activebackground="#2d0033", activeforeground="#FFF", background="#333333", disabledforeground="#666", foreground="#FFF", selectcolor="#000", text=text, value=value, variable=variable, command=command)
 
 class Scale(TkScale):
     def __init__(self, master, from_, to, orient, length, command) -> None:

@@ -344,12 +344,12 @@ class Voicebank():
         print("sample preprocessing started")
         sampleCount = len(self.stagedTrTrainSamples)
         stagedTrTrainSamples = []
-        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
+        for _ in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
             sample = self.stagedTrTrainSamples.pop().convert(False)
             calculatePitch(sample, True)
             calculateSpectra(sample, False)
             avgSpecharm = torch.cat((sample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), sample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-            stagedTrTrainSamples.append(((avgSpecharm + sample.specharm).to(device = self.device), sample.embedding))
+            stagedTrTrainSamples.append(((avgSpecharm + sample.specharm).to(device = self.device), sample.embedding, sample.key))
         print("sample preprocessing complete")
         print("AI training started")
         self.ai.trainTr(stagedTrTrainSamples, epochs = epochs, logging = logging, reset = not additive)
@@ -369,13 +369,13 @@ class Voicebank():
         print("sample preprocessing started")
         sampleCount = len(self.stagedMainTrainSamples)
         stagedMainTrainSamples = []
-        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
+        for _ in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
             samples = self.stagedMainTrainSamples.pop().convert(True)
             for j in samples:
                 calculatePitch(j, False)
                 calculateSpectra(j, False)
                 avgSpecharm = torch.cat((j.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), j.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-                stagedMainTrainSamples.append((avgSpecharm + j.specharm).to(device = self.device))
+                stagedMainTrainSamples.append(((avgSpecharm + j.specharm).to(device = self.device), j.key))
         print("sample preprocessing complete")
         print("AI training started")
         self.ai.trainMain(stagedMainTrainSamples, epochs = epochs, logging = logging, reset = not additive)

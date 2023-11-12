@@ -97,7 +97,7 @@ class UtauImportUi(Frame):
         
         #sample type selection
         self.sideBar._type = Frame(self.sideBar)
-        self.sideBar._type.variable = tkinter.BooleanVar(self.sideBar._type)
+        self.sideBar._type.variable = tkinter.IntVar(self.sideBar._type)
         self.sideBar._type.entry = Frame(self.sideBar._type)
         self.sideBar._type.entry.button1 = Radiobutton(self.sideBar._type.entry, text = loc["smp_phoneme"], value = 0, variable = self.sideBar._type.variable, command = self.onTypeChange)
         self.sideBar._type.entry.button1.pack(side = "right", fill = "x")
@@ -417,7 +417,7 @@ class UtauImportUi(Frame):
         logging.info("UTAU import all button callback")
         global loadedVB
         sampleCount = len(self.sampleList)
-        for i in tqdm(range(sampleCount), unit = "samples"):
+        for _ in tqdm(range(sampleCount), unit = "samples"):
             self.update()
             if self.sampleList[0]._type == 0:
                 loadedVB.addPhonemeUtau(self.sampleList[0])

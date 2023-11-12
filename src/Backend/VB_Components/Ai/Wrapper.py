@@ -16,7 +16,7 @@ from torch.utils.data.dataloader import DataLoader
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.MainAi import MainAi, MainCritic, DataGenerator
-from Backend.VB_Components.Ai.Util import gradientPenalty, GuideRelLoss
+from Backend.VB_Components.Ai.Util import gradientPenalty, GuideRelLoss, newEmbedding
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.Resampler.CubicSplineInter import interp
 from Util import dec2bin
@@ -54,7 +54,7 @@ class AIWrapper():
             "gan_guide_wgt": 0.1,
             "gan_train_asym": 1,
             "fargan_interval": 10,
-            "embeddingDim": 32,
+            "embeddingDim": 8,
         }
         if hparams:
             for i in hparams.keys():
@@ -380,6 +380,7 @@ class AIWrapper():
             self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
             self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
+            self.mainEmbedding = {"": torch.zeros((self.hparams["embeddingDim"],), device = self.device)}
             self.mainAiOptimizer = [torch.optim.AdamW([*self.mainAi.baseEncoder.parameters(), *self.mainAi.baseDecoder.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
                                     torch.optim.AdamW([*self.mainAi.encoderA.parameters(), *self.mainAi.decoderA.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
                                     torch.optim.AdamW([*self.mainAi.encoderB.parameters(), *self.mainAi.decoderB.parameters()], lr=self.mainAi.learningRate * 4, weight_decay=self.mainAi.regularization),
@@ -405,14 +406,24 @@ class AIWrapper():
         else:
             self.mainAi.epoch = None
         total = 0
-        for phoneme in self.voicebank.phonemeDict.values():
-            if torch.isnan(phoneme[0].avgSpecharm).any() or torch.isnan(phoneme[0].specharm).any():
-                continue
-            self.deskewingPremul += phoneme[0].avgSpecharm.to(self.device)
-            total += 1
+        for key in self.voicebank.phonemeDict.values():
+            for phoneme in self.voicebank.phonemeDict[key]:
+                if torch.isnan(phoneme.avgSpecharm).any() or torch.isnan(phoneme.specharm).any():
+                    continue
+                self.deskewingPremul += phoneme.avgSpecharm.to(self.device)
+                total += 1
+            expression = key.split("_")
+            if len(expression) == 1:
+                expression = ""
+            else:
+                expression = expression[-1]
+            if expression not in self.mainEmbedding.keys():
+                self.mainEmbedding[expression] = newEmbedding(len(self.mainEmbedding), self.hparams["embeddingDim"], self.device)
         self.deskewingPremul /= total
         
         fargan_smp = None
+        fargan_embedding = None
+        fargan_expression = None
         fargan_score = math.inf
         
         phases = [(0, (True, False, False, False), (True, False, False, False)),
@@ -424,15 +435,27 @@ class AIWrapper():
         for phaseIdx, phase in enumerate(phases):
             for epoch in tqdm(range(epochs), desc = "training phase " + str(phaseIdx + 1), position = 1, unit = "epochs"):
                 for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 0, total = len(indata), unit = "samples")):
+                    key = data[1]
+                    data = data[0]
                     if index % self.hparams["fargan_interval"] == self.hparams["fargan_interval"] - 1:
+                        embedding = fargan_embedding
+                        expression = fargan_expression
                         data = fargan_smp
                         fargan_score = math.inf
                     else:
+                        expression = key.split("_")
+                        if len(expression) == 1:
+                            expression = ""
+                        else:
+                            expression = expression[-1]
+                        if expression not in self.mainEmbedding.keys():
+                            expression = ""
+                        embedding = self.mainEmbedding[expression]
                         data = torch.squeeze(data)
                         data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
                         data /= self.deskewingPremul
                     self.reset()
-                    synthBase = self.mainGenerator.synthesize([0.1, 0., 0., 0.], data.size()[0], 14)
+                    synthBase = self.mainGenerator.synthesize([0.1, 0., 0., 0.], data.size()[0], 14, expression)
                     synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
                     synthBase /= self.deskewingPremul
                     self.mainAi.resetState()
@@ -442,7 +465,7 @@ class AIWrapper():
                         self.mainAi.zero_grad()
                         self.mainCritic.zero_grad()
                         self.mainCritic.resetState()
-                        generatorLoss = self.mainCritic(synthInput, phase[0])
+                        generatorLoss = self.mainCritic(synthInput, phase[0], embedding)
                         guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
                         (generatorLoss + guideLoss).backward()
                         torch.nn.utils.clip_grad_norm_(self.mainAi.parameters(), 1.)
@@ -455,8 +478,8 @@ class AIWrapper():
                     
                     self.mainCritic.zero_grad()
                     self.mainCritic.resetState()
-                    posDiscriminatorLoss = self.mainCritic(data, phase[0])
-                    negDiscriminatorLoss = self.mainCritic(synthInput.detach(), phase[0])
+                    posDiscriminatorLoss = self.mainCritic(data, phase[0], embedding)
+                    negDiscriminatorLoss = self.mainCritic(synthInput.detach(), phase[0], embedding)
                     #penalty = gradientPenalty(self.mainCritic, data, synthInput.detach(), 3, self.device)
                     discriminatorLoss = posDiscriminatorLoss - negDiscriminatorLoss# + 25 * penalty
                     discriminatorLoss.backward()
@@ -470,6 +493,8 @@ class AIWrapper():
                     
                     if index % self.hparams["fargan_interval"] != self.hparams["fargan_interval"] - 1 and negDiscriminatorLoss < fargan_score:
                         fargan_smp = synthInput.detach().clone()
+                        fargan_embedding = embedding.clone()
+                        fargan_expression = expression
                         fargan_score = negDiscriminatorLoss
 
                     tqdm.write("losses: pos.:{}, neg.:{}, disc.:{}, gen.:{}".format(posDiscriminatorLoss.data.__repr__(), negDiscriminatorLoss.data.__repr__(), discriminatorLoss.data.__repr__(), generatorLoss.data.__repr__()))

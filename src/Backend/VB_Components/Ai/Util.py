@@ -5,7 +5,7 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-from math import sqrt
+from math import sqrt, floor
 
 import torch
 import torch.nn as nn
@@ -214,3 +214,9 @@ class SpecNormLSTM(nn.Module):
     
     def forward(self, x:torch.Tensor, state:torch.Tensor) -> torch.Tensor:
         return self.lstm(x, state)
+
+def newEmbedding(currentEmbeddings:int, dim:int, device:torch.device) -> torch.Tensor:
+    embedding = torch.zeros([dim,], device = device)
+    power = 1. / (floor(currentEmbeddings / dim) + 1)
+    embedding[currentEmbeddings % dim] = power
+    return embedding

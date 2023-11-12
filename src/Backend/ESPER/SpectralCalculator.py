@@ -8,6 +8,7 @@
 import torch
 from math import floor, ceil
 import ctypes
+from time import sleep
 
 import C_Bridge
 import global_consts
@@ -37,16 +38,31 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     """
 
 
+    print("pre1")
+    sleep(0.1)
     batches = ceil(audioSample.waveform.size()[0] / global_consts.batchSize)
+    print("pre2")
+    sleep(0.1)
     audioSample.excitation = torch.zeros([2 * batches * (global_consts.halfTripleBatchSize + 1)], dtype = torch.float)
+    print("pre3")
+    sleep(0.1)
     audioSample.specharm = torch.zeros([batches, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3], dtype = torch.float)
+    print("pre4")
+    sleep(0.1)
     audioSample.avgSpecharm = torch.zeros([int(global_consts.nHarmonics / 2) + global_consts.halfTripleBatchSize + 2], dtype = torch.float)
+    print("pre5")
+    sleep(0.1)
     cSample = C_Bridge.makeCSample(audioSample, useVariance)
     C_Bridge.esper.specCalc(cSample, global_consts.config)
     audioSample.excitation = torch.complex(audioSample.excitation[:batches * (global_consts.halfTripleBatchSize + 1)], audioSample.excitation[batches * (global_consts.halfTripleBatchSize + 1):])
     audioSample.excitation = audioSample.excitation.reshape((batches, global_consts.halfTripleBatchSize + 1))
+    #extSpecharm = audioSample.specharm.clone()
+    #extAvgSpecharm = audioSample.avgSpecharm.clone()
+    #calculateSpectra_legacy(audioSample, useVariance)
+    #audioSample.specharm -= extSpecharm[:audioSample.specharm.size()[0]]
+    #audioSample.avgSpecharm -= extAvgSpecharm
 
-def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
+def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) -> None:
     length = floor(audioSample.waveform.size()[0] / global_consts.batchSize)
     audioSample.excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = audioSample.waveform.device)
     audioSample.specharm = torch.zeros((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device = audioSample.waveform.device)

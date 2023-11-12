@@ -264,7 +264,7 @@ class MainAi(nn.Module):
     def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
-        latent = self.baseEncoder(torch.cat((input, embedding.unsqueeze(0)), 1))
+        latent = self.baseEncoder(torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1))
         
         if latent.size()[0] % 125 != 0:
             padded = torch.cat((latent, torch.zeros((125 - latent.size()[0] % 125, *latent.size()[1:]), device = self.device, dtype = latent.dtype)), 0)
@@ -405,7 +405,7 @@ class DataGenerator:
             self.longPool = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
             self.shortPool = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive]
 
-    def makeSequence(self, noise:list, targetLength:int = None, phonemeLength:int = None) -> torch.Tensor:
+    def makeSequence(self, noise:list, targetLength:int = None, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
         if self.mode == "reclist":
             if phonemeLength is None:
                 raise ValueError("Length must be specified for reclist mode")
@@ -423,6 +423,12 @@ class DataGenerator:
             phonemeSequence = random.choice(self.voicebank.wordDict[0].values())
         else:
             raise ValueError("Invalid mode for Data Generator")
+        def stripPhoneme(phoneme:str) -> str:
+            phoneme = phoneme.split("_")
+            if len(phoneme) == 1:
+                return phoneme[0]
+            return "_".join(phoneme[:-1])
+        phonemeSequence = [stripPhoneme(phoneme) + "_" + expression if stripPhoneme(phoneme) + "_" + expression in self.voicebank.phonemeDict else (stripPhoneme(phoneme) if stripPhoneme(phoneme) in self.voicebank.phonemeDict else phoneme) for phoneme in phonemeSequence]
         idx = [random.randint(0, len(self.voicebank.phonemeDict[i]) - 1) for i in phonemeSequence]
         embeddings = [self.voicebank.phonemeDict[phoneme][idx[i]].embedding for i, phoneme in enumerate(phonemeSequence)]
         effectiveLength = targetLength - sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence) if phoneme in self.shortPool])
@@ -476,9 +482,9 @@ class DataGenerator:
         )
         return sequence, embeddings
 
-    def synthesize(self, noise:list, length:int, phonemeLength:int = None) -> torch.Tensor:
+    def synthesize(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""
-        sequence, embeddings = self.makeSequence(noise, length, phonemeLength)
+        sequence, embeddings = self.makeSequence(noise, length, phonemeLength, expression)
         output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = self.crfAi.device)
         output[sequence.borders[0]:sequence.borders[3]] = getSpecharm(VocalSegment(sequence, self.voicebank, 0, self.crfAi.device), self.crfAi.device)
         for i in range(1, sequence.phonemeLength - 1):
