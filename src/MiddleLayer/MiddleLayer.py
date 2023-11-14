@@ -18,7 +18,7 @@ import global_consts
 
 from MiddleLayer.IniParser import readSettings
 import MiddleLayer.DataHandlers as dh
-from MiddleLayer.BorderSystem import recalculateBorders
+from MiddleLayer.BorderSystem import calculateBorders
 
 from Util import ensureTensorLength, noteToPitch
 
@@ -128,115 +128,21 @@ class MiddleLayer(Widget):
                     addition = 4
             else:
                 addition = 1
-            if len(self.trackList[self.activeTrack].phonemes) > phonIndex and self.trackList[self.activeTrack].notes[index].phonemeEnd > phonIndex:
-                if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
-                    phonIndex += 1
-            for i in range(offset):
-                self.trackList[self.activeTrack].phonemes.insert(phonIndex + i, "_X")
-                self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOverlap[phonIndex:]], dim = 0)
-                self.trackList[self.activeTrack].loopOffset = torch.cat([self.trackList[self.activeTrack].loopOffset[0:phonIndex], torch.tensor([0.5], dtype = torch.half), self.trackList[self.activeTrack].loopOffset[phonIndex:]], dim = 0)
-                for j in range(3):
-                    self.trackList[self.activeTrack].borders.insert(phonIndex * 3 + addition, 0)
-        elif offset < 0:
-            for i in range(-offset):
-                self.trackList[self.activeTrack].phonemes.pop(phonIndex)
-                self.trackList[self.activeTrack].loopOverlap = torch.cat([self.trackList[self.activeTrack].loopOverlap[0:phonIndex], self.trackList[self.activeTrack].loopOverlap[phonIndex + 1:]], dim = 0)
-                self.trackList[self.activeTrack].loopOffset = torch.cat([self.trackList[self.activeTrack].loopOffset[0:phonIndex], self.trackList[self.activeTrack].loopOffset[phonIndex + 1:]], dim = 0)
-                for j in range(3):
-                    self.trackList[self.activeTrack].borders.pop(phonIndex * 3)
-        if futurePhonemes:
-            self.trackList[self.activeTrack].phonemes[phonIndex:phonIndex + len(futurePhonemes)] = futurePhonemes
-        for i in self.trackList[self.activeTrack].notes[index + 1:]:
-            i.phonemeStart += offset
-            i.phonemeEnd += offset
-        self.trackList[self.activeTrack].notes[index].phonemeEnd += offset
-        if pause and offset > 0:
-            self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
         self.trackList[self.activeTrack].offsets.append((phonIndex, offset))
         self.submitOffset(False, phonIndex, offset, addition)
-                
-        start, end = recalculateBorders(index, self.trackList[self.activeTrack], None)
-        if index > 0 and self.trackList[self.activeTrack].notes[index].phonemeStart != self.trackList[self.activeTrack].notes[index].phonemeEnd:
-            if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] != "_autopause":
-                start = min(start, recalculateBorders(index - 1, self.trackList[self.activeTrack], None)[0])
-        start = min(start, 3 * phonIndex)
-
-        for i in range(start, end):
-            self.repairBorders(i)
-        self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
-
-    def makeAutoPauses(self, index:int) -> None:
-        """helper function for calculating the _autopause phonemes required by the note at position index of the active track"""
-
-        if index < len(self.trackList[self.activeTrack].notes) - 1 and self.trackList[self.activeTrack].notes[index].phonemeEnd < len(self.trackList[self.activeTrack].phonemes):
-            offset = 0
-            if self.trackList[self.activeTrack].notes[index + 1].phonemeStart < self.trackList[self.activeTrack].notes[index + 1].phonemeEnd:
-                if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] == "_autopause":
-                    offset -= 1
-            if self.trackList[self.activeTrack].notes[index + 1].xPos - self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index].length > self.trackList[self.activeTrack].pauseThreshold:
-                offset += 1
-            if offset != 0:
-                self.offsetPhonemes(index + 1, offset, True)
-            if offset == 1:
-                self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] = "_autopause"
-                self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd])
-        if index > 0:
-            offset = 0
-            if self.trackList[self.activeTrack].notes[index].phonemeStart < self.trackList[self.activeTrack].notes[index].phonemeEnd:
-                if self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
-                    offset -= 1
-            if self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index - 1].xPos - self.trackList[self.activeTrack].notes[index - 1].length > self.trackList[self.activeTrack].pauseThreshold:
-                offset += 1
-            if offset != 0:
-                self.offsetPhonemes(index, offset, True)
-            if offset == 1:
-                self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] = "_autopause"
-                self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd])
-
-    def recalculatePauses(self, index:int) -> None:
-        """recalculates all _autopause phonemes for the track at position index of the track list. Used during startup and repair operations."""
-
-        for i in range(len(self.trackList[index].notes)):
-            self.makeAutoPauses(i)
     
     def switchNote(self, index:int) -> None:
         """Switches the places of the notes at positions index and index + 1 or the active track. Does currently not clean up timing markers afterwards, so doing so manually or by prompting a call of offsetPhonemes is currently required."""
 
         note = self.trackList[self.activeTrack].notes.pop(index + 1)
-        seq1 = self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd]
-        seq2 = self.trackList[self.activeTrack].phonemes[note.phonemeStart:note.phonemeEnd]
-        brd1 = self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd]
-        brd2 = self.trackList[self.activeTrack].borders[3 * note.phonemeStart:3 * note.phonemeEnd]
-        if index == len(self.trackList[self.activeTrack].notes) - 1:#notes are 1 element shorter because of pop
-            scalingFactor = (self.trackList[self.activeTrack].notes[index].phonemeEnd - self.trackList[self.activeTrack].notes[index].phonemeStart + 1) / (note.phonemeEnd - note.phonemeStart + 1)
-            for i in range(len(self.trackList[self.activeTrack].borders) - 3, len(self.trackList[self.activeTrack].borders)):
-                self.trackList[self.activeTrack].borders[i] = (self.trackList[self.activeTrack].borders[i] - note.xPos) * scalingFactor / note.length * (self.trackList[self.activeTrack].notes[index].xPos - note.xPos) + self.trackList[self.activeTrack].notes[index].xPos
-            for i in range(3 * note.phonemeEnd - 3 * note.phonemeStart):
-                brd2[i] = (brd2[i] - note.xPos) * scalingFactor + note.xPos
         self.trackList[self.activeTrack].notes.insert(index, note)
-        phonemeMid = note.phonemeEnd - note.phonemeStart
-        self.trackList[self.activeTrack].notes[index].phonemeStart = self.trackList[self.activeTrack].notes[index + 1].phonemeStart
-        self.trackList[self.activeTrack].notes[index + 1].phonemeEnd = self.trackList[self.activeTrack].notes[index].phonemeEnd
-        self.trackList[self.activeTrack].notes[index].phonemeEnd = self.trackList[self.activeTrack].notes[index].phonemeStart + phonemeMid
-        self.trackList[self.activeTrack].notes[index + 1].phonemeStart = self.trackList[self.activeTrack].notes[index].phonemeStart + phonemeMid
-        self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart:self.trackList[self.activeTrack].notes[index].phonemeEnd] = seq2
-        self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart:self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = seq1
-        self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart:3 * self.trackList[self.activeTrack].notes[index].phonemeEnd] = brd2
-        self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index + 1].phonemeStart:3 * self.trackList[self.activeTrack].notes[index + 1].phonemeEnd] = brd1
-        self.makeAutoPauses(index + 1)
-        self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index].phonemeStart, seq2)
-        self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].notes[index + 1].phonemeStart, seq1)
-        end = recalculateBorders(index + 1, self.trackList[self.activeTrack], None)[1]
-        start = recalculateBorders(index, self.trackList[self.activeTrack], None)[0]
-        for i in range(start, end):
-            self.repairBorders(i)
-        self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
-
-    def scaleNote(self, index:int, oldLength:int) -> None:
-        """Changes the length of the note at position index of the active track. The new length is read from its UI representation, the old length must be given as an argument.
-        It does not perform any checks of surrounding notes or other conditions. Therefore, it is recommended to call changeNoteLength instead whenever possible."""
-
-        start, end = recalculateBorders(index, self.trackList[self.activeTrack], oldLength)
+        self.adjustNote(index, note.length, note.xPos)
+        self.adjustNote(index + 1, self.trackList[self.activeTrack].notes[index + 1].length, self.trackList[self.activeTrack].notes[index + 1].xPos)
+        if index == 0:
+            start = 0
+        else:
+            start = self.trackList[self.activeTrack].phonemeIndices[index - 1]
+        end = self.trackList[self.activeTrack].phonemeIndices[index + 1]
         for i in range(start, end):
             self.repairBorders(i)
         self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
@@ -244,33 +150,24 @@ class MiddleLayer(Widget):
     def adjustNote(self, index:int, oldLength:int, oldPos:int) -> None:
         """Adjusts a note's attributes after it has been moved or scaled with respect to its surrounding notes. The current position and length are read from its UI representation, the old one must be given as arguments."""
 
-        result = None
-        nextLength = oldLength
-        if index + 1 < len(self.trackList[self.activeTrack].notes):
-            if self.trackList[self.activeTrack].notes[index].xPos > self.trackList[self.activeTrack].notes[index + 1].xPos:
-                nextLength = self.trackList[self.activeTrack].notes[index + 1].length
-                if index + 2 < len(self.trackList[self.activeTrack].notes):
-                    nextLength = max(min(nextLength, self.trackList[self.activeTrack].notes[index + 2].xPos - self.trackList[self.activeTrack].notes[index + 1].xPos), 1)
-                self.switchNote(index)
-                result = True
-                self.scaleNote(index + 1, oldLength)
-        self.scaleNote(index, nextLength)
         if index > 0:
             if self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
                 self.switchNote(index - 1)
-                result = False
-                self.scaleNote(index, max(min(oldPos - self.trackList[self.activeTrack].notes[index - 1].xPos, self.trackList[self.activeTrack].notes[index - 1].length), 1))
-                self.scaleNote(index - 1, oldLength)
-            else:
-                self.scaleNote(index - 1, max(min(oldPos - self.trackList[self.activeTrack].notes[index - 1].xPos, self.trackList[self.activeTrack].notes[index - 1].length), 1))
-        self.repairNotes(index)
-        self.makeAutoPauses(index)
+        self.trackList[self.activeTrack].buildPhonemeIndices()
+        self.trackList[self.activeTrack].notes[index].determineAutopause()
+        context = self.trackList[self.activeTrack].notes[index].makeContext()
+        calculateBorders(self.trackList[self.activeTrack].notes[index], context)
+        if index == 0:
+            start = 0
+        else:
+            start = self.trackList[self.activeTrack].phonemeIndices[index - 1]
+        end = self.trackList[self.activeTrack].phonemeIndices[index]
+        self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
         if index > 0:
             self.recalculateBasePitch(index - 1, self.trackList[self.activeTrack].notes[index - 1].xPos, max(min(oldPos, self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length), 1))
         self.recalculateBasePitch(index, oldPos, oldPos + oldLength)
         if index + 1 < len(self.trackList[self.activeTrack].notes):
-            self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + nextLength)
-        return result
+            self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + self.trackList[self.activeTrack].notes[index - 1].length)
     
     def syllableSplit(self, word:str) -> list:
         """splits a word into syllables using the wordDict of the loaded Voicebank. Returns a list of syllables, or None if the word cannot be split in a valid way."""

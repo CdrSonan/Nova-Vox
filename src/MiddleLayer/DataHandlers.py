@@ -8,7 +8,7 @@
 import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.VB_Components.Voicebank import LiteVoicebank
-from Util import ensureTensorLength, noteToPitch
+from Util import ensureTensorLength, noteToPitch, binarySearch
 
 class Nodegraph():
     def __init__(self) -> None:
@@ -53,7 +53,8 @@ class Track():
         self.vbPath = path
         self.wordDict = (dict(), [])
         self.notes = []
-        self.phonemes = []
+        self.phonemeIndices = []
+        self.phonemes = PhonemeProxy(self.notes, self.phonemeIndices)
         self.pitch = torch.full((5000,), -1., dtype = torch.half)
         self.basePitch = torch.full((5000,), -1., dtype = torch.half)
         self.breathiness = torch.full((5000,), 0, dtype = torch.half)
@@ -72,7 +73,7 @@ class Track():
         self.pauseThreshold = 100
         self.mixinVB = None
         self.nodegraph = Nodegraph()
-        self.borders = [0, 1, 2]
+        self.borders = BorderProxy(self.notes, self.phonemeIndices)
         self.offsets = []
         self.length = 5000
         self.phonemeLengths = dict()
@@ -108,24 +109,11 @@ class Track():
         self.aiBalance = ensureTensorLength(self.aiBalance, self.length, 0)
         self.vibratoSpeed = ensureTensorLength(self.vibratoSpeed, self.length, 0)
         self.vibratoStrength = ensureTensorLength(self.vibratoStrength, self.length, 0)
-        if len(self.borders) > 3 * len(self.phonemes) + 3:
-            self.borders = self.borders[:3 * len(self.phonemes) + 3]
-        elif len(self.borders) < 3 * len(self.phonemes) + 3:
-            self.borders.extend(range(int(self.borders[-1]) + 1, int(self.borders[-1]) + 4 + 3 * len(self.phonemes) - len(self.borders)))
-        if len(self.notes) > 0:
-            maxBorder = len(self.borders) - 1
-            end = self.notes[-1].xPos + self.notes[-1].length
-            for i in range(len(self.borders)):
-                if self.borders[maxBorder - i] > end:
-                    self.borders[maxBorder - i] = end - 2 * i
-                else:
-                    break
-        self.borders.sort()
         for i in range(1, len(self.borders)):
             if self.borders[i] <= self.borders[i - 1] + 1:
                 self.borders[i] = self.borders[i - 1] + 2
         for i, phoneme in enumerate(self.phonemes):
-            if (phoneme not in self.phonemeLengths.keys()) and (phoneme not in ["_autopause", "pau"]):
+            if (phoneme not in self.phonemeLengths.keys()) and (phoneme not in ["_autopause", "pau", "-"]):
                 self.phonemes[i] = "pau"
         if self.loopOverlap.size()[0] > len(self.phonemes):
             self.loopOverlap = self.loopOverlap[:len(self.phonemes)]
@@ -148,7 +136,13 @@ class Track():
         #audio cache
         #vbPath
         #mixinVB
-        
+    
+    def buildPhonemeIndices(self) -> None:
+        for i in self.notes:
+            if len(self.phonemeIndices) == 0:
+                self.phonemeIndices.append(len(i))
+            else:
+                self.phonemeIndices.append(i[-1] + len(i))
                 
     def generateCaps(self) -> tuple([list, list]):
         """utility function for generating startCap and endCap attributes for the track. These are not required by the main process, and are instead sent to the rendering process with to_sequence"""
@@ -172,20 +166,186 @@ class Track():
         borders = []
         for i in self.borders:
             borders.append(int(i))#TODO: switch to integer tensor representation
-        sequence = VocalSequence(self.length, borders, self.phonemes, caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
+        sequence = VocalSequence(self.length, borders, self.phonemes[:], caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
         return self.vbPath, None, sequence#None object is placeholder for wrapped NodeGraph
         #TODO: add node wrapping
+
+class NoteContext():
+    
+    def __init__(self, start, preutterance) -> None:
+        self.start = start
+        self.end = None
+        self.preutterance = preutterance
+        self.trailingAutopause = None
 
 class Note():
     """Container class for a note as handled by the main process. Contains a reference property pointing at its UI representation."""
 
-    def __init__(self, xPos, yPos, start = 0, end = 1, reference = None) -> None:
+    def __init__(self, xPos:int, yPos:int, track:Track, reference = None) -> None:
         self.reference = reference
         self.length = 100
         self.xPos = xPos
         self.yPos = yPos
+        self.track = track
         self.phonemeMode = True
         self.content = ""
-        self.phonemeStart = start
-        self.phonemeEnd = end
+        self.phonemes = []
+        self.borders = []
         self.pronuncIndex = None
+        self.autopause = False
+        self.carryOver = False
+    
+    def __len__(self) -> int:
+         return len(self.phonemes) + self.autopause
+    
+    def __getitem__(self, val):
+        if val.__class__ == slice:
+            for i in range(val.start, val.stop, val.step):
+                yield self[i]
+        else:
+            if val < len(self.phonemes):
+                return self.phonemes[val]
+            elif self.autopause and (val == len(self.phonemes)):
+                return "_autopause"
+            else:
+                raise IndexError("index out of range")
+            
+    def __setitem__(self, val, newVal):
+        if val.__class__ == slice:
+            if len(newVal) != len(range(val.start, val.stop, val.step)):
+                raise ValueError("new value must have same length as slice")
+            for i in range(val.start, val.stop, val.step):
+                self[i] = newVal[i]
+        else:
+            if val < len(self.phonemes):
+                self.phonemes[val] = newVal
+            else:
+                raise IndexError("index out of range")
+            
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
+    
+    def makeContext(self):
+        if len(self.phonemes) == 0:
+            context = NoteContext(self.xPos, 0)
+            print("this should not happen.")
+        elif self.carryOver:
+            context = NoteContext(self.xPos, -self.length / (len(self.phonemes) + 1))
+        elif self.track.phonemeLengths[self.phonemes[0]] == None:
+            context = NoteContext(self.xPos, 0)
+        else:
+            context = NoteContext(self.xPos, self.track.phonemeLengths[self.phonemes[0]])
+        return self.propagateContext(context)
+    
+    def propagateContext(self, context:NoteContext):
+        if len(self) == 0 and not self.carryOver:
+            if self.track.notes.index(self) < len(self.track.notes) - 1:
+                return self.track.notes[self.track.notes.index(self) + 1].propagateContext(context)
+            context.end = self.xPos + self.length
+            context.trailingAutopause = None
+            return context
+        if self.autopause:
+            context.trailingAutopause = self.track.borders[self.track.phonemeIndices[self.track.notes.index(self) + 1] * 3 + 1]
+        else:
+            context.trailingAutopause = None
+        context.end = self.track.borders[self.track.phonemeIndices[self.track.notes.index(self)] * 3 + 1]
+        return context
+    
+    def delegatePhonemes(self, notes:list):
+        if len(self) == 0 and self.track.notes.index(self) < len(self.track.notes) - 1:
+            return self.track.notes[self.track.notes.index(self) + 1].delegatePhonemes(notes)
+        if len(self.phonemes) == 0 and self.content[0] == "-":
+            notes.append(self)
+            if len(self) == 1 and self.track.notes.index(self) < len(self.track.notes) - 1:
+                return self.track.notes[self.track.notes.index(self) + 1].delegatePhonemes(notes)
+        return notes
+    
+    def determineAutopause(self):
+        if self.track.notes.index(self) == len(self.track.notes) - 1:
+            self.autopause = False
+            return
+        self.autopause = self.track.notes[self.track.notes.index(self) + 1].xPos - self.xPos - self.length > self.track.pauseThreshold
+
+class PhonemeProxy():
+    
+    def __init__(self, notes:list, indices:list) -> None:
+        self.notes = notes
+        self.indices = indices
+    
+    def __getitem__(self, val):
+        if val.__class__ == slice:
+            for i in range(val.start, val.stop, val.step):
+                yield self[i]
+        else:
+            phonIndex = val
+            noteIndex = binarySearch(self.indices, lambda array, index: array[index] >= phonIndex, len(self.indices))
+            while (self.indices[noteIndex] == self.indices[noteIndex - 1]) and (noteIndex > 0):
+                noteIndex -= 1
+            return self.notes[noteIndex].phonemes[phonIndex - self.indices[noteIndex]]
+    
+    def __setitem__(self, val, newVal):
+        if val.__class__ == slice:
+            if len(newVal) != len(range(val.start, val.stop, val.step)):
+                raise ValueError("new value must have same length as slice")
+            for i in range(val.start, val.stop, val.step):
+                self[i] = newVal[i]
+        else:
+            phonIndex = val
+            noteIndex = binarySearch(self.indices, lambda array, index: array[index] >= phonIndex, len(self.indices))
+            while (self.indices[noteIndex] == self.indices[noteIndex - 1]) and (noteIndex > 0):
+                noteIndex -= 1
+            self.notes[noteIndex].phonemes[phonIndex - self.indices[noteIndex]] = newVal
+            
+    def __len__(self):
+        return self.indices[-1]
+    
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
+            
+class BorderProxy():
+    
+    def __init__(self, notes:list, indices:list) -> None:
+        self.notes = notes
+        self.indices = indices
+        self.wrappingBorders = [0, 1, 2]
+        
+    def __getitem__(self, val):
+        if val.__class__ == slice:
+            for i in range(val.start, val.stop, val.step):
+                yield self[i]
+        else:
+            brdIndex = val
+            if brdIndex == 0:
+                return self.wrappingBorders[0]
+            noteIndex = binarySearch(self.indices, lambda array, index: array[index] * 3 >= brdIndex - 1, len(self.indices))
+            if noteIndex == len(self.indices):
+                return self.wrappingBorders[brdIndex - 1 - self.indices[noteIndex - 1] * 3]
+            while (self.indices[noteIndex] == self.indices[noteIndex - 1]) and (noteIndex > 0):
+                noteIndex -= 1
+            return self.notes[noteIndex].borders[brdIndex - 1 - self.indices[noteIndex] * 3]
+    
+    def __setitem__(self, val, newVal):
+        if val.__class__ == slice:
+            if len(newVal) != len(range(val.start, val.stop, val.step)):
+                raise ValueError("new value must have same length as slice")
+            for i in range(val.start, val.stop, val.step):
+                self[i] = newVal[i]
+        else:
+            brdIndex = val
+            if brdIndex == 0:
+                self.wrappingBorders[0] = newVal
+            noteIndex = binarySearch(self.indices, lambda array, index: array[index] * 3 >= brdIndex - 1, len(self.indices))
+            if noteIndex == len(self.indices):
+                self.wrappingBorders[brdIndex - 1 - self.indices[noteIndex - 1] * 3] = newVal
+            while (self.indices[noteIndex] == self.indices[noteIndex - 1]) and (noteIndex > 0):
+                noteIndex -= 1
+            self.notes[noteIndex].borders[brdIndex - 1 - self.indices[noteIndex] * 3] = newVal
+        
+    def __len__(self):
+        return self.indices[-1] * 3 + 3
+    
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
