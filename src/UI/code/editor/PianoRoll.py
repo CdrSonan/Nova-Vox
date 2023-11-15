@@ -99,17 +99,13 @@ class Note(ManagedToggleButton):
         if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) == 0:
             return
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
-        effPhonemeStart = reference.phonemeStart
-        if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
-            if index == effPhonemeStart:
-                return
-            effPhonemeStart += 1
+        effPhonemeStart = middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[middleLayer.trackList[middleLayer.activeTrack].phonemeIndices.index(index)]
         if index - effPhonemeStart >= len(self.statusBars) or index - effPhonemeStart < 0:
             return
         self.canvas.remove(self.statusBars[index - effPhonemeStart])
         del self.statusBars[index - effPhonemeStart]
-        rectanglePos = (self.pos[0] + (index - effPhonemeStart) / (reference.phonemeEnd - effPhonemeStart) * self.width, self.pos[1] + self.height * status / 5.)
-        rectangleSize = (self.width / (reference.phonemeEnd - effPhonemeStart), self.height * (1. - status / 5.))
+        rectanglePos = (self.pos[0] + (index - effPhonemeStart) / len(reference.phonemes) * self.width, self.pos[1] + self.height * status / 5.)
+        rectangleSize = (self.width / len(reference.phonemes), self.height * (1. - status / 5.))
         group = InstructionGroup()
         group.add(Color(0., 0., 0., 0.5))
         group.add(Rectangle(pos = rectanglePos, size = rectangleSize))
@@ -214,11 +210,7 @@ class Note(ManagedToggleButton):
         If the flag is not set, the status bars are instead drawn without any rendering progress."""
         
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
-        if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) <= reference.phonemeStart:
-            return
-        phonemeLength = reference.phonemeEnd - reference.phonemeStart
-        if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
-            phonemeLength -= 1
+        phonemeLength = len(reference.phonemes)
         for i in range(len(self.statusBars)):
             self.canvas.remove(self.statusBars[-1])
             del self.statusBars[-1]

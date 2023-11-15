@@ -117,7 +117,7 @@ class MiddleLayer(Widget):
         phonemes before submitting the change to the rendering process with the final flag set."""
 
         #TODO: refactor timing calculations to dedicated function and add callback in switchNote
-        phonIndex = self.trackList[self.activeTrack].notes[index].phonemeStart
+        phonIndex = self.trackList[self.activeTrack].phonemeindices[index]
         #update phoneme list and other phoneme-space lists
         addition = 0
         if offset > 0:
@@ -150,11 +150,18 @@ class MiddleLayer(Widget):
     def adjustNote(self, index:int, oldLength:int, oldPos:int) -> None:
         """Adjusts a note's attributes after it has been moved or scaled with respect to its surrounding notes. The current position and length are read from its UI representation, the old one must be given as arguments."""
 
+        if oldLength == None:
+            oldLength = self.trackList[self.activeTrack].notes[index].length
+        if oldPos == None:
+            oldPos = self.trackList[self.activeTrack].notes[index].xPos
         if index > 0:
             if self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
                 self.switchNote(index - 1)
         self.trackList[self.activeTrack].buildPhonemeIndices()
         self.trackList[self.activeTrack].notes[index].determineAutopause()
+        if self.trackList[self.activeTrack].notes[index].content == "-" and self.trackList[self.activeTrack].notes[index].phonemeMode == False:
+            if index > 0:
+                return self.adjustNote(index - 1, None, None)
         context = self.trackList[self.activeTrack].notes[index].makeContext()
         calculateBorders(self.trackList[self.activeTrack].notes[index], context)
         if index == 0:
@@ -286,7 +293,7 @@ class MiddleLayer(Widget):
             if i[0] <= index:
                 index += i[1]
         for i in self.trackList[track].notes:
-            if i.phonemeEnd > index:
+            if i > index:
                 break
         else:
             return
@@ -369,11 +376,14 @@ class MiddleLayer(Widget):
         transitionPoint2 = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
         if index == 0:
             previousHeight = None
-        elif self.trackList[self.activeTrack].notes[index].phonemeStart == self.trackList[self.activeTrack].notes[index].phonemeEnd:
+        elif len(self.trackList[self.activeTrack].notes[index]) == 0:
             previousHeight = None
-        elif self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index].phonemeStart] == "_autopause":
+        elif self.trackList[self.activeTrack].notes[index].autopause:
             previousHeight = None
-            oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeStart + 2]))
+            if index == 0:
+                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[2]))
+            else:
+                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1] + 2]))
         else:
             previousHeight = self.trackList[self.activeTrack].notes[index - 1].yPos
             transitionLength1 = min(transitionLength1, self.trackList[self.activeTrack].notes[index - 1].length)
@@ -382,11 +392,11 @@ class MiddleLayer(Widget):
                 transitionPoint1 = (transitionPoint1 + self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length) / 2
         if index == len(self.trackList[self.activeTrack].notes) - 1:
             nextHeight = None
-        elif self.trackList[self.activeTrack].notes[index + 1].phonemeStart == self.trackList[self.activeTrack].notes[index + 1].phonemeEnd:
+        elif self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
             nextHeight = None
-        elif self.trackList[self.activeTrack].phonemes[self.trackList[self.activeTrack].notes[index + 1].phonemeStart] == "_autopause":#fails when notes[index + 1] is the last note and contains no phonemes
+        elif self.trackList[self.activeTrack].notes[index].autopause:
             nextHeight = None
-            oldEnd = max(oldEnd, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].notes[index].phonemeEnd]))
+            oldEnd = max(oldEnd, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index]]))
         else:
             transitionPoint2 = self.trackList[self.activeTrack].notes[index + 1].xPos
             nextHeight = self.trackList[self.activeTrack].notes[index + 1].yPos

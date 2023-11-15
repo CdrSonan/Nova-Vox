@@ -124,15 +124,12 @@ class Track():
         elif self.loopOffset.size()[0] < len(self.phonemes):
             self.loopOffset = torch.cat((self.loopOffset, torch.zeros((len(self.phonemes) - self.loopOffset.size()[0],), device = self.loopOffset.device, dtype = torch.half)), 0)
         currentxPos = 0
-        currentPhoneme = 0
         for i in self.notes:
             i.length = max(i.length, 1)
             if i.xPos <= currentxPos:
                 i.xPos = currentxPos + 1
             currentxPos = i.xPos
-            i.phonemeStart = currentPhoneme
-            i.phonemeEnd = max(i.phonemeEnd, currentPhoneme)
-            currentPhoneme = i.phonemeEnd
+        self.buildPhonemeIndices()
         #audio cache
         #vbPath
         #mixinVB

@@ -216,7 +216,7 @@ class CopyTrack(UnifiedAction):
             middleLayer.trackList.append(Track(reference.vbPath))
             middleLayer.trackList[-1].volume = copy(reference.volume)
             for i in reference.notes:
-                middleLayer.trackList[-1].notes.append(Note(i.xPos, i.yPos, i.phonemeStart, i.phonemeEnd))
+                middleLayer.trackList[-1].notes.append(Note(i.xPos, i.yPos, middleLayer.trackList[-1], None))
                 middleLayer.trackList[-1].notes[-1].length = copy(i.length)
                 middleLayer.trackList[-1].notes[-1].phonemeMode = copy(i.phonemeMode)
                 middleLayer.trackList[-1].notes[-1].content = copy(i.content)
@@ -566,7 +566,10 @@ class _ReinsertNote(UnifiedAction):
 class RemoveNote(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
         def action(index):
-            middleLayer.offsetPhonemes(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart - middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeEnd)
+            if index == 0:
+                middleLayer.offsetPhonemes(index, -middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
+            else:
+                middleLayer.offsetPhonemes(index, middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1] - middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
             middleLayer.trackList[middleLayer.activeTrack].notes.pop(index)
             if index < len(middleLayer.trackList[middleLayer.activeTrack].notes):
                 middleLayer.adjustNote(index)
@@ -794,11 +797,15 @@ class LoadNVX(UnifiedAction):
                 _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
                 middleLayer.trackList[-1].volume = track["volume"]
                 for note in track["notes"]:
-                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], note["phonemeStart"], note["phonemeEnd"]))
+                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], middleLayer.trackList[-1], None))
                     middleLayer.trackList[-1].notes[-1].length = note["length"]
                     middleLayer.trackList[-1].notes[-1].phonemeMode = note["phonemeMode"]
                     middleLayer.trackList[-1].notes[-1].content = note["content"]
-                middleLayer.trackList[-1].phonemes = track["phonemes"]
+                    middleLayer.trackList[-1].notes[-1].pronuncIndex = note["pronuncIndex"]
+                    middleLayer.trackList[-1].notes[-1].phonemes = note["phonemes"]
+                    middleLayer.trackList[-1].notes[-1].autopause = note["autopause"]
+                    middleLayer.trackList[-1].notes[-1].borders = note["borders"]
+                    middleLayer.trackList[-1].notes[-1].carryOver = note["carryOver"]
                 middleLayer.trackList[-1].pitch = track["pitch"]
                 middleLayer.trackList[-1].basePitch = track["basePitch"]
                 middleLayer.trackList[-1].breathiness = track["breathiness"]
@@ -815,10 +822,10 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].useVibratoSpeed = track["useVibratoSpeed"]
                 middleLayer.trackList[-1].useVibratoStrength = track["useVibratoStrength"]
                 middleLayer.trackList[-1].nodegraph = track["nodegraph"]
-                middleLayer.trackList[-1].borders = track["borders"]
                 middleLayer.trackList[-1].length = track["length"]
                 middleLayer.trackList[-1].mixinVB = track["mixinVB"]
                 middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
+                middleLayer.trackList[-1].buildPhonemeIndices()
             middleLayer.validate()
         super().__init__(action, path, middleLayer, *args, **kwargs)
     
@@ -832,7 +839,7 @@ class LoadNVX(UnifiedAction):
                 _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
                 middleLayer.trackList[-1].volume = track["volume"]
                 for note in track["notes"]:
-                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], note["phonemeStart"], note["phonemeEnd"]))
+                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], middleLayer.trackList[-1], None))
                     middleLayer.trackList[-1].notes[-1].length = note["length"]
                     middleLayer.trackList[-1].notes[-1].phonemeMode = note["phonemeMode"]
                     middleLayer.trackList[-1].notes[-1].content = note["content"]
