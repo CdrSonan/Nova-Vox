@@ -12,6 +12,8 @@ import global_consts
 
 def calculateBorders(note:Note, context:NoteContext) -> None:
     phonemes = copy(note.phonemes)
+    if len(phonemes) == 0:
+        return
     if phonemes[0] == "-":
         phonemes.pop(0)
         if note.phonemeMode:
@@ -37,10 +39,10 @@ def calculateBorders(note:Note, context:NoteContext) -> None:
     for i in phonemeLengths:
         mainBorders.append(mainBorders[-1] + i)
     leadingBorders = []
-    for i in mainBorders[1:]:
+    for i in range(1, len(mainBorders)):
         leadingBorders.append(mainBorders[i] - min(global_consts.refTransitionLength, (mainBorders[i] - mainBorders[i - 1]) * global_consts.refTransitionFrac))
     trailingBorders = []
-    for i in mainBorders[:-1]:
+    for i in range(len(mainBorders) - 1):
         trailingBorders.append(mainBorders[i] + min(global_consts.refTransitionLength, (mainBorders[i + 1] - mainBorders[i]) * global_consts.refTransitionFrac))
     if context.preutterance:
         mainBorders.insert(0, context.start - context.preutterance)

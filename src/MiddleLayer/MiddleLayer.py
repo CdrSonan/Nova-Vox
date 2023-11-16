@@ -17,7 +17,6 @@ import sounddevice
 import global_consts
 
 from MiddleLayer.IniParser import readSettings
-import MiddleLayer.DataHandlers as dh
 from MiddleLayer.BorderSystem import calculateBorders
 
 from Util import ensureTensorLength, noteToPitch
@@ -117,7 +116,7 @@ class MiddleLayer(Widget):
         phonemes before submitting the change to the rendering process with the final flag set."""
 
         #TODO: refactor timing calculations to dedicated function and add callback in switchNote
-        phonIndex = self.trackList[self.activeTrack].phonemeindices[index]
+        phonIndex = self.trackList[self.activeTrack].phonemeIndices[index]
         #update phoneme list and other phoneme-space lists
         addition = 0
         if offset > 0:
@@ -128,6 +127,11 @@ class MiddleLayer(Widget):
                     addition = 4
             else:
                 addition = 1
+            for _ in range(offset):
+                self.trackList[self.activeTrack].notes[index].borders.append(0)
+        elif offset < 0:
+            for _ in range(-offset):
+                self.trackList[self.activeTrack].notes[index].borders.pop()
         self.trackList[self.activeTrack].offsets.append((phonIndex, offset))
         self.submitOffset(False, phonIndex, offset, addition)
     
@@ -147,7 +151,7 @@ class MiddleLayer(Widget):
             self.repairBorders(i)
         self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
     
-    def adjustNote(self, index:int, oldLength:int, oldPos:int) -> None:
+    def adjustNote(self, index:int, oldLength:int = None, oldPos:int = None) -> None:
         """Adjusts a note's attributes after it has been moved or scaled with respect to its surrounding notes. The current position and length are read from its UI representation, the old one must be given as arguments."""
 
         if oldLength == None:
@@ -159,6 +163,9 @@ class MiddleLayer(Widget):
                 self.switchNote(index - 1)
         self.trackList[self.activeTrack].buildPhonemeIndices()
         self.trackList[self.activeTrack].notes[index].determineAutopause()
+        if index == len(self.trackList[self.activeTrack].notes) - 1:
+            self.trackList[self.activeTrack].borders[-2] = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
+            self.trackList[self.activeTrack].borders[-1] = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length + global_consts.refTransitionLength
         if self.trackList[self.activeTrack].notes[index].content == "-" and self.trackList[self.activeTrack].notes[index].phonemeMode == False:
             if index > 0:
                 return self.adjustNote(index - 1, None, None)
@@ -169,12 +176,15 @@ class MiddleLayer(Widget):
         else:
             start = self.trackList[self.activeTrack].phonemeIndices[index - 1]
         end = self.trackList[self.activeTrack].phonemeIndices[index]
-        self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
+        print("border change submit:", start, end, self.trackList[self.activeTrack].borders[start:end])
+        self.submitNamedPhonParamChange(False, "borders", start, list(self.trackList[self.activeTrack].borders[start:end]))
         if index > 0:
             self.recalculateBasePitch(index - 1, self.trackList[self.activeTrack].notes[index - 1].xPos, max(min(oldPos, self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length), 1))
         self.recalculateBasePitch(index, oldPos, oldPos + oldLength)
         if index + 1 < len(self.trackList[self.activeTrack].notes):
             self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + self.trackList[self.activeTrack].notes[index - 1].length)
+        if self.trackList[self.activeTrack].notes[index].xPos != oldPos and index > 0:
+            self.adjustNote(index - 1, None, None)
     
     def syllableSplit(self, word:str) -> list:
         """splits a word into syllables using the wordDict of the loaded Voicebank. Returns a list of syllables, or None if the word cannot be split in a valid way."""
@@ -238,7 +248,7 @@ class MiddleLayer(Widget):
     def submitTerminate(self) -> None:
         self.manager.sendChange("terminate", True)
 
-    def submitAddTrack(self, track:dh.Track) -> None:
+    def submitAddTrack(self, track) -> None:
         self.manager.sendChange("addTrack", True, *track.convert())
 
     def submitRemoveTrack(self, index:int) -> None:
