@@ -32,7 +32,9 @@ def saveNVX(path:str, middleLayer) -> None:
                 "phonemes": note.phonemes,
                 "autopause": note.autopause,
                 "borders": note.borders,
-                "carryOver": note.carryOver
+                "carryOver": note.carryOver,
+                "loopOverlap": note.loopOverlap,
+                "loopOffset": note.loopOffset,
             })
         tracks.append({
             "volume": track.volume,
@@ -43,8 +45,6 @@ def saveNVX(path:str, middleLayer) -> None:
             "breathiness": track.breathiness,
             "steadiness": track.steadiness,
             "aiBalance": track.aiBalance,
-            "loopOverlap": track.loopOverlap,
-            "loopOffset": track.loopOffset,
             "vibratoSpeed": track.vibratoSpeed,
             "vibratoStrength": track.vibratoStrength,
             "usePitch": track.usePitch,

@@ -100,7 +100,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                ctypes.cast(phoneme.specharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.specharm.size()[0]),
                                ctypes.cast(vocalSegment.steadiness.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
-                               ctypes.c_float(vocalSegment.repetititionSpacing.item()),
+                               ctypes.c_float(vocalSegment.repetititionSpacing),
                                int(vocalSegment.startCap),
                                int(vocalSegment.endCap),
                                ctypes.cast(output.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),

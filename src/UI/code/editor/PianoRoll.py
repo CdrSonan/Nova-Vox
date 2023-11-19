@@ -99,18 +99,17 @@ class Note(ManagedToggleButton):
         if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) == 0:
             return
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
-        effPhonemeStart = middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[middleLayer.trackList[middleLayer.activeTrack].phonemeIndices.index(index)]
-        if index - effPhonemeStart >= len(self.statusBars) or index - effPhonemeStart < 0:
+        if index >= len(self.statusBars) or index < 0:
             return
-        self.canvas.remove(self.statusBars[index - effPhonemeStart])
-        del self.statusBars[index - effPhonemeStart]
-        rectanglePos = (self.pos[0] + (index - effPhonemeStart) / len(reference.phonemes) * self.width, self.pos[1] + self.height * status / 5.)
+        self.canvas.remove(self.statusBars[index])
+        del self.statusBars[index]
+        rectanglePos = (self.pos[0] + (index) / len(reference.phonemes) * self.width, self.pos[1] + self.height * status / 5.)
         rectangleSize = (self.width / len(reference.phonemes), self.height * (1. - status / 5.))
         group = InstructionGroup()
         group.add(Color(0., 0., 0., 0.5))
         group.add(Rectangle(pos = rectanglePos, size = rectangleSize))
-        self.statusBars.insert(index - effPhonemeStart, group)
-        self.canvas.add(self.statusBars[index - effPhonemeStart])
+        self.statusBars.insert(index, group)
+        self.canvas.add(self.statusBars[index])
 
     def quantize(self, x:float, y:float = None) -> tuple:
         """adjusts the x coordinate of a touch to achieve the desired input quantization"""

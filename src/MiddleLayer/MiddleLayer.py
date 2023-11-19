@@ -11,6 +11,7 @@ from kivy.clock import mainthread
 
 import torch
 import math
+from bisect import bisect_left
 
 import sounddevice
 
@@ -100,7 +101,7 @@ class MiddleLayer(Widget):
         self.ids["pianoRoll"].applyZoom(self.xScale)
         self.ids["adaptiveSpace"].applyZoom(self.xScale)
 
-    def offsetPhonemes(self, index:int, offset:int, pause:bool = False, futurePhonemes:list = None) -> None:
+    def offsetPhonemes(self, index:int, offset:int) -> None:
         """adds or deletes phonemes from the active track, and recalculates timing markers to fit the new sequence.
 
         Arguments:
@@ -118,22 +119,20 @@ class MiddleLayer(Widget):
         #TODO: refactor timing calculations to dedicated function and add callback in switchNote
         phonIndex = self.trackList[self.activeTrack].phonemeIndices[index]
         #update phoneme list and other phoneme-space lists
-        addition = 0
         if offset > 0:
-            if pause:
-                if len(self.trackList[self.activeTrack].phonemes) == phonIndex:
-                    addition = 3
-                else:
-                    addition = 4
-            else:
-                addition = 1
             for _ in range(offset):
-                self.trackList[self.activeTrack].notes[index].borders.append(0)
+                for _ in range(3):
+                    self.trackList[self.activeTrack].notes[index].borders.append(0)
+                self.trackList[self.activeTrack].notes[index].loopOverlap.append(0.5)
+                self.trackList[self.activeTrack].notes[index].loopOffset.append(0.5)
         elif offset < 0:
             for _ in range(-offset):
-                self.trackList[self.activeTrack].notes[index].borders.pop()
+                for _ in range(3):
+                    self.trackList[self.activeTrack].notes[index].borders.pop()
+                self.trackList[self.activeTrack].notes[index].loopOverlap.pop()
+                self.trackList[self.activeTrack].notes[index].loopOffset.pop()
         self.trackList[self.activeTrack].offsets.append((phonIndex, offset))
-        self.submitOffset(False, phonIndex, offset, addition)
+        self.submitOffset(False, phonIndex, offset)
     
     def switchNote(self, index:int) -> None:
         """Switches the places of the notes at positions index and index + 1 or the active track. Does currently not clean up timing markers afterwards, so doing so manually or by prompting a call of offsetPhonemes is currently required."""
@@ -161,8 +160,10 @@ class MiddleLayer(Widget):
         if index > 0:
             if self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
                 self.switchNote(index - 1)
+        autopauseOffset = self.trackList[self.activeTrack].notes[index].determineAutopause()
         self.trackList[self.activeTrack].buildPhonemeIndices()
-        self.trackList[self.activeTrack].notes[index].determineAutopause()
+        if autopauseOffset != 0:
+            self.submitOffset(False, self.trackList[self.activeTrack].phonemeIndices[index], autopauseOffset)
         if index == len(self.trackList[self.activeTrack].notes) - 1:
             self.trackList[self.activeTrack].borders[-2] = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
             self.trackList[self.activeTrack].borders[-1] = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length + global_consts.refTransitionLength
@@ -174,8 +175,11 @@ class MiddleLayer(Widget):
         if index == 0:
             start = 0
         else:
-            start = self.trackList[self.activeTrack].phonemeIndices[index - 1]
-        end = self.trackList[self.activeTrack].phonemeIndices[index]
+            start = self.trackList[self.activeTrack].phonemeIndices[index - 1] * 3
+        if index == len(self.trackList[self.activeTrack].phonemeIndices) - 1:
+            end = self.trackList[self.activeTrack].phonemeIndices[-1] * 3 + 3
+        else:
+            end = self.trackList[self.activeTrack].phonemeIndices[index] * 3
         print("border change submit:", start, end, self.trackList[self.activeTrack].borders[start:end])
         self.submitNamedPhonParamChange(False, "borders", start, list(self.trackList[self.activeTrack].borders[start:end]))
         if index > 0:
@@ -282,8 +286,8 @@ class MiddleLayer(Widget):
     def submitParamChange(self, final:bool, param, index:int, data) -> None:
         self.manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     
-    def submitOffset(self, final:bool, index:int, offset:int, addition:int) -> None:
-        self.manager.sendChange("offset", final, self.activeTrack, index, offset, addition)
+    def submitOffset(self, final:bool, index:int, offset:int) -> None:
+        self.manager.sendChange("offset", final, self.activeTrack, index, offset)
 
     def submitChangeLength(self, final:bool, length:int) -> None:
         self.manager.sendChange("changeLength", final, self.activeTrack, length)
@@ -302,13 +306,17 @@ class MiddleLayer(Widget):
         for i in self.trackList[track].offsets:
             if i[0] <= index:
                 index += i[1]
-        for i in self.trackList[track].notes:
-            if i > index:
-                break
-        else:
+        noteIndex = bisect_left(self.trackList[track].phonemeIndices, index)
+        while (self.trackList[track].phonemeIndices[noteIndex] == self.trackList[track].phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
+            noteIndex -= 1
+        if noteIndex > 0:
+            if (index - self.trackList[track].phonemeIndices[noteIndex]) >= len(self.trackList[track].notes[noteIndex].phonemes):
+                return
+            index -= self.trackList[track].phonemeIndices[noteIndex - 1]
+        if index >= len(self.trackList[track].notes[noteIndex].phonemes):
             return
-        if i.reference:
-            i.reference.updateStatus(index, value)
+        if self.trackList[track].notes[noteIndex].reference:
+            self.trackList[track].notes[noteIndex].reference.updateStatus(index, value)
     
     def updateAudioBuffer(self, track:int, index:int, data:torch.Tensor) -> None:
         """updates the audio buffer. The data of the track at position track of the trackList is updated with the tensor Data, starting from position index"""

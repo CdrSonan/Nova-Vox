@@ -185,7 +185,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].customCurves[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
-            inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], change.data[3], inputList, statusControl)
+            inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, statusControl)
             remoteConnection.put(StatusChange(change.data[0], None, None, "offsetApplied"))
         elif change.type == "changeLength":
             inputList[change.data[0]].length = change.data[1]

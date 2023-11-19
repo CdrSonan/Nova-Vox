@@ -45,7 +45,7 @@ class VocalSegment():
         self.phonemeKey = inputs.phonemes[index]
         self.vb = vb
         self.offset = inputs.offsets[index]
-        self.repetititionSpacing = inputs.repetititionSpacing[index].to(device = device)
+        self.repetititionSpacing = inputs.repetititionSpacing[index]
         self.pitch = inputs.pitch[self.start1:self.end3].to(dtype = float32, device = device)
         if inputs.useSteadiness:
             self.steadiness = inputs.steadiness[self.start1:self.end3].to(device = device)

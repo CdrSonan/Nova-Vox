@@ -12,14 +12,14 @@ import global_consts
 
 def calculateBorders(note:Note, context:NoteContext) -> None:
     phonemes = copy(note.phonemes)
-    if len(phonemes) == 0:
-        return
-    if phonemes[0] == "-":
+    if len(phonemes) > 0 and phonemes[0] == "-":
         phonemes.pop(0)
         if note.phonemeMode:
             note.carryOver = True
         else:
             note.carryOver = False
+    else:
+        note.carryOver = False
             #handle delegate logic
     phonemes = [i for i in phonemes if i in note.track.phonemeLengths.keys()]
     if context.preutterance:
@@ -28,13 +28,14 @@ def calculateBorders(note:Note, context:NoteContext) -> None:
     availableSpace = context.end - context.start
     reservedSpace = sum([i for i in phonemeLengths if i])
     numDropinPhonemes = sum([1 for i in phonemeLengths if not i])
-    if availableSpace >= reservedSpace + numDropinPhonemes * global_consts.refPhonemeLength:
+    if len(phonemes) > 0 and availableSpace >= reservedSpace + numDropinPhonemes * global_consts.refPhonemeLength:
         dropinLength = (availableSpace - reservedSpace) / numDropinPhonemes
     else:
         dropinLength = global_consts.refPhonemeLength
     phonemeLengths = [i if i else dropinLength for i in phonemeLengths]
-    compression = availableSpace / sum(phonemeLengths)
-    phonemeLengths = [i * compression for i in phonemeLengths]
+    if len(phonemes) > 0:
+        compression = availableSpace / sum(phonemeLengths)
+        phonemeLengths = [i * compression for i in phonemeLengths]
     mainBorders = [context.start,]
     for i in phonemeLengths:
         mainBorders.append(mainBorders[-1] + i)
@@ -58,8 +59,9 @@ def calculateBorders(note:Note, context:NoteContext) -> None:
         borders.append(trailingBorders[i])
         borders.append(leadingBorders[i])
     note.borders = borders
+    print("note.borders:", note.borders, context.trailingAutopause, context.end)
     if note.track.notes.index(note) == 0:
-        note.track.borders.wrappingBorders[0] = max(borders[0] - global_consts.refTransitionLength, 0)
+        note.track.borders.wrappingBorders[0] = max(note.xPos - global_consts.refTransitionLength, 0)
     if note.track.notes.index(note) == len(note.track.notes) - 1:
-        note.track.borders.wrappingBorders[1] = mainBorders[-1]
-        note.track.borders.wrappingBorders[2] = mainBorders[-1] + global_consts.refTransitionLength
+        note.track.borders.wrappingBorders[1] = note.xPos + note.length
+        note.track.borders.wrappingBorders[2] = note.xPos + note.length + global_consts.refTransitionLength

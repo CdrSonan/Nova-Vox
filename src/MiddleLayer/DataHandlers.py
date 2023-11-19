@@ -6,10 +6,11 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 from copy import copy
+from bisect import bisect_left
 import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.VB_Components.Voicebank import LiteVoicebank
-from Util import ensureTensorLength, noteToPitch, binarySearch
+from Util import ensureTensorLength, noteToPitch
 
 class Nodegraph():
     def __init__(self) -> None:
@@ -29,7 +30,7 @@ class Parameter():
     """class for holding and managing a parameter curve as seen by the main process. Exact layout will change with node tree implementation."""
 
     def __init__(self, path:str) -> None:
-        self.curve = torch.full([1000], 0)
+        self.curve = torch.full([5000], 0)
         self.enabled = True
 
 class Track():
@@ -61,8 +62,8 @@ class Track():
         self.breathiness = torch.full((5000,), 0, dtype = torch.half)
         self.steadiness = torch.full((5000,), 0, dtype = torch.half)
         self.aiBalance = torch.full((5000,), 0, dtype = torch.half)
-        self.loopOverlap = torch.tensor([], dtype = torch.half)
-        self.loopOffset = torch.tensor([], dtype = torch.half)
+        self.loopOverlap = LoopProxy(self, "overlap")
+        self.loopOffset = LoopProxy(self, "offset")
         self.vibratoSpeed = torch.full((5000,), 0, dtype = torch.half)
         self.vibratoStrength = torch.full((5000,), 0, dtype = torch.half)
         self.usePitch = True
@@ -116,20 +117,16 @@ class Track():
         for i, phoneme in enumerate(self.phonemes):
             if (phoneme not in self.phonemeLengths.keys()) and (phoneme not in ["_autopause", "pau", "-"]):
                 self.phonemes[i] = "pau"
-        if self.loopOverlap.size()[0] > len(self.phonemes):
-            self.loopOverlap = self.loopOverlap[:len(self.phonemes)]
-        elif self.loopOverlap.size()[0] < len(self.phonemes):
-            self.loopOverlap = torch.cat((self.loopOverlap, torch.zeros((len(self.phonemes) - self.loopOverlap.size()[0],), device = self.loopOverlap.device, dtype = torch.half)), 0)
-        if self.loopOffset.size()[0] > len(self.phonemes):
-            self.loopOffset = self.loopOffset[:len(self.phonemes)]
-        elif self.loopOffset.size()[0] < len(self.phonemes):
-            self.loopOffset = torch.cat((self.loopOffset, torch.zeros((len(self.phonemes) - self.loopOffset.size()[0],), device = self.loopOffset.device, dtype = torch.half)), 0)
         currentxPos = 0
         for i in self.notes:
             i.length = max(i.length, 1)
             if i.xPos <= currentxPos:
                 i.xPos = currentxPos + 1
             currentxPos = i.xPos
+            if len(i.loopOverlap) != len(i.phonemes):
+                i.loopOverlap += [0.5] * (len(i.phonemes) - len(i.loopOverlap))
+            if len(i.loopOffset) != len(i.phonemes):
+                i.loopOffset += [0.5] * (len(i.phonemes) - len(i.loopOffset))
         self.buildPhonemeIndices()
         #audio cache
         #vbPath
@@ -141,7 +138,7 @@ class Track():
             if len(self.phonemeIndices) == 0:
                 self.phonemeIndices.append(len(i))
             else:
-                self.phonemeIndices.append(i[-1] + len(i))
+                self.phonemeIndices.append(self.phonemeIndices[-1] + len(i))
                 
     def generateCaps(self) -> tuple([list, list]):
         """utility function for generating startCap and endCap attributes for the track. These are not required by the main process, and are instead sent to the rendering process with to_sequence"""
@@ -165,7 +162,7 @@ class Track():
         borders = []
         for i in self.borders:
             borders.append(int(i))
-        sequence = VocalSequence(self.length, borders, list(self.phonemes()), caps[0], caps[1], self.loopOffset, self.loopOverlap, pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
+        sequence = VocalSequence(self.length, borders, self.phonemes(), caps[0], caps[1], self.loopOffset(), self.loopOverlap(), pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
         return self.vbPath, None, sequence#None object is placeholder for wrapped NodeGraph
         #TODO: add node wrapping
 
@@ -190,6 +187,8 @@ class Note():
         self.content = ""
         self.phonemes = []
         self.borders = []
+        self.loopOverlap = []
+        self.loopOffset = []
         self.pronuncIndex = None
         self.autopause = False
         self.carryOver = False
@@ -203,9 +202,9 @@ class Note():
                 yield self[i]
         else:
             if val < len(self.phonemes):
-                return self.phonemes[val]
+                return self.phonemes[val], self.loopOverlap[val], self.loopOffset[val]
             elif self.autopause and (val == len(self.phonemes)):
-                return "_autopause"
+                return "_autopause", 0, 0
             else:
                 raise IndexError("index out of range")
             
@@ -246,9 +245,10 @@ class Note():
             return context
         if self.autopause:
             context.trailingAutopause = self.track.borders[self.track.phonemeIndices[self.track.notes.index(self) + 1] * 3 + 1]
+            context.end = self.xPos + self.length
         else:
             context.trailingAutopause = None
-        context.end = self.track.borders[self.track.phonemeIndices[self.track.notes.index(self)] * 3 + 1]
+            context.end = self.track.borders[self.track.phonemeIndices[self.track.notes.index(self)] * 3 + 1]
         return context
     
     def delegatePhonemes(self, notes:list):
@@ -264,14 +264,18 @@ class Note():
         previousAutopause = copy(self.autopause)
         if self.track.notes.index(self) == len(self.track.notes) - 1:
             self.autopause = False
-            return
+            return 0
         self.autopause = self.track.notes[self.track.notes.index(self) + 1].xPos - self.xPos - self.length > self.track.pauseThreshold
         if self.autopause and not previousAutopause:
             for _ in range(3):
                 self.borders.append(0)
+            self.track.buildPhonemeIndices()
+            return 1
         elif not self.autopause and previousAutopause:
             for _ in range(3):
                 self.borders.pop()
+            self.track.buildPhonemeIndices()
+            return -1
             
 
 class PhonemeProxy():
@@ -303,10 +307,16 @@ class PhonemeProxy():
                 phonIndex = len(self) + val
             else:
                 phonIndex = val
-            noteIndex = binarySearch(self.track.phonemeIndices, lambda array, index: array[index] >= phonIndex, len(self.track.phonemeIndices)) - 1
+            noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
-            return self.track.notes[noteIndex].phonemes[phonIndex - self.track.phonemeIndices[noteIndex]]
+            if noteIndex > 0:
+                if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
+                    return "_autopause"
+                return self.track.notes[noteIndex].phonemes[phonIndex - self.track.phonemeIndices[noteIndex - 1]]
+            if phonIndex >= len(self.track.notes[noteIndex].phonemes):
+                return "_autopause"
+            return self.track.notes[noteIndex].phonemes[phonIndex]
     
     def __setitem__(self, val, newVal):
         if val.__class__ == slice:
@@ -335,10 +345,17 @@ class PhonemeProxy():
                 phonIndex = len(self) + val
             else:
                 phonIndex = val
-            noteIndex = binarySearch(self.track.phonemeIndices, lambda array, index: array[index] >= phonIndex, len(self.track.phonemeIndices)) - 1
+            noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
-            self.track.notes[noteIndex].phonemes[phonIndex - self.track.phonemeIndices[noteIndex]] = newVal
+            if noteIndex > 0:
+                if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
+                    raise ValueError("cannot replace automatically inserted pause phoneme")
+                self.track.notes[noteIndex].phonemes[phonIndex - self.track.phonemeIndices[noteIndex - 1]] = newVal
+            else:
+                if phonIndex >= len(self.track.notes[noteIndex].phonemes):
+                    raise ValueError("cannot replace automatically inserted pause phoneme")
+                self.track.notes[noteIndex].phonemes[phonIndex] = newVal
             
     def __len__(self):
         if len(self.track.phonemeIndices) == 0:
@@ -387,12 +404,15 @@ class BorderProxy():
                 brdIndex = val
             if brdIndex == 0 or len(self.track.phonemeIndices) == 0:
                 return self.wrappingBorders[brdIndex]
-            noteIndex = binarySearch(self.track.phonemeIndices, lambda array, index: array[index] * 3 >= brdIndex - 1, len(self.track.phonemeIndices))
+            noteIndex = bisect_left(self.track.phonemeIndices, brdIndex / 3.)
+            print("get", noteIndex, brdIndex)
             if noteIndex == len(self.track.phonemeIndices):
                 return self.wrappingBorders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3]
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
-            return self.track.notes[noteIndex].borders[brdIndex - self.track.phonemeIndices[noteIndex] * 3]
+            if noteIndex > 0:
+                return self.track.notes[noteIndex].borders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3 - 1]
+            return self.track.notes[noteIndex].borders[brdIndex - 1]
     
     def __setitem__(self, val, newVal):
         if val.__class__ == slice:
@@ -424,13 +444,17 @@ class BorderProxy():
             if brdIndex == 0 or len(self.track.phonemeIndices) == 0:
                 self.wrappingBorders[brdIndex] = newVal
                 return
-            noteIndex = binarySearch(self.track.phonemeIndices, lambda array, index: array[index] * 3 >= brdIndex - 1, len(self.track.phonemeIndices))
+            noteIndex = bisect_left(self.track.phonemeIndices, brdIndex / 3.)
+            print("set", noteIndex, brdIndex)
             if noteIndex == len(self.track.phonemeIndices):
                 self.wrappingBorders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3] = newVal
                 return
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
-            self.track.notes[noteIndex].borders[brdIndex - self.track.phonemeIndices[noteIndex] * 3] = newVal
+            if noteIndex > 0:
+                self.track.notes[noteIndex].borders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3 - 1] = newVal
+            else:
+                self.track.notes[noteIndex].borders[brdIndex - 1] = newVal
         
     def __len__(self):
         if len(self.track.phonemeIndices) == 0:
@@ -441,6 +465,120 @@ class BorderProxy():
         for i in range(len(self)):
             yield self[i]
             
+    def __call__(self) -> list:
+        return list(self[:])
+    
+    def __str__(self) -> str:
+        return str(self())
+
+class LoopProxy():
+    
+    def __init__(self, track:Track, type:str) -> None:
+        self.track = track
+        self.type = type
+    
+    def __getitem__(self, val):
+        if val.__class__ == slice:
+            if val.start == None:
+                start = 0
+            elif val.start < 0:
+                start = len(self) + val.start
+            else:
+                start = val.start
+            if val.stop == None:
+                stop = len(self)
+            elif val.stop < 0:
+                stop = len(self) + val.stop
+            else:
+                stop = val.stop
+            if val.step == None:
+                step = 1
+            else:
+                step = val.step
+            return [self[i] for i in range(start, stop, step)]
+        else:
+            if val < 0:
+                phonIndex = len(self) + val
+            else:
+                phonIndex = val
+            noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
+            while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
+                noteIndex -= 1
+            if self.type == "offset":
+                if noteIndex > 0:
+                    if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].loopOffset):
+                        return 0
+                    return self.track.notes[noteIndex].loopOffset[phonIndex - self.track.phonemeIndices[noteIndex - 1]]
+                if phonIndex >= len(self.track.notes[noteIndex].loopOffset):
+                    return 0
+                return self.track.notes[noteIndex].loopOffset[phonIndex]
+            elif self.type == "overlap":
+                if noteIndex > 0:
+                    if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].loopOverlap):
+                        return 0
+                    return self.track.notes[noteIndex].loopOverlap[phonIndex - self.track.phonemeIndices[noteIndex - 1]]
+                if phonIndex >= len(self.track.notes[noteIndex].loopOverlap):
+                    return 0
+                return self.track.notes[noteIndex].loopOverlap[phonIndex]
+    
+    def __setitem__(self, val, newVal):
+        if val.__class__ == slice:
+            if val.start == None:
+                start = 0
+            elif val.start < 0:
+                start = len(self) + val.start
+            else:
+                start = val.start
+            if val.stop == None:
+                stop = len(self)
+            elif val.stop < 0:
+                stop = len(self) + val.stop
+            else:
+                stop = val.stop
+            if val.step == None:
+                step = 1
+            else:
+                step = val.step
+            if len(newVal) != len(range(start, stop, step)):
+                raise ValueError("new value must have same length as slice")
+            for i in range(start, stop, step):
+                self[i] = newVal[i]
+        else:
+            if val < 0:
+                phonIndex = len(self) + val
+            else:
+                phonIndex = val
+            noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
+            while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
+                noteIndex -= 1
+            if self.type == "offset":
+                if noteIndex > 0:
+                    if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
+                        print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
+                    self.track.notes[noteIndex].loopOffset[phonIndex - self.track.phonemeIndices[noteIndex - 1]] = newVal
+                else:
+                    if phonIndex >= len(self.track.notes[noteIndex].phonemes):
+                        print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
+                    self.track.notes[noteIndex].loopOffset[phonIndex] = newVal
+            elif self.type == "overlap":
+                if noteIndex > 0:
+                    if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
+                        print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
+                    self.track.notes[noteIndex].loopOverlap[phonIndex - self.track.phonemeIndices[noteIndex - 1]] = newVal
+                else:
+                    if phonIndex >= len(self.track.notes[noteIndex].phonemes):
+                        print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
+                    self.track.notes[noteIndex].loopOverlap[phonIndex] = newVal
+            
+    def __len__(self):
+        if len(self.track.phonemeIndices) == 0:
+            return 0
+        return self.track.phonemeIndices[-1]
+    
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
+    
     def __call__(self) -> list:
         return list(self[:])
     

@@ -312,18 +312,16 @@ class TimingOptns(ScrollView):
         for i in self.rectangles2:
             self.children[0].canvas.remove(i)
         del self.rectangles2[:]
-        data1 = middleLayer.trackList[middleLayer.activeTrack].loopOverlap
-        data2 = middleLayer.trackList[middleLayer.activeTrack].loopOffset
         self.points1 = []
         self.points2 = []
-        for i in range(data1.size()[0]):
+        for i, data in enumerate(zip(middleLayer.trackList[middleLayer.activeTrack].loopOverlap, middleLayer.trackList[middleLayer.activeTrack].loopOffset)):
             middle = self.xScale * (middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] + middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 3]) / 2
             if middle < floor(self.scroll_x * (self.children[0].width - self.width) * 0.9):
                 continue
             elif middle > ceil((self.scroll_x * (self.children[0].width - self.width) + self.width) / 0.9):
                 break
-            self.points1.append((middle - 5, data1[i].item() * self.height / 2))
-            self.points2.append((middle - 5, data2[i].item() * self.height / 2))
+            self.points1.append((middle - 5, data[0] * self.height / 2))
+            self.points2.append((middle - 5, data[1] * self.height / 2))
         with self.children[0].canvas:
             self.color = Color(1, 0, 0, 1)
             for i in self.points1:

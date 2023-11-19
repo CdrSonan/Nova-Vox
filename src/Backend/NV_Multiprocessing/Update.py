@@ -8,7 +8,7 @@
 import torch
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl
 
-def trimSequence(index:int, position:int, delta:int, addition:int, inputList:list, statusControl:list) -> tuple([list, list]):
+def trimSequence(index:int, position:int, delta:int, inputList:list, statusControl:list) -> tuple([list, list]):
     """Function used for adding to or removing phonemes from a VocalSequence. Automatically updates control structures and schedules updates as required
     
     Parameters:
@@ -41,12 +41,9 @@ def trimSequence(index:int, position:int, delta:int, addition:int, inputList:lis
     endCaps = inputList[index].endCaps
     if delta > 0:
         phonemes = phonemes[0:position] + ["_0"] * delta + phonemes[position:]
-        offsets = torch.cat([offsets[0:position], torch.full([delta,], 0.5), offsets[position:]], 0)
-        repetititionSpacing = torch.cat([repetititionSpacing[0:position], torch.full([delta,], 0.5), repetititionSpacing[position:]], 0)
-        if 3 * position + addition == len(borders):
-            borders = borders[:] + [borders[-1] + 1] * (3 * delta)
-        else:
-            borders = borders[0:3 * position + addition] + [borders[3 * position + addition] + 1] * (3 * delta) + borders[3 * position + addition:]
+        offsets = offsets[0:position] + [0.5] * delta + offsets[position:]
+        repetititionSpacing = repetititionSpacing[0:position] + [0.5] * delta + repetititionSpacing[position:]
+        borders = borders[0:3 * position] + [borders[3 * position] + 1] * (3 * delta) + borders[3 * position:]
         startCaps = startCaps[0:position] + [False] * delta + startCaps[position:]
         endCaps = endCaps[0:position] + [False] * delta + endCaps[position:]
         if position == 0:
@@ -60,8 +57,8 @@ def trimSequence(index:int, position:int, delta:int, addition:int, inputList:lis
         statusControl[index].ai = torch.cat([statusControl[index].ai[0:position], torch.zeros([delta,]), statusControl[index].ai[position:]], 0)
     elif delta < 0:
         phonemes = phonemes[0:position] + phonemes[position - delta:]
-        offsets = torch.cat([offsets[0:position], offsets[position - delta:]], 0)
-        repetititionSpacing = torch.cat([repetititionSpacing[0:position], repetititionSpacing[position - delta:]], 0)
+        offsets = offsets[0:position] + offsets[position - delta:]
+        repetititionSpacing = repetititionSpacing[0:position] + repetititionSpacing[position - delta:]
         borders = borders[0:3 * position] + borders[3 * position - 3 * delta:]
         startCaps = startCaps[0:position] + startCaps[position - delta:]
         endCaps = endCaps[0:position] + endCaps[position - delta:]
