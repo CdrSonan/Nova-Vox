@@ -43,15 +43,12 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, statusContr
         phonemes = phonemes[0:position] + ["_0"] * delta + phonemes[position:]
         offsets = offsets[0:position] + [0.5] * delta + offsets[position:]
         repetititionSpacing = repetititionSpacing[0:position] + [0.5] * delta + repetititionSpacing[position:]
-        borders = borders[0:3 * position] + [borders[3 * position] + 1] * (3 * delta) + borders[3 * position:]
+        borders = borders[0:3 * position] + [borders[3 * position - 1] + 1] * (3 * delta) + borders[3 * position:]
         startCaps = startCaps[0:position] + [False] * delta + startCaps[position:]
         endCaps = endCaps[0:position] + [False] * delta + endCaps[position:]
         if position == 0:
             startCaps[0] = True
-            if len(startCaps) > position + delta:
-                startCaps[position + delta] = False
         if position + delta >= len(endCaps) - 1:
-            endCaps[position] = False
             endCaps[-1] = True
         statusControl[index].rs = torch.cat([statusControl[index].rs[0:position], torch.zeros([delta,]), statusControl[index].rs[position:]], 0)
         statusControl[index].ai = torch.cat([statusControl[index].ai[0:position], torch.zeros([delta,]), statusControl[index].ai[position:]], 0)

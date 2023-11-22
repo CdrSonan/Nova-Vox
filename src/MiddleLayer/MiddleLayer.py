@@ -164,6 +164,7 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].buildPhonemeIndices()
         if autopauseOffset != 0:
             self.submitOffset(False, self.trackList[self.activeTrack].phonemeIndices[index], autopauseOffset)
+            self.trackList[self.activeTrack].offsets.append((self.trackList[self.activeTrack].phonemeIndices[index], autopauseOffset))
         if index == len(self.trackList[self.activeTrack].notes) - 1:
             self.trackList[self.activeTrack].borders[-2] = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
             self.trackList[self.activeTrack].borders[-1] = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length + global_consts.refTransitionLength

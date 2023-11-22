@@ -688,13 +688,14 @@ class ChangeLyrics(UnifiedAction):
             middleLayer.submitNamedPhonParamChange(False, "phonemes", phonemeIndex, phonemes)
             offsets = []
             for i in phonemes:
-                if i == "_autopause" or i == "pau":
+                if i == "pau":
                     offsets += [0.]
                 elif middleLayer.trackList[middleLayer.activeTrack].phonemeLengths[i] == None:
                     offsets += [0.5]
                 else:
                     offsets += [0.05]
-            middleLayer.trackList[middleLayer.activeTrack].loopOffset[phonemeIndex:middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index]] = offsets
+            print(len(offsets), middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index] - phonemeIndex, phonemeIndex)
+            middleLayer.trackList[middleLayer.activeTrack].loopOffset[phonemeIndex:middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index]] = offsets#index out of range (last note?)
             middleLayer.submitNamedPhonParamChange(False, "offsets", phonemeIndex, offsets)
             middleLayer.submitFinalize()
         super().__init__(action, index, inputText, pronuncIndex, *args, **kwargs)

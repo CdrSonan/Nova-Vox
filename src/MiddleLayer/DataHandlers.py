@@ -244,7 +244,7 @@ class Note():
             context.trailingAutopause = None
             return context
         if self.autopause:
-            context.trailingAutopause = self.track.borders[self.track.phonemeIndices[self.track.notes.index(self) + 1] * 3 + 1]
+            context.trailingAutopause = self.track.borders[self.track.phonemeIndices[self.track.notes.index(self)] * 3 + 1]
             context.end = self.xPos + self.length
         else:
             context.trailingAutopause = None
@@ -339,7 +339,7 @@ class PhonemeProxy():
             if len(newVal) != len(range(start, stop, step)):
                 raise ValueError("new value must have same length as slice")
             for i in range(start, stop, step):
-                self[i] = newVal[i]
+                self[i] = newVal[i - start]
         else:
             if val < 0:
                 phonIndex = len(self) + val
@@ -435,7 +435,7 @@ class BorderProxy():
             if len(newVal) != len(range(start, stop, step)):
                 raise ValueError("new value must have same length as slice")
             for i in range(start, stop, step):
-                self[i] = newVal[i]
+                self[i] = newVal[i - start]
         else:
             if val < 0:
                 brdIndex = len(self) + val
@@ -542,32 +542,38 @@ class LoopProxy():
             if len(newVal) != len(range(start, stop, step)):
                 raise ValueError("new value must have same length as slice")
             for i in range(start, stop, step):
-                self[i] = newVal[i]
+                print("test", i, len(self))
+                self[i] = newVal[i - start]
         else:
             if val < 0:
                 phonIndex = len(self) + val
             else:
                 phonIndex = val
             noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
+            print(noteIndex, phonIndex)
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
             if self.type == "offset":
                 if noteIndex > 0:
                     if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
                         print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
+                        return
                     self.track.notes[noteIndex].loopOffset[phonIndex - self.track.phonemeIndices[noteIndex - 1]] = newVal
                 else:
                     if phonIndex >= len(self.track.notes[noteIndex].phonemes):
                         print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
+                        return
                     self.track.notes[noteIndex].loopOffset[phonIndex] = newVal
             elif self.type == "overlap":
                 if noteIndex > 0:
                     if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
                         print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
+                        return
                     self.track.notes[noteIndex].loopOverlap[phonIndex - self.track.phonemeIndices[noteIndex - 1]] = newVal
                 else:
                     if phonIndex >= len(self.track.notes[noteIndex].phonemes):
                         print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
+                        return
                     self.track.notes[noteIndex].loopOverlap[phonIndex] = newVal
             
     def __len__(self):
