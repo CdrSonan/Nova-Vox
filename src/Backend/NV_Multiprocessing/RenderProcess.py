@@ -149,6 +149,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 statusControl[change.data[0]].rs[change.data[2]:change.data[2] + len(change.data[3])] *= 0
                 statusControl[change.data[0]].ai[change.data[2]:change.data[2] + len(change.data[3])] *= 0
                 if change.data[1] == "phonemes":
+                    print("pre phoneme change:", inputList[change.data[0]].phonemes, inputList[change.data[0]].startCaps, inputList[change.data[0]].endCaps)
                     for j in range(len(change.data[3])):
                         if change.data[3][j] in ("_autopause", "pau"):
                             if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
@@ -160,10 +161,15 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 inputList[change.data[0]].startCaps[change.data[2] + j + 1] = False
                             if change.data[2] + j > 0:
                                 inputList[change.data[0]].endCaps[change.data[2] + j - 1] = False
+                    if change.data[2] > 0 and inputList[change.data[0]].phonemes[change.data[2] - 1] in ("_autopause", "pau"):
+                        inputList[change.data[0]].startCaps[change.data[2]] = True
+                    if change.data[2] + len(change.data[3]) < len(inputList[change.data[0]].endCaps) and inputList[change.data[0]].phonemes[change.data[2] + len(change.data[3])] in ("_autopause", "pau"):
+                        inputList[change.data[0]].endCaps[change.data[2] + len(change.data[3]) - 1] = True
                     if change.data[2] + len(change.data[3]) == len(inputList[change.data[0]].startCaps) > 0:
                         inputList[change.data[0]].endCaps[-1] = True
                     if change.data[2] == 0 and len(inputList[change.data[0]].startCaps) > 0:
                         inputList[change.data[0]].startCaps[0] = True
+                    print("post phoneme change:", inputList[change.data[0]].phonemes, inputList[change.data[0]].startCaps, inputList[change.data[0]].endCaps)
             elif change.data[1] == "borders":
                 start = inputList[change.data[0]].borders[change.data[2]] * global_consts.batchSize
                 end = inputList[change.data[0]].borders[change.data[2] + len(change.data[3]) - 1] * global_consts.batchSize
@@ -185,8 +191,10 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].customCurves[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
+            print("pre offset:", inputList[change.data[0]].phonemes, inputList[change.data[0]].borders, inputList[change.data[0]].startCaps, inputList[change.data[0]].endCaps)
             inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, statusControl)
             remoteConnection.put(StatusChange(change.data[0], None, None, "offsetApplied"))
+            print("post offset:", inputList[change.data[0]].phonemes, inputList[change.data[0]].borders, inputList[change.data[0]].startCaps, inputList[change.data[0]].endCaps)
         elif change.type == "changeLength":
             inputList[change.data[0]].length = change.data[1]
             inputList[change.data[0]].pitch = ensureTensorLength(inputList[change.data[0]].pitch, change.data[1], -1.)
@@ -552,14 +560,12 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
                             waveform += excitationSignal.to(device = torch.device("cpu"))
                             remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
-                        print("check", firstPoint, lastPoint, j)
                         remoteConnection.put(StatusChange(i, j - 1, 5))
                     if j > 0 and internalInputs.endCaps[j - 1] == True:
                         aiActive = False
                         #TODO: reset recurrent AI Tensors
 
                     if (j > 0) & (interOutput == False):
-                        print("check2", firstPoint, lastPoint, j)
                         remoteConnection.put(StatusChange(i, j - 1, 5))
 
                     #update cache with new data, if cache is used

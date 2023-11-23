@@ -224,16 +224,23 @@ class Note():
         for i in range(len(self)):
             yield self[i]
     
-    def makeContext(self):
+    def makeContext(self, keepStart:bool = False):
+        if keepStart and len(self.borders) > 0:
+            if self.track.phonemeLengths[self.phonemes[0]] == None:
+                start = self.borders[0]
+            else:
+                start = self.borders[3]
+        else:
+            start = self.xPos
         if len(self.phonemes) == 0:
-            context = NoteContext(self.xPos, 0)
+            context = NoteContext(start, 0)
             print("context created for empty note.")
         elif self.carryOver:
-            context = NoteContext(self.xPos, -self.length / (len(self.phonemes) + 1))
+            context = NoteContext(start, -self.length / (len(self.phonemes) + 1))
         elif self.track.phonemeLengths[self.phonemes[0]] == None:
-            context = NoteContext(self.xPos, 0)
+            context = NoteContext(start, 0)
         else:
-            context = NoteContext(self.xPos, self.track.phonemeLengths[self.phonemes[0]])
+            context = NoteContext(start, self.track.phonemeLengths[self.phonemes[0]])
         return self.propagateContext(context)
     
     def propagateContext(self, context:NoteContext):
@@ -405,7 +412,6 @@ class BorderProxy():
             if brdIndex == 0 or len(self.track.phonemeIndices) == 0:
                 return self.wrappingBorders[brdIndex]
             noteIndex = bisect_left(self.track.phonemeIndices, brdIndex / 3.)
-            print("get", noteIndex, brdIndex)
             if noteIndex == len(self.track.phonemeIndices):
                 return self.wrappingBorders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3]
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
@@ -445,7 +451,6 @@ class BorderProxy():
                 self.wrappingBorders[brdIndex] = newVal
                 return
             noteIndex = bisect_left(self.track.phonemeIndices, brdIndex / 3.)
-            print("set", noteIndex, brdIndex)
             if noteIndex == len(self.track.phonemeIndices):
                 self.wrappingBorders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3] = newVal
                 return
@@ -542,7 +547,6 @@ class LoopProxy():
             if len(newVal) != len(range(start, stop, step)):
                 raise ValueError("new value must have same length as slice")
             for i in range(start, stop, step):
-                print("test", i, len(self))
                 self[i] = newVal[i - start]
         else:
             if val < 0:
@@ -550,7 +554,6 @@ class LoopProxy():
             else:
                 phonIndex = val
             noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
-            print(noteIndex, phonIndex)
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
             if self.type == "offset":

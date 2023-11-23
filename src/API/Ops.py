@@ -466,6 +466,7 @@ class ChangeParam(UnifiedAction):
                 for i in range(*middleLayer.posToNote(start, start + len(data))):
                     middleLayer.recalculateBasePitch(i, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos + middleLayer.trackList[middleLayer.activeTrack].notes[i].length)
                 middleLayer.ids["pianoRoll"].redrawPitch()
+                middleLayer.submitFinalize()
             else:
                 middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                 middleLayer.submitParamChange(True, middleLayer.activeParam, start, torch.tensor(data, dtype = torch.half))
@@ -529,7 +530,7 @@ class AddNote(UnifiedAction):
                 middleLayer.trackList[middleLayer.activeTrack].notes.append(Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
             else:
                 middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
-            middleLayer.adjustNote(index, 100, -1)
+            middleLayer.adjustNote(index, 100, None, False, True)
         super().__init__(action, index, x, y, reference, *args, **kwargs)
         self.index = index
         self.x = x
@@ -572,7 +573,7 @@ class RemoveNote(UnifiedAction):
                 middleLayer.offsetPhonemes(index, middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1] - middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
             middleLayer.trackList[middleLayer.activeTrack].notes.pop(index)
             if index < len(middleLayer.trackList[middleLayer.activeTrack].notes):
-                middleLayer.adjustNote(index)
+                middleLayer.adjustNote(index, None, None, False, True)
         super().__init__(action, index, *args, **kwargs)
         self.index = index
     
@@ -590,7 +591,7 @@ class ChangeNoteLength(UnifiedAction):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].length = length
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
-            return middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos)
+            return middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
         super().__init__(action, index, x, length, *args, **kwargs)
         self.index = index
         self.x = x
@@ -618,7 +619,7 @@ class MoveNote(UnifiedAction):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
-            return middleLayer.adjustNote(index, oldPos = oldPos)
+            return middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
         super().__init__(action, index, x, y, *args, **kwargs)
         self.index = index
         self.x = x
@@ -678,13 +679,14 @@ class ChangeLyrics(UnifiedAction):
             offset = len(phonemes) - len(middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemes)
             middleLayer.offsetPhonemes(index, offset)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemes = phonemes
-            middleLayer.adjustNote(index, None, None)
+            middleLayer.adjustNote(index, None, None, False, True)
             if middleLayer.trackList[middleLayer.activeTrack].notes[index].autopause:
-                phonemes.insert(0, "_autopause")
+                phonemes.append("_autopause")
             if index == 0:
                 phonemeIndex = 0
             else:
                 phonemeIndex = middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1]
+            print(phonemeIndex, phonemes, offset)
             middleLayer.submitNamedPhonParamChange(False, "phonemes", phonemeIndex, phonemes)
             offsets = []
             for i in phonemes:
@@ -694,7 +696,6 @@ class ChangeLyrics(UnifiedAction):
                     offsets += [0.5]
                 else:
                     offsets += [0.05]
-            print(len(offsets), middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index] - phonemeIndex, phonemeIndex)
             middleLayer.trackList[middleLayer.activeTrack].loopOffset[phonemeIndex:middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index]] = offsets#index out of range (last note?)
             middleLayer.submitNamedPhonParamChange(False, "offsets", phonemeIndex, offsets)
             middleLayer.submitFinalize()

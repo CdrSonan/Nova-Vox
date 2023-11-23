@@ -59,7 +59,7 @@ def calculateBorders(note:Note, context:NoteContext) -> None:
         borders.append(trailingBorders[i])
         borders.append(leadingBorders[i])
     note.borders = borders
-    print("note.borders:", note.borders, context.trailingAutopause, context.end)
+    print("borders:", note.borders, context.start, context.end)
     if note.track.notes.index(note) == 0:
         if len(note.phonemes) > 0:
             note.track.borders.wrappingBorders[0] = max(note.borders[0] - global_consts.refTransitionLength, 0)
