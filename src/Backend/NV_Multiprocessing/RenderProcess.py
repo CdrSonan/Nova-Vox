@@ -149,7 +149,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 statusControl[change.data[0]].rs[change.data[2]:change.data[2] + len(change.data[3])] *= 0
                 statusControl[change.data[0]].ai[change.data[2]:change.data[2] + len(change.data[3])] *= 0
                 if change.data[1] == "phonemes":
-                    print("pre phoneme change:", inputList[change.data[0]].phonemes, inputList[change.data[0]].startCaps, inputList[change.data[0]].endCaps)
                     for j in range(len(change.data[3])):
                         if change.data[3][j] in ("_autopause", "pau"):
                             if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
@@ -169,7 +168,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         inputList[change.data[0]].endCaps[-1] = True
                     if change.data[2] == 0 and len(inputList[change.data[0]].startCaps) > 0:
                         inputList[change.data[0]].startCaps[0] = True
-                    print("post phoneme change:", inputList[change.data[0]].phonemes, inputList[change.data[0]].startCaps, inputList[change.data[0]].endCaps)
             elif change.data[1] == "borders":
                 start = inputList[change.data[0]].borders[change.data[2]] * global_consts.batchSize
                 end = inputList[change.data[0]].borders[change.data[2] + len(change.data[3]) - 1] * global_consts.batchSize
@@ -191,10 +189,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].customCurves[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
-            print("pre offset:", inputList[change.data[0]].phonemes, inputList[change.data[0]].borders, inputList[change.data[0]].startCaps, inputList[change.data[0]].endCaps)
             inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, statusControl)
             remoteConnection.put(StatusChange(change.data[0], None, None, "offsetApplied"))
-            print("post offset:", inputList[change.data[0]].phonemes, inputList[change.data[0]].borders, inputList[change.data[0]].startCaps, inputList[change.data[0]].endCaps)
         elif change.type == "changeLength":
             inputList[change.data[0]].length = change.data[1]
             inputList[change.data[0]].pitch = ensureTensorLength(inputList[change.data[0]].pitch, change.data[1], -1.)
