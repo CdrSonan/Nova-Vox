@@ -531,6 +531,7 @@ class AddNote(UnifiedAction):
             else:
                 middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
             middleLayer.adjustNote(index, 100, None, False, True)
+            middleLayer.submitFinalize()
         super().__init__(action, index, x, y, reference, *args, **kwargs)
         self.index = index
         self.x = x
@@ -574,6 +575,7 @@ class RemoveNote(UnifiedAction):
             middleLayer.trackList[middleLayer.activeTrack].notes.pop(index)
             if index < len(middleLayer.trackList[middleLayer.activeTrack].notes):
                 middleLayer.adjustNote(index, None, None, False, True)
+                middleLayer.submitFinalize()
         super().__init__(action, index, *args, **kwargs)
         self.index = index
     
@@ -591,7 +593,8 @@ class ChangeNoteLength(UnifiedAction):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].length = length
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
-            return middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
+            middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
+            middleLayer.submitFinalize()
         super().__init__(action, index, x, length, *args, **kwargs)
         self.index = index
         self.x = x
@@ -619,7 +622,8 @@ class MoveNote(UnifiedAction):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
-            return middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
+            middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
+            middleLayer.submitFinalize()
         super().__init__(action, index, x, y, *args, **kwargs)
         self.index = index
         self.x = x
@@ -686,7 +690,6 @@ class ChangeLyrics(UnifiedAction):
                 phonemeIndex = 0
             else:
                 phonemeIndex = middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1]
-            print(phonemeIndex, phonemes, offset)
             middleLayer.submitNamedPhonParamChange(False, "phonemes", phonemeIndex, phonemes)
             offsets = []
             for i in phonemes:

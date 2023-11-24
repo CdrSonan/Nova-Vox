@@ -116,7 +116,6 @@ class MiddleLayer(Widget):
         When using a positive offset, this function adds the placeholder phoneme _X (or several of them). These should be overwritten with normal
         phonemes before submitting the change to the rendering process with the final flag set."""
 
-        #TODO: refactor timing calculations to dedicated function and add callback in switchNote
         phonIndex = self.trackList[self.activeTrack].phonemeIndices[index]
         #update phoneme list and other phoneme-space lists
         if offset > 0:
@@ -139,16 +138,28 @@ class MiddleLayer(Widget):
 
         note = self.trackList[self.activeTrack].notes.pop(index + 1)
         self.trackList[self.activeTrack].notes.insert(index, note)
-        self.adjustNote(index, note.length, note.xPos, False, True)
-        self.adjustNote(index + 1, self.trackList[self.activeTrack].notes[index + 1].length, self.trackList[self.activeTrack].notes[index + 1].xPos, False, True)
+        self.adjustNote(index + 1, None, None, False, False)
+        self.adjustNote(index, None, None, False, True)
+        self.trackList[self.activeTrack].notes[index].reference.index = index
+        self.trackList[self.activeTrack].notes[index + 1].reference.index = index + 1
         if index == 0:
             start = 0
+            borderStart = 0
         else:
             start = self.trackList[self.activeTrack].phonemeIndices[index - 1]
-        end = self.trackList[self.activeTrack].phonemeIndices[index + 1]
+            borderStart = 3 * start + 1
+        if index == len(self.trackList[self.activeTrack].phonemeIndices) - 2:
+            end = len(self.trackList[self.activeTrack].phonemes)
+            borderEnd = len(self.trackList[self.activeTrack].borders)
+        else:
+            end = self.trackList[self.activeTrack].phonemeIndices[index + 1]
+            borderEnd = 3 * end + 1
         for i in range(start, end):
             self.repairBorders(i)
-        self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[start:end])
+        self.submitNamedPhonParamChange(False, "phonemes", start, self.trackList[self.activeTrack].phonemes[start:end])
+        self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[borderStart:borderEnd])
+        print(self.trackList[self.activeTrack].phonemes[start:end])
+        print(self.trackList[self.activeTrack].borders[borderStart:borderEnd])
     
     def adjustNote(self, index:int, oldLength:int = None, oldPos:int = None, keepStart:bool = False, adjustPrevious:bool = False) -> None:
         """Adjusts a note's attributes after it has been moved or scaled with respect to its surrounding notes. The current position and length are read from its UI representation, the old one must be given as arguments."""
@@ -157,16 +168,20 @@ class MiddleLayer(Widget):
             oldLength = self.trackList[self.activeTrack].notes[index].length
         if oldPos == None:
             oldPos = self.trackList[self.activeTrack].notes[index].xPos
-        if index > 0:
-            if self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
-                self.switchNote(index - 1)
+        if index > 0 and self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
+            self.switchNote(index - 1)
+        elif index < len(self.trackList[self.activeTrack].notes) - 1 and self.trackList[self.activeTrack].notes[index + 1].xPos < self.trackList[self.activeTrack].notes[index].xPos:
+            self.switchNote(index)
         autopauseOffset = self.trackList[self.activeTrack].notes[index].determineAutopause()
         self.trackList[self.activeTrack].buildPhonemeIndices()
         if autopauseOffset not in (0. , None):
-            self.submitOffset(False, self.trackList[self.activeTrack].phonemeIndices[index] - 1, autopauseOffset)
             if autopauseOffset > 0:
+                self.submitOffset(False, self.trackList[self.activeTrack].phonemeIndices[index] - 1, autopauseOffset)
                 self.submitNamedPhonParamChange(False, "phonemes", self.trackList[self.activeTrack].phonemeIndices[index] - 1, ["_autopause",])
-            self.trackList[self.activeTrack].offsets.append((self.trackList[self.activeTrack].phonemeIndices[index], autopauseOffset))
+                self.trackList[self.activeTrack].offsets.append((self.trackList[self.activeTrack].phonemeIndices[index] - 1, autopauseOffset))
+            else:
+                self.submitOffset(False, self.trackList[self.activeTrack].phonemeIndices[index], autopauseOffset)
+                self.trackList[self.activeTrack].offsets.append((self.trackList[self.activeTrack].phonemeIndices[index], autopauseOffset))
         if index == len(self.trackList[self.activeTrack].notes) - 1:
             self.trackList[self.activeTrack].borders[-2] = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
             self.trackList[self.activeTrack].borders[-1] = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length + global_consts.refTransitionLength
@@ -192,8 +207,8 @@ class MiddleLayer(Widget):
             self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + self.trackList[self.activeTrack].notes[index - 1].length)
         if (self.trackList[self.activeTrack].notes[index].xPos != oldPos or adjustPrevious) and index > 0:
             self.adjustNote(index - 1, None, None, True, False)
-        else:
-            self.submitFinalize()
+        for i in range(start, end):
+            self.repairBorders(i)
     
     def syllableSplit(self, word:str) -> list:
         """splits a word into syllables using the wordDict of the loaded Voicebank. Returns a list of syllables, or None if the word cannot be split in a valid way."""
