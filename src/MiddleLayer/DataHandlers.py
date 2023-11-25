@@ -225,7 +225,7 @@ class Note():
             yield self[i]
     
     def makeContext(self, keepStart:bool = False):
-        if keepStart and len(self.borders) > 0:
+        if keepStart and len(self.phonemes) > 0:
             if self.track.phonemeLengths[self.phonemes[0]] == None:
                 start = self.borders[0]
             else:
@@ -315,10 +315,13 @@ class PhonemeProxy():
             else:
                 phonIndex = val
             noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
+            if phonIndex == self.track.phonemeIndices[noteIndex]:
+                noteIndex += 1
+            print(phonIndex, noteIndex, self.track.phonemeIndices)
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
             if noteIndex > 0:
-                if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
+                if (phonIndex - self.track.phonemeIndices[noteIndex - 1]) >= len(self.track.notes[noteIndex].phonemes):
                     return "_autopause"
                 return self.track.notes[noteIndex].phonemes[phonIndex - self.track.phonemeIndices[noteIndex - 1]]
             if phonIndex >= len(self.track.notes[noteIndex].phonemes):
@@ -353,10 +356,12 @@ class PhonemeProxy():
             else:
                 phonIndex = val
             noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
+            if phonIndex == self.track.phonemeIndices[noteIndex]:
+                noteIndex += 1
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
             if noteIndex > 0:
-                if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
+                if (phonIndex - self.track.phonemeIndices[noteIndex - 1]) >= len(self.track.notes[noteIndex].phonemes):
                     raise ValueError("cannot replace automatically inserted pause phoneme")
                 self.track.notes[noteIndex].phonemes[phonIndex - self.track.phonemeIndices[noteIndex - 1]] = newVal
             else:
@@ -507,11 +512,13 @@ class LoopProxy():
             else:
                 phonIndex = val
             noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
+            if phonIndex == self.track.phonemeIndices[noteIndex]:
+                noteIndex += 1
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
             if self.type == "offset":
                 if noteIndex > 0:
-                    if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].loopOffset):
+                    if (phonIndex - self.track.phonemeIndices[noteIndex - 1]) >= len(self.track.notes[noteIndex].loopOffset):
                         return 0
                     return self.track.notes[noteIndex].loopOffset[phonIndex - self.track.phonemeIndices[noteIndex - 1]]
                 if phonIndex >= len(self.track.notes[noteIndex].loopOffset):
@@ -519,7 +526,7 @@ class LoopProxy():
                 return self.track.notes[noteIndex].loopOffset[phonIndex]
             elif self.type == "overlap":
                 if noteIndex > 0:
-                    if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].loopOverlap):
+                    if (phonIndex - self.track.phonemeIndices[noteIndex - 1]) >= len(self.track.notes[noteIndex].loopOverlap):
                         return 0
                     return self.track.notes[noteIndex].loopOverlap[phonIndex - self.track.phonemeIndices[noteIndex - 1]]
                 if phonIndex >= len(self.track.notes[noteIndex].loopOverlap):
@@ -554,11 +561,13 @@ class LoopProxy():
             else:
                 phonIndex = val
             noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
+            if phonIndex == self.track.phonemeIndices[noteIndex]:
+                noteIndex += 1
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
             if self.type == "offset":
                 if noteIndex > 0:
-                    if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
+                    if (phonIndex - self.track.phonemeIndices[noteIndex - 1]) >= len(self.track.notes[noteIndex].phonemes):
                         print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
                         return
                     self.track.notes[noteIndex].loopOffset[phonIndex - self.track.phonemeIndices[noteIndex - 1]] = newVal
@@ -569,7 +578,7 @@ class LoopProxy():
                     self.track.notes[noteIndex].loopOffset[phonIndex] = newVal
             elif self.type == "overlap":
                 if noteIndex > 0:
-                    if (phonIndex - self.track.phonemeIndices[noteIndex]) >= len(self.track.notes[noteIndex].phonemes):
+                    if (phonIndex - self.track.phonemeIndices[noteIndex - 1]) >= len(self.track.notes[noteIndex].phonemes):
                         print("WARNING: changing loop settings of automatically inserted pause phoneme has no effect")
                         return
                     self.track.notes[noteIndex].loopOverlap[phonIndex - self.track.phonemeIndices[noteIndex - 1]] = newVal

@@ -50,6 +50,10 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, statusContr
             startCaps[0] = True
         if position + delta >= len(endCaps) - 1:
             endCaps[-1] = True
+        if position > 0 and inputList[index].phonemes[position - 1] == "_autopause":
+            startCaps[position] = True
+        if position + delta < len(inputList[index].phonemes) and inputList[index].phonemes[position + delta] == "_autopause":
+            endCaps[position + delta - 1] = True
         statusControl[index].rs = torch.cat([statusControl[index].rs[0:position], torch.zeros([delta,]), statusControl[index].rs[position:]], 0)
         statusControl[index].ai = torch.cat([statusControl[index].ai[0:position], torch.zeros([delta,]), statusControl[index].ai[position:]], 0)
     elif delta < 0:
@@ -59,6 +63,10 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, statusContr
                     endCaps[position + i - 1] = False
                 if position + i < len(endCaps) - 1:
                     startCaps[position + i + 1] = False
+        if position > 0 and inputList[index].phonemes[position - 1] == "_autopause":
+            startCaps[position] = True
+        if position + delta < len(inputList[index].phonemes) and inputList[index].phonemes[position + delta] == "_autopause":
+            endCaps[position + delta - 1] = True
         phonemes = phonemes[0:position] + phonemes[position - delta:]
         offsets = offsets[0:position] + offsets[position - delta:]
         repetititionSpacing = repetititionSpacing[0:position] + repetititionSpacing[position - delta:]

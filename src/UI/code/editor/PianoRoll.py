@@ -758,12 +758,8 @@ class PianoRoll(ScrollView):
                     note.xPos = x
                     switch = API.Ops.ChangeNoteLength(touch.ud["noteIndex"], x, length)()
                     if switch == True:
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] + 1].reference.index += 1
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index -= 1
                         touch.ud["noteIndex"] += 1
                     elif switch == False:
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] - 1].reference.index -= 1
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index += 1
                         note.index -= 1
                         touch.ud["noteIndex"] -= 1
                     note.redraw()
@@ -772,12 +768,8 @@ class PianoRoll(ScrollView):
                     note.yPos = int(y + touch.ud["yOffset"] + 1)
                     switch = API.Ops.MoveNote(touch.ud["noteIndex"], int(x + touch.ud["xOffset"] + 1), int(y + touch.ud["yOffset"] + 1))()
                     if switch == True:
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] + 1].reference.index += 1
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index -= 1
                         touch.ud["noteIndex"] += 1
                     elif switch == False:
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] - 1].reference.index -= 1
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index += 1
                         touch.ud["noteIndex"] -= 1
                     note.redraw()
                 elif touch.ud["grabMode"] == "end":

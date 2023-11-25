@@ -593,8 +593,9 @@ class ChangeNoteLength(UnifiedAction):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].length = length
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
-            middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
+            switch = middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
             middleLayer.submitFinalize()
+            return switch
         super().__init__(action, index, x, length, *args, **kwargs)
         self.index = index
         self.x = x
@@ -622,8 +623,9 @@ class MoveNote(UnifiedAction):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
-            middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
+            switch = middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
             middleLayer.submitFinalize()
+            return switch
         super().__init__(action, index, x, y, *args, **kwargs)
         self.index = index
         self.x = x
@@ -684,8 +686,6 @@ class ChangeLyrics(UnifiedAction):
             middleLayer.offsetPhonemes(index, offset)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemes = phonemes
             middleLayer.adjustNote(index, None, None, False, True)
-            if middleLayer.trackList[middleLayer.activeTrack].notes[index].autopause:
-                phonemes.append("_autopause")
             if index == 0:
                 phonemeIndex = 0
             else:
@@ -693,13 +693,13 @@ class ChangeLyrics(UnifiedAction):
             middleLayer.submitNamedPhonParamChange(False, "phonemes", phonemeIndex, phonemes)
             offsets = []
             for i in phonemes:
-                if i == "pau":
+                if i in ("pau", "_autopause"):
                     offsets += [0.]
                 elif middleLayer.trackList[middleLayer.activeTrack].phonemeLengths[i] == None:
                     offsets += [0.5]
                 else:
                     offsets += [0.05]
-            middleLayer.trackList[middleLayer.activeTrack].loopOffset[phonemeIndex:middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index]] = offsets#index out of range (last note?)
+            middleLayer.trackList[middleLayer.activeTrack].loopOffset[phonemeIndex:phonemeIndex + len(offsets)] = offsets#index out of range (last note?)
             middleLayer.submitNamedPhonParamChange(False, "offsets", phonemeIndex, offsets)
             middleLayer.submitFinalize()
         super().__init__(action, index, inputText, pronuncIndex, *args, **kwargs)
