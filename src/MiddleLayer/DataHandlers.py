@@ -39,8 +39,6 @@ class Track():
     Methods:
         __init__: constructor for a track with default settings and a Voicebank specified by a filepath
         
-        generateCaps: utility function for generating startCap and endCap attributes for the track.
-        
         toSequence: converts the track to a VOcalSequence object for sending it to the rendering thread"""
 
 
@@ -139,30 +137,15 @@ class Track():
                 self.phonemeIndices.append(len(i))
             else:
                 self.phonemeIndices.append(self.phonemeIndices[-1] + len(i))
-                
-    def generateCaps(self) -> tuple([list, list]):
-        """utility function for generating startCap and endCap attributes for the track. These are not required by the main process, and are instead sent to the rendering process with to_sequence"""
-
-        startCaps = [False] * len(self.phonemes)
-        endCaps = [False] * len(self.phonemes)
-        for index, phoneme in enumerate(self.phonemes):
-            if phoneme == "_autopause":
-                if index < len(self.phonemes) - 1:
-                    startCaps[index + 1] = True
-                if index > 0:
-                    endCaps[index - 1] = True
-        return startCaps, endCaps
 
     def convert(self) -> tuple:
         """converts the track to a tuple for sending it to the rendering thread. Also handles conversion of MIDI pitch to frequency."""
-
-        caps = self.generateCaps()
         
         pitch = noteToPitch(self.pitch)
         borders = []
         for i in self.borders:
             borders.append(int(i))
-        sequence = VocalSequence(self.length, borders, self.phonemes(), caps[0], caps[1], self.loopOffset(), self.loopOverlap(), pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
+        sequence = VocalSequence(self.length, borders, self.phonemes(), self.loopOffset(), self.loopOverlap(), pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
         return self.vbPath, None, sequence#None object is placeholder for wrapped NodeGraph
         #TODO: add node wrapping
 

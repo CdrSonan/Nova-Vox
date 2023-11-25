@@ -462,8 +462,6 @@ class DataGenerator:
         sequence = VocalSequence(borderLength,
                                  borders,
                                  phonemeSequence,
-                                 [0 if i > 0 else 1 for i in range(len(phonemeSequence))],
-                                 [0 if i < len(phonemeSequence) - 1 else 1 for i in range(len(phonemeSequence))],
                                  torch.tensor([random.uniform(0, 1) * noise[1] for _ in range(len(phonemeSequence))], device = self.crfAi.device),
                                  torch.tensor([random.uniform(0, 1) * noise[1] + 0.5 for _ in range(len(phonemeSequence))], device = self.crfAi.device),
                                  torch.full((borderLength,), 300.5, device = self.crfAi.device),#pitch

@@ -33,59 +33,30 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, statusContr
     issues during debugging. Neither phoneme should be implemented by any Voicebank"""
 
 
+    print("pre trim: ", inputList[index].phonemes)
     phonemes = inputList[index].phonemes
     offsets = inputList[index].offsets
     repetititionSpacing = inputList[index].repetititionSpacing
     borders = inputList[index].borders
-    startCaps = inputList[index].startCaps
-    endCaps = inputList[index].endCaps
     if delta > 0:
         phonemes = phonemes[0:position] + ["_0"] * delta + phonemes[position:]
         offsets = offsets[0:position] + [0.5] * delta + offsets[position:]
         repetititionSpacing = repetititionSpacing[0:position] + [0.5] * delta + repetititionSpacing[position:]
         borders = borders[0:3 * position] + [borders[3 * position - 1] + 1] * (3 * delta) + borders[3 * position:]
-        startCaps = startCaps[0:position] + [False] * delta + startCaps[position:]
-        endCaps = endCaps[0:position] + [False] * delta + endCaps[position:]
-        if position == 0:
-            startCaps[0] = True
-        if position + delta >= len(endCaps) - 1:
-            endCaps[-1] = True
-        if position > 0 and inputList[index].phonemes[position - 1] == "_autopause":
-            startCaps[position] = True
-        if position + delta < len(inputList[index].phonemes) and inputList[index].phonemes[position + delta] == "_autopause":
-            endCaps[position + delta - 1] = True
         statusControl[index].rs = torch.cat([statusControl[index].rs[0:position], torch.zeros([delta,]), statusControl[index].rs[position:]], 0)
         statusControl[index].ai = torch.cat([statusControl[index].ai[0:position], torch.zeros([delta,]), statusControl[index].ai[position:]], 0)
     elif delta < 0:
-        for i, phoneme in enumerate(phonemes[position:position - delta]):
-            if phoneme == "_autopause":
-                if position + i > 0:
-                    endCaps[position + i - 1] = False
-                if position + i < len(endCaps) - 1:
-                    startCaps[position + i + 1] = False
-        if position > 0 and inputList[index].phonemes[position - 1] == "_autopause":
-            startCaps[position] = True
-        if position + delta < len(inputList[index].phonemes) and inputList[index].phonemes[position + delta] == "_autopause":
-            endCaps[position + delta - 1] = True
         phonemes = phonemes[0:position] + phonemes[position - delta:]
         offsets = offsets[0:position] + offsets[position - delta:]
         repetititionSpacing = repetititionSpacing[0:position] + repetititionSpacing[position - delta:]
         borders = borders[0:3 * position] + borders[3 * position - 3 * delta:]
-        startCaps = startCaps[0:position] + startCaps[position - delta:]
-        endCaps = endCaps[0:position] + endCaps[position - delta:]
-        if len(startCaps) > 0:
-            if position == 0:
-                startCaps[0] = True
-            if position >= len(endCaps) - 1:
-                endCaps[-1] = True
         statusControl[index].rs = torch.cat([statusControl[index].rs[0:position], statusControl[index].rs[position - delta:]], 0)
         statusControl[index].ai = torch.cat([statusControl[index].ai[0:position], statusControl[index].ai[position - delta:]], 0)
     inputList[index].phonemes = phonemes
     inputList[index].offsets = offsets
     inputList[index].repetititionSpacing = repetititionSpacing
     inputList[index].borders = borders
-    inputList[index].startCaps = startCaps
-    inputList[index].endCaps = endCaps
+    print("post trim: ", inputList[index].phonemes)
     return inputList, statusControl
 
 def posToSegment(index:int, pos1:float, pos2:float, inputList:list) -> tuple([int, int]):

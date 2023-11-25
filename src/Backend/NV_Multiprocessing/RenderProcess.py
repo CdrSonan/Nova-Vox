@@ -148,27 +148,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 eval("inputList[change.data[0]]." + change.data[1])[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].rs[change.data[2]:change.data[2] + len(change.data[3])] *= 0
                 statusControl[change.data[0]].ai[change.data[2]:change.data[2] + len(change.data[3])] *= 0
-                if change.data[1] == "phonemes":
-                    for j in range(len(change.data[3])):
-                        if change.data[3][j] in ("_autopause", "pau"):
-                            if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
-                                inputList[change.data[0]].startCaps[change.data[2] + j + 1] = True
-                            if change.data[2] + j > 0:
-                                inputList[change.data[0]].endCaps[change.data[2] + j - 1] = True
-                        else:
-                            if change.data[2] + j + 1 < len(inputList[change.data[0]].startCaps):
-                                inputList[change.data[0]].startCaps[change.data[2] + j + 1] = False
-                            if change.data[2] + j > 0:
-                                inputList[change.data[0]].endCaps[change.data[2] + j - 1] = False
-                    if change.data[2] > 0 and inputList[change.data[0]].phonemes[change.data[2] - 1] in ("_autopause", "pau"):
-                        inputList[change.data[0]].startCaps[change.data[2]] = True
-                    if change.data[2] + len(change.data[3]) < len(inputList[change.data[0]].endCaps) and inputList[change.data[0]].phonemes[change.data[2] + len(change.data[3])] in ("_autopause", "pau"):
-                        inputList[change.data[0]].endCaps[change.data[2] + len(change.data[3]) - 1] = True
-                    if change.data[2] + len(change.data[3]) == len(inputList[change.data[0]].startCaps) > 0:
-                        inputList[change.data[0]].endCaps[-1] = True
-                    if change.data[2] == 0 and len(inputList[change.data[0]].startCaps) > 0:
-                        inputList[change.data[0]].startCaps[0] = True
-                    print("post phoneme", inputList[change.data[0]].phonemes)
             elif change.data[1] == "borders":
                 start = inputList[change.data[0]].borders[change.data[2]] * global_consts.batchSize
                 end = inputList[change.data[0]].borders[change.data[2] + len(change.data[3]) - 1] * global_consts.batchSize
@@ -190,10 +169,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].customCurves[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
-            print("pre offset", inputList[change.data[0]].phonemes)
             inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, statusControl)
             remoteConnection.put(StatusChange(change.data[0], None, None, "offsetApplied"))
-            print("post offset", inputList[change.data[0]].phonemes)
         elif change.type == "changeLength":
             inputList[change.data[0]].length = change.data[1]
             inputList[change.data[0]].pitch = ensureTensorLength(inputList[change.data[0]].pitch, change.data[1], -1.)
@@ -353,7 +330,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             logging.info("applying AI params to spectrum of sample " + str(j - 1) + ", sequence " + str(i))
                             #execute AI code
                             processedSpectrum.write(spectrum.read(internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3]), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
-                            if internalInputs.endCaps[j - 1]:
+                            if (j == len(internalStatusControl.ai) or internalInputs.phonemes[j] in ("pau", "_autopause")):
                                 processedSpectrum.write(spectrum.read(internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5]), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
                             internalStatusControl.ai[j - 1] = 1
                         remoteConnection.put(StatusChange(i, j - 1, 4))
@@ -374,7 +351,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                     if j < len(internalStatusControl.ai):
                         if internalStatusControl.rs[j].item() == 0:
                             logging.info("calling resamplers for sample " + str(j) + ", sequence " + str(i))
-                            if (internalInputs.startCaps[j] == False) and (previousSpectrum == None):
+                            if j > 0 and internalInputs.phonemes[j - 1] not in ("pau", "_autopause") and (previousSpectrum == None):
                                 section = VocalSegment(internalInputs, voicebank, j - 1, device_rs)
                                 previousSpectrum = rs.getSpecharm(section, device_rs)
                                 previousExcitation = rs.getExcitation(section, device_rs)
@@ -384,7 +361,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 currentSpectrum = rs.getSpecharm(section, device_rs)
                                 currentExcitation = rs.getExcitation(section, device_rs)
                                 currentPitch = rs.getPitch(section, device_rs)
-                            if (internalInputs.endCaps[j] == False) and (nextSpectrum == None):
+                            if j + 1 < len(internalStatusControl.ai) and internalInputs.phonemes[j + 1] not in ("pau", "_autopause") and (nextSpectrum == None):
                                 section = VocalSegment(internalInputs, voicebank, j + 1, device_rs)
                                 nextSpectrum = rs.getSpecharm(section, device_rs)
                                 nextExcitation = rs.getExcitation(section, device_rs)
@@ -408,7 +385,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 nextExpression = nextExpression[-1]
                             else:
                                 nextExpression = ""
-                            if internalInputs.startCaps[j]:
+                            if j == 0 or internalInputs.phonemes[j - 1] in ("pau", "_autopause"):
                                 windowStart = internalInputs.borders[3 * j]
                                 windowStartEx = internalInputs.borders[3 * j]
                             else:
@@ -443,7 +420,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     aiSpecOut, previousShift = pitchAdjust(aiSpec[k - internalInputs.borders[3 * j]], j, k, internalInputs, voicebank, previousShift, pitchOffset[k - internalInputs.borders[3 * j]], device_rs)
                                     spectrum.write(aiSpecOut.to(device_rs), k)
                                 pitch.write(pitchOffset.to(device_rs), internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2])
-                            if internalInputs.endCaps[j]:
+                            if j + 1 == len(internalStatusControl.ai) or internalInputs.phonemes[j + 1] in ("pau", "_autopause"):
                                 windowEnd = internalInputs.borders[3 * j + 5]
                                 windowEndEx = internalInputs.borders[3 * j + 5]
                             else:
@@ -462,7 +439,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             pitch.write(pitchOffset.to(device_rs), windowStart, windowEnd)
                             excitation.write(currentExcitation.to(device_rs), windowStartEx, windowEndEx)
 
-                            if internalInputs.endCaps[j] == False:
+                            if (j + 1 == len(internalStatusControl.ai) or internalInputs.phonemes[j + 1] in ("pau", "_autopause")) == False:
                                 if currentSpectrum.size()[0] == 1:
                                     specA = currentSpectrum[-1]
                                 else:
@@ -560,7 +537,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             waveform += excitationSignal.to(device = torch.device("cpu"))
                             remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
                         remoteConnection.put(StatusChange(i, j - 1, 5))
-                    if j > 0 and internalInputs.endCaps[j - 1] == True:
+                    if j > 0 and (j == len(internalStatusControl.ai) or internalInputs.phonemes[j] in ("pau", "_autopause")):
                         aiActive = False
                         #TODO: reset recurrent AI Tensors
 

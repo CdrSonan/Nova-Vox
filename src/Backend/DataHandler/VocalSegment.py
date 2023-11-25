@@ -40,8 +40,14 @@ class VocalSegment():
         self.end1 = inputs.borders[3*index+3]
         self.end2 = inputs.borders[3*index+4]
         self.end3 = inputs.borders[3*index+5]
-        self.startCap = inputs.startCaps[index]
-        self.endCap = inputs.endCaps[index]
+        if index == 0:
+            self.startCap = True
+        else:
+            self.startCap = inputs.phonemes[index - 1] in ("pau", "_autopause")
+        if index == len(inputs.phonemes) - 1:
+            self.endCap = True
+        else:
+            self.endCap = inputs.phonemes[index + 1] in ("pau", "_autopause")
         self.phonemeKey = inputs.phonemes[index]
         self.vb = vb
         self.offset = inputs.offsets[index]
