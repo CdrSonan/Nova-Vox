@@ -12,15 +12,7 @@ import global_consts
 
 def calculateBorders(note:Note, context:NoteContext) -> None:
     phonemes = copy(note.phonemes)
-    if len(phonemes) > 0 and phonemes[0] == "-":
-        phonemes.pop(0)
-        if note.phonemeMode:
-            note.carryOver = True
-        else:
-            note.carryOver = False
-    else:
-        note.carryOver = False
-            #handle delegate logic
+        #handle delegate logic
     phonemes = [i for i in phonemes if i in note.track.phonemeLengths.keys()]
     if context.preutterance:
         phonemes.pop(0)

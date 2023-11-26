@@ -649,6 +649,16 @@ class ChangeLyrics(UnifiedAction):
         def action(index, inputText, pronuncIndex):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].content = inputText
             middleLayer.trackList[middleLayer.activeTrack].notes[index].pronuncIndex = pronuncIndex
+            
+            if inputText.startswith("- "):
+                inputText = inputText[2:]
+                if middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeMode:
+                    middleLayer.trackList[middleLayer.activeTrack].notes[index].carryOver = True
+                else:
+                    middleLayer.trackList[middleLayer.activeTrack].notes[index].carryOver = False
+            else:
+                middleLayer.trackList[middleLayer.activeTrack].notes[index].carryOver = False
+            
             if middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeMode:
                 text = inputText.split(" ")
             else:
