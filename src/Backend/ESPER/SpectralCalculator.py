@@ -6,7 +6,7 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import torch
-from math import floor, ceil
+from math import floor
 import ctypes
 from time import sleep
 
@@ -40,7 +40,7 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
 
     print("pre1")
     sleep(0.1)
-    batches = ceil(audioSample.waveform.size()[0] / global_consts.batchSize)
+    batches = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
     print("pre2")
     sleep(0.1)
     audioSample.excitation = torch.zeros([2 * batches * (global_consts.halfTripleBatchSize + 1)], dtype = torch.float)
