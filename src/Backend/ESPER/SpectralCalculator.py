@@ -38,20 +38,10 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     """
 
 
-    print("pre1")
-    sleep(0.1)
     batches = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
-    print("pre2")
-    sleep(0.1)
     audioSample.excitation = torch.zeros([2 * batches * (global_consts.halfTripleBatchSize + 1)], dtype = torch.float)
-    print("pre3")
-    sleep(0.1)
     audioSample.specharm = torch.zeros([batches, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3], dtype = torch.float)
-    print("pre4")
-    sleep(0.1)
     audioSample.avgSpecharm = torch.zeros([int(global_consts.nHarmonics / 2) + global_consts.halfTripleBatchSize + 2], dtype = torch.float)
-    print("pre5")
-    sleep(0.1)
     cSample = C_Bridge.makeCSample(audioSample, useVariance)
     C_Bridge.esper.specCalc(cSample, global_consts.config)
     audioSample.excitation = torch.complex(audioSample.excitation[:batches * (global_consts.halfTripleBatchSize + 1)], audioSample.excitation[batches * (global_consts.halfTripleBatchSize + 1):])

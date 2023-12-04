@@ -354,7 +354,7 @@ class MainCritic(nn.Module):
     def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
         """forward pass through the entire NN, aiming to predict the next spectrum in a sequence"""
 
-        latent = self.baseEncoder(torch.cat((input, embedding.unsqueeze(0)), 1))
+        latent = self.baseEncoder(torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1))
         
         if latent.size()[0] % 125 != 0:
             padded = torch.cat((latent, torch.zeros((125 - latent.size()[0] % 125, *latent.size()[1:]), device = self.device)), 0)
@@ -462,14 +462,14 @@ class DataGenerator:
         sequence = VocalSequence(borderLength,
                                  borders,
                                  phonemeSequence,
-                                 torch.tensor([random.uniform(0, 1) * noise[1] for _ in range(len(phonemeSequence))], device = self.crfAi.device),
-                                 torch.tensor([random.uniform(0, 1) * noise[1] + 0.5 for _ in range(len(phonemeSequence))], device = self.crfAi.device),
-                                 torch.full((borderLength,), 300.5, device = self.crfAi.device),#pitch
-                                 torch.full((borderLength,), random.uniform(-1, 1) * noise[2], device = self.crfAi.device),#steadiness
-                                 torch.full((borderLength,), random.uniform(-1, 1) * noise[3], device = self.crfAi.device),#breathiness
-                                 torch.zeros((borderLength,), device = self.crfAi.device),#AI balance
-                                 torch.zeros((borderLength,), device = self.crfAi.device),#vibrato speed
-                                 torch.full((borderLength,), -1, device = self.crfAi.device),#vibrato strength
+                                 torch.tensor([random.uniform(0, 1) * noise[1] for _ in range(len(phonemeSequence))], device = torch.device("cpu")),
+                                 torch.tensor([random.uniform(0, 1) * noise[1] + 0.5 for _ in range(len(phonemeSequence))], device = torch.device("cpu")),
+                                 torch.full((borderLength,), 300.5, device = torch.device("cpu")),#pitch
+                                 torch.full((borderLength,), random.uniform(-1, 1) * noise[2], device = torch.device("cpu")),#steadiness
+                                 torch.full((borderLength,), random.uniform(-1, 1) * noise[3], device = torch.device("cpu")),#breathiness
+                                 torch.zeros((borderLength,), device = torch.device("cpu")),#AI balance
+                                 torch.zeros((borderLength,), device = torch.device("cpu")),#vibrato speed
+                                 torch.full((borderLength,), -1, device = torch.device("cpu")),#vibrato strength
                                  True,
                                  True,
                                  False,
@@ -483,11 +483,12 @@ class DataGenerator:
     def synthesize(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""
         sequence, embeddings = self.makeSequence(noise, length, phonemeLength, expression)
-        output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = self.crfAi.device)
-        output[sequence.borders[0]:sequence.borders[3]] = getSpecharm(VocalSegment(sequence, self.voicebank, 0, self.crfAi.device), self.crfAi.device)
+        output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = torch.device("cpu"))
+        output[sequence.borders[0]:sequence.borders[3]] = getSpecharm(VocalSegment(sequence, self.voicebank, 0, torch.device("cpu")), torch.device("cpu"))
         for i in range(1, sequence.phonemeLength - 1):
-            output[sequence.borders[3*i+2]:sequence.borders[3*i+3]] = getSpecharm(VocalSegment(sequence, self.voicebank, i, self.crfAi.device), self.crfAi.device)
-        output[sequence.borders[-4]:sequence.borders[-1]] = getSpecharm(VocalSegment(sequence, self.voicebank, sequence.phonemeLength - 1, self.crfAi.device), self.crfAi.device)
+            output[sequence.borders[3*i+2]:sequence.borders[3*i+3]] = getSpecharm(VocalSegment(sequence, self.voicebank, i, torch.device("cpu")), torch.device("cpu"))
+        output[sequence.borders[-4]:sequence.borders[-1]] = getSpecharm(VocalSegment(sequence, self.voicebank, sequence.phonemeLength - 1, torch.device("cpu")), torch.device("cpu"))
+        output = output.to(self.crfAi.device)
         for i in range(1, sequence.phonemeLength):
             output[sequence.borders[3*i]:sequence.borders[3*i+2]] = self.crfWrapper(output[sequence.borders[3*i] - 1],
                                                                                output[sequence.borders[3*i]],

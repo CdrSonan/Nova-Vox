@@ -406,10 +406,8 @@ class AIWrapper():
         else:
             self.mainAi.epoch = None
         total = 0
-        for key in self.voicebank.phonemeDict.values():
+        for key in self.voicebank.phonemeDict.keys():
             for phoneme in self.voicebank.phonemeDict[key]:
-                if torch.isnan(phoneme.avgSpecharm).any() or torch.isnan(phoneme.specharm).any():
-                    continue
                 self.deskewingPremul += phoneme.avgSpecharm.to(self.device)
                 total += 1
             expression = key.split("_")
@@ -435,7 +433,7 @@ class AIWrapper():
         for phaseIdx, phase in enumerate(phases):
             for epoch in tqdm(range(epochs), desc = "training phase " + str(phaseIdx + 1), position = 1, unit = "epochs"):
                 for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 0, total = len(indata), unit = "samples")):
-                    key = data[1]
+                    key = data[1][0]
                     data = data[0]
                     if index % self.hparams["fargan_interval"] == self.hparams["fargan_interval"] - 1:
                         embedding = fargan_embedding
@@ -459,7 +457,7 @@ class AIWrapper():
                     synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
                     synthBase /= self.deskewingPremul
                     self.mainAi.resetState()
-                    synthInput = self.mainAi(synthBase, phase[0])
+                    synthInput = self.mainAi(synthBase, phase[0], embedding)
                     
                     if index % self.hparams["gan_train_asym"] == 0:
                         self.mainAi.zero_grad()
