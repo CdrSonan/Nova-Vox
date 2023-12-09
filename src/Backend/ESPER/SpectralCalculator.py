@@ -46,22 +46,24 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     C_Bridge.esper.specCalc(cSample, global_consts.config)
     audioSample.excitation = torch.complex(audioSample.excitation[:batches * (global_consts.halfTripleBatchSize + 1)], audioSample.excitation[batches * (global_consts.halfTripleBatchSize + 1):])
     audioSample.excitation = audioSample.excitation.reshape((batches, global_consts.halfTripleBatchSize + 1))
-    #extSpecharm = audioSample.specharm.clone()
-    #extAvgSpecharm = audioSample.avgSpecharm.clone()
-    #calculateSpectra_legacy(audioSample, useVariance)
-    #audioSample.specharm -= extSpecharm[:audioSample.specharm.size()[0]]
-    #audioSample.avgSpecharm -= extAvgSpecharm
+    extSpecharm = audioSample.specharm.clone()
+    extAvgSpecharm = audioSample.avgSpecharm.clone()
+    extExcitation = audioSample.excitation.clone()
+    calculateSpectra_legacy(audioSample, useVariance)
+    audioSample.specharm -= extSpecharm
+    audioSample.avgSpecharm -= extAvgSpecharm
+    audioSample.excitation -= extExcitation
 
 def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) -> None:
-    length = floor(audioSample.waveform.size()[0] / global_consts.batchSize)
+    length = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
     audioSample.excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = audioSample.waveform.device)
     audioSample.specharm = torch.zeros((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device = audioSample.waveform.device)
     signalsAbs = torch.stft(audioSample.waveform, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize, device = audioSample.waveform.device), return_complex = True)
-    signalsAbs = torch.sqrt(signalsAbs.transpose(0, 1)[:audioSample.excitation.size()[0]].abs())
+    signalsAbs = torch.sqrt(signalsAbs.transpose(0, 1).abs())
     lowSpectra = lowRangeSmooth(audioSample, signalsAbs)
     highSpectra = highRangeSmooth(audioSample, signalsAbs)
-    audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)
-    audioSample = separateVoicedUnvoiced(audioSample)
-    audioSample = averageSpectra(audioSample, useVariance)
-    if torch.any(torch.isnan(audioSample.avgSpecharm)):
-        print("avgSpecharm contains NaNs")
+    #audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)
+    #audioSample = separateVoicedUnvoiced(audioSample)
+    #audioSample = averageSpectra(audioSample, useVariance)
+    audioSample.avgSpecharm = torch.zeros_like(audioSample.avgSpecharm)
+    audioSample.specharm[:, 2 * global_consts.halfHarms:] = highSpectra

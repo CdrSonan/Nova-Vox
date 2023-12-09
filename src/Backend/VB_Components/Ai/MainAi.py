@@ -40,6 +40,8 @@ class EncoderBlock(nn.Module):
                 nn.Softplus()
               ) for _ in range(self.numLayers)],
         )
+        self.norm = nn.LayerNorm([self.dim,], device = self.device, elementwise_affine = False)
+        self.norm_proj = nn.LayerNorm([self.proj_dim,], device = self.device, elementwise_affine = False)
         if self.attnExtension is not None:
             self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
             self.attention = nn.MultiheadAttention(embed_dim = self.proj_dim, kdim = self.dim + self.nPosEmbeddings, vdim = self.dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device)
@@ -54,7 +56,7 @@ class EncoderBlock(nn.Module):
         posEmbeddings = torch.empty((input.size()[0], self.nPosEmbeddings), device = self.device)
         for i in range(self.nPosEmbeddings):
             posEmbeddings[:, i] = torch.arange(0, input.size()[0], device = self.device) % (2 ** (i + 1)) / (2 ** i)
-        src = torch.cat((self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input), posEmbeddings), 1)
+        src = torch.cat((self.norm(self.cnn(input.transpose(0, 1)).transpose(0, 1) + self.skip(input)), posEmbeddings), 1)
         #src = torch.cat((self.cnn(input.transpose(0, 1)).transpose(0, 1), posEmbeddings), 1)
         tgt = self.projector(src.clone().reshape((int(src.size()[0] / 5), src.size()[1] * 5)))
         if self.attnExtension is None:
@@ -65,8 +67,7 @@ class EncoderBlock(nn.Module):
             upper = min(src.size()[0], (i + 1) * 5 + self.attnExtension)
             mask[i, lower:upper] = False
         attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-        resOutput = src[:, :self.dim] / torch.mean(src[:, :self.dim], dim = 1, keepdim = True)
-        return self.resDropout(resOutput), attnOutput / torch.mean(attnOutput, dim = 1, keepdim = True)
+        return self.resDropout(src[:, :self.dim]), self.norm_proj(attnOutput)
 
 class DecoderBlock(nn.Module):
     
@@ -83,6 +84,8 @@ class DecoderBlock(nn.Module):
                 nn.Softplus(),
               ) for _ in range(self.numLayers)],
         )
+        self.norm = nn.LayerNorm([self.dim,], device = self.device, elementwise_affine = False)
+        self.norm_proj = nn.LayerNorm([self.dim,], device = self.device, elementwise_affine = False)
         if self.attnExtension is not None:
             self.nPosEmbeddings = ceil(log(2 * attnExtension + 5, 2))
             self.attention = nn.MultiheadAttention(embed_dim = self.dim, kdim = self.proj_dim + self.nPosEmbeddings, vdim = self.proj_dim + self.nPosEmbeddings, num_heads = 4, dropout = 0.05, device = self.device)
@@ -107,9 +110,8 @@ class DecoderBlock(nn.Module):
                 upper = min(tgt.size()[0], (i + 1) * 5 + self.attnExtension)
                 mask[lower:upper, i] = False
             attnOutput = self.attention(tgt, src, src, attn_mask = mask, need_weights = False)[0]
-            cnnInput = attnOutput + residual
-        output = self.cnn(cnnInput.transpose(0, 1)).transpose(0, 1) + self.skip(cnnInput)
-        return output / torch.mean(output, dim = 1, keepdim = True)
+            cnnInput = self.norm_proj(attnOutput) + residual
+        return self.norm(self.cnn(cnnInput.transpose(0, 1)).transpose(0, 1) + self.skip(cnnInput))
 
 class NormEncoderBlock(nn.Module):
     

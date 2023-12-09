@@ -329,7 +329,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
 
     padLength = global_consts.halfTripleBatchSize * global_consts.filterBSMult
     wave = torch.cat((torch.flip(audioSample.waveform[:padLength], (0,)), audioSample.waveform, torch.flip(audioSample.waveform[-padLength:], (0,))), 0)
-    length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)#TODO: remove length flooring for whole function
+    length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
     globalHarmFunction = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = wave.device)
     counter = 0
     markers = DIOPitchMarkers(audioSample, wave)
