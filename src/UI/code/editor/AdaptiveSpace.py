@@ -340,8 +340,8 @@ class TimingOptns(ScrollView):
             index2 = self.children[0].canvas.indexof(self.rectangles2[int((border - 2) / 3)])
             self.children[0].canvas.remove(self.rectangles1[int((border - 2) / 3)])
             self.children[0].canvas.remove(self.rectangles2[int((border - 2) / 3)])
-            self.rectangles1[int((border - 2) / 3)] = Rectangle(pos = (self.xScale * middle - 5, self.y + 0.5 * self.height), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int((border - 2) / 3)].item() * self.height / 2))
-            self.rectangles2[int((border - 2) / 3)] = Rectangle(pos = (self.xScale * middle - 5, self.y), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int((border - 2) / 3)].item() * self.height / 2))
+            self.rectangles1[int((border - 2) / 3)] = Rectangle(pos = (self.xScale * middle - 5, self.y + 0.5 * self.height), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int((border - 2) / 3)] * self.height / 2))
+            self.rectangles2[int((border - 2) / 3)] = Rectangle(pos = (self.xScale * middle - 5, self.y), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int((border - 2) / 3)] * self.height / 2))
             self.children[0].canvas.insert(index1, self.rectangles1[int((border - 2) / 3)])
             self.children[0].canvas.insert(index2, self.rectangles2[int((border - 2) / 3)])
         elif border % 3 == 0 and border > 0:
@@ -350,8 +350,8 @@ class TimingOptns(ScrollView):
             index2 = self.children[0].canvas.indexof(self.rectangles2[int(border / 3) - 1])
             self.children[0].canvas.remove(self.rectangles1[int(border / 3) - 1])
             self.children[0].canvas.remove(self.rectangles2[int(border / 3) - 1])
-            self.rectangles1[int(border / 3) - 1] = Rectangle(pos = (self.xScale * middle - 5, self.y + 0.5 * self.height), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int(border / 3) - 1].item() * self.height / 2))
-            self.rectangles2[int(border / 3) - 1] = Rectangle(pos = (self.xScale * middle - 5, self.y), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int(border / 3) - 1].item() * self.height / 2))
+            self.rectangles1[int(border / 3) - 1] = Rectangle(pos = (self.xScale * middle - 5, self.y + 0.5 * self.height), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int(border / 3) - 1] * self.height / 2))
+            self.rectangles2[int(border / 3) - 1] = Rectangle(pos = (self.xScale * middle - 5, self.y), size = (10, middleLayer.trackList[middleLayer.activeTrack].loopOverlap[int(border / 3) - 1] * self.height / 2))
             self.children[0].canvas.insert(index1, self.rectangles1[int(border / 3) - 1])
             self.children[0].canvas.insert(index2, self.rectangles2[int(border / 3) - 1])
 
