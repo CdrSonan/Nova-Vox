@@ -46,13 +46,13 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     C_Bridge.esper.specCalc(cSample, global_consts.config)
     audioSample.excitation = torch.complex(audioSample.excitation[:batches * (global_consts.halfTripleBatchSize + 1)], audioSample.excitation[batches * (global_consts.halfTripleBatchSize + 1):])
     audioSample.excitation = audioSample.excitation.reshape((batches, global_consts.halfTripleBatchSize + 1))
-    extSpecharm = audioSample.specharm.clone()
+    """extSpecharm = audioSample.specharm.clone()
     extAvgSpecharm = audioSample.avgSpecharm.clone()
     extExcitation = audioSample.excitation.clone()
     calculateSpectra_legacy(audioSample, useVariance)
     audioSample.specharm -= extSpecharm
     audioSample.avgSpecharm -= extAvgSpecharm
-    audioSample.excitation -= extExcitation
+    audioSample.excitation -= extExcitation"""
 
 def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) -> None:
     length = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
@@ -64,5 +64,5 @@ def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) ->
     highSpectra = highRangeSmooth(audioSample, signalsAbs)
     audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)
     audioSample = separateVoicedUnvoiced(audioSample)
-    #audioSample = averageSpectra(audioSample, useVariance)
-    audioSample.avgSpecharm = torch.zeros_like(audioSample.avgSpecharm)
+    audioSample = averageSpectra(audioSample, useVariance)
+    #audioSample.avgSpecharm = torch.zeros_like(audioSample.avgSpecharm)
