@@ -172,7 +172,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                timings)
     return output
 
-def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the pitch curve of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
