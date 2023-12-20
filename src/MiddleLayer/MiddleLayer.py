@@ -143,7 +143,9 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes.insert(index, note)
         self.adjustNote(index + 1, None, None, False, False)
         self.adjustNote(index, None, None, False, True)
+        print(self.trackList[self.activeTrack].notes[index].reference.index, index)
         self.trackList[self.activeTrack].notes[index].reference.index = index
+        print(self.trackList[self.activeTrack].notes[index + 1].reference.index, index + 1)
         self.trackList[self.activeTrack].notes[index + 1].reference.index = index + 1
         if index == 0:
             start = 0
@@ -212,6 +214,14 @@ class MiddleLayer(Widget):
             self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + self.trackList[self.activeTrack].notes[index - 1].length)
         if (self.trackList[self.activeTrack].notes[index].xPos != oldPos or adjustPrevious) and index > 0:
             self.adjustNote(index - 1, None, None, True, False)
+            if index == 0:
+                start = 0
+            else:
+                start = self.trackList[self.activeTrack].phonemeIndices[index - 1] * 3 + 1
+            if index == len(self.trackList[self.activeTrack].phonemeIndices) - 1:
+                end = self.trackList[self.activeTrack].phonemeIndices[-1] * 3 + 3
+            else:
+                end = self.trackList[self.activeTrack].phonemeIndices[index] * 3 + 1
         for i in range(start, end):
             self.repairBorders(i)
         return switch
