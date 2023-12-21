@@ -15,8 +15,8 @@
     on_press: self.parent.parent.parent.parent.detailElement(self.index)
 
 <FileSidePanel>:
-    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
-    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.5, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.5, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
@@ -110,8 +110,8 @@
             on_press: self.parent.parent.parent.parent.finalisingClose()
 
 <SingerSidePanel>:
-    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
-    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.5, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.5, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
@@ -186,8 +186,8 @@
         
 
 <ParamSidePanel>:
-    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
-    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.5, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.5, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
@@ -268,8 +268,8 @@
             on_press: root.importParam(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.parameters[self.parent.parent.selectedIndex].name)
 
 <ScriptingSidePanel>:
-    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
-    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.5, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.5, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
@@ -293,8 +293,8 @@
             on_press: self.parent.parent.openDevkit()
 
 <SettingsSidePanel>:
-    size_hint: (min(0.8, 0.4 * app.root.uiScale), None)
-    pos_hint:{"x": 1 - min(0.8, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
+    size_hint: (min(0.5, 0.4 * app.root.uiScale), None)
+    pos_hint:{"x": 1 - min(0.5, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
