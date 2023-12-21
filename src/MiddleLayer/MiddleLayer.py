@@ -435,9 +435,9 @@ class MiddleLayer(Widget):
         elif self.trackList[self.activeTrack].notes[index].autopause:
             previousHeight = None
             if index == 0:
-                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[2]))
+                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[0]))
             else:
-                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1] + 2]))
+                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]]))
         else:
             previousHeight = self.trackList[self.activeTrack].notes[index - 1].yPos
             transitionLength1 = min(transitionLength1, self.trackList[self.activeTrack].notes[index - 1].length)
@@ -450,7 +450,7 @@ class MiddleLayer(Widget):
             nextHeight = None
         elif self.trackList[self.activeTrack].notes[index].autopause:
             nextHeight = None
-            oldEnd = max(oldEnd, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index]]))
+            oldEnd = max(oldEnd, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2]))
         else:
             transitionPoint2 = self.trackList[self.activeTrack].notes[index + 1].xPos
             nextHeight = self.trackList[self.activeTrack].notes[index + 1].yPos
@@ -467,8 +467,12 @@ class MiddleLayer(Widget):
         transitionPoint2 = int(transitionPoint2)
         if previousHeight == None:
             start =  self.trackList[self.activeTrack].notes[index].xPos
+            if index == 0:
+                start = min(start, int(self.trackList[self.activeTrack].borders[0]))
+            else:
+                start = min(start, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]]))
         if nextHeight == None:
-            end = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
+            end = max(self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2]))
         pitchDelta = (self.trackList[self.activeTrack].pitch[start:end] - self.trackList[self.activeTrack].basePitch[start:end]) * torch.heaviside(self.trackList[self.activeTrack].basePitch[start:end], torch.ones_like(self.trackList[self.activeTrack].basePitch[start:end]))
         self.trackList[self.activeTrack].basePitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
         self.trackList[self.activeTrack].pitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)

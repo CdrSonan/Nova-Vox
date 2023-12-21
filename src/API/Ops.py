@@ -727,7 +727,7 @@ class ChangeLyrics(UnifiedAction):
         return ChangeLyrics(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].pronuncIndex)
     
     def uiCallback(self):
-        middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.text = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content
+        middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.children[0].text = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content
         middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redrawStatusBars()
 
 class MoveBorder(UnifiedAction):
