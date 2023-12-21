@@ -504,7 +504,7 @@ class ChangePitch(UnifiedAction):
         def action(data, start):
             if type(data) == list:
                 data = torch.tensor(data, dtype = torch.half)
-            middleLayer.trackList[self.activeTrack].pitch[start:start + data.size()[0]] = data
+            middleLayer.trackList[middleLayer.activeTrack].pitch[start:start + data.size()[0]] = data
             data = noteToPitch(data)
             middleLayer.submitNamedPhonParamChange(True, "pitch", start, data)
         super().__init__(action, data, start, *args, **kwargs)
@@ -605,12 +605,16 @@ class ChangeNoteLength(UnifiedAction):
         return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length)
     
     def uiCallback(self):
-        for i in middleLayer.ids["pianoRoll"].notes:
-            if i.index == self.index:
-                i.length = self.length
-                i.x = self.x
-                i.redraw()
-                break
+        #for i in middleLayer.ids["pianoRoll"].notes:
+        #    if i.index == self.index:
+        #        i.length = self.length
+        #        i.x = self.x
+        #        i.redraw()
+        #        break
+        if middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference:
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.length = self.length
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.x = self.x
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redraw()
     
     def merge(self, other):
         if type(other) == ChangeNoteLength and self.index == other.index:
@@ -635,9 +639,13 @@ class MoveNote(UnifiedAction):
         return MoveNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos)
     
     def uiCallback(self):
-        middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
-        middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
-        middleLayer.ids["pianoRoll"].notes[self.index].redraw()
+        if middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference:
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redraw()
+        #middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
+        #middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
+        #middleLayer.ids["pianoRoll"].notes[self.index].redraw()
     
     def merge(self, other):
         if type(other) == MoveNote and self.index == other.index:
@@ -719,8 +727,8 @@ class ChangeLyrics(UnifiedAction):
         return ChangeLyrics(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].pronuncIndex)
     
     def uiCallback(self):
-        middleLayer.ids["pianoRoll"].notes[self.index].children[0].text = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content
-        middleLayer.ids["pianoRoll"].notes[self.index].redrawStatusBars()
+        middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.text = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content
+        middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redrawStatusBars()
 
 class MoveBorder(UnifiedAction):
     def __init__(self, border, pos, *args, **kwargs):
