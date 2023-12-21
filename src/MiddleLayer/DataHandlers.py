@@ -300,7 +300,6 @@ class PhonemeProxy():
             noteIndex = bisect_left(self.track.phonemeIndices, phonIndex)
             if phonIndex == self.track.phonemeIndices[noteIndex]:
                 noteIndex += 1
-            print(phonIndex, noteIndex, self.track.phonemeIndices)
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
             if noteIndex > 0:

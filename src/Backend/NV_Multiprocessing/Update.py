@@ -33,7 +33,6 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, statusContr
     issues during debugging. Neither phoneme should be implemented by any Voicebank"""
 
 
-    print("pre trim: ", inputList[index].phonemes)
     phonemes = inputList[index].phonemes
     offsets = inputList[index].offsets
     repetititionSpacing = inputList[index].repetititionSpacing
@@ -56,7 +55,6 @@ def trimSequence(index:int, position:int, delta:int, inputList:list, statusContr
     inputList[index].offsets = offsets
     inputList[index].repetititionSpacing = repetititionSpacing
     inputList[index].borders = borders
-    print("post trim: ", inputList[index].phonemes)
     return inputList, statusControl
 
 def posToSegment(index:int, pos1:float, pos2:float, inputList:list) -> tuple([int, int]):
