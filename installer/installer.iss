@@ -23,8 +23,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{680531A2-5B3C-47B5-8380-CA6D7033BF13}
 AppName="Nova-Vox"
-AppVersion="0.8.1"
-AppVerName="Nova-Vox 0.8.1"
+AppVersion="0.10.0"
+AppVerName="Nova-Vox 0.10.0"
 AppPublisher="Nova-Vox development team"
 AppPublisherURL="https://nova-vox.org/"
 AppSupportURL="https://nova-vox.org/"
@@ -35,10 +35,10 @@ AppReadmeFile="https://nova-vox.org/tutorial/"
 DefaultDirName={autopf}\Nova-Vox
 DefaultGroupName="Nova-Vox"
 ChangesAssociations=yes
-LicenseFile=D:\Nova-Vox\GitHub\Nova-Vox\COPYING.txt
-InfoBeforeFile=D:\Nova-Vox\GitHub\Nova-Vox\info_pre_install.txt
-InfoAfterFile=D:\Nova-Vox\GitHub\Nova-Vox\info_post_install.txt
-OutputDir="D:\Nova-Vox\GitHub\Nova-Vox\"
+LicenseFile=..\COPYING.txt
+InfoBeforeFile=.\info_pre_install.txt
+InfoAfterFile=.\info_post_install.txt
+OutputDir="..\"
 OutputBaseFilename=Nova-Vox setup
 Compression=lzma2/ultra
 SolidCompression=yes
@@ -57,6 +57,7 @@ Name: "voices"; Description: "Default Voicebanks"; Types: full custom
 ;Name: "voices\Test"; Description: "RIP test Voicebank"; Types: full custom
 ;Name: "voices\Arachne"; Description: "Arachne Japanese UTAU port"; Types: full custom
 ;Name: "params"; Description: "Default Parameters"; Types: full custom
+Name: "voices\Barrels"; Description: "Barrels test Voicebank"; Types: full custom
 
 [Tasks]
 Name: "desktopiconeditor"; Description: "{cm:CreateDesktopIcon} (Editor)"; GroupDescription: "{cm:AdditionalIcons}"
@@ -108,14 +109,13 @@ begin
 end;
 
 [Files]
-Source: "dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
-Source: "dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
-;Source: "Voices\RIP Test.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Test; Flags: ignoreversion uninsneveruninstall
-;Source: "Voices\Arachne Ja.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Arachne; Flags: ignoreversion uninsneveruninstall
+Source: "..\dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\assets\settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
+Source: "..\dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
+Source: "..\assets\Voices\Barrels.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Barrels; Flags: ignoreversion uninsneveruninstall
 ;Source: "Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion uninsneveruninstall
 ;Source: "Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
-Source: "Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
+Source: "..\assets\Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
 
 [INI]
 Filename: "{userappdata}\Nova-Vox\settings.ini"; Section: "Dirs"

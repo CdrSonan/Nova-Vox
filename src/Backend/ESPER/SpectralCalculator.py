@@ -54,7 +54,7 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     audioSample.avgSpecharm -= extAvgSpecharm
     audioSample.excitation -= extExcitation"""
 
-def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) -> None:
+def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     length = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
     audioSample.excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = audioSample.waveform.device)
     audioSample.specharm = torch.zeros((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device = audioSample.waveform.device)

@@ -64,7 +64,7 @@ octaves = 4
 
 #self-identification
 language = "en"
-version = "0.8.1"
+version = "0.10.0"
 
 #devkit default values
 defaultExpectedPitch = 249.
