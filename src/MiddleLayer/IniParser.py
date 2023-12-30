@@ -29,9 +29,9 @@ def readSettings(path:str = None) -> dict:
         makedirs(osPath.split(path)[0])
     if osPath.isfile(path) == False:
         try:
-            copyfile("settings.ini", path)
+            copyfile("assets/settings.ini", path)
         except PermissionError:
-            path = "settings.ini"
+            path = "assets/settings.ini"
     config = cp.ConfigParser()
     config.read(path)
     for i in config.sections():
