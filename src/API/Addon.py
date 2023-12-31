@@ -58,7 +58,8 @@ def registerKV(rule:str) -> None:
     Builder.load_string(rule)
 
 def registerUIElement(instance:Any, location:str, priority:int = 0):
-    pass
+    if location not in middleLayer.UIExtensions.keys():
+        raise ValueError("invalid UI element location")
 
 def registerNode():
     pass
