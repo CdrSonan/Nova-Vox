@@ -99,22 +99,17 @@ class Note(ManagedToggleButton):
         if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) == 0:
             return
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
-        effPhonemeStart = reference.phonemeStart
-        if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
-            if index == effPhonemeStart:
-                return
-            effPhonemeStart += 1
-        if index - effPhonemeStart >= len(self.statusBars) or index - effPhonemeStart < 0:
+        if index >= len(self.statusBars) or index < 0:
             return
-        self.canvas.remove(self.statusBars[index - effPhonemeStart])
-        del self.statusBars[index - effPhonemeStart]
-        rectanglePos = (self.pos[0] + (index - effPhonemeStart) / (reference.phonemeEnd - effPhonemeStart) * self.width, self.pos[1] + self.height * status / 5.)
-        rectangleSize = (self.width / (reference.phonemeEnd - effPhonemeStart), self.height * (1. - status / 5.))
+        self.canvas.remove(self.statusBars[index])
+        del self.statusBars[index]
+        rectanglePos = (self.pos[0] + (index) / len(reference.phonemes) * self.width, self.pos[1] + self.height * status / 5.)
+        rectangleSize = (self.width / len(reference.phonemes), self.height * (1. - status / 5.))
         group = InstructionGroup()
         group.add(Color(0., 0., 0., 0.5))
         group.add(Rectangle(pos = rectanglePos, size = rectangleSize))
-        self.statusBars.insert(index - effPhonemeStart, group)
-        self.canvas.add(self.statusBars[index - effPhonemeStart])
+        self.statusBars.insert(index, group)
+        self.canvas.add(self.statusBars[index])
 
     def quantize(self, x:float, y:float = None) -> tuple:
         """adjusts the x coordinate of a touch to achieve the desired input quantization"""
@@ -214,11 +209,7 @@ class Note(ManagedToggleButton):
         If the flag is not set, the status bars are instead drawn without any rendering progress."""
         
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
-        if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) <= reference.phonemeStart:
-            return
-        phonemeLength = reference.phonemeEnd - reference.phonemeStart
-        if middleLayer.trackList[middleLayer.activeTrack].phonemes[reference.phonemeStart] == "_autopause":
-            phonemeLength -= 1
+        phonemeLength = len(reference.phonemes)
         for i in range(len(self.statusBars)):
             self.canvas.remove(self.statusBars[-1])
             del self.statusBars[-1]
@@ -767,12 +758,8 @@ class PianoRoll(ScrollView):
                     note.xPos = x
                     switch = API.Ops.ChangeNoteLength(touch.ud["noteIndex"], x, length)()
                     if switch == True:
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] + 1].reference.index += 1
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index -= 1
                         touch.ud["noteIndex"] += 1
                     elif switch == False:
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] - 1].reference.index -= 1
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index += 1
                         note.index -= 1
                         touch.ud["noteIndex"] -= 1
                     note.redraw()
@@ -781,12 +768,8 @@ class PianoRoll(ScrollView):
                     note.yPos = int(y + touch.ud["yOffset"] + 1)
                     switch = API.Ops.MoveNote(touch.ud["noteIndex"], int(x + touch.ud["xOffset"] + 1), int(y + touch.ud["yOffset"] + 1))()
                     if switch == True:
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] + 1].reference.index += 1
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index -= 1
                         touch.ud["noteIndex"] += 1
                     elif switch == False:
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"] - 1].reference.index -= 1
-                        middleLayer.trackList[middleLayer.activeTrack].notes[touch.ud["noteIndex"]].reference.index += 1
                         touch.ud["noteIndex"] -= 1
                     note.redraw()
                 elif touch.ud["grabMode"] == "end":

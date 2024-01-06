@@ -41,18 +41,18 @@ class AIWrapper():
             "main_blkA": [3, 5],
             "main_blkB": [3, 5],
             "main_blkC": [3, 5],
-            "main_lr": 0.0005,
+            "main_lr": 0.001,
             "main_reg": 0.005,
             "main_drp":0.1,
             "crt_blkA": [3, 5],
             "crt_blkB": [3, 5],
             "crt_blkC": [3, 5],
             "crt_out_wgt": 0.1,
-            "crt_lr": 0.0005,
-            "crt_reg": 0.02,
+            "crt_lr": 0.001,
+            "crt_reg": 0.005,
             "crt_drp":0.5,
             "gan_guide_wgt": 0.1,
-            "gan_train_asym": 1,
+            "gan_train_asym": 2,
             "fargan_interval": 10,
             "embeddingDim": 8,
         }
@@ -406,10 +406,8 @@ class AIWrapper():
         else:
             self.mainAi.epoch = None
         total = 0
-        for key in self.voicebank.phonemeDict.values():
+        for key in self.voicebank.phonemeDict.keys():
             for phoneme in self.voicebank.phonemeDict[key]:
-                if torch.isnan(phoneme.avgSpecharm).any() or torch.isnan(phoneme.specharm).any():
-                    continue
                 self.deskewingPremul += phoneme.avgSpecharm.to(self.device)
                 total += 1
             expression = key.split("_")
@@ -431,11 +429,12 @@ class AIWrapper():
                  (2, (True, True, True, False), (False, True, True, False)),
                  (3, (False, True, True, True), (False, False, True, True)),
                  (4, (False, False, True, True), (False, False, False, True))]
+        phases = [(4, (True, True, True, True), (True, True, True, True)),]
         
         for phaseIdx, phase in enumerate(phases):
             for epoch in tqdm(range(epochs), desc = "training phase " + str(phaseIdx + 1), position = 1, unit = "epochs"):
                 for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 0, total = len(indata), unit = "samples")):
-                    key = data[1]
+                    key = data[1][0]
                     data = data[0]
                     if index % self.hparams["fargan_interval"] == self.hparams["fargan_interval"] - 1:
                         embedding = fargan_embedding
@@ -459,7 +458,12 @@ class AIWrapper():
                     synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
                     synthBase /= self.deskewingPremul
                     self.mainAi.resetState()
-                    synthInput = self.mainAi(synthBase, phase[0])
+                    if synthBase.isnan().any():
+                        print("NaN encountered in synthetic sample")
+                        synthBase = torch.where(synthBase.isnan(), torch.zeros_like(synthBase), synthBase)
+                    if phaseIdx == 2:
+                        pass
+                    synthInput = self.mainAi(synthBase, phase[0], embedding)
                     
                     if index % self.hparams["gan_train_asym"] == 0:
                         self.mainAi.zero_grad()

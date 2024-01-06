@@ -82,7 +82,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                      windowEnd = windowEnd,
                                      offset = offset)
     phoneme = getClosestSample(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey], torch.mean(vocalSegment.pitch))
-    pitches = [i.pitch for i in vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey]]
+    """pitches = [i.pitch for i in vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey]]
     lowerPitchIndices = torch.full([vocalSegment.pitch.size()[0],], pitches.index(min(pitches)), device = device)
     upperPitchIndices = torch.full([vocalSegment.pitch.size()[0],], pitches.index(max(pitches)), device = device)
     pitches = torch.tensor(pitches, device = device)
@@ -95,12 +95,13 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     avgSpecharm = torch.zeros([global_consts.halfTripleBatchSize + global_consts.halfHarms + 1], device = device)
     for i in range(vocalSegment.pitch.size()[0]):
         avgSpecharm += (ratio[i] * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][upperPitchIndices[i]].avgSpecharm + (1 - ratio[i]) * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][lowerPitchIndices[i]].avgSpecharm).to(device)
-    avgSpecharm /= vocalSegment.pitch.size()[0]
+    avgSpecharm /= vocalSegment.pitch.size()[0]"""
+    avgSpecharm = phoneme.avgSpecharm
     C_Bridge.resampler.resampleSpecharm(ctypes.cast(avgSpecharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                ctypes.cast(phoneme.specharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.specharm.size()[0]),
                                ctypes.cast(vocalSegment.steadiness.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
-                               ctypes.c_float(vocalSegment.repetititionSpacing.item()),
+                               ctypes.c_float(vocalSegment.repetititionSpacing),
                                int(vocalSegment.startCap),
                                int(vocalSegment.endCap),
                                ctypes.cast(output.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -163,7 +164,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     C_Bridge.resampler.resamplePitch(ctypes.cast(phoneme.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_short)),
                                int(phoneme.pitchDeltas.size()[0]),
                                ctypes.c_float(phoneme.pitch.item()),
-                               ctypes.c_float(vocalSegment.repetititionSpacing.item()),
+                               ctypes.c_float(vocalSegment.repetititionSpacing),
                                int(vocalSegment.startCap),
                                int(vocalSegment.endCap),
                                ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -171,7 +172,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                timings)
     return output
 
-def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
+def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     """resampler function for aquiring the pitch curve of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
 
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
@@ -181,12 +182,10 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     pitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].pitch.to(device = device)
     pitchDeltas = Loop.loopSamplerPitch(pitchDeltas, requiredSize, vocalSegment.repetititionSpacing, device = device)
     pitchDeltas -= pitch
-    print(vocalSegment.startCap, vocalSegment.endCap)
     if vocalSegment.startCap == False:
         factor = math.log(0.5, (vocalSegment.start2 - vocalSegment.start1) / (vocalSegment.start3 - vocalSegment.start1))
         slope = torch.linspace(0, 1, (vocalSegment.start3 - vocalSegment.start1), device = device)
         slope = torch.pow(slope, factor)
-        print(pitchDeltas, slope)
         pitchDeltas[:vocalSegment.start3 - vocalSegment.start1] *= slope
     if vocalSegment.endCap == False:
         factor = math.log(0.5, (vocalSegment.end3 - vocalSegment.end2) / (vocalSegment.end3 - vocalSegment.end1))

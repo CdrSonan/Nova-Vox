@@ -216,11 +216,15 @@ class CopyTrack(UnifiedAction):
             middleLayer.trackList.append(Track(reference.vbPath))
             middleLayer.trackList[-1].volume = copy(reference.volume)
             for i in reference.notes:
-                middleLayer.trackList[-1].notes.append(Note(i.xPos, i.yPos, i.phonemeStart, i.phonemeEnd))
+                middleLayer.trackList[-1].notes.append(Note(i.xPos, i.yPos, middleLayer.trackList[-1], None))
                 middleLayer.trackList[-1].notes[-1].length = copy(i.length)
                 middleLayer.trackList[-1].notes[-1].phonemeMode = copy(i.phonemeMode)
                 middleLayer.trackList[-1].notes[-1].content = copy(i.content)
-            middleLayer.trackList[-1].phonemes = deepcopy(reference.phonemes)
+                middleLayer.trackList[-1].notes[-1].phonemes = deepcopy(i.phonemes)
+                middleLayer.trackList[-1].notes[-1].borders = deepcopy(i.borders)
+                middleLayer.trackList[-1].notes[-1].pronuncIndex = copy(i.pronuncIndex)
+                middleLayer.trackList[-1].notes[-1].autopause = copy(i.autopause)
+                middleLayer.trackList[-1].notes[-1].carryOver = copy(i.carryOver)
             middleLayer.trackList[-1].pitch = reference.pitch.clone()
             middleLayer.trackList[-1].basePitch = reference.basePitch.clone()
             middleLayer.trackList[-1].breathiness = reference.breathiness.clone()
@@ -237,10 +241,11 @@ class CopyTrack(UnifiedAction):
             middleLayer.trackList[-1].useVibratoSpeed = copy(reference.useVibratoSpeed)
             middleLayer.trackList[-1].useVibratoStrength = copy(reference.useVibratoStrength)
             middleLayer.trackList[-1].nodegraph = copy(reference.nodegraph)
-            middleLayer.trackList[-1].borders = deepcopy(reference.borders)
             middleLayer.trackList[-1].length = copy(reference.length)
             middleLayer.trackList[-1].mixinVB = copy(reference.mixinVB)
             middleLayer.trackList[-1].pauseThreshold = copy(reference.pauseThreshold)
+            middleLayer.trackList[-1].borders.wrappingBorders = deepcopy(reference.borders.wrappingBorders)
+            middleLayer.trackList[-1].buildPhonemeIndices()
             middleLayer.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(middleLayer.trackList) - 1))
             middleLayer.audioBuffer.append(deepcopy(middleLayer.audioBuffer[index]))
             middleLayer.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
@@ -461,6 +466,7 @@ class ChangeParam(UnifiedAction):
                 for i in range(*middleLayer.posToNote(start, start + len(data))):
                     middleLayer.recalculateBasePitch(i, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos + middleLayer.trackList[middleLayer.activeTrack].notes[i].length)
                 middleLayer.ids["pianoRoll"].redrawPitch()
+                middleLayer.submitFinalize()
             else:
                 middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam].curve[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                 middleLayer.submitParamChange(True, middleLayer.activeParam, start, torch.tensor(data, dtype = torch.half))
@@ -498,7 +504,7 @@ class ChangePitch(UnifiedAction):
         def action(data, start):
             if type(data) == list:
                 data = torch.tensor(data, dtype = torch.half)
-            middleLayer.trackList[self.activeTrack].pitch[start:start + data.size()[0]] = data
+            middleLayer.trackList[middleLayer.activeTrack].pitch[start:start + data.size()[0]] = data
             data = noteToPitch(data)
             middleLayer.submitNamedPhonParamChange(True, "pitch", start, data)
         super().__init__(action, data, start, *args, **kwargs)
@@ -520,21 +526,12 @@ class AddNote(UnifiedAction):
         def action(index, x, y, reference):
             if middleLayer.activeTrack == None:
                 return
-            if index == 0:
-                middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, 0, 0, reference))
-                if len(middleLayer.trackList[middleLayer.activeTrack].notes) == 1:
-                    middleLayer.trackList[middleLayer.activeTrack].borders[0] = x + 33
-                    middleLayer.trackList[middleLayer.activeTrack].borders[1] = x + 66
-                    middleLayer.trackList[middleLayer.activeTrack].borders[2] = x + 100
-                    middleLayer.submitNamedPhonParamChange(False, "borders", 0, [33, 66, 100])
-            elif index == len(middleLayer.trackList[middleLayer.activeTrack].notes):
-                middleLayer.trackList[middleLayer.activeTrack].notes.append(Note(x, y, middleLayer.trackList[middleLayer.activeTrack].notes[index - 1].phonemeEnd, middleLayer.trackList[middleLayer.activeTrack].notes[index - 1].phonemeEnd, reference))
-                middleLayer.repairBorders(3 * len(middleLayer.trackList[middleLayer.activeTrack].phonemes) + 2)
-                middleLayer.repairBorders(3 * len(middleLayer.trackList[middleLayer.activeTrack].phonemes) + 1)
-                middleLayer.repairBorders(3 * len(middleLayer.trackList[middleLayer.activeTrack].phonemes))
+            if index == len(middleLayer.trackList[middleLayer.activeTrack].notes):
+                middleLayer.trackList[middleLayer.activeTrack].notes.append(Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
             else:
-                middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, reference))
-            middleLayer.adjustNote(index, 100, x)
+                middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
+            middleLayer.adjustNote(index, 100, None, False, True)
+            middleLayer.submitFinalize()
         super().__init__(action, index, x, y, reference, *args, **kwargs)
         self.index = index
         self.x = x
@@ -571,10 +568,14 @@ class _ReinsertNote(UnifiedAction):
 class RemoveNote(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
         def action(index):
-            middleLayer.offsetPhonemes(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart - middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeEnd)
+            if index == 0:
+                middleLayer.offsetPhonemes(index, -middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
+            else:
+                middleLayer.offsetPhonemes(index, middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1] - middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
             middleLayer.trackList[middleLayer.activeTrack].notes.pop(index)
             if index < len(middleLayer.trackList[middleLayer.activeTrack].notes):
-                middleLayer.adjustNote(index, middleLayer.trackList[middleLayer.activeTrack].notes[index].length, middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos)
+                middleLayer.adjustNote(index, None, None, False, True)
+                middleLayer.submitFinalize()
         super().__init__(action, index, *args, **kwargs)
         self.index = index
     
@@ -588,24 +589,13 @@ class RemoveNote(UnifiedAction):
 class ChangeNoteLength(UnifiedAction):
     def __init__(self, index, x, length, *args, **kwargs):
         def action(index, x, length):
-            iterationEnd = middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeEnd
-            if index + 1 == len(middleLayer.trackList[middleLayer.activeTrack].notes):
-                iterationEnd += 1
-            for i in range(middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, iterationEnd):
-                middleLayer.trackList[middleLayer.activeTrack].borders[3 * i] += x - middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-                middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 1] += x - middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-                middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] += x - middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-                middleLayer.repairBorders(3 * i + 2)
-                middleLayer.repairBorders(3 * i + 1)
-                middleLayer.repairBorders(3 * i)
             oldLength = middleLayer.trackList[middleLayer.activeTrack].notes[index].length
-            if index + 1 < len(middleLayer.trackList[middleLayer.activeTrack].notes):
-                oldLength = min(oldLength, middleLayer.trackList[middleLayer.activeTrack].notes[index + 1].xPos - middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos)
-            oldLength = max(oldLength, 1)
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].length = length
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
-            return middleLayer.adjustNote(index, oldLength, oldPos)
+            switch = middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
+            middleLayer.submitFinalize()
+            return switch
         super().__init__(action, index, x, length, *args, **kwargs)
         self.index = index
         self.x = x
@@ -615,12 +605,16 @@ class ChangeNoteLength(UnifiedAction):
         return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length)
     
     def uiCallback(self):
-        for i in middleLayer.ids["pianoRoll"].notes:
-            if i.index == self.index:
-                i.length = self.length
-                i.x = self.x
-                i.redraw()
-                break
+        #for i in middleLayer.ids["pianoRoll"].notes:
+        #    if i.index == self.index:
+        #        i.length = self.length
+        #        i.x = self.x
+        #        i.redraw()
+        #        break
+        if middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference:
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.length = self.length
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.x = self.x
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redraw()
     
     def merge(self, other):
         if type(other) == ChangeNoteLength and self.index == other.index:
@@ -630,31 +624,12 @@ class ChangeNoteLength(UnifiedAction):
 class MoveNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
         def action(index, x, y):
-            iterationEnd = middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeEnd
-            iterationStart = middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart
-            if iterationEnd > iterationStart:
-                if middleLayer.trackList[middleLayer.activeTrack].phonemes[iterationStart] == "_autopause":
-                    iterationStart += 1
-            if index + 1 == len(middleLayer.trackList[middleLayer.activeTrack].notes):
-                iterationEnd += 1
-            elif len(middleLayer.trackList[middleLayer.activeTrack].phonemes) > iterationEnd and middleLayer.trackList[middleLayer.activeTrack].phonemes[iterationEnd] == "_autopause":
-                iterationEnd += 1
-            for i in range(iterationStart, iterationEnd):
-                middleLayer.trackList[middleLayer.activeTrack].borders[3 * i] += x - middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-                middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 1] += x - middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-                middleLayer.trackList[middleLayer.activeTrack].borders[3 * i + 2] += x - middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-                middleLayer.repairBorders(3 * i + 2)
-                middleLayer.repairBorders(3 * i + 1)
-                middleLayer.repairBorders(3 * i)
-            middleLayer.submitNamedPhonParamChange(False, "borders", 3 * iterationStart, middleLayer.trackList[middleLayer.activeTrack].borders[3 * iterationStart:3 * iterationEnd])
-            oldLength = middleLayer.trackList[middleLayer.activeTrack].notes[index].length
-            if index + 1 < len(middleLayer.trackList[middleLayer.activeTrack].notes):
-                oldLength = min(oldLength, middleLayer.trackList[middleLayer.activeTrack].notes[index + 1].xPos - middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos)
-            oldLength = max(oldLength, 1)
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
-            return middleLayer.adjustNote(index, oldLength, oldPos)
+            switch = middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
+            middleLayer.submitFinalize()
+            return switch
         super().__init__(action, index, x, y, *args, **kwargs)
         self.index = index
         self.x = x
@@ -664,9 +639,13 @@ class MoveNote(UnifiedAction):
         return MoveNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos)
     
     def uiCallback(self):
-        middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
-        middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
-        middleLayer.ids["pianoRoll"].notes[self.index].redraw()
+        if middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference:
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redraw()
+        #middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
+        #middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
+        #middleLayer.ids["pianoRoll"].notes[self.index].redraw()
     
     def merge(self, other):
         if type(other) == MoveNote and self.index == other.index:
@@ -678,6 +657,16 @@ class ChangeLyrics(UnifiedAction):
         def action(index, inputText, pronuncIndex):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].content = inputText
             middleLayer.trackList[middleLayer.activeTrack].notes[index].pronuncIndex = pronuncIndex
+            
+            if inputText.startswith("- "):
+                inputText = inputText[2:]
+                if middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeMode:
+                    middleLayer.trackList[middleLayer.activeTrack].notes[index].carryOver = True
+                else:
+                    middleLayer.trackList[middleLayer.activeTrack].notes[index].carryOver = False
+            else:
+                middleLayer.trackList[middleLayer.activeTrack].notes[index].carryOver = False
+            
             if middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeMode:
                 text = inputText.split(" ")
             else:
@@ -701,11 +690,7 @@ class ChangeLyrics(UnifiedAction):
                     text = middleLayer.syllableSplit(inputText)
                     if text == None:
                         text = ["pau"]
-                    
-            if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) > middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart and middleLayer.trackList[middleLayer.activeTrack].phonemes[middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart] == "_autopause":
-                phonemes = ["_autopause",]
-            else:
-                phonemes = []
+            phonemes = []
             for i in text:
                 if  not middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeMode and (expressionKey != None):
                     phoneme = i + "_" + expressionKey
@@ -715,21 +700,25 @@ class ChangeLyrics(UnifiedAction):
                     phonemes.append(phoneme)
                 elif i in middleLayer.trackList[middleLayer.activeTrack].phonemeLengths:
                     phonemes.append(i)
-            offset = len(phonemes) - middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeEnd + middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart
-            middleLayer.offsetPhonemes(index, offset, futurePhonemes = phonemes)
-            middleLayer.trackList[middleLayer.activeTrack].phonemes[middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart:middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeEnd] = phonemes
-            middleLayer.submitNamedPhonParamChange(False, "phonemes", middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, phonemes)
-            offsets = torch.tensor([], dtype = torch.half)
+            offset = len(phonemes) - len(middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemes)
+            middleLayer.offsetPhonemes(index, offset)
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemes = phonemes
+            middleLayer.adjustNote(index, None, None, False, True)
+            if index == 0:
+                phonemeIndex = 0
+            else:
+                phonemeIndex = middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1]
+            middleLayer.submitNamedPhonParamChange(False, "phonemes", phonemeIndex, phonemes)
+            offsets = []
             for i in phonemes:
-                if i == "_autopause" or i == "pau":
-                    offsets = torch.cat((offsets, torch.tensor([0.,], dtype = torch.half)), 0)
+                if i in ("pau", "_autopause"):
+                    offsets += [0.]
                 elif middleLayer.trackList[middleLayer.activeTrack].phonemeLengths[i] == None:
-                    offsets = torch.cat((offsets, torch.tensor([0.5,], dtype = torch.half)), 0)
+                    offsets += [0.5]
                 else:
-                    offsets = torch.cat((offsets, torch.tensor([0.05,], dtype = torch.half)), 0)
-            middleLayer.trackList[middleLayer.activeTrack].loopOffset[middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart:middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeEnd] = offsets
-            middleLayer.submitNamedPhonParamChange(False, "offsets", middleLayer.trackList[middleLayer.activeTrack].notes[index].phonemeStart, offsets)
-            middleLayer.makeAutoPauses(index)
+                    offsets += [0.05]
+            middleLayer.trackList[middleLayer.activeTrack].loopOffset[phonemeIndex:phonemeIndex + len(offsets)] = offsets#index out of range (last note?)
+            middleLayer.submitNamedPhonParamChange(False, "offsets", phonemeIndex, offsets)
             middleLayer.submitFinalize()
         super().__init__(action, index, inputText, pronuncIndex, *args, **kwargs)
         self.index = index
@@ -738,8 +727,8 @@ class ChangeLyrics(UnifiedAction):
         return ChangeLyrics(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].pronuncIndex)
     
     def uiCallback(self):
-        middleLayer.ids["pianoRoll"].notes[self.index].children[0].text = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content
-        middleLayer.ids["pianoRoll"].notes[self.index].redrawStatusBars()
+        middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.children[0].text = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content
+        middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redrawStatusBars()
 
 class MoveBorder(UnifiedAction):
     def __init__(self, border, pos, *args, **kwargs):
@@ -834,18 +823,22 @@ class LoadNVX(UnifiedAction):
                 _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
                 middleLayer.trackList[-1].volume = track["volume"]
                 for note in track["notes"]:
-                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], note["phonemeStart"], note["phonemeEnd"]))
+                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], middleLayer.trackList[-1], None))
                     middleLayer.trackList[-1].notes[-1].length = note["length"]
                     middleLayer.trackList[-1].notes[-1].phonemeMode = note["phonemeMode"]
                     middleLayer.trackList[-1].notes[-1].content = note["content"]
-                middleLayer.trackList[-1].phonemes = track["phonemes"]
+                    middleLayer.trackList[-1].notes[-1].pronuncIndex = note["pronuncIndex"]
+                    middleLayer.trackList[-1].notes[-1].phonemes = note["phonemes"]
+                    middleLayer.trackList[-1].notes[-1].autopause = note["autopause"]
+                    middleLayer.trackList[-1].notes[-1].borders = note["borders"]
+                    middleLayer.trackList[-1].notes[-1].carryOver = note["carryOver"]
+                    middleLayer.trackList[-1].notes[-1].loopOverlap = note["loopOverlap"]
+                    middleLayer.trackList[-1].notes[-1].loopOffset = note["loopOffset"]
                 middleLayer.trackList[-1].pitch = track["pitch"]
                 middleLayer.trackList[-1].basePitch = track["basePitch"]
                 middleLayer.trackList[-1].breathiness = track["breathiness"]
                 middleLayer.trackList[-1].steadiness = track["steadiness"]
                 middleLayer.trackList[-1].aiBalance = track["aiBalance"]
-                middleLayer.trackList[-1].loopOverlap = track["loopOverlap"]
-                middleLayer.trackList[-1].loopOffset = track["loopOffset"]
                 middleLayer.trackList[-1].vibratoSpeed = track["vibratoSpeed"]
                 middleLayer.trackList[-1].vibratoStrength = track["vibratoStrength"]
                 middleLayer.trackList[-1].usePitch = track["usePitch"]
@@ -855,10 +848,10 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].useVibratoSpeed = track["useVibratoSpeed"]
                 middleLayer.trackList[-1].useVibratoStrength = track["useVibratoStrength"]
                 middleLayer.trackList[-1].nodegraph = track["nodegraph"]
-                middleLayer.trackList[-1].borders = track["borders"]
                 middleLayer.trackList[-1].length = track["length"]
                 middleLayer.trackList[-1].mixinVB = track["mixinVB"]
                 middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
+                middleLayer.trackList[-1].buildPhonemeIndices()
             middleLayer.validate()
         super().__init__(action, path, middleLayer, *args, **kwargs)
     
@@ -872,7 +865,7 @@ class LoadNVX(UnifiedAction):
                 _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
                 middleLayer.trackList[-1].volume = track["volume"]
                 for note in track["notes"]:
-                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], note["phonemeStart"], note["phonemeEnd"]))
+                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], middleLayer.trackList[-1], None))
                     middleLayer.trackList[-1].notes[-1].length = note["length"]
                     middleLayer.trackList[-1].notes[-1].phonemeMode = note["phonemeMode"]
                     middleLayer.trackList[-1].notes[-1].content = note["content"]

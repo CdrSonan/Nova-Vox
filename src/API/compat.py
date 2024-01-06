@@ -43,23 +43,23 @@ def getPerNoteData(arrayFormat:str = "list", useNominalTimings:bool = False) -> 
     tracks = []
     for track in middleLayer.trackList:
         notes = []
-        for note in track.notes:
+        for index, note in enumerate(track.notes):
             if useNominalTimings:
                 start = note.xPos
                 end = note.xPos + note.length
             else:
-                if note.phonemeStart < len(track.phonemes) and track.phonemes[note.phonemeStart] in ("pau", "_autopause"):
-                    start = track.borders[note.phonemeStart * 3]
+                if index == 0:
+                    start = track.borders[0]
+                    start_p = 0
                 else:
-                    start = track.borders[note.phonemeStart * 3 + 1]
-                if note.phonemeEnd < len(track.phonemes) and track.phonemes[note.phonemeEnd] in ("pau", "_autopause"):
-                    end = track.borders[note.phonemeEnd * 3 + 2]
-                else:
-                    end = track.borders[note.phonemeEnd * 3 + 1]
-            if track.phonemes[note.phonemeStart] in ("pau", "_autopause"):
-                phonemes = track.phonemes[note.phonemeStart + 1:note.phonemeEnd]
+                    start = track.borders[track.phonemeIndices[index - 1] * 3 + 1]
+                    start_p = track.phonemeIndices[index - 1]
+                end = track.borders[track.phonemeIndices[index] * 3 + 1]
+                end_p = track.phonemeIndices[index]
+            if note.autopause:
+                phonemes = [*note.phonemes, "_autopause"]
             else:
-                phonemes = track.phonemes[note.phonemeStart:note.phonemeEnd]
+                phonemes = note.phonemes
             notes.append({"start": start,
                           "end": end,
                           "pitch": note.yPos,
@@ -68,8 +68,8 @@ def getPerNoteData(arrayFormat:str = "list", useNominalTimings:bool = False) -> 
                           "breathiness": convertFormat(track.breathiness[start:end], arrayFormat),
                           "steadiness": convertFormat(track.steadiness[start:end], arrayFormat),
                           "aiBalance": convertFormat(track.aiBalance[start:end], arrayFormat),
-                          "loopOverlap": convertFormat(track.loopOverlap[note.phonemeStart:note.phonemeEnd], arrayFormat),
-                          "loopOffset": convertFormat(track.loopOffset[note.phonemeStart:note.phonemeEnd], arrayFormat),
+                          "loopOverlap": convertFormat(track.loopOverlap[start_p:end_p], arrayFormat),
+                          "loopOffset": convertFormat(track.loopOffset[start_p:end_p], arrayFormat),
                           "vibratoSpeed": convertFormat(track.vibratoSpeed[start:end], arrayFormat),
                           "vibratoStrength": convertFormat(track.vibratoStrength[start:end], arrayFormat)})
         tracks.append({"notes": notes,
@@ -93,39 +93,28 @@ def importFromPerNoteData(tracks:list, wipe:bool = False, useNominalTimings:bool
         API.Ops.ImportVoicebank(track["voicebank"])()
         middleLayer.trackList[-1].volume = track["volume"]
         #TODO: add mixin vb hook once implemented
-        for note in track["notes"]:
+        for index, note in enumerate(track["notes"]):
             API.Ops.ChangeTrack(len(middleLayer.trackList) - 1)()
             API.Ops.AddNote(len(middleLayer.trackList[-1].notes), note["start"], note["pitch"])()
             API.Ops.ChangeNoteLength(len(middleLayer.trackList[-1].notes) - 1, note["start"], note["end"] - note["start"])()
             middleLayer.trackList[-1].notes[-1].phonemeMode = True
             API.Ops.ChangeLyrics(len(middleLayer.trackList[-1].notes) - 1, "".join(note["phonemes"]))()
-            middleLayer.trackList[-1].loopOverlap[middleLayer.trackList[-1].notes[-1].phonemeStart:middleLayer.trackList[-1].notes[-1].phonemeEnd] = convertFormat(note["loopOverlap"], "torch")
-            middleLayer.trackList[-1].loopOffset[middleLayer.trackList[-1].notes[-1].phonemeStart:middleLayer.trackList[-1].notes[-1].phonemeEnd] = convertFormat(note["loopOffset"], "torch")
-        for note in track["notes"]:
-            if useNominalTimings:
-                start = note["start"]
-                end = note["end"]
-                leftExtrapolation = min(start, middleLayer.trackList[-1].borders[note.phonemeStart * 3 + 1])
-                rightExtrapolation = max(end, middleLayer.trackList[-1].borders[note.phonemeEnd * 3 + 1])
+            if index == 0:
+                start = middleLayer.trackList[-1].borders[0]
+                start_p = 0
             else:
-                if note.phonemeStart < len(middleLayer.trackList[-1].phonemes) and middleLayer.trackList[-1].phonemes[note.phonemeStart] in ("pau", "_autopause"):
-                    start = middleLayer.trackList[-1].borders[note.phonemeStart * 3]
-                else:
-                    start = middleLayer.trackList[-1].borders[note.phonemeStart * 3 + 1]
-                if note.phonemeEnd < len(middleLayer.trackList[-1].phonemes) and middleLayer.trackList[-1].phonemes[note.phonemeEnd] in ("pau", "_autopause"):
-                    end = middleLayer.trackList[-1].borders[note.phonemeEnd * 3 + 2]
-                else:
-                    end = middleLayer.trackList[-1].borders[note.phonemeEnd * 3 + 1]
+                start = middleLayer.trackList[-1].borders[middleLayer.trackList[-1].phonemeIndices[index - 1] * 3 + 1]
+                start_p = middleLayer.trackList[-1].phonemeIndices[index - 1]
+            end = middleLayer.trackList[-1].borders[middleLayer.trackList[-1].phonemeIndices[index] * 3 + 1]
+            end_p = middleLayer.trackList[-1].phonemeIndices[index]
+            middleLayer.trackList[-1].loopOverlap[start_p:end_p] = convertFormat(note["loopOverlap"], "torch")
+            middleLayer.trackList[-1].loopOffset[start_p:end_p] = convertFormat(note["loopOffset"], "torch")
             def interpolation(source, target):
                 target[start:end] = interp(linspace(0, 1, source.size()[0]), source, linspace(0, 1, end - start))
-                if leftExtrapolation < start:
-                    target[leftExtrapolation:start] = source[0].item()
-                if rightExtrapolation > end:
-                    target[end:rightExtrapolation] = source[-1].item()
-            middleLayer.trackList[-1].pitch[start:end] = interpolation(convertFormat(note["pitchCurve"], "torch"))
-            middleLayer.trackList[-1].breathiness[start:end] = interpolation(convertFormat(note["breathiness"], "torch"))
-            middleLayer.trackList[-1].steadiness[start:end] = interpolation(convertFormat(note["steadiness"], "torch"))
-            middleLayer.trackList[-1].aiBalance[start:end] = interpolation(convertFormat(note["aiBalance"], "torch"))
-            middleLayer.trackList[-1].vibratoSpeed[start:end] = interpolation(convertFormat(note["vibratoSpeed"], "torch"))
-            middleLayer.trackList[-1].vibratoStrength[start:end] = interpolation(convertFormat(note["vibratoStrength"], "torch"))
+            interpolation(convertFormat(note["pitchCurve"], "torch"),  middleLayer.trackList[-1].pitch[start:end])
+            interpolation(convertFormat(note["breathiness"], "torch"), middleLayer.trackList[-1].breathiness[start:end])
+            interpolation(convertFormat(note["steadiness"], "torch"), middleLayer.trackList[-1].steadiness[start:end])
+            interpolation(convertFormat(note["aiBalance"], "torch"), middleLayer.trackList[-1].aiBalance[start:end])
+            interpolation(convertFormat(note["vibratoSpeed"], "torch"), middleLayer.trackList[-1].vibratoSpeed[start:end])
+            interpolation(convertFormat(note["vibratoStrength"], "torch"), middleLayer.trackList[-1].vibratoStrength[start:end])
     middleLayer.validate()

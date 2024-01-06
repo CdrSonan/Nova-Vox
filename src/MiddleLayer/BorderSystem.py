@@ -5,132 +5,57 @@
 # Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-from MiddleLayer.DataHandlers import Track, Note
+from copy import copy
+
+from MiddleLayer.DataHandlers import Note, NoteContext
 import global_consts
 
-def rescaleFromReference(note:Note, reference:tuple, borders:list) -> list:
-    borders = [i - reference[0] for i in borders]
-    scaling = note.length / reference[1]
-    borders = [i * scaling for i in borders]
-    borders = [i + note.xPos for i in borders]
-    return borders
-
-def recalculateBorders(index:int, track:Track, referenceLength:int = None) -> tuple:
-    if index < 0:
-        return (0, 0)
-    phonemes = track.phonemes[track.notes[index].phonemeStart:track.notes[index].phonemeEnd]
-    if len(phonemes) == 0:
-        return recalculateBorders(index - 1, track, None)
-    if phonemes[0] == "_autopause":
-        phonemes = phonemes[1:]
-        autopause = track.notes[index].xPos - track.notes[index - 1].xPos - track.notes[index - 1].length
+def calculateBorders(note:Note, context:NoteContext) -> None:
+    phonemes = copy(note.phonemes)
+        #handle delegate logic
+    phonemes = [i for i in phonemes if i in note.track.phonemeLengths.keys()]
+    if context.preutterance:
+        phonemes.pop(0)
+    phonemeLengths = [note.track.phonemeLengths[i] for i in phonemes]
+    availableSpace = context.end - context.start
+    reservedSpace = sum([i for i in phonemeLengths if i])
+    numDropinPhonemes = sum([1 for i in phonemeLengths if not i])
+    if len(phonemes) > 0 and availableSpace >= reservedSpace + numDropinPhonemes * global_consts.refPhonemeLength:
+        dropinLength = (availableSpace - reservedSpace) / numDropinPhonemes
     else:
-        autopause = False
-    phonemeLengths = [track.phonemeLengths[i] if i in track.phonemeLengths else None for i in phonemes]
-    if len(phonemeLengths) > 0 and phonemeLengths[0]:
-        preutterance = phonemeLengths[0]
-        phonemes = phonemes[1:]
-        phonemeLengths = phonemeLengths[1:]
-    else:
-        preutterance = None
-    length = track.notes[index].length
-    if index < len(track.notes) - 1:
-        length = min(length, track.notes[index + 1].xPos - track.notes[index].xPos, track.borders[3 * track.notes[index].phonemeEnd + 2])
-    if track.notes[index].phonemeEnd < len(track.phonemes):
-        followingAutopause = track.phonemes[track.notes[index].phonemeEnd] == "_autopause"
-    else:
-        followingAutopause = False
-    if sum([i for i in phonemeLengths if i]) >= length:
-        compression = True
-    else:
-        compression = False
-        
-    effectiveStart = track.notes[index].phonemeStart
-    if autopause:
-        effectiveStart += 1
-    if preutterance:
-        effectiveStart += 1
-
-    if preutterance:
-        if autopause:
-            preutterance = min(preutterance, (1. - global_consts.refTransitionFrac) * autopause)
-        transitionLength = min(preutterance * global_consts.refTransitionFrac, global_consts.refTransitionLength)
-        preutterance = [transitionLength, preutterance - 2 * transitionLength, transitionLength]
-
-    if index == 0 or autopause:
-        segmentLengths = [global_consts.refTransitionLength,]
-    else:
-        segmentLengths = []
+        dropinLength = global_consts.refPhonemeLength
+    phonemeLengths = [i if i else dropinLength for i in phonemeLengths]
+    if len(phonemes) > 0:
+        compression = availableSpace / sum(phonemeLengths)
+        phonemeLengths = [i * compression for i in phonemeLengths]
+    mainBorders = [context.start,]
     for i in phonemeLengths:
-        if i:
-            transitionLength = min(i * global_consts.refTransitionFrac, global_consts.refTransitionLength)
-            segmentLengths.extend([transitionLength, i - 2 * transitionLength, transitionLength])
+        mainBorders.append(mainBorders[-1] + i)
+    leadingBorders = []
+    for i in range(1, len(mainBorders)):
+        leadingBorders.append(mainBorders[i] - min(global_consts.refTransitionLength, (mainBorders[i] - mainBorders[i - 1]) * global_consts.refTransitionFrac))
+    trailingBorders = []
+    for i in range(len(mainBorders) - 1):
+        trailingBorders.append(mainBorders[i] + min(global_consts.refTransitionLength, (mainBorders[i + 1] - mainBorders[i]) * global_consts.refTransitionFrac))
+    if context.preutterance:
+        mainBorders.insert(0, context.start - context.preutterance)
+        leadingBorders.insert(0, context.start - min(global_consts.refTransitionLength, context.preutterance * global_consts.refTransitionFrac))
+        trailingBorders.insert(0, context.start - context.preutterance + min(global_consts.refTransitionLength, context.preutterance * global_consts.refTransitionFrac))
+    if context.trailingAutopause:
+        mainBorders.append(context.trailingAutopause)
+        leadingBorders.append(context.trailingAutopause - min(global_consts.refTransitionLength, (context.trailingAutopause - context.end) * global_consts.refTransitionFrac))
+        trailingBorders.append(context.end + min(global_consts.refTransitionLength, (context.trailingAutopause - context.end) * global_consts.refTransitionFrac))
+    borders = []
+    for i in range(len(mainBorders) - 1):
+        borders.append(mainBorders[i])
+        borders.append(trailingBorders[i])
+        borders.append(leadingBorders[i])
+    note.borders = borders
+    if note.track.notes.index(note) == 0:
+        if len(note.phonemes) > 0:
+            note.track.borders.wrappingBorders[0] = max(note.borders[0] - global_consts.refTransitionLength, 0)
         else:
-            segmentLengths.extend([global_consts.refTransitionLength, None, global_consts.refTransitionLength])
-    if index == len(track.notes) - 1 or followingAutopause or track.notes[index].phonemeEnd == len(track.phonemes):
-        segmentLengths.append(global_consts.refTransitionLength)
-
-    """if referenceLength and not compression:
-        if index == 0:
-            offset = track.borders[0] - track.notes[index].xPos
-        else:
-            offset = track.borders[(track.notes[index].phonemeStart) * 3 + 1] - track.notes[index].xPos
-        if preutterance:
-            borders = [track.borders[track.notes[index].phonemeStart * 3 + 1],
-                       track.borders[track.notes[index].phonemeStart * 3 + 2],
-                       track.borders[track.notes[index].phonemeStart * 3 + 3],
-                       track.borders[track.notes[index].phonemeStart * 3 + 4]]
-            borders = rescaleFromReference(track.notes[index], (track.notes[index].xPos, referenceLength), borders)
-            preutterance = [borders[1] - borders[0],
-                            borders[2] - borders[1],
-                            borders[3] - borders[2]]
-        for i, phonemeLength in enumerate(phonemeLengths):
-            borders = [track.borders[(effectiveStart + i) * 3 + 1],
-                       track.borders[(effectiveStart + i) * 3 + 2],
-                       track.borders[(effectiveStart + i) * 3 + 3],
-                       track.borders[(effectiveStart + i) * 3 + 4]]
-            borders = rescaleFromReference(track.notes[index], (track.notes[index].xPos, referenceLength), borders)
-            if phonemeLength:
-                segmentLengths[3 * i + 2] = borders[2] - borders[1]
-            segmentLengths[3 * i + 1] = borders[1] - borders[0]
-            segmentLengths[3 * i + 3] = borders[3] - borders[2]
-    else:
-        offset = 0"""
-    offset = 0
-    dropinLength = (length - sum([i for i in segmentLengths if i])) / max(sum([1 for i in segmentLengths if not i]), 1)
-    dropinLength = max(dropinLength, global_consts.refPhonemeLength)
-    segmentLengths = [i if i else dropinLength for i in segmentLengths]
-    if len(segmentLengths) > 0:
-        compression = length / sum(segmentLengths)
-    else:
-        compression = 1
-    segmentLengths = [i * compression for i in segmentLengths]
-    
-    if autopause:
-        if preutterance:
-            preuttrComp = autopause / sum(preutterance)
-            if preuttrComp < 1:
-                preutterance = [i * preuttrComp for i in preutterance]
-        autopause = min(autopause * global_consts.refTransitionFrac, global_consts.refTransitionLength)
-    
-    startPos = track.notes[index].xPos + offset * compression
-    segmentLengths.insert(0, startPos)
-    for i in range(1, len(segmentLengths)):
-        segmentLengths[i] += segmentLengths[i - 1]
-    effectiveStart = effectiveStart * 3
-    if index > 0 and not autopause:
-        effectiveStart += 1
-    end = effectiveStart + len(segmentLengths)
-    if not (index == len(track.notes) - 1 or followingAutopause or track.notes[index].phonemeEnd == len(track.phonemes)):
-        end -= 1
-        segmentLengths = segmentLengths[:-1]
-    track.borders[effectiveStart:end] = segmentLengths
-
-    if preutterance:
-        preutterance[2] = track.borders[effectiveStart] - preutterance[2]
-        preutterance[1] = preutterance[2] - preutterance[1]
-        preutterance[0] = preutterance[1] - preutterance[0]
-        track.borders[effectiveStart - 3:effectiveStart] = preutterance
-        effectiveStart -= 3
-    start = track.notes[index].phonemeStart * 3
-    return start, end
+            note.track.borders.wrappingBorders[0] = max(note.xPos - global_consts.refTransitionLength, 0)
+    if note.track.notes.index(note) == len(note.track.notes) - 1:
+        note.track.borders.wrappingBorders[1] = note.xPos + note.length
+        note.track.borders.wrappingBorders[2] = note.xPos + note.length + global_consts.refTransitionLength

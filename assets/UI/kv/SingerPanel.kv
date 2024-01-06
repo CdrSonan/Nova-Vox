@@ -21,7 +21,7 @@
         BoxLayout:
             #layout for side bar
             size_hint: (None, 1)
-            width: 300
+            width: 300 * app.root.uiScale
             orientation: "vertical"
             padding: 10
             spacing: 10
@@ -35,31 +35,31 @@
                 ManagedLabel:
                     text: app.root.loc["main_voice"]
                     size_hint_y: None
-                    height: 30
+                    height: 30 * app.root.uiScale
                 ManagedSpinner:
                     #main Voicebank selector
                     sync_height: True
                     text_autoupdate: True
                     size_hint_y: None
-                    height: 30
+                    height: 30 * app.root.uiScale
                 ManagedLabel:
                     text: app.root.loc["mixin_voice"]
                     size_hint_y: None
-                    height: 30
+                    height: 30 * app.root.uiScale
                 ManagedSpinner:
                     #Mix-in VOicebank selector
                     sync_height: True
                     text_autoupdate: True
                     size_hint_y: None
-                    height: 30
+                    height: 30 * app.root.uiScale
                 Label:
                     text: app.root.loc["pause_thrh"]
                     size_hint_y: None
-                    height: 30
+                    height: 30 * app.root.uiScale
                 NumberInput:
                     #pause threshold input
                     size_hint_y: None
-                    height: 30
+                    height: 30 * app.root.uiScale
             ScrollView:
                 #available node list
                 do_scroll_x: False
@@ -70,7 +70,7 @@
             ManagedButton:
                 #close button
                 size_hint_y: None
-                height: 30
+                height: 30 * app.root.uiScale
                 text: "close"
                 on_press: self.parent.parent.parent.parent.parent.dismiss()
 
@@ -81,7 +81,7 @@
     height: 200
     ManagedToggleButton:
         size_hint: (None, None)
-        size: (self.parent.width - 20, self.parent.height - 20)
+        size: (self.parent.width - 20 * app.root.uiScale, self.parent.height - 20 * app.root.uiScale)
         background_normal: "assets/UI/TrackList/SingerBGNew.png"
         background_down: "assets/UI/TrackList/SingerBGNew.png"
         group: "SingerPanels"
@@ -131,5 +131,5 @@
                 anchor_y: "center"
                 ProgressBar:
                     size_hint_x: None
-                    width: self.parent.width - 30
+                    width: self.parent.width - 30 * app.root.uiScale
                     max: 1.

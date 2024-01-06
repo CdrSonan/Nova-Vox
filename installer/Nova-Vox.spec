@@ -127,3 +127,5 @@ coll_devkit = COLLECT(exe_devkit,
                       name='devkit_build')
 
 os.replace('.\\dist\\devkit_build\\Nova-Vox Devkit.exe', '.\\dist\\Nova-Vox\\Nova-Vox Devkit.exe')
+os.replace('.\\dist\\Nova-Vox\\_internal\\assets', '.\\dist\\Nova-Vox\\assets')
+os.replace('.\\dist\\Nova-Vox\\_internal\\bin', '.\\dist\\Nova-Vox\\bin')

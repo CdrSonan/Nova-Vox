@@ -135,7 +135,7 @@ class AISample():
         self.isPlosive = False
         
         self.embedding = 0
-        self.key = None
+        self.key = ""
         
         self.expectedPitch = global_consts.defaultExpectedPitch
         self.searchRange = global_consts.defaultSearchRange

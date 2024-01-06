@@ -11,16 +11,11 @@ from torch import Tensor
 class VocalSequence():
     """Class holding information about a vocal track as required by the rendering process"""
     
-    def __init__(self, length:int, borders:list, phonemes:list, startCaps:list, endCaps:list, offsets:Tensor, repetititionSpacing:Tensor, pitch:Tensor, steadiness:Tensor, breathiness:Tensor, aiBalance:Tensor, vibratoSpeed:Tensor, vibratoStrength:Tensor, useBreathiness:bool, useSteadiness:bool, useAIBalance:bool, useVibratoSpeed:bool, useVibratoStrength:bool, customCurves:list, nodeGraphFunction) -> None:
+    def __init__(self, length:int, borders:list, phonemes:list, offsets:Tensor, repetititionSpacing:Tensor, pitch:Tensor, steadiness:Tensor, breathiness:Tensor, aiBalance:Tensor, vibratoSpeed:Tensor, vibratoStrength:Tensor, useBreathiness:bool, useSteadiness:bool, useAIBalance:bool, useVibratoSpeed:bool, useVibratoStrength:bool, customCurves:list, nodeGraphFunction) -> None:
         self.length = length
         self.phonemeLength = len(phonemes)
         self.borders = borders
         self.phonemes = phonemes
-        self.startCaps = startCaps
-        self.endCaps = endCaps
-        if self.phonemeLength > 0:
-            startCaps[0] = True
-            endCaps[-1] = True
         self.offsets = offsets
         self.repetititionSpacing = repetititionSpacing
         self.pitch = pitch
@@ -41,8 +36,6 @@ class VocalSequence():
         return VocalSequence(copy(self.length),
                              deepcopy(self.borders),
                              deepcopy(self.phonemes),
-                             deepcopy(self.startCaps),
-                             deepcopy(self.endCaps),
                              self.offsets.clone(),
                              self.repetititionSpacing.clone(),
                              self.pitch.clone(),
