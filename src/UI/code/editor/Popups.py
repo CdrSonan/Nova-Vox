@@ -7,7 +7,6 @@
 
 from copy import copy
 import os
-from io import BytesIO
 
 from kivy.uix.popup import Popup
 from kivy.uix.button import ButtonBehavior
@@ -20,6 +19,8 @@ import torch
 from Backend import NodeLib
 from MiddleLayer.IniParser import readSettings
 from UI.code.editor.Util import ManagedPopup
+
+from Util import classesInModule
 
 import API.Ops
 
@@ -84,16 +85,9 @@ class SingerSettingsPanel(Popup):
     def makeNodeTree(self):
         """builds the hierarchical view of all available nodes by searching the appropriate 1st-party and Addon Python modules"""
 
-        def classesinmodule(module):
-            """utility function for getting all classes in a Python module"""
-
-            md = module.__dict__
-            return [
-                md[c] for c in md if (
-                    isinstance(md[c], type) and md[c].__module__ == module.__name__
-                )
-            ]
-        NodeClasses = classesinmodule(NodeLib)
+        
+        NodeClasses = classesInModule(NodeLib)
+        NodeClasses.append(*middleLayer.nodeClasses)
         for i in NodeClasses:
             branch = i.name()
             parent = self.children[0].children[0].children[0].children[0].children[1].children[0].root
@@ -124,16 +118,6 @@ class SingerSettingsPanel(Popup):
         if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]:
             middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
             API.Ops.ChangeVoicebank(self.index, middleLayer.trackList[self.index].vbPath)()
-            """for i in middleLayer.ids["singerList"].children:
-                if i.index == self.index:
-                    i.name = self.children[0].children[0].children[0].children[0].children[2].children[4].text
-                    canvas_img = self.vbData[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)].image
-                    data = BytesIO()
-                    canvas_img.save(data, format='png')
-                    data.seek(0)
-                    im = CoreImage(BytesIO(data.read()), ext='png')
-                    i.image = im.texture
-                    break"""
 
 class LicensePanel(Popup):
     """panel displaying the Nova-Vox license, contributors and other info"""

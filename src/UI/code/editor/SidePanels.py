@@ -8,6 +8,7 @@
 from kivy.core.image import Image as CoreImage
 
 from kivy.uix.popup import Popup
+from kivy.uix.boxlayout import BoxLayout
 from kivy.app import App
 
 from tkinter import Tk, filedialog
@@ -35,6 +36,12 @@ loc = getLanguage()
 
 class FileSidePanel(CursorAwareView):
     """Side panel for saving, loading, importing, exporting and rendering files"""
+    
+    def __init__(self, **kwargs) -> None:
+        global middleLayer
+        super().__init__(**kwargs)
+        for i in middleLayer.uiExtensions["filePanel"]:
+            self.children[0].add_widget(i.instance)
 
     def save(self) -> None:
         """saves the current work to a .nvx file"""
@@ -208,8 +215,24 @@ class ParamSidePanel(CursorAwareView):
         from UI.code.editor.Main import middleLayer
         API.Ops.AddParam(path, name)()
 
+class AddonSelector(BoxLayout):
+    
+    def __init__(self, text, state, **kwargs):
+        self.text = text
+        self.state = state
+        super().__init__(**kwargs)
+    
+    def switch(self):
+        self.state = not self.state
+
 class ScriptingSidePanel(CursorAwareView):
     """side panel containing options for scripting, loading and unloading addons, and opening the devkit"""
+    
+    def __init__(self, **kwargs) -> None:
+        global middleLayer
+        super().__init__(**kwargs)
+        for i in middleLayer.uiExtensions["addonPanel"]:
+            self.children[0].add_widget(i.instance)
 
     def openDevkit(self) -> None:
         """opens the devkit as a separate process through the OS"""

@@ -153,6 +153,18 @@ if __name__ == '__main__':
     loop = get_event_loop()
 
     ExceptionManager.add_handler(ErrorHandler())
+    
+    
+    sys.path.append(path.join(settings["datadir"], "Addons"))
+    from importlib import import_module
+    for i in settings["addons"].split(","):
+        try:
+            import_module(i)
+        except ModuleNotFoundError:
+            logging.warning("could not find module " + i + ".")
+        except Exception as e:
+            logging.error("could not load module " + i + ".")
+            print_exc()
 
     if pyi_splash.is_alive():
         pyi_splash.close()

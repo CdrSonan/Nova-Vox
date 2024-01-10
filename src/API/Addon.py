@@ -22,7 +22,14 @@ class Override():
     
     def __eq__(self, __value: object) -> bool:
         return self.priority == __value
+    
+class UIExtension():
+    def __init__(self, instance:Any, priority:int = 0) -> None:
+        self.instance = instance
+        self.priority = priority
         
+    def __eq__(self, __value: object) -> bool:
+        return self.priority == __value
 
 def override(func:callable):
     def wrapper(*args, **kwargs):
@@ -60,9 +67,9 @@ def registerKV(rule:str) -> None:
 def registerUIElement(instance:Any, location:str, priority:int = 0):
     if location not in middleLayer.UIExtensions.keys():
         raise ValueError("invalid UI element location")
+    extension = UIExtension(instance, priority)
+    index = bisect_left(middleLayer.UIExtensions[location], priority)
+    middleLayer.UIExtensions[location].insert(index, extension)
 
-def registerNode():
-    pass
-
-def registerNodeDType():
-    pass
+def registerNode(nodeClass:Any):
+    middleLayer.nodeClasses.append(nodeClass)

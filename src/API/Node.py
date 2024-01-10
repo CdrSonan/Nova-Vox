@@ -14,8 +14,6 @@ from kivy.graphics import Color, Ellipse, RoundedRectangle
 from kivy.clock import Clock
 from torch import Tensor
 
-#TODO: Node DType import hook
-
 class Node(DragBehavior, BoxLayout):
     """base class of an audio processing node. All node classes should inherit from this class."""
 

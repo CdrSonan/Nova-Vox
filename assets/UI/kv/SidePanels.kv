@@ -267,6 +267,19 @@
             text: app.root.loc["import"]
             on_press: root.importParam(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.parameters[self.parent.parent.selectedIndex].name)
 
+<AddonSelector>:
+    size_hint_y: None
+    height: 30 * app.root.uiScale
+    Label:
+        text: self.parent.text
+    ImageToggleButton:
+        size_hint_x: None
+        size_hint_y: None
+        width: 30 * app.root.uiScale
+        height: 30 * app.root.uiScale
+        source: "assets/UI/Toolbar/Adaptive07new.png"
+        on_press: self.parent.switch()
+
 <ScriptingSidePanel>:
     size_hint: (min(0.5, 0.4 * app.root.uiScale), None)
     pos_hint:{"x": 1 - min(0.5, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
@@ -291,6 +304,10 @@
             height: 30 * app.root.uiScale
             text: app.root.loc["SDK_open"]
             on_press: self.parent.parent.openDevkit()
+        BoxLayout:
+            id: addon_list
+            orientation: "vertical"
+            spacing: 2
 
 <SettingsSidePanel>:
     size_hint: (min(0.5, 0.4 * app.root.uiScale), None)

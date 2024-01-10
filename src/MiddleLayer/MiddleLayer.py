@@ -72,6 +72,7 @@ class MiddleLayer(Widget):
         self.scriptCache = ""
         self.overrides = dict()
         self.UIExtensions = {"addonPanel": [], "filePanel": [], "noteContextMenu": []}
+        self.nodeClasses = []
         
     def setUI(self, ui) -> None:
         """sets the ui and id list references of the main UI. Functionality related to such UI updates may be moved to a dedicated class in the future, deprecating this function."""

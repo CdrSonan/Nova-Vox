@@ -82,3 +82,13 @@ class SecureDict(dict):
     
     def __getitem__(self, __key):
         return super().__getitem__(__key) if __key in self else (self.default if self.default is not None else __key)
+
+def classesinmodule(module):
+    """utility function for getting all classes in a Python module"""
+
+    md = module.__dict__
+    return [
+        md[c] for c in md if (
+            isinstance(md[c], type) and md[c].__module__ == module.__name__
+        )
+    ]

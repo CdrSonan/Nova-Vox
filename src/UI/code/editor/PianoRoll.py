@@ -34,6 +34,9 @@ class NoteProperties(Bubble):
     reference = ObjectProperty()
 
     def on_parent(self, instance, value) -> None:
+        global middleLayer
+        for i in middleLayer.uiExtensions["noteContextMenu"]:
+            self.content.add_widget(i.instance)
         for i in self.content.children:
             i.reference = self.reference
 
