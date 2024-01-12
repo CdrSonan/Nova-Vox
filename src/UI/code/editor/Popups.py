@@ -20,7 +20,7 @@ from Backend import NodeLib
 from MiddleLayer.IniParser import readSettings
 from UI.code.editor.Util import ManagedPopup
 
-from Util import classesInModule
+from Util import classesinmodule
 
 import API.Ops
 
@@ -86,7 +86,7 @@ class SingerSettingsPanel(Popup):
         """builds the hierarchical view of all available nodes by searching the appropriate 1st-party and Addon Python modules"""
 
         
-        NodeClasses = classesInModule(NodeLib)
+        NodeClasses = classesinmodule(NodeLib)
         NodeClasses.append(*middleLayer.nodeClasses)
         for i in NodeClasses:
             branch = i.name()

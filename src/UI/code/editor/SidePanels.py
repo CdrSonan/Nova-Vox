@@ -229,15 +229,6 @@ class AddonSelector(BoxLayout):
 
 class ScriptingSidePanel(CursorAwareView):
     """side panel containing options for scripting, loading and unloading addons, and opening the devkit"""
-    
-    def __init__(self, **kwargs) -> None:
-        global middleLayer
-        super().__init__(**kwargs)
-        for i in middleLayer.uiExtensions["addonPanel"]:
-            if addon in self.ids:
-                self.ids[i.addon].children[0].add_widget(i.instance)
-            else:
-                self.children[0].add_widget(i.instance)
 
     def openDevkit(self) -> None:
         """opens the devkit as a separate process through the OS"""
@@ -272,15 +263,21 @@ class ScriptingSidePanel(CursorAwareView):
         self.ids["scripting_editor"].text = middleLayer.scriptCache
     
     def listAddons(self) -> None:
-        for i in classesinmodule(os.path.join(readSettings()["datadir"], "addons")):
-            if i in readSettings()["enabledaddons"].split(","):
+        global middleLayer
+        for i in middleLayer.addonModules:
+            if i.__name__ in readSettings()["enabledaddons"].split(","):
                 self.ids["addon_list"].add_widget(AddonSelector(text = i, state = True, id = i))
             else:
                 self.ids["addon_list"].add_widget(AddonSelector(text = i, state = False, id = i))
+        for i in middleLayer.UIExtensions["addonPanel"]:
+            if i.addon in self.ids:
+                self.ids[i.addon].children[0].add_widget(i.instance)
+            else:
+                self.children[0].add_widget(i.instance)
     
     def saveAddons(self) -> None:
         addons = []
-        for i in self.ids["addonList"].children:
+        for i in self.ids["addon_list"].children:
             if i.state:
                 addons.append(i.text)
         writeCustomSettings(category = "addons", data = {"enabledaddons": ",".join(addons)})

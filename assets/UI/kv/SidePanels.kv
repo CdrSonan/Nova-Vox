@@ -330,6 +330,8 @@
         scroll_type: ["bars"]
         bar_width: 10
         GridLayout:
+            size_hint_y: None
+            height: self.minimum_height
             cols: 2
             orientation: "lr-tb"
             padding: 10
@@ -358,7 +360,7 @@
                 size_hint_y: None
                 height: 30 * app.root.uiScale
                 values: ["CPU", "GPU"]
-                on_text: self.parent.parent.restartRenderProcess()
+                on_text: self.parent.parent.parent.restartRenderProcess()
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -371,7 +373,7 @@
                 size_hint_y: None
                 height: 30 * app.root.uiScale
                 values: [app.root.loc["disabled"], app.root.loc["enabled"]]
-                on_text: self.parent.parent.restartRenderProcess()
+                on_text: self.parent.parent.parent.restartRenderProcess()
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -396,7 +398,7 @@
                 size_hint_y: None
                 height: 30 * app.root.uiScale
                 values: [app.root.loc["save_ram"], app.root.loc["default"], app.root.loc["render_speed"]]
-                on_text: self.parent.parent.restartRenderProcess()
+                on_text: self.parent.parent.parent.restartRenderProcess()
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -408,8 +410,8 @@
                 text_autoupdate: True
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                values: self.parent.parent.audioApiNames
-                on_text: self.parent.parent.refreshAudioDevices(self.text)
+                values: self.parent.parent.parent.audioApiNames
+                on_text: self.parent.parent.parent.refreshAudioDevices(self.text)
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -421,7 +423,7 @@
                 text_autoupdate: True
                 size_hint_y: None
                 height: 30 * app.root.uiScale
-                values: self.parent.parent.audioDeviceNames
+                values: self.parent.parent.parent.audioDeviceNames
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -475,7 +477,7 @@
                 size_hint_y: None
                 height: 30 * app.root.uiScale
                 text: ""
-                on_press: self.parent.parent.changeDataDir()
+                on_press: self.parent.parent.parent.changeDataDir()
             Label:
                 size_hint_y: None
                 height: 30 * app.root.uiScale
@@ -485,7 +487,7 @@
                 id: settings_uiScale
                 size_hint_y: None
                 height: max(30 * app.root.uiScale, self.minimum_height)
-                on_text_validate: self.parent.parent.applyColors()
+                on_text_validate: self.parent.parent.parent.applyColors()
                 background_normal: "assets/UI/Toolbar/Adaptive07new.png"
                 background_active: "assets/UI/Toolbar/Adaptive07new.png"
                 background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
@@ -502,7 +504,7 @@
                 id: settings_toolColor
                 size_hint_y: None
                 height: 200 * app.root.uiScale
-                on_color: self.parent.parent.applyColors()
+                on_color: self.parent.parent.parent.applyColors()
             Label:
                 size_hint_y: None
                 height: 200 * app.root.uiScale
@@ -513,7 +515,7 @@
                 id: settings_accColor
                 size_hint_y: None
                 height: 200 * app.root.uiScale
-                on_color: self.parent.parent.applyColors()
+                on_color: self.parent.parent.parent.applyColors()
             Label:
                 size_hint_y: None
                 height: 200 * app.root.uiScale
@@ -524,4 +526,4 @@
                 id: settings_bgColor
                 size_hint_y: None
                 height: 200 * app.root.uiScale
-                on_color: self.parent.parent.applyColors()
+                on_color: self.parent.parent.parent.applyColors()

@@ -127,9 +127,9 @@ if __name__ == '__main__':
     class NovaVoxApp(App):
         def build(self):
             self.icon = path.join("assets/icon", "nova-vox-logo-2-color.png")
-            ui = NovaVoxUI()
-            Clock.schedule_interval(ui.update, UPDATEINTERVAL)
-            return ui
+            self.ui = NovaVoxUI()
+            Clock.schedule_interval(self.ui.update, UPDATEINTERVAL)
+            return self.ui
     Window.minimum_height = 500
     Window.minimum_width = 800
     Builder.load_file("assets/UI/kv/Util.kv")
@@ -154,22 +154,23 @@ if __name__ == '__main__':
 
     ExceptionManager.add_handler(ErrorHandler())
     
+    app = NovaVoxApp()
     
     sys.path.append(path.join(settings["datadir"], "Addons"))
     from importlib import import_module
     for i in settings["enabledaddons"].split(","):
         try:
-            import_module(i)
+            app.ui.middleLayer.addonModules.append(import_module(i))
         except ModuleNotFoundError:
             logging.warning("could not find module " + i + ".")
         except Exception as e:
             logging.error("could not load module " + i + ".")
             print_exc()
-
+    
     if pyi_splash.is_alive():
         pyi_splash.close()
     try:
-        loop.run_until_complete(NovaVoxApp().async_run(async_lib='asyncio'))
+        loop.run_until_complete(app.async_run(async_lib='asyncio'))
     except Exception as e:
         print_exc()
         print("Irrecoverable error.")

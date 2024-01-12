@@ -45,6 +45,7 @@ def writeSettings(path, lang, accel, tcores, lowSpec, caching, audioApi, audioDe
     if path == None:
         path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
     config = cp.ConfigParser()
+    config.read(path)
     config["lang"] = {"language": lang,}
     config["perf"] = {"accelerator": accel,
                       "tensorcores": tcores,
@@ -86,20 +87,8 @@ def writeCustomSettings(category:str, data:dict, path:str = None) -> None:
 
     if path == None:
         path = osPath.join(getenv("APPDATA"), "Nova-Vox", "settings.ini")
-    with open(path, 'r+') as f:
-        rightCategory = False
-        for line in f:
-            if rightCategory:
-                for i in data.keys:
-                    if line.startswith(i):
-                        f.write(i + " = " + data[i] + "\n")
-                        del data[i]
-            if line.startswith("[" + category + "]"):
-                if rightCategory:
-                    break
-                else:
-                    rightCategory = True
-        else:
-            f.write(line + "\n" + "[" + category + "]\n")
-        for i in data.keys:
-            f.write(line + "\n" + i + " = " + data[i] + "\n")
+    config = cp.ConfigParser()
+    config.read(path)
+    config[category] = data
+    with open(path, 'w') as f:
+        config.write(f)
