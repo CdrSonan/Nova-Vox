@@ -6,8 +6,11 @@
 # You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Any
+from inspect import currentframe
 from bisect import bisect_left, bisect_right
+from os import path
 from kivy.lang import Builder
+from MiddleLayer.IniParser import readSettings
 global middleLayer
 from UI.code.editor.Main import middleLayer
 
@@ -24,8 +27,9 @@ class Override():
         return self.priority == __value
     
 class UIExtension():
-    def __init__(self, instance:Any, priority:int = 0) -> None:
+    def __init__(self, instance:Any, addon: str, priority:int = 0) -> None:
         self.instance = instance
+        self.addon = addon
         self.priority = priority
         
     def __eq__(self, __value: object) -> bool:
@@ -64,10 +68,24 @@ def registerOverride(target:callable, type:str, callback:callable, priority:int 
 def registerKV(rule:str) -> None:
     Builder.load_string(rule)
 
-def registerUIElement(instance:Any, location:str, priority:int = 0):
+def getAddon(level:int = 2) -> str:
+    frame = currentframe()
+    file = inspect.getframeinfo(sys._getframe(level))["filename"]
+    addonPath = path.join(readSettings()["datadir"], "addons")
+    commonPath = path.commonpath(file, addonPath)
+    addon = None
+    while not samepath(addonPath, commonPath):
+        addonPath, addon = addonPath.split()
+        if addon == "":
+            return None
+    return str(addon)
+
+def registerUIElement(instance:Any, location:str, priority:int = 0, addon:str = None):
     if location not in middleLayer.UIExtensions.keys():
         raise ValueError("invalid UI element location")
-    extension = UIExtension(instance, priority)
+    if addon == None:
+        addon = getAddon()
+    extension = UIExtension(instance, addon, priority)
     index = bisect_left(middleLayer.UIExtensions[location], priority)
     middleLayer.UIExtensions[location].insert(index, extension)
 

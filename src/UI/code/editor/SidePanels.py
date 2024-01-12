@@ -26,10 +26,12 @@ import global_consts
 
 import API.Ops
 
-from MiddleLayer.IniParser import readSettings, writeSettings
+from MiddleLayer.IniParser import readSettings, writeSettings, writeCustomSettings
 from MiddleLayer.FileIO import saveNVX
 
 from UI.code.editor.Util import ListElement, CursorAwareView, ManagedPopup
+
+from Util import classesinmodule
 
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
@@ -232,7 +234,10 @@ class ScriptingSidePanel(CursorAwareView):
         global middleLayer
         super().__init__(**kwargs)
         for i in middleLayer.uiExtensions["addonPanel"]:
-            self.children[0].add_widget(i.instance)
+            if addon in self.ids:
+                self.ids[i.addon].children[0].add_widget(i.instance)
+            else:
+                self.children[0].add_widget(i.instance)
 
     def openDevkit(self) -> None:
         """opens the devkit as a separate process through the OS"""
@@ -265,6 +270,28 @@ class ScriptingSidePanel(CursorAwareView):
         global middleLayer
         from UI.code.editor.Main import middleLayer
         self.ids["scripting_editor"].text = middleLayer.scriptCache
+    
+    def listAddons(self) -> None:
+        for i in classesinmodule(os.path.join(readSettings()["datadir"], "addons")):
+            if i in readSettings()["enabledaddons"].split(","):
+                self.ids["addon_list"].add_widget(AddonSelector(text = i, state = True, id = i))
+            else:
+                self.ids["addon_list"].add_widget(AddonSelector(text = i, state = False, id = i))
+    
+    def saveAddons(self) -> None:
+        addons = []
+        for i in self.ids["addonList"].children:
+            if i.state:
+                addons.append(i.text)
+        writeCustomSettings(category = "addons", data = {"enabledaddons": ",".join(addons)})
+
+    def onOpen(self) -> None:
+        self.loadCache()
+        self.listAddons()
+    
+    def onClose(self) -> None:
+        self.saveCache()
+        self.saveAddons()
 
 class SettingsSidePanel(CursorAwareView):
     """Class for a side panel displaying a settings menu for the program"""

@@ -157,7 +157,7 @@ if __name__ == '__main__':
     
     sys.path.append(path.join(settings["datadir"], "Addons"))
     from importlib import import_module
-    for i in settings["addons"].split(","):
+    for i in settings["enabledaddons"].split(","):
         try:
             import_module(i)
         except ModuleNotFoundError:
