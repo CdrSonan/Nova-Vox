@@ -1,4 +1,4 @@
-# Copyright 2023 Contributors to the Nova-Vox project
+# Copyright 2023, 2024 Contributors to the Nova-Vox project
 
 # This file is part of Nova-Vox.
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -30,6 +30,8 @@ import global_consts
 from UI.editor.Headers import SingerPanel, ParamPanel
 from UI.editor.PianoRoll import PhonemeSelector, Note as UiNote
 
+from API.Addon import override
+
 class UnifiedAction:
     def __init__(self, action, *args, undo = False, redo = False, immediate = False, uiCallback = True, **kwargs):
         self.action = action
@@ -50,7 +52,8 @@ class UnifiedAction:
     def merge(self, other):
         return None
 
-    def __call__(self):
+    def __call__(self, *args, **kwargs):
+        print(args, kwargs)
         if middleLayer.undoActive:
             with NoUndo():
                 inverse = self.inverseAction()
@@ -175,6 +178,7 @@ def _importVoicebankNoSubmit(path:str, name:str, inImage) -> None:
 
 class ImportVoicebank(UnifiedAction):
     def __init__(self, file, *args, **kwargs):
+        @override
         def action(file, name, image):
             track = Track(file)
             middleLayer.trackList.append(track)
@@ -195,6 +199,7 @@ class ImportVoicebank(UnifiedAction):
 
 class ChangeTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
+        @override
         def action(index):
             middleLayer.activeTrack = index
             middleLayer.ui.updateParamPanel()
@@ -206,6 +211,7 @@ class ChangeTrack(UnifiedAction):
 
 class CopyTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
+        @override
         def action(index, name, image):
             data = BytesIO()
             image.save(data, format='png')
@@ -258,6 +264,7 @@ class CopyTrack(UnifiedAction):
 
 class DeleteTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
+        @override
         def action(index):
             if index < 0:
                 index += len(middleLayer.trackList)
@@ -289,6 +296,7 @@ class DeleteTrack(UnifiedAction):
 
 class _ReinsertTrack(UnifiedAction):
     def __init__(self, track, index, *args, **kwargs):
+        @override
         def action(track, index):
             metadata = torch.load(os.path.join(readSettings()["datadir"], "Voices", track.vbPath), map_location = torch.device("cpu"))["metadata"]
             middleLayer.trackList.insert(index, track)
@@ -314,6 +322,7 @@ class _ReinsertTrack(UnifiedAction):
 
 class AddParam(UnifiedAction):
     def __init__(self, param, name, *args, **kwargs):
+        @override
         def action(param, name):
             pass
         super().__init__(action, param, name, *args, **kwargs)
@@ -323,6 +332,7 @@ class AddParam(UnifiedAction):
 
 class RemoveParam(UnifiedAction):
     def __init__(self, name, *args, **kwargs):
+        @override
         def action(name):
             middleLayer.trackList[self.activeTrack].nodegraph.delete(name)
             if name == self.activeParam:
@@ -339,6 +349,7 @@ class RemoveParam(UnifiedAction):
 
 class EnableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
+        @override
         def action(name):
             if name == "steadiness":
                 middleLayer.trackList[middleLayer.activeTrack].useSteadiness = True
@@ -366,6 +377,7 @@ class EnableParam(UnifiedAction):
 
 class DisableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
+        @override
         def action(name):
             if name == "steadiness":
                 middleLayer.trackList[middleLayer.activeTrack].useSteadiness = False
@@ -393,6 +405,7 @@ class DisableParam(UnifiedAction):
 
 class MoveParam(UnifiedAction):
     def __init__(self, index, delta, *args, **kwargs):
+        @override
         def action(index, delta):
             for i in middleLayer.ids["paramList"].children:
                 if i.index == index:
@@ -410,6 +423,7 @@ class MoveParam(UnifiedAction):
 
 class SwitchParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
+        @override
         def action(name):
             if name == "loop overlap" or name == "loop offset":
                 middleLayer.activeParam = "loop"
@@ -439,6 +453,7 @@ class SwitchParam(UnifiedAction):
 
 class ChangeParam(UnifiedAction):
     def __init__(self, data, start, section = None, *args, **kwargs):
+        @override
         def action(data, start, section):
             if middleLayer.activeParam == "steadiness":
                 middleLayer.trackList[middleLayer.activeTrack].steadiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
@@ -501,6 +516,7 @@ class ChangeParam(UnifiedAction):
 
 class ChangePitch(UnifiedAction):
     def __init__(self, data, start, *args, **kwargs):
+        @override
         def action(data, start):
             if type(data) == list:
                 data = torch.tensor(data, dtype = torch.half)
@@ -523,6 +539,7 @@ class ChangePitch(UnifiedAction):
 
 class AddNote(UnifiedAction):
     def __init__(self, index, x, y, reference, *args, **kwargs):
+        @override
         def action(index, x, y, reference):
             if middleLayer.activeTrack == None:
                 return
@@ -567,6 +584,7 @@ class _ReinsertNote(UnifiedAction):
 
 class RemoveNote(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
+        @override
         def action(index):
             if index == 0:
                 middleLayer.offsetPhonemes(index, -middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
@@ -588,6 +606,7 @@ class RemoveNote(UnifiedAction):
 
 class ChangeNoteLength(UnifiedAction):
     def __init__(self, index, x, length, *args, **kwargs):
+        @override
         def action(index, x, length):
             oldLength = middleLayer.trackList[middleLayer.activeTrack].notes[index].length
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
@@ -623,6 +642,7 @@ class ChangeNoteLength(UnifiedAction):
 
 class MoveNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
+        @override
         def action(index, x, y):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
@@ -654,6 +674,7 @@ class MoveNote(UnifiedAction):
 
 class ChangeLyrics(UnifiedAction):
     def __init__(self, index, inputText, pronuncIndex = None, *args, **kwargs):
+        @override
         def action(index, inputText, pronuncIndex):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].content = inputText
             middleLayer.trackList[middleLayer.activeTrack].notes[index].pronuncIndex = pronuncIndex
@@ -732,6 +753,7 @@ class ChangeLyrics(UnifiedAction):
 
 class MoveBorder(UnifiedAction):
     def __init__(self, border, pos, *args, **kwargs):
+        @override
         def action(border, pos):
             middleLayer.trackList[middleLayer.activeTrack].borders[border] = pos
             if middleLayer.mode == "timing":
@@ -756,6 +778,7 @@ class MoveBorder(UnifiedAction):
 
 class ChangeVoicebank(UnifiedAction):
     def __init__(self, index, path, *args, **kwargs):
+        @override
         def action(index, path):
             middleLayer.trackList[middleLayer.activeTrack].phonemeLengths = dict()
             tmpVb = LiteVoicebank(path)
@@ -788,6 +811,7 @@ class ChangeVoicebank(UnifiedAction):
 
 class ChangeVolume(UnifiedAction):
     def __init__(self, index, volume, *args, **kwargs):
+        @override
         def action(index, volume):
             middleLayer.trackList[index].volume = volume
         super().__init__(action, index, volume, *args, **kwargs)
@@ -810,6 +834,7 @@ class ChangeVolume(UnifiedAction):
 
 class LoadNVX(UnifiedAction):
     def __init__(self, path, *args, **kwargs):
+        @override
         def action(path):
             if path == "":
                 return

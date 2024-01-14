@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022-2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -10,6 +10,7 @@ from torch import Tensor
 import Backend.NV_Multiprocessing.RenderProcess
 from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, InputChange, StatusChange
 from Localization.editor_localization import getLanguage
+from API.Addon import override
 
 class RenderManager():
     """Class responsible for starting, terminating, and managing the connection to a rendering process. Uses two queues for managing data flow between processes and can create a rendering process in an arbitrary state.
@@ -77,6 +78,7 @@ class RenderManager():
         self.connection.put(InputChange(type, final, *dataOut), True)
         #print("sent packet ", type, final, data)
 
+    @override
     def restart(self, trackList:list) -> None:
         """Method for restarting the rendering process. The required data is fetched again from the main process. This is to prevent any possible issues with the data held by the rendering process from persisting.
         
@@ -99,6 +101,7 @@ class RenderManager():
             middleLayer.audioBuffer[i] *= 0
         self.__init__(trackList)
 
+    @override
     def stop(self) -> None:
         """simple method for safely terminating the rendering process"""
         self.renderProcess.terminate()

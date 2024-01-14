@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022-2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -24,6 +24,8 @@ from Util import ensureTensorLength, noteToPitch
 
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
+
+from API.Addon import override
 
 class MiddleLayer(Widget):
     """Central class of the program. Contains data handlers for all data on the main process, and callbacks for modifying it, which are triggered from the UI.
@@ -70,9 +72,6 @@ class MiddleLayer(Widget):
                 device = i["name"] + ", " + settings["audioapi"]
         self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback, latency = float(settings["audiolatency"]))
         self.scriptCache = ""
-        self.overrides = dict()
-        self.UIExtensions = {"addonPanel": [], "filePanel": [], "noteContextMenu": []}
-        self.nodeClasses = []
         self.addonModules = []
         
     def setUI(self, ui) -> None:
@@ -84,11 +83,13 @@ class MiddleLayer(Widget):
     def addParam(self, param, name) -> None:
         pass #TODO: implement
 
+    @override
     def updatePianoRoll(self) -> None:
         """updates the piano roll UI after a track or mode change"""
 
         self.ids["pianoRoll"].updateTrack()
 
+    @override
     def changePianoRollMode(self) -> None:
         """helper function for piano roll UI updates when changing modes"""
         self.ids["pianoRoll"].changeMode()
@@ -278,6 +279,7 @@ class MiddleLayer(Widget):
         self.ids["adaptiveSpace"].applyLength(length)
         self.submitChangeLength(True, length)
 
+    @override
     def validate(self) -> None:
         """validates the data held by the middle layer, fixes any errors encountered, and restarts the renderer"""
 
@@ -335,6 +337,7 @@ class MiddleLayer(Widget):
     def submitFinalize(self) -> None:
         self.manager.sendChange("finalize", True)
     
+    @override
     def updateRenderStatus(self, track:int, index:int, value:int) -> None:
         """updates the visual representation of the rendering progress of the note at index index of track track"""
 
@@ -358,6 +361,7 @@ class MiddleLayer(Widget):
         if self.trackList[track].notes[noteIndex].reference:
             self.trackList[track].notes[noteIndex].reference.updateStatus(index, value)
     
+    @override
     def updateAudioBuffer(self, track:int, index:int, data:torch.Tensor) -> None:
         """updates the audio buffer. The data of the track at position track of the trackList is updated with the tensor Data, starting from position index"""
 
@@ -374,6 +378,7 @@ class MiddleLayer(Widget):
 
         self.ids["pianoRoll"].changePlaybackPos(position)
     
+    @override
     def play(self, state:bool = None) -> None:
         """starts or stops audio playback.
         If state is true, starts playback, if state is false, stops playback. If state is None or not given, starts playback if it is not already in progress, and stops playback if it is."""
@@ -422,6 +427,7 @@ class MiddleLayer(Widget):
                 break
         return (pos1Out, pos2Out)
 
+    @override
     def recalculateBasePitch(self, index:int, oldStart:float, oldEnd:float) -> None:
         """recalculates the base pitch curve after the note at position index of the active track has been modified. oldStart and oldEnd are the start and end of the note before the transformation leading to the function call."""
 

@@ -1,4 +1,4 @@
-#Copyright 2023 Contributors to the Nova-Vox project
+#Copyright 2023, 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -6,14 +6,16 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import torch
-#from MiddleLayer.DataHandlers import Note
-#import API.Ops
 
+from API.Addon import override
+
+@override
 def validateTrackData(trackData:dict) -> dict:
     """validates the data of a track after loading it from a file"""
 
     return trackData
 
+@override
 def saveNVX(path:str, middleLayer) -> None:
     """backend function for saving a .nvx file"""
 

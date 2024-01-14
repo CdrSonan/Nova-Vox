@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022-2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -25,13 +25,12 @@ import soundfile
 import global_consts
 
 import API.Ops
+from API.Addon import UIExtensions
 
 from MiddleLayer.IniParser import readSettings, writeSettings, writeCustomSettings
 from MiddleLayer.FileIO import saveNVX
 
 from UI.editor.Util import ListElement, CursorAwareView, ManagedPopup
-
-from Util import classesinmodule
 
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
@@ -42,7 +41,7 @@ class FileSidePanel(CursorAwareView):
     def __init__(self, **kwargs) -> None:
         global middleLayer
         super().__init__(**kwargs)
-        for i in middleLayer.uiExtensions["filePanel"]:
+        for i in UIExtensions["filePanel"]:
             self.children[0].add_widget(i.instance)
 
     def save(self) -> None:
@@ -263,15 +262,15 @@ class ScriptingSidePanel(CursorAwareView):
         self.ids["scripting_editor"].text = middleLayer.scriptCache
     
     def listAddons(self) -> None:
-        global middleLayer
+        global middleLayer, UIExtensions
         for i in os.listdir(os.path.join(readSettings()["datadir"], "Addons")):
             if i in readSettings()["enabledaddons"].split(","):
                 self.ids["addon_list"].add_widget(AddonSelector(text = i, state = True))
             else:
                 self.ids["addon_list"].add_widget(AddonSelector(text = i, state = False))
-        for i in middleLayer.UIExtensions["addonPanel"]:
+        for i in UIExtensions["addonPanel"]:
             for j in self.ids["addon_list"].children:
-                if j.text == i.name:
+                if j.text == i.addon:
                     j.add_widget(i.instance)
                     break
             else:
@@ -282,6 +281,7 @@ class ScriptingSidePanel(CursorAwareView):
         for i in self.ids["addon_list"].children:
             if i.state:
                 addons.append(i.text)
+            i.clear_widgets()
         writeCustomSettings(category = "addons", data = {"enabledaddons": ",".join(addons)})
 
     def onOpen(self) -> None:

@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022-2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -271,15 +271,15 @@
     Label:
         size_hint_y: None
         height: 30 * app.root.uiScale
-        text: self.parent.text
+        text: self.parent.text if self.parent else ""
     ImageToggleButton:
         size_hint_x: None
         size_hint_y: None
         width: 30 * app.root.uiScale
         height: 30 * app.root.uiScale
         source: "assets/UI/Toolbar/Adaptive07new.png"
-        on_press: self.parent.switch()
-        state: "down" if self.parent.state else "normal"
+        on_press: self.parent.switch() if self.parent else None
+        state: "down" if self.parent and self.parent.state else "normal"
     BoxLayout:
         orientation: "vertical"
         padding: 10

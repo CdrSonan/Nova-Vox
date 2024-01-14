@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022-2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -25,6 +25,8 @@ from math import floor, ceil
 
 import global_consts
 
+from API.Addon import UIExtensions
+
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
 
@@ -34,8 +36,8 @@ class NoteProperties(Bubble):
     reference = ObjectProperty()
 
     def on_parent(self, instance, value) -> None:
-        global middleLayer
-        for i in middleLayer.uiExtensions["noteContextMenu"]:
+        global middleLayer, UIExtensions
+        for i in UIExtensions["noteContextMenu"]:
             self.content.add_widget(i.instance)
         for i in self.content.children:
             i.reference = self.reference

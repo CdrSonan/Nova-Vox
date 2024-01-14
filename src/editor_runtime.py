@@ -1,4 +1,4 @@
-# Copyright 2022, 2023 Contributors to the Nova-Vox project
+# Copyright 2022-2024 Contributors to the Nova-Vox project
 
 # This file is part of Nova-Vox.
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
