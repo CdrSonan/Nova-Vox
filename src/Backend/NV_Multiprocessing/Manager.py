@@ -88,7 +88,7 @@ class RenderManager():
 
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         self.stop()
         print("rendering subprocess restarting...")
         self.connection.close()

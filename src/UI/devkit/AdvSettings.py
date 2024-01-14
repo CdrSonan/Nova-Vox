@@ -16,7 +16,7 @@ import torch
 from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.MainAi import MainAi, MainCritic
 from Localization.devkit_localization import getLanguage
-from UI.code.devkit.Widgets import *
+from UI.devkit.Widgets import *
 loc = getLanguage()
 
 class AdvSettingsUi(Frame):
@@ -25,7 +25,7 @@ class AdvSettingsUi(Frame):
     def __init__(self, master=None) -> None:
         logging.info("Initializing adv. AI settings UI")
         global loadedVB
-        from UI.code.devkit.Main import loadedVB
+        from UI.devkit.Main import loadedVB
         Frame.__init__(self, master)
         self.pack(ipadx = 20)
         self.createWidgets()

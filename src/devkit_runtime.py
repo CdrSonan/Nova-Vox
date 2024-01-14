@@ -8,7 +8,7 @@
 print("loading...")
 import logging
 from os import getenv, path, makedirs
-from UI.code.devkit.Main import RootUi
+from UI.devkit.Main import RootUi
 from MiddleLayer.IniParser import readSettings
 print("initializing...")
 loglevelstr = readSettings()["loglevel"]

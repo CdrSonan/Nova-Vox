@@ -22,7 +22,7 @@ matplotlib.rcParams['path.simplify_threshold'] = 1.
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-from UI.code.devkit.Widgets import *
+from UI.devkit.Widgets import *
 from Backend.DataHandler.UtauSample import UtauSample
 from Backend.UtauImport import fetchSamples
 import global_consts
@@ -36,7 +36,7 @@ class UtauImportUi(Frame):
     def __init__(self, master=None) -> None:
         logging.info("Initializing UTAU import UI")
         global loadedVB
-        from UI.code.devkit.Main import loadedVB
+        from UI.devkit.Main import loadedVB
         Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.phoneticsPath = os.path.join(readSettings()["datadir"], "Devkit_Phonetics")

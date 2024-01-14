@@ -10,22 +10,22 @@ import tkinter
 import torch
 import sys
 
-from UI.code.devkit.Widgets import *
+from UI.devkit.Widgets import *
 import global_consts
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
-class PredaiUi(Frame):
-    """Class of the Spectral Prediction AI UI window"""
+class CrfaiUi(Frame):
+    """Class of the Spectral Crossfade AI UI window"""
 
     def __init__(self, master=None) -> None:
-        logging.info("Initializing Predai UI")
+        logging.info("Initializing Crfai UI")
         global loadedVB
-        from UI.code.devkit.Main import loadedVB
+        from UI.devkit.Main import loadedVB
         Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()
-        self.master.wm_title(loc["predai_lbl"])
+        self.master.wm_title(loc["crfai_lbl"])
         if (sys.platform.startswith('win')): 
             self.master.iconbitmap("assets/icon/nova-vox-logo-black.ico")
         
@@ -46,7 +46,7 @@ class PredaiUi(Frame):
         self.phonemeList.list.lb.bind("<FocusOut>", self.onListFocusOut)
         self.phonemeList.list.sb["command"] = self.phonemeList.list.lb.yview
         self.phonemeList.list.pack(side = "top", fill = "x", expand = True, padx = 5, pady = 2)
-        for i in loadedVB.stagedMainTrainSamples:
+        for i in loadedVB.stagedTrTrainSamples:
             self.phonemeList.list.lb.insert("end", i.filepath)
         self.phonemeList.removeButton = SlimButton(self.phonemeList)
         self.phonemeList.removeButton["text"] = loc["remove"]
@@ -85,16 +85,6 @@ class PredaiUi(Frame):
         self.sideBar.pBroadcastButton["text"] = loc["pit_brdc"]
         self.sideBar.pBroadcastButton["command"] = self.onPitBrdcPress
         self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
-
-        self.sideBar.voicedThrh = Frame(self.sideBar)
-        self.sideBar.voicedThrh.variable = tkinter.DoubleVar(self.sideBar.voicedThrh, global_consts.defaultVoicedThrh)
-        self.sideBar.voicedThrh.entry = Spinbox(self.sideBar.voicedThrh, from_ = 0.35, to = 0.95, increment = 0.05)
-        self.sideBar.voicedThrh.entry["textvariable"] = self.sideBar.voicedThrh.variable
-        self.sideBar.voicedThrh.entry.pack(side = "right", fill = "x")
-        self.sideBar.voicedThrh.display = Label(self.sideBar.voicedThrh)
-        self.sideBar.voicedThrh.display["text"] = loc["voicedThrh"]
-        self.sideBar.voicedThrh.display.pack(side = "right", fill = "x")
-        self.sideBar.voicedThrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.sideBar.specSmooth = Frame(self.sideBar)
         self.sideBar.specSmooth.widthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecWidth)
@@ -138,6 +128,38 @@ class PredaiUi(Frame):
         self.sideBar.exprKey.display["text"] = loc["exprKey"]
         self.sideBar.exprKey.display.pack(side = "right", fill = "x")
         self.sideBar.exprKey.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        def OnValidateCheckSum(P):
+            valid_hex_char = lambda c: c in 'abcdef0123456789'
+            return (len(P) < 9) and (all(valid_hex_char(z) for z in P.lower()))
+
+        self.sideBar.embedding1 = Frame(self.sideBar)
+        self.sideBar.embedding1.variable = tkinter.StringVar(self.sideBar.embedding1, "00000000")
+        self.sideBar.embedding1.entry = Entry(self.sideBar.embedding1)
+        self.sideBar.embedding1.entry["validate"] = "key"
+        self.sideBar.embedding1.entry["validatecommand"] = (self.sideBar.embedding1.entry.register(OnValidateCheckSum), '%P')
+        self.sideBar.embedding1.entry["textvariable"] = self.sideBar.embedding1.variable
+        self.sideBar.embedding1.entry.bind("<FocusOut>", self.onEmbeddingUpdateTrigger)
+        self.sideBar.embedding1.entry.bind("<KeyRelease-Return>", self.onEmbeddingUpdateTrigger)
+        self.sideBar.embedding1.entry.pack(side = "right", fill = "x")
+        self.sideBar.embedding1.display = Label(self.sideBar.embedding1)
+        self.sideBar.embedding1.display["text"] = loc["embedding"]
+        self.sideBar.embedding1.display.pack(side = "right", fill = "x")
+        self.sideBar.embedding1.pack(side = "top", fill = "x", padx = 5, pady = 2)
+
+        self.sideBar.embedding2 = Frame(self.sideBar)
+        self.sideBar.embedding2.variable = tkinter.StringVar(self.sideBar.embedding2, "00000000")
+        self.sideBar.embedding2.entry = Entry(self.sideBar.embedding2)
+        self.sideBar.embedding2.entry["validate"] = "key"
+        self.sideBar.embedding2.entry["validatecommand"] = (self.sideBar.embedding2.entry.register(OnValidateCheckSum), '%P')
+        self.sideBar.embedding2.entry["textvariable"] = self.sideBar.embedding2.variable
+        self.sideBar.embedding2.entry.bind("<FocusOut>", self.onEmbeddingUpdateTrigger)
+        self.sideBar.embedding2.entry.bind("<KeyRelease-Return>", self.onEmbeddingUpdateTrigger)
+        self.sideBar.embedding2.entry.pack(side = "right", fill = "x")
+        self.sideBar.embedding2.display = Label(self.sideBar.embedding2)
+        self.sideBar.embedding2.display["text"] = loc["embedding"]
+        self.sideBar.embedding2.display.pack(side = "right", fill = "x")
+        self.sideBar.embedding2.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.sideBar.epochs = Frame(self.sideBar)
         self.sideBar.epochs.variable = tkinter.IntVar(self.sideBar.epochs, 1)
@@ -189,11 +211,11 @@ class PredaiUi(Frame):
         self.sideBar.finalizeButton["command"] = self.onFinalizePress
         self.sideBar.finalizeButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        if loadedVB.ai.mainAi.epoch == None:
+        if loadedVB.ai.trAi.epoch == None:
             epoch = loc["varying"]
         else:
-            epoch = str(loadedVB.ai.mainAi.epoch)
-        self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.mainAi.sampleCount) + loc["AI_stat_3"])
+            epoch = str(loadedVB.ai.trAi.epoch)
+        self.statusVar = tkinter.StringVar(self, loc["AI_stat_1"] + epoch + loc["AI_stat_2"] + str(loadedVB.ai.trAi.sampleCount) + loc["AI_stat_3"])
         self.statusLabel = Label(self)
         self.statusLabel["textvariable"] = self.statusVar
         self.statusLabel.pack(side = "top", fill = "x", expand = True, padx = 5)
@@ -219,14 +241,15 @@ class PredaiUi(Frame):
         if len(self.phonemeList.list.lb.curselection()) > 0:
             self.phonemeList.list.lastFocusedIndex = self.phonemeList.list.lb.curselection()[0]
             index = self.phonemeList.list.lastFocusedIndex
-            self.sideBar.expPitch.variable.set(loadedVB.stagedMainTrainSamples[index].expectedPitch)
-            self.sideBar.pSearchRange.variable.set(loadedVB.stagedMainTrainSamples[index].searchRange)
-            self.sideBar.voicedThrh.variable.set(loadedVB.stagedMainTrainSamples[index].voicedThrh)
-            self.sideBar.specSmooth.widthVariable.set(loadedVB.stagedMainTrainSamples[index].specWidth)
-            self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedMainTrainSamples[index].specDepth)
-            self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedMainTrainSamples[index].tempWidth)
-            self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedMainTrainSamples[index].tempDepth)
-            self.sideBar.exprKey.variable.set(loadedVB.stagedMainTrainSamples[index].key)
+            self.sideBar.expPitch.variable.set(loadedVB.stagedTrTrainSamples[index].expectedPitch)
+            self.sideBar.pSearchRange.variable.set(loadedVB.stagedTrTrainSamples[index].searchRange)
+            self.sideBar.specSmooth.widthVariable.set(loadedVB.stagedTrTrainSamples[index].specWidth)
+            self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedTrTrainSamples[index].specDepth)
+            self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedTrTrainSamples[index].tempWidth)
+            self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedTrTrainSamples[index].tempDepth)
+            self.sideBar.embedding1.variable.set(hex(loadedVB.stagedTrTrainSamples[index].embedding[0])[2:])
+            self.sideBar.embedding2.variable.set(hex(loadedVB.stagedTrTrainSamples[index].embedding[1])[2:])
+            self.sideBar.exprKey.variable.set(loadedVB.stagedTrTrainSamples[index].key)
             
     def onListFocusOut(self, event) -> None:
         """Helper function for retaining information about the last selected transition sample when the transition sample list loses entry focus"""
@@ -241,21 +264,25 @@ class PredaiUi(Frame):
         logging.info("crf staged phoneme update callback")
         global loadedVB
         index = self.phonemeList.list.lastFocusedIndex
-        loadedVB.stagedMainTrainSamples[index].expectedPitch = self.sideBar.expPitch.variable.get()
-        loadedVB.stagedMainTrainSamples[index].searchRange = self.sideBar.pSearchRange.variable.get()
-        loadedVB.stagedMainTrainSamples[index].voicedThrh =  self.sideBar.voicedThrh.variable.get()
-        loadedVB.stagedMainTrainSamples[index].specWidth = self.sideBar.specSmooth.widthVariable.get()
-        loadedVB.stagedMainTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
-        loadedVB.stagedMainTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
-        loadedVB.stagedMainTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
-        loadedVB.stagedMainTrainSamples[index].key = self.sideBar.exprKey.variable.get()
+        loadedVB.stagedTrTrainSamples[index].expectedPitch = self.sideBar.expPitch.variable.get()
+        loadedVB.stagedTrTrainSamples[index].searchRange = self.sideBar.pSearchRange.variable.get()
+        loadedVB.stagedTrTrainSamples[index].specWidth = self.sideBar.specSmooth.widthVariable.get()
+        loadedVB.stagedTrTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
+        loadedVB.stagedTrTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
+        loadedVB.stagedTrTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
+        loadedVB.stagedTrTrainSamples[index].key = self.sideBar.exprKey.variable.get()
+
+    def onEmbeddingUpdateTrigger(self, event) -> None:
+        global loadedVB
+        index = self.phonemeList.list.lastFocusedIndex
+        loadedVB.stagedTrTrainSamples[index].embedding = (int(self.sideBar.embedding1.variable.get(), 16), int(self.sideBar.embedding2.variable.get(), 16))
 
     def onPitBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the pitch search settings of the currently selected sample to all samples"""
 
         pitch = self.sideBar.expPitch.variable.get()
         pitchRange = self.sideBar.pSearchRange.variable.get()
-        for i in loadedVB.stagedMainTrainSamples:
+        for i in loadedVB.stagedTrTrainSamples:
             i.expectedPitch = pitch
             i.searchRange = pitchRange
 
@@ -269,7 +296,7 @@ class PredaiUi(Frame):
             self.sideBar.tempSmooth.widthVariable.get(),
             self.sideBar.tempSmooth.depthVariable.get(),
         ]
-        for i in loadedVB.stagedMainTrainSamples:
+        for i in loadedVB.stagedTrTrainSamples:
             i.voicedThrh = newValues[0]
             i.specWidth = newValues[1]
             i.specDepth = newValues[2]
@@ -284,7 +311,7 @@ class PredaiUi(Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")), multiple = True)
         if filepath != ():
             for i in filepath:
-                loadedVB.addMainTrainSample(i)
+                loadedVB.addTrTrainSample(i)
                 self.phonemeList.list.lb.insert("end", i)
         
     def onRemovePress(self) -> None:
@@ -294,7 +321,7 @@ class PredaiUi(Frame):
         global loadedVB
         if self.phonemeList.list.lb.size() > 0:
             index = self.phonemeList.list.lastFocusedIndex
-            loadedVB.delMainTrainSample(index)
+            loadedVB.delTrTrainSample(index)
             self.phonemeList.list.lb.delete(index)
             if index == self.phonemeList.list.lb.size():
                 self.phonemeList.list.lb.selection_set(index - 1)
@@ -307,7 +334,7 @@ class PredaiUi(Frame):
         logging.info("Crfai dataset export callback")
         global loadedVB
         filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".dat", filetypes = ((".dat", ".dat"), (loc["all_files_desc"], "*")))
-        torch.save(loadedVB.stagedMainTrainSamples, filepath)
+        torch.save(loadedVB.stagedTrTrainSamples, filepath)
 
     def onImportPress(self) -> None:
         """UI Frontend function for importing a previously saved AI training dataset. Overwrites any previously staged training samples."""
@@ -316,7 +343,7 @@ class PredaiUi(Frame):
         global loadedVB
         filepaths = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
         for i in filepaths:
-            loadedVB.stagedMainTrainSamples.extend(torch.load(i, map_location = torch.device("cpu")))
+            loadedVB.stagedTrTrainSamples.extend(torch.load(i, map_location = torch.device("cpu")))
                 
     def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""
@@ -325,7 +352,7 @@ class PredaiUi(Frame):
         global loadedVB
         self.statusVar.set("training Ai...")
         self.update()
-        loadedVB.trainMainAi(
+        loadedVB.trainTrAi(
             self.sideBar.epochs.variable.get(),
             self.sideBar.additive.variable.get(),
             self.sideBar.logging.variable.get()
@@ -333,7 +360,7 @@ class PredaiUi(Frame):
         numIter = self.phonemeList.list.lb.size()
         for i in range(numIter):
             self.phonemeList.list.lb.delete(0)
-        self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.mainAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.mainAi.sampleCount) + loc["AI_stat_3"])
+        self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.trAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.trAi.sampleCount) + loc["AI_stat_3"])
         logging.info("Crfai train button callback completed")
         
     def onFinalizePress(self) -> None:
@@ -347,7 +374,6 @@ class PredaiUi(Frame):
     def disableButtons(self) -> None:
         """Utility function for disabling the AI settings buttons"""
 
-        self.sideBar.voicedThrh.entry["state"] = "disabled"
         self.sideBar.specSmooth.widthEntry["state"] = "disabled"
         self.sideBar.specSmooth.depthEntry["state"] = "disabled"
         self.sideBar.tempSmooth.widthEntry["state"] = "disabled"
@@ -360,7 +386,6 @@ class PredaiUi(Frame):
     def enableButtons(self) -> None:
         """Utility function for enabling the AI settings buttons"""
 
-        self.sideBar.voicedThrh.entry["state"] = "normal"
         self.sideBar.specSmooth.widthEntry["state"] = "normal"
         self.sideBar.specSmooth.depthEntry["state"] = "normal"
         self.sideBar.tempSmooth.widthEntry["state"] = "normal"
@@ -384,5 +409,5 @@ class PredaiUi(Frame):
         global loadedVB
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".nvvb_desc"], ".nvvb"), (loc["all_files_desc"], "*")))
         if filepath != "":
-            loadedVB.loadMainWeights(filepath)
-            self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.mainAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.mainAi.sampleCount) + loc["AI_stat_3"])
+            loadedVB.loadTrWeights(filepath)
+            self.statusVar.set(loc["AI_stat_1"] + str(loadedVB.ai.trAi.epoch) + loc["AI_stat_2"] + str(loadedVB.ai.trAi.sampleCount) + loc["AI_stat_3"])

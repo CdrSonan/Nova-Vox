@@ -18,7 +18,7 @@ import torch
 
 from Backend import NodeLib
 from MiddleLayer.IniParser import readSettings
-from UI.code.editor.Util import ManagedPopup
+from UI.editor.Util import ManagedPopup
 
 from Util import classesinmodule
 
@@ -41,7 +41,7 @@ class SingerSettingsPanel(Popup):
 
     def __init__(self, index, **kwargs) -> None:
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         super().__init__(**kwargs)
         self.index = index
         self.vbData = []
@@ -66,7 +66,7 @@ class SingerSettingsPanel(Popup):
         """creates a list of installed Voicebanks for switching the main or mix-in Voicebank used by the track"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         voicePath = os.path.join(readSettings()["datadir"], "Voices")
         if os.path.isdir(voicePath) == False:
             popup = ManagedPopup(title = loc["error"], message = loc["dataDir_err"])
@@ -107,7 +107,7 @@ class SingerSettingsPanel(Popup):
         """applies all changed settings before closing the popup"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if self.children[0].children[0].children[0].children[0].children[2].children[2].text == "None":
             middleLayer.trackList[self.index].mixinVB = None
         else:

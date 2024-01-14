@@ -13,7 +13,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble
 
-from UI.code.editor.Util import ManagedToggleButton, ReferencingButton
+from UI.editor.Util import ManagedToggleButton, ReferencingButton
 
 import API.Ops
 
@@ -98,7 +98,7 @@ class Note(ManagedToggleButton):
         """updates one of the status bars present on the note"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) == 0:
             return
         reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
@@ -128,7 +128,7 @@ class Note(ManagedToggleButton):
         """callback function used for processing mouse input on the note"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.mode != "notes":
             return False
         if self.collide_point(*touch.pos):
@@ -151,7 +151,7 @@ class Note(ManagedToggleButton):
         """callback function used for processing mouse input on the note"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.mode != "notes" or touch.is_mouse_scrolling or "initialPos" not in touch.ud.keys():
             return False
         coord = self.to_local(touch.x, touch.y)
@@ -179,7 +179,7 @@ class Note(ManagedToggleButton):
         """switches the note's input mode between text and phonemes"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         self.inputMode = not self.inputMode
         middleLayer.trackList[middleLayer.activeTrack].notes[self.index].phonemeMode = self.inputMode
         API.Ops.ChangeLyrics(self.index, self.children[1].text)
@@ -188,7 +188,7 @@ class Note(ManagedToggleButton):
         """deletes the note"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         for i in self.parent.parent.notes:
             if i.index > self.index:
                 i.index -= 1
@@ -200,7 +200,7 @@ class Note(ManagedToggleButton):
         """changes the lyrics of the note"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if focus:
             return
         API.Ops.ChangeLyrics(self.index, text)()
@@ -314,7 +314,7 @@ class PianoRoll(ScrollView):
         """plots all notes of a track, fetching the required data from the middleLayer"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         index = 0
         for i in middleLayer.trackList[middleLayer.activeTrack].notes:
             note = Note(index = index, xPos = i.xPos, yPos = i.yPos, length = i.length, height = self.yScale, inputMode = i.phonemeMode)
@@ -460,7 +460,7 @@ class PianoRoll(ScrollView):
         """redraws the pitch curve, fetching the required data from the middleLayer"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         start = floor(self.length * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width * 0.9)
         end = min(ceil(self.length * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / 0.9), self.length)
         data1 = middleLayer.trackList[middleLayer.activeTrack].pitch
@@ -541,7 +541,7 @@ class PianoRoll(ScrollView):
         """prompts all UI changes required when the input mode changes"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.mode == "notes":
             self.removeTiming()
             if self.pitchLine != None:
@@ -570,7 +570,7 @@ class PianoRoll(ScrollView):
         """updates the piano roll as required when the active track changes"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         for i in self.notes:
             self.children[0].remove_widget(i)
         del self.notes[:]
@@ -603,7 +603,7 @@ class PianoRoll(ScrollView):
         """signals the middleLayer that the x scroll value of the widget has changed. Used for synchronizing scrolling between the adaptive space and piano roll."""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         middleLayer.scrollValue = self.scroll_x
         middleLayer.applyScroll()
         
@@ -611,7 +611,7 @@ class PianoRoll(ScrollView):
         """signals the middleLayer that the x scale value/zoom of the widget has changed. Used for synchronizing zoom level between the adaptive space and piano roll."""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         middleLayer.xScale = self.xScale
         middleLayer.applyZoom()
 
@@ -619,7 +619,7 @@ class PianoRoll(ScrollView):
         """Callback function used for processing mouse input on the piano roll"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if touch.is_mouse_scrolling == False:
             if super(PianoRoll, self).on_touch_down(touch):
                 return True
@@ -724,7 +724,7 @@ class PianoRoll(ScrollView):
         """Callback function used for processing mouse input on the piano roll"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super().on_touch_move(touch)
         if self.collide_point(*touch.pos) == False or touch.ud['param']:
@@ -902,7 +902,7 @@ class PianoRoll(ScrollView):
         """Callback function used for processing mouse input on the piano roll"""
         
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(PianoRoll, self).on_touch_up(touch)
         if 'promptLengthUpdate' in touch.ud and touch.ud['param'] == False:

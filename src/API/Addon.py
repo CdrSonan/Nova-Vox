@@ -12,7 +12,7 @@ from os import path
 from kivy.lang import Builder
 from MiddleLayer.IniParser import readSettings
 global middleLayer
-from UI.code.editor.Main import middleLayer
+from UI.editor.Main import middleLayer
 
 class Override():
     def __init__(self, type:str, callback:callable, priority:int = 0) -> None:

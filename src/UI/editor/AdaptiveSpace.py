@@ -40,7 +40,7 @@ class AdaptiveSpace(AnchorLayout):
         if len(children) == 0:
             return
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         self.applyScroll(middleLayer.scrollValue)
         self.applyZoom(middleLayer.xScale)
 
@@ -53,7 +53,7 @@ class AdaptiveSpace(AnchorLayout):
         """sets the scroll position of the widget currently displayed by the adaptive space. Used for keeping scrolling synchronized between adaptive space and piano roll."""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.activeTrack == None:
             return
         self.children[0].scroll_x = scrollValue
@@ -62,7 +62,7 @@ class AdaptiveSpace(AnchorLayout):
         """sets the zoom level of the widget currently displayed by the adaptive space. Used for keeping scrolling synchronized between adaptive space and piano roll."""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.activeTrack == None:
             return
         self.children[0].xScale = xScale
@@ -71,7 +71,7 @@ class AdaptiveSpace(AnchorLayout):
         """adjusts the displayed information to account for a change of track length"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.activeTrack == None:
             return
         self.children[0].seqLength = length
@@ -79,14 +79,14 @@ class AdaptiveSpace(AnchorLayout):
     def triggerScroll(self) -> None:
         """sends the scroll value of the widget currently displayed by the adaptive space to the middle layer, for updating the piano roll scroll accordingly."""
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         middleLayer.scrollValue = self.children[0].scroll_x
         middleLayer.applyScroll()
 
     def triggerZoom(self) -> None:
         """sends the scroll value of the widget currently displayed by the adaptive space to the middle layer, for updating the piano roll scroll accordingly."""
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         middleLayer.xScale = self.children[0].xScale
         middleLayer.applyZoom()
 
@@ -108,7 +108,7 @@ class ParamCurve(ScrollView):
 
     def on_parent(self, instance, parent):
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.activeTrack != None and self.parent:
             self.seqLength = middleLayer.trackList[middleLayer.activeTrack].length
 
@@ -116,7 +116,7 @@ class ParamCurve(ScrollView):
         """redraws the parameter curve, using data fetched from the middleLayer."""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.activeParam == "loop" or middleLayer.activeParam == "vibrato":
             return
         elif middleLayer.activeParam == "steadiness":
@@ -194,7 +194,7 @@ class ParamCurve(ScrollView):
             return super(ParamCurve, self).on_touch_move(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:
             global middleLayer
-            from UI.code.editor.Main import middleLayer
+            from UI.editor.Main import middleLayer
             coord = self.to_local(touch.x, touch.y)
             x = int(coord[0] / self.xScale)
             y = min(max(coord[1], 0.), self.height)
@@ -263,7 +263,7 @@ class ParamCurve(ScrollView):
         """Callback function used for editing the curve"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(ParamCurve, self).on_touch_up(touch)
         if 'startPoint' in touch.ud:
@@ -296,7 +296,7 @@ class TimingOptns(ScrollView):
 
     def on_parent(self, instance, parent):
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.activeTrack != None and self.parent:
             self.seqLength = middleLayer.trackList[middleLayer.activeTrack].length
 
@@ -304,7 +304,7 @@ class TimingOptns(ScrollView):
         """redraws the bar diagram, using data fetched from the middleLayer."""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         self.children[0].canvas.remove(self.color)
         for i in self.rectangles1:
             self.children[0].canvas.remove(i)
@@ -333,7 +333,7 @@ class TimingOptns(ScrollView):
         """when in timing mode, updates the bars for a single phoneme after a change of a border on the piano roll"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if border % 3 == 2 and border < len(middleLayer.trackList[middleLayer.activeTrack].borders) - 1:
             middle = (middleLayer.trackList[middleLayer.activeTrack].borders[border + 1] + pos) / 2
             index1 = self.children[0].canvas.indexof(self.rectangles1[int((border - 2) / 3)])
@@ -374,7 +374,7 @@ class TimingOptns(ScrollView):
         """Callback function used for editing the timing parameters"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if touch.is_mouse_scrolling == False:
             if super(TimingOptns, self).on_touch_down(touch):
                 return True
@@ -436,7 +436,7 @@ class TimingOptns(ScrollView):
                 return self.points2[bar][0]
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(TimingOptns, self).on_touch_move(touch)
         if 'startPoint' in touch.ud:
@@ -532,7 +532,7 @@ class TimingOptns(ScrollView):
             return None
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(TimingOptns, self).on_touch_up(touch)
         if middleLayer.tool == "draw":
@@ -576,7 +576,7 @@ class PitchOptns(ScrollView):
 
     def on_parent(self, instance, parent):
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if middleLayer.activeTrack != None and self.parent:
             self.seqLength = middleLayer.trackList[middleLayer.activeTrack].length
 
@@ -591,7 +591,7 @@ class PitchOptns(ScrollView):
         """redraws the curves using data fetched from the middleLayer"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         self.children[0].canvas.remove(self.color)
         self.children[0].canvas.remove(self.line1)
         self.children[0].canvas.remove(self.line2)
@@ -665,7 +665,7 @@ class PitchOptns(ScrollView):
             return super(PitchOptns, self).on_touch_move(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:
             global middleLayer
-            from UI.code.editor.Main import middleLayer
+            from UI.editor.Main import middleLayer
             coord = self.to_local(touch.x, touch.y)
             x = int(coord[0] / self.xScale)
             if touch.ud['section']:
@@ -737,7 +737,7 @@ class PitchOptns(ScrollView):
         """Callback function used for editing the curve"""
         
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         if "param" not in touch.ud:
             return super(PitchOptns, self).on_touch_up(touch)
         if 'startPoint' in touch.ud and touch.ud['param']:

@@ -123,7 +123,7 @@ if __name__ == '__main__':
     from kivy.clock import Clock
     from kivy.base import ExceptionManager
     from MiddleLayer.ErrorHandler import ErrorHandler
-    from UI.code.editor.Main import NovaVoxUI
+    from UI.editor.Main import NovaVoxUI
     class NovaVoxApp(App):
         def build(self):
             self.icon = path.join("assets/icon", "nova-vox-logo-2-color.png")
@@ -155,6 +155,7 @@ if __name__ == '__main__':
     ExceptionManager.add_handler(ErrorHandler())
     
     app = NovaVoxApp()
+    app.build()
     
     sys.path.append(path.join(settings["datadir"], "Addons"))
     from importlib import import_module
@@ -162,7 +163,7 @@ if __name__ == '__main__':
         try:
             app.ui.middleLayer.addonModules.append(import_module(i))
         except ModuleNotFoundError:
-            logging.warning("could not find module " + i + ".")
+            logging.warning("could not find module or submodule of " + i + ".")
         except Exception as e:
             logging.error("could not load module " + i + ".")
             print_exc()

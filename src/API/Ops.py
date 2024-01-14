@@ -15,7 +15,7 @@ import torch
 from io import BytesIO
 from kivy.core.image import Image as CoreImage
 
-from UI.code.editor.Main import middleLayer
+from UI.editor.Main import middleLayer
 from MiddleLayer.IniParser import readSettings
 from MiddleLayer.FileIO import validateTrackData
 from MiddleLayer.DataHandlers import Note, Track
@@ -27,8 +27,8 @@ from Util import noteToPitch, convertFormat
 
 import global_consts
 
-from UI.code.editor.Headers import SingerPanel, ParamPanel
-from UI.code.editor.PianoRoll import PhonemeSelector, Note as UiNote
+from UI.editor.Headers import SingerPanel, ParamPanel
+from UI.editor.PianoRoll import PhonemeSelector, Note as UiNote
 
 class UnifiedAction:
     def __init__(self, action, *args, undo = False, redo = False, immediate = False, uiCallback = True, **kwargs):

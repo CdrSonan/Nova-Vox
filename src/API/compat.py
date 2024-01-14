@@ -39,7 +39,7 @@ def getPerNoteData(arrayFormat:str = "list", useNominalTimings:bool = False) -> 
         Unless otherwise specified above, all arrays contain one element per engine tick, or 4ms, and all elements are between -1 and 1 (inclusive)."""
     
     global middleLayer
-    from UI.code.editor.Main import middleLayer
+    from UI.editor.Main import middleLayer
     tracks = []
     for track in middleLayer.trackList:
         notes = []
@@ -85,7 +85,7 @@ def importFromPerNoteData(tracks:list, wipe:bool = False, useNominalTimings:bool
     If useNominalTimings is True, the nominal timings of the notes will be used for array/curve alignment instead of the actual timing markers."""
     
     global middleLayer
-    from UI.code.editor.Main import middleLayer
+    from UI.editor.Main import middleLayer
     if wipe:
         while len(middleLayer.trackList) > 0:
             API.Ops.DeleteTrack(0)()

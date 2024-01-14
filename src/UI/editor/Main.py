@@ -27,13 +27,13 @@ from MiddleLayer.ErrorHandler import handleMainException, handleRendererExceptio
 
 from Localization.editor_localization import getLanguage
 
-from UI.code.editor.AdaptiveSpace import *
-from UI.code.editor.Headers import *
-from UI.code.editor.PianoRoll import *
-from UI.code.editor.Popups import *
-from UI.code.editor.SidePanels import *
-from UI.code.editor.NodeEditor import *
-from UI.code.editor.Util import *
+from UI.editor.AdaptiveSpace import *
+from UI.editor.Headers import *
+from UI.editor.PianoRoll import *
+from UI.editor.Popups import *
+from UI.editor.SidePanels import *
+from UI.editor.NodeEditor import *
+from UI.editor.Util import *
 
 import API.Ops
 

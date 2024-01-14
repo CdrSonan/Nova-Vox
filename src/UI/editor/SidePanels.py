@@ -29,7 +29,7 @@ import API.Ops
 from MiddleLayer.IniParser import readSettings, writeSettings, writeCustomSettings
 from MiddleLayer.FileIO import saveNVX
 
-from UI.code.editor.Util import ListElement, CursorAwareView, ManagedPopup
+from UI.editor.Util import ListElement, CursorAwareView, ManagedPopup
 
 from Util import classesinmodule
 
@@ -49,7 +49,7 @@ class FileSidePanel(CursorAwareView):
         """saves the current work to a .nvx file"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         tkui = Tk()
         tkui.withdraw()
         dir = filedialog.asksaveasfilename(defaultextension = "nvx", filetypes = (("NVX", "nvx"), (loc["all_files"], "*")))
@@ -60,7 +60,7 @@ class FileSidePanel(CursorAwareView):
         """loads a .nvx file into the editor"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         tkui = Tk()
         tkui.withdraw()
         dir = filedialog.askopenfilename(filetypes = (("NVX", "nvx"), (loc["all_files"], "*")))
@@ -94,7 +94,7 @@ class FileRenderPopup(Popup):
         """renders the audio buffer held by the middle layer to a file using the specified settings"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         data = torch.zeros_like(middleLayer.audioBuffer[0])
         for i in range(len(middleLayer.audioBuffer)):
             data += middleLayer.audioBuffer[i] * middleLayer.trackList[i].volume
@@ -214,7 +214,7 @@ class ParamSidePanel(CursorAwareView):
         """imports the selected parameter, and attaches it to the node tree of the active track"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         API.Ops.AddParam(path, name)()
 
 class AddonSelector(BoxLayout):
@@ -252,26 +252,28 @@ class ScriptingSidePanel(CursorAwareView):
         """saves the content of the script editor to a cache when the side panel is closed"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         middleLayer.scriptCache = self.ids["scripting_editor"].text
 
     def loadCache(self) -> None:
         """loads the content of the script editor from cache when the side panel is opened"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         self.ids["scripting_editor"].text = middleLayer.scriptCache
     
     def listAddons(self) -> None:
         global middleLayer
-        for i in middleLayer.addonModules:
-            if i.__name__ in readSettings()["enabledaddons"].split(","):
-                self.ids["addon_list"].add_widget(AddonSelector(text = i, state = True, id = i))
+        for i in os.listdir(os.path.join(readSettings()["datadir"], "Addons")):
+            if i in readSettings()["enabledaddons"].split(","):
+                self.ids["addon_list"].add_widget(AddonSelector(text = i, state = True))
             else:
-                self.ids["addon_list"].add_widget(AddonSelector(text = i, state = False, id = i))
+                self.ids["addon_list"].add_widget(AddonSelector(text = i, state = False))
         for i in middleLayer.UIExtensions["addonPanel"]:
-            if i.addon in self.ids:
-                self.ids[i.addon].children[0].add_widget(i.instance)
+            for j in self.ids["addon_list"].children:
+                if j.text == i.name:
+                    j.add_widget(i.instance)
+                    break
             else:
                 self.children[0].add_widget(i.instance)
     
@@ -316,7 +318,7 @@ class SettingsSidePanel(CursorAwareView):
         """restarts the audio stream after a device change"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         middleLayer.audioStream.close()
         latency = float(self.ids["settings_audioLatency"].text)
         identifier = self.ids["settings_audioDevice"].text + ", " + self.ids["settings_audioApi"].text
@@ -341,7 +343,7 @@ class SettingsSidePanel(CursorAwareView):
         """applies a new set of colors to the UI when one of the available color settings is changed"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         app = App.get_running_app()
         if self.ids["settings_uiScale"].text == "":
             uiScale = 1.
@@ -360,7 +362,7 @@ class SettingsSidePanel(CursorAwareView):
         """restarts the render process after a change to accelerator, caching or TPU settings"""
 
         global middleLayer
-        from UI.code.editor.Main import middleLayer
+        from UI.editor.Main import middleLayer
         middleLayer.manager.restart(middleLayer.trackList)
 
     def readSettings(self) -> None:

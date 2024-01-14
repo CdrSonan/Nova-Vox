@@ -279,6 +279,7 @@
         height: 30 * app.root.uiScale
         source: "assets/UI/Toolbar/Adaptive07new.png"
         on_press: self.parent.switch()
+        state: "down" if self.parent.state else "normal"
     BoxLayout:
         orientation: "vertical"
         padding: 10

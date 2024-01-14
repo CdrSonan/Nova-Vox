@@ -9,7 +9,7 @@ import logging
 import tkinter
 import sys
 
-from UI.code.devkit.Widgets import *
+from UI.devkit.Widgets import *
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
@@ -19,7 +19,7 @@ class WorddictUi(Frame):
     def __init__(self, master=None) -> None:
         logging.info("Initializing Worddict UI")
         global loadedVB
-        from UI.code.devkit.Main import loadedVB
+        from UI.devkit.Main import loadedVB
         Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()

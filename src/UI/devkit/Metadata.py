@@ -10,7 +10,7 @@ import tkinter
 import sys
 from PIL import Image, ImageTk
 
-from UI.code.devkit.Widgets import *
+from UI.devkit.Widgets import *
 import global_consts
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
@@ -21,7 +21,7 @@ class MetadataUi(Frame):
     def __init__(self, master=None) -> None:
         logging.info("Initializing Metadata UI")
         global loadedVB
-        from UI.code.devkit.Main import loadedVB
+        from UI.devkit.Main import loadedVB
         Frame.__init__(self, master)
         self.pack(ipadx = 20)
         self.createWidgets()

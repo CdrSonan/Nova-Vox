@@ -15,7 +15,7 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-from UI.code.devkit.Widgets import *
+from UI.devkit.Widgets import *
 import global_consts
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
@@ -28,7 +28,7 @@ class PhonemedictUi(Frame):
     def __init__(self, master=None) -> None:
         logging.info("Initializing Phonemedict UI")
         global loadedVB
-        from UI.code.devkit.Main import loadedVB
+        from UI.devkit.Main import loadedVB
         Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
         self.createWidgets()

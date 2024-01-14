@@ -7,7 +7,7 @@
 
 global middleLayer
 
-from UI.code.editor.Main import middleLayer
+from UI.editor.Main import middleLayer
 
 def enqueueUndo(action):
     if middleLayer.singleUndoActive:

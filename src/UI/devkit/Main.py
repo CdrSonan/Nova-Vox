@@ -17,14 +17,14 @@ from MiddleLayer.IniParser import readSettings
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
-from UI.code.devkit.Metadata import MetadataUi
-from UI.code.devkit.PhonemeDict import PhonemedictUi
-from UI.code.devkit.CrfAi import CrfaiUi
-from UI.code.devkit.PredAi import PredaiUi
-from UI.code.devkit.WordDict import WorddictUi
-from UI.code.devkit.UtauImport import UtauImportUi
-from UI.code.devkit.AdvSettings import AdvSettingsUi
-from UI.code.devkit.Widgets import Frame, Label, Button
+from UI.devkit.Metadata import MetadataUi
+from UI.devkit.PhonemeDict import PhonemedictUi
+from UI.devkit.CrfAi import CrfaiUi
+from UI.devkit.PredAi import PredaiUi
+from UI.devkit.WordDict import WorddictUi
+from UI.devkit.UtauImport import UtauImportUi
+from UI.devkit.AdvSettings import AdvSettingsUi
+from UI.devkit.Widgets import Frame, Label, Button
 
 global loadedVB
 loadedVB = None
