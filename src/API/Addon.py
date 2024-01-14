@@ -1,4 +1,4 @@
-# Copyright 2023 Contributors to the Nova-Vox project
+# Copyright 2023, 2024 Contributors to the Nova-Vox project
 
 # This file is part of Nova-Vox.
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -40,13 +40,13 @@ def override(func:callable):
         funcID = "".join(func.__module__, ".", func.__name__)
         if funcID in middleLayer.overrides:
             for override in middleLayer.overrides[funcID]["prepends"]:
-                override(*args, **kwargs)
+                args, kwargs = override(*args, **kwargs)
             if "override" in middleLayer.overrides[funcID].keys():
                 returnVal = middleLayer.overrides[funcID]["override"](*args, **kwargs)
             else:
                 returnVal = func(*args, **kwargs)
             for override in middleLayer.overrides[funcID]["appends"]:
-                override(*args, **kwargs)
+                returnVal, args, kwargs = override(returnVal, *args, **kwargs)
             return returnVal
     return wrapper
 
