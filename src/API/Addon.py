@@ -52,6 +52,7 @@ def override(func:callable):
             for override in overrides[funcID]["appends"]:
                 returnVal, args, kwargs = override(returnVal, *args, **kwargs)
             return returnVal
+        return func(*args, **kwargs)
     return wrapper
 
 def registerOverride(target:callable, type:str, callback:callable, priority:int = 0) -> None:
