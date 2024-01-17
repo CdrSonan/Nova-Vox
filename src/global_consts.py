@@ -30,7 +30,6 @@ DIOTolerance = 0.2
 DIOLastWinTolerance = 0.9
 filterTEEMult = 32
 filterHRSSMult = 4
-nFormants = 50
 nHarmonics = 128
 halfHarms = 65
 ampContThreshold = 10

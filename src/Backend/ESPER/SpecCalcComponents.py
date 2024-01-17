@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -378,14 +378,15 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             harmFunction *= audioSample.voicedThrh
             harmFunction += interpolatedWave * (1. - audioSample.voicedThrh)
             space = torch.linspace(global_consts.halfTripleBatchSize * (global_consts.filterBSMult - 1), global_consts.halfTripleBatchSize * (global_consts.filterBSMult + 1) - 1, global_consts.tripleBatchSize, device = wave.device)
-            harmFunction = extrap(interpolationPoints, harmFunction, space)
+            harmFunction = extrap(interpolationPoints, harmFunction, space) * torch.hann_window(global_consts.tripleBatchSize, device = wave.device)
             globalHarmFunction[i] = torch.fft.rfft(harmFunction)
             phases = phaseShift(phases, -phases[1], phases.device)
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] = torch.cat((amplitudes, phases), 0)
         else:
             audioSample.specharm[counter, :global_consts.nHarmonics + 2] = 0.
         counter += 1
-    globalHarmFunction = torch.istft(globalHarmFunction.transpose(0, 1), global_consts.tripleBatchSize , global_consts.batchSize, global_consts.tripleBatchSize, length = audioSample.waveform.size()[0], onesided = True)
+    globalHarmFunction = torch.istft(globalHarmFunction.transpose(0, 1), global_consts.tripleBatchSize , global_consts.batchSize, global_consts.tripleBatchSize, length = audioSample.waveform.size()[0], onesided = True, window = torch.hann_window(global_consts.tripleBatchSize, device = wave.device))
+    #audioSample.specharm[:math.floor(length / 3), global_consts.nHarmonics + 2:] = globalHarmFunction[:math.floor(length / 3) * (global_consts.halfTripleBatchSize + 1)].reshape((math.floor(length / 3), global_consts.halfTripleBatchSize + 1))
     audioSample.excitation = audioSample.waveform - globalHarmFunction
     audioSample.excitation = torch.stft(audioSample.excitation, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize, device = wave.device), onesided = True, return_complex = True)
     audioSample.excitation = audioSample.excitation.transpose(0, 1)[:length]

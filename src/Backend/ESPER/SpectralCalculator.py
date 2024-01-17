@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -50,11 +50,12 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     extAvgSpecharm = audioSample.avgSpecharm.clone()
     extExcitation = audioSample.excitation.clone()
     calculateSpectra_legacy(audioSample, useVariance)
-    audioSample.specharm -= extSpecharm
+    audioSample.specharm[:, :global_consts.nHarmonics + 2] -= extSpecharm[:, :global_consts.nHarmonics + 2]
+    audioSample.specharm[:, global_consts.nHarmonics + 2:] -= extSpecharm[:, global_consts.nHarmonics + 2:]
     audioSample.avgSpecharm -= extAvgSpecharm
     audioSample.excitation -= extExcitation"""
 
-def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
+def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) -> None:
     length = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
     audioSample.excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = audioSample.waveform.device)
     audioSample.specharm = torch.zeros((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device = audioSample.waveform.device)
@@ -65,4 +66,3 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
     audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)
     audioSample = separateVoicedUnvoiced(audioSample)
     audioSample = averageSpectra(audioSample, useVariance)
-    #audioSample.avgSpecharm = torch.zeros_like(audioSample.avgSpecharm)
