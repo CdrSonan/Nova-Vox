@@ -27,6 +27,8 @@ common_datas = [("../assets/settings.ini", "./assets"),
                 ("../assets/UI/fonts/*", "assets/UI/fonts"),
                 ("../bin", "./bin")]
 
+devkit_imports = ["matplotlib.backends.backend_tkagg"]
+
 block_cipher = None
 
 a_editor = Analysis(['../src/editor_runtime.py'],
@@ -47,7 +49,7 @@ a_devkit = Analysis(['../src/devkit_runtime.py'],
                     pathex=[specpath],
                     binaries=[],
                     datas=common_datas,
-                    hiddenimports=common_imports,
+                    hiddenimports=common_imports+devkit_imports,
                     hookspath=[],
                     hooksconfig={},
                     runtime_hooks=[],
