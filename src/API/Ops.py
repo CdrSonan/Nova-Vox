@@ -610,26 +610,20 @@ class ChangeNoteLength(UnifiedAction):
         def action(index, x, length):
             oldLength = middleLayer.trackList[middleLayer.activeTrack].notes[index].length
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].length = length
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].length = min(max(length, 1), middleLayer.trackList[middleLayer.activeTrack].length - x)
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = min(max(x, 0), middleLayer.trackList[middleLayer.activeTrack].length - length)
             switch = middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
             middleLayer.submitFinalize()
             return switch
         super().__init__(action, index, x, length, *args, **kwargs)
         self.index = index
-        self.x = x
-        self.length = length
+        self.length = min(max(length, 1), middleLayer.trackList[middleLayer.activeTrack].length - x)
+        self.x = min(max(x, 0), middleLayer.trackList[middleLayer.activeTrack].length - length)
     
     def inverseAction(self):
         return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length)
     
     def uiCallback(self):
-        #for i in middleLayer.ids["pianoRoll"].notes:
-        #    if i.index == self.index:
-        #        i.length = self.length
-        #        i.x = self.x
-        #        i.redraw()
-        #        break
         if middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference:
             middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.length = self.length
             middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.x = self.x
@@ -645,14 +639,14 @@ class MoveNote(UnifiedAction):
         @override
         def action(index, x, y):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = min(max(x, 0), middleLayer.trackList[middleLayer.activeTrack].length - middleLayer.trackList[middleLayer.activeTrack].notes[index].length)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
             switch = middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
             middleLayer.submitFinalize()
             return switch
         super().__init__(action, index, x, y, *args, **kwargs)
         self.index = index
-        self.x = x
+        self.x = min(max(x, 0), middleLayer.trackList[middleLayer.activeTrack].length - middleLayer.trackList[middleLayer.activeTrack].notes[index].length)
         self.y = y
     
     def inverseAction(self):
@@ -660,8 +654,8 @@ class MoveNote(UnifiedAction):
     
     def uiCallback(self):
         if middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference:
-            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
-            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.xPos = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.yPos = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
             middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redraw()
         #middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
         #middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos

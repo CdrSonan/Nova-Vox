@@ -143,7 +143,7 @@ class Note(ManagedToggleButton):
                 touch.ud["grabMode"] = "start"
             else:
                 touch.ud["grabMode"] = "mid"
-                touch.ud["xOffset"] = (self.pos[0] - self.quantize(coord[0])) / self.parent.parent.xScale
+                touch.ud["xOffset"] = (self.pos[0] - coord[0]) / self.parent.parent.xScale
                 touch.ud["yOffset"] = (self.pos[1] - coord[1]) / self.parent.parent.yScale
             touch.ud['param'] = False
             return True
@@ -714,7 +714,7 @@ class PianoRoll(ScrollView):
                         Color(0, 0, 1)
                         touch.ud['line'] = Line(points=self.to_local(touch.x, touch.y))
                         touch.ud['startPoint'] = self.to_local(touch.x, touch.y)
-                        touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height)]
+                        touch.ud['startPoint'] = [int(touch.ud['startPoint'][0] / self.xScale), min(max(touch.ud['startPoint'][1], 0.), self.height * self.yScale)]
                         touch.ud['lastPoint'] = touch.ud['startPoint'][0]
                         touch.ud['startPointOffset'] = 0
                 touch.ud['param'] = False
@@ -769,9 +769,10 @@ class PianoRoll(ScrollView):
                         touch.ud["noteIndex"] -= 1
                     note.redraw()
                 elif touch.ud["grabMode"] == "mid":
-                    note.xPos = int(x + touch.ud["xOffset"] + 1)
-                    note.yPos = int(y + touch.ud["yOffset"] + 1)
-                    switch = API.Ops.MoveNote(touch.ud["noteIndex"], int(x + touch.ud["xOffset"] + 1), int(y + touch.ud["yOffset"] + 1))()
+                    xNonquant, yNonquant = self.to_local(touch.x, touch.y)
+                    xNonquant /= self.xScale
+                    yNonquant /= self.yScale
+                    switch = API.Ops.MoveNote(touch.ud["noteIndex"], int(self.quantize(xNonquant + touch.ud["xOffset"] + 1)), int(yNonquant + touch.ud["yOffset"] + 0.5))()
                     if switch == True:
                         touch.ud["noteIndex"] += 1
                     elif switch == False:

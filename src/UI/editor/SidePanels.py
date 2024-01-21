@@ -233,7 +233,7 @@ class ScriptingSidePanel(CursorAwareView):
         """opens the devkit as a separate process through the OS"""
 
         try:
-            subprocess.Popen("Devkit.exe")
+            subprocess.Popen("Nova-Vox Devkit.exe")
         except:
             popup = ManagedPopup(title = loc["error"], message = loc["devkit_inst_err"])
             popup.open()
