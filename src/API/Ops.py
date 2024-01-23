@@ -610,15 +610,15 @@ class ChangeNoteLength(UnifiedAction):
         def action(index, x, length):
             oldLength = middleLayer.trackList[middleLayer.activeTrack].notes[index].length
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].length = min(max(length, 1), middleLayer.trackList[middleLayer.activeTrack].length - x)
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = min(max(x, 0), middleLayer.trackList[middleLayer.activeTrack].length - length)
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].length = max(length, 1)
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
             switch = middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
             middleLayer.submitFinalize()
             return switch
         super().__init__(action, index, x, length, *args, **kwargs)
         self.index = index
-        self.length = min(max(length, 1), middleLayer.trackList[middleLayer.activeTrack].length - x)
-        self.x = min(max(x, 0), middleLayer.trackList[middleLayer.activeTrack].length - length)
+        self.length = max(length, 1)
+        self.x = max(x, 0)
     
     def inverseAction(self):
         return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length)
@@ -639,14 +639,15 @@ class MoveNote(UnifiedAction):
         @override
         def action(index, x, y):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = min(max(x, 0), middleLayer.trackList[middleLayer.activeTrack].length - middleLayer.trackList[middleLayer.activeTrack].notes[index].length)
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
+            print(x, middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
             switch = middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
             middleLayer.submitFinalize()
             return switch
         super().__init__(action, index, x, y, *args, **kwargs)
         self.index = index
-        self.x = min(max(x, 0), middleLayer.trackList[middleLayer.activeTrack].length - middleLayer.trackList[middleLayer.activeTrack].notes[index].length)
+        self.x = max(x, 0)
         self.y = y
     
     def inverseAction(self):
@@ -657,9 +658,6 @@ class MoveNote(UnifiedAction):
             middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.xPos = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.yPos = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
             middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redraw()
-        #middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
-        #middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
-        #middleLayer.ids["pianoRoll"].notes[self.index].redraw()
     
     def merge(self, other):
         if type(other) == MoveNote and self.index == other.index:
