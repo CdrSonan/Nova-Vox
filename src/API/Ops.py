@@ -555,20 +555,15 @@ class AddNote(UnifiedAction):
         
     def inverseAction(self):
         return RemoveNote(self.index)
-    
-    #def uiCallback(self):
-    #    newNote = Note(index = self.index, xPos = self.x, yPos = self.y, length = 100, height = middleLayer.ids["pianoRoll"].yScale)
-    #    middleLayer.ids["pianoRoll"].add_widget(newNote, index = 5)
-    #    middleLayer.ids["pianoRoll"].notes.append(newNote)
 
 class _ReinsertNote(UnifiedAction):
     def __init__(self, index, note, *args, **kwargs):
         def action(index, note):
-            returnValue = AddNote(index, note.xPos, note.yPos, note.reference)()
-            ChangeNoteLength(index, note.xPos, note.length)()
             newNote = UiNote(index = index, xPos = note.xPos, yPos = note.yPos, length = 100, height = middleLayer.ids["pianoRoll"].yScale)
+            returnValue = AddNote(index, note.xPos, note.yPos, newNote)()
             middleLayer.ids["pianoRoll"].children[0].add_widget(newNote, index = 5)
             middleLayer.ids["pianoRoll"].notes.append(newNote)
+            ChangeNoteLength(index, note.xPos, note.length)()
             ChangeLyrics(index, note.content, None)()
             return returnValue
         super().__init__(action, index, note, *args, **kwargs)
@@ -577,9 +572,6 @@ class _ReinsertNote(UnifiedAction):
     
     def inverseAction(self):
         return RemoveNote(self.index)
-    
-    #def uiCallback(self):
-    #    middleLayer.ids["pianoRoll"].add_widget(Note(index = self.index, xPos = self.note.xPos, yPos = self.note.yPos, length = self.note.length, height = middleLayer.ids["pianoRoll"].yScale))
 
 class RemoveNote(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
@@ -589,19 +581,18 @@ class RemoveNote(UnifiedAction):
                 middleLayer.offsetPhonemes(index, -middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
             else:
                 middleLayer.offsetPhonemes(index, middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1] - middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
+            if middleLayer.trackList[middleLayer.activeTrack].notes[index].reference:
+                middleLayer.ids["pianoRoll"].children[0].remove_widget(middleLayer.trackList[middleLayer.activeTrack].notes[index].reference)
+                del middleLayer.trackList[middleLayer.activeTrack].notes[index].reference
             middleLayer.trackList[middleLayer.activeTrack].notes.pop(index)
             if index < len(middleLayer.trackList[middleLayer.activeTrack].notes):
                 middleLayer.adjustNote(index, None, None, False, True)
                 middleLayer.submitFinalize()
-        super().__init__(action, index, *args, **kwargs)
         self.index = index
+        super().__init__(action, index, *args, **kwargs)
     
     def inverseAction(self):
         return _ReinsertNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index])
-    
-    #def uiCallback(self):
-    #    middleLayer.ids["pianoRoll"].remove_widget(middleLayer.ids["pianoRoll"].notes[self.index])
-    #    del middleLayer.ids["pianoRoll"].notes[self.index]
 
 class ChangeNoteLength(UnifiedAction):
     def __init__(self, index, x, length, *args, **kwargs):
@@ -630,7 +621,7 @@ class ChangeNoteLength(UnifiedAction):
     
     def merge(self, other):
         if type(other) == ChangeNoteLength and self.index == other.index:
-            return ChangeNoteLength(self.index, self.x, self.length)
+            return self
         return None
 
 class MoveNote(UnifiedAction):
@@ -659,7 +650,7 @@ class MoveNote(UnifiedAction):
     
     def merge(self, other):
         if type(other) == MoveNote and self.index == other.index:
-            return MoveNote(self.index, self.x, self.y)
+            return self
         return None
 
 class ChangeLyrics(UnifiedAction):
@@ -763,7 +754,7 @@ class MoveBorder(UnifiedAction):
     
     def merge(self, other):
         if type(other) == MoveBorder and self.border == other.border:
-            return MoveBorder(self.border, self.pos)
+            return self
         return None
 
 class ChangeVoicebank(UnifiedAction):
@@ -819,7 +810,7 @@ class ChangeVolume(UnifiedAction):
     
     def merge(self, other):
         if type(other) == ChangeVolume and self.index == other.index:
-            return ChangeVolume(self.index, self.volume)
+            return self
         return None
 
 class LoadNVX(UnifiedAction):
