@@ -107,6 +107,8 @@ class NovaVoxUI(Widget):
 
         self.ids["paramList"].clear_widgets()
         self.ids["adaptiveSpace"].clear_widgets()
+        if middleLayer.activeTrack == None:
+            return
         if middleLayer.mode == "notes":
             self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useSteadiness, visualName = loc["steadiness"], state = "down"))
             self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useBreathiness, visualName = loc["breathiness"]))

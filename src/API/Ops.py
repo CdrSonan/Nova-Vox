@@ -53,7 +53,6 @@ class UnifiedAction:
         return None
 
     def __call__(self, *args, **kwargs):
-        print(args, kwargs)
         if middleLayer.undoActive:
             with NoUndo():
                 inverse = self.inverseAction()
@@ -640,7 +639,6 @@ class MoveNote(UnifiedAction):
         def action(index, x, y):
             oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
-            print(x, middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
             switch = middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
             middleLayer.submitFinalize()
@@ -868,9 +866,10 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].length = track["length"]
                 middleLayer.trackList[-1].mixinVB = track["mixinVB"]
                 middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
+                middleLayer.trackList[-1].borders.wrappingBorders = track["wrappingBorders"]
                 middleLayer.trackList[-1].buildPhonemeIndices()
             middleLayer.validate()
-        super().__init__(action, path, middleLayer, *args, **kwargs)
+        super().__init__(action, path, *args, **kwargs)
     
     def inverseAction(self):
         def restoreTrackList(tracks:list):

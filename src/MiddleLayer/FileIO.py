@@ -57,8 +57,9 @@ def saveNVX(path:str, middleLayer) -> None:
             "useVibratoStrength": track.useVibratoStrength,
             "pauseThreshold": track.pauseThreshold,
             "mixinVB": track.mixinVB,
-            "nodegraph": None,
-            "length": track.length
+            "nodegraph": track.nodegraph,
+            "length": track.length,
+            "wrappingBorders": track.borders.wrappingBorders
         })
     data = {
         "tracks": tracks,

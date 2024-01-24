@@ -37,9 +37,9 @@
     TextInput:
         #lyrics/phonemes text input field
         pos: self.parent.x, self.parent.y
-        size: self.parent.width, self.parent.height
+        size: self.parent.width, max(self.parent.height, 16)
         font_size: 16
-        padding: (6, self.parent.height / 2 - 8, 6, self.parent.height / 2 - 8) if self.parent.height > 16 else (6, 0, 6, 0)
+        padding: (6, self.height / 2 - 10, 6, self.height / 2 - 10)
         multiline: False
         text_validate_unfocus: True
         foreground_color: (0.9, 0.9, 0, 1) if self.parent.inputMode else (1, 1, 1, 1)
