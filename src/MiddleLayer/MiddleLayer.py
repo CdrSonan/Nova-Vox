@@ -169,13 +169,16 @@ class MiddleLayer(Widget):
         self.submitNamedPhonParamChange(False, "phonemes", start, self.trackList[self.activeTrack].phonemes[start:end])
         self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[borderStart:borderEnd])
     
-    def adjustNote(self, index:int, oldLength:int = None, oldPos:int = None, keepStart:bool = False, adjustPrevious:bool = False) -> None:
+    def adjustNote(self, index:int, oldStart:int = None, oldEnd:int = None, keepStart:bool = False, adjustPrevious:bool = False) -> None:
         """Adjusts a note's attributes after it has been moved or scaled with respect to its surrounding notes. The current position and length are read from its UI representation, the old one must be given as arguments."""
 
-        if oldLength == None:
-            oldLength = self.trackList[self.activeTrack].notes[index].length
-        if oldPos == None:
-            oldPos = self.trackList[self.activeTrack].notes[index].xPos
+        if oldStart == None:
+            if index == 0:
+                oldStart = int(self.trackList[self.activeTrack].borders[0])
+            else:
+                oldStart = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]])
+        elif oldEnd == None:
+            oldEnd = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2])
         switch = None
         if index > 0 and self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
             self.switchNote(index - 1)
@@ -213,11 +216,11 @@ class MiddleLayer(Widget):
             end = self.trackList[self.activeTrack].phonemeIndices[index] * 3 + 1
         self.submitNamedPhonParamChange(False, "borders", start, list(self.trackList[self.activeTrack].borders[start:end]))
         if index > 0:
-            self.recalculateBasePitch(index - 1, self.trackList[self.activeTrack].notes[index - 1].xPos, max(min(oldPos, self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length), 1))
-        self.recalculateBasePitch(index, oldPos, oldPos + oldLength)
+            self.recalculateBasePitch(index - 1, oldStart, oldEnd)
+        self.recalculateBasePitch(index, oldStart, oldEnd)
         if index + 1 < len(self.trackList[self.activeTrack].notes):
-            self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + self.trackList[self.activeTrack].notes[index - 1].length)
-        if (self.trackList[self.activeTrack].notes[index].xPos != oldPos or adjustPrevious) and index > 0:
+            self.recalculateBasePitch(index + 1, oldStart, oldEnd)
+        if (self.trackList[self.activeTrack].borders[start] != oldStart or adjustPrevious) and index > 0:
             self.adjustNote(index - 1, None, None, True, False)
             if index == 0:
                 start = 0

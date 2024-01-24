@@ -42,7 +42,10 @@ def calculateBorders(note:Note, context:NoteContext) -> None:
     if context.preutterance:
         mainBorders.insert(0, context.start - context.preutterance)
         leadingBorders.insert(0, context.start - min(global_consts.refTransitionLength, context.preutterance * global_consts.refTransitionFrac))
-        trailingBorders.insert(0, context.start - context.preutterance + min(global_consts.refTransitionLength, context.preutterance * global_consts.refTransitionFrac))
+        if len(phonemes) > 0:
+            trailingBorders.insert(0, context.start - context.preutterance + min(global_consts.refTransitionLength, context.preutterance * global_consts.refTransitionFrac))
+        else:
+            trailingBorders.insert(0, context.end - context.preutterance + global_consts.refTransitionLength)
     if context.trailingAutopause:
         mainBorders.append(context.trailingAutopause)
         leadingBorders.append(context.trailingAutopause - min(global_consts.refTransitionLength, (context.trailingAutopause - context.end) * global_consts.refTransitionFrac))

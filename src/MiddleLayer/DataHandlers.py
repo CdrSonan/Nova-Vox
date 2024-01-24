@@ -209,7 +209,7 @@ class Note():
     
     def makeContext(self, keepStart:bool = False):
         if keepStart and len(self.phonemes) > 0:
-            if self.track.phonemeLengths[self.phonemes[0]] == None:
+            if self.track.phonemeLengths[self.phonemes[0]] == None or len(self.phonemes) == 1:
                 start = self.borders[0]
             else:
                 start = self.borders[3]

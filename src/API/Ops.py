@@ -598,11 +598,14 @@ class ChangeNoteLength(UnifiedAction):
     def __init__(self, index, x, length, *args, **kwargs):
         @override
         def action(index, x, length):
-            oldLength = middleLayer.trackList[middleLayer.activeTrack].notes[index].length
-            oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
+            if index == 0:
+                oldStart = int(self.trackList[self.activeTrack].borders[0])
+            else:
+                oldStart = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]])
+            oldEnd = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2])
             middleLayer.trackList[middleLayer.activeTrack].notes[index].length = max(length, 1)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
-            switch = middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
+            switch = middleLayer.adjustNote(index, oldStart, oldEnd, adjustPrevious = True)
             middleLayer.submitFinalize()
             return switch
         super().__init__(action, index, x, length, *args, **kwargs)
@@ -628,10 +631,13 @@ class MoveNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
         @override
         def action(index, x, y):
-            oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
+            if index == 0:
+                oldStart = int(self.trackList[self.activeTrack].borders[0])
+            else:
+                oldStart = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]])
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
-            switch = middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
+            switch = middleLayer.adjustNote(index, oldStart, adjustPrevious = True)
             middleLayer.submitFinalize()
             return switch
         super().__init__(action, index, x, y, *args, **kwargs)
