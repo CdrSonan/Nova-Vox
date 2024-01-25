@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -355,7 +355,7 @@ class Voicebank():
         self.ai.trainTr(stagedTrTrainSamples, epochs = epochs, logging = logging, reset = not additive)
         print("AI training complete")
 
-    def trainMainAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
+    def trainMainAi(self, epochs:int, additive:bool, generatorMode:str = "reclist", logging:bool = False) -> None:
         """initiates the training of the Voicebank's prediction Ai using all staged training samples and the Ai's settings.
         
         Arguments:
@@ -378,7 +378,7 @@ class Voicebank():
                 stagedMainTrainSamples.append(((avgSpecharm + j.specharm).to(device = self.device), j.key))
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainMain(stagedMainTrainSamples, epochs = epochs, logging = logging, reset = not additive)
+        self.ai.trainMain(stagedMainTrainSamples, epochs = epochs, logging = logging, reset = not additive, generatorMode = generatorMode)
         print("AI training complete")
 
 class LiteVoicebank():

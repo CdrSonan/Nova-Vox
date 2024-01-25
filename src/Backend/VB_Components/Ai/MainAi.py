@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -8,9 +8,11 @@
 import random
 from math import floor, ceil, log
 from copy import copy
+from tkinter import Tk, filedialog
 
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.Util import init_weights_logistic, init_weights_rectifier, init_weights_rectifier_leaky, norm_attention
@@ -19,6 +21,7 @@ from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.Resampler.Resamplers import getSpecharm
 from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseInterp
+from Backend.ESPER.SpectralCalculator import calculateSpectra
 from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
@@ -392,27 +395,36 @@ class MainCritic(nn.Module):
 class DataGenerator:
     """generates synthetic data for the discriminator to train on"""
     
-    def __init__(self, voicebank, crfAi:TrAi, mode:str = "reclist", requireVowels:bool = False) -> None:
+    def __init__(self, voicebank, crfAi:TrAi, mode:str = "reclist") -> None:
         self.voicebank = voicebank
         self.crfAi = crfAi
         self.mode = mode
-        self.requireVowels = requireVowels
+        self.pool = {}
         self.rebuildPool()
 
     def rebuildPool(self) -> None:
-        if self.requireVowels:
-            self.longPool = [key for key, value in self.voicebank.phonemeDict.keys() if value[0].isPlosive and value[0].isVoiced]
-            self.shortPool = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive or not value[0].isVoiced]
+        if self.mode == "reclist (strict vowels)":
+            self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.keys() if value[0].isPlosive and value[0].isVoiced]
+            self.pool["short"] = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive or not value[0].isVoiced]
+        elif self.mode == "dataset file":
+            tkui = Tk()
+            tkui.withdraw()
+            path = filedialog.askopenfilename(title = "Select dataset file", filetypes = (("Dataset files", "*.dataset"), ("All files", "*.*")))
+            tkui.destroy()
+            data = torch.load(path)
+            for i in range(len(data)):
+                calculateSpectra(data[i], False)
+            self.pool["dataset"] = DataLoader(data, batch_size = 1, shuffle = True)
         else:
-            self.longPool = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
-            self.shortPool = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive]
+            self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
+            self.pool["short"] = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive]
 
     def makeSequence(self, noise:list, targetLength:int = None, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
-        if self.mode == "reclist":
+        if self.mode in ["reclist", "reclist (strict vowels)"]:
             if phonemeLength is None:
                 raise ValueError("Length must be specified for reclist mode")
-            longPhonemes = [random.choice(self.longPool) for _ in range(ceil(phonemeLength / 2))]
-            shortPhoneme = random.choice(self.shortPool)
+            longPhonemes = [random.choice(self.pool["long"]) for _ in range(ceil(phonemeLength / 2))]
+            shortPhoneme = random.choice(self.pool["short"])
             phonemeSequence = []
             i = phonemeLength - 1
             while i > 0:
@@ -421,7 +433,7 @@ class DataGenerator:
                 else:
                     phonemeSequence.append(longPhonemes[floor(i / 2)])
                 i -= 1
-        elif self.mode == "natural":
+        elif self.mode in ["dictionary", "dictionary(syllables)"]:
             phonemeSequence = random.choice(self.voicebank.wordDict[0].values())
         else:
             raise ValueError("Invalid mode for Data Generator")
@@ -433,16 +445,16 @@ class DataGenerator:
         phonemeSequence = [stripPhoneme(phoneme) + "_" + expression if stripPhoneme(phoneme) + "_" + expression in self.voicebank.phonemeDict else (stripPhoneme(phoneme) if stripPhoneme(phoneme) in self.voicebank.phonemeDict else phoneme) for phoneme in phonemeSequence]
         idx = [random.randint(0, len(self.voicebank.phonemeDict[i]) - 1) for i in phonemeSequence]
         embeddings = [self.voicebank.phonemeDict[phoneme][idx[i]].embedding for i, phoneme in enumerate(phonemeSequence)]
-        effectiveLength = targetLength - sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence) if phoneme in self.shortPool])
+        effectiveLength = targetLength - sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence) if phoneme in self.pool["short"]])
         if effectiveLength >= 0:
             shortMultiplier = 1
-            longMultiplier = effectiveLength / sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence) if phoneme in self.longPool])
+            longMultiplier = effectiveLength / sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence) if phoneme in self.pool["long"]])
         else:
             shortMultiplier = longMultiplier = targetLength / sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence)])
         phonemes = [self.voicebank.phonemeDict[phoneme][idx[i]] for i, phoneme in enumerate(phonemeSequence)]
         borders = [0, 25]
         for i, phoneme in enumerate(phonemes):
-            if phonemeSequence[i] in self.shortPool:
+            if phonemeSequence[i] in self.pool["short"]:
                 length = phoneme.specharm.size()[0] * shortMultiplier
             else:
                 length = phoneme.specharm.size()[0] * longMultiplier
@@ -483,6 +495,9 @@ class DataGenerator:
         return sequence, embeddings
 
     def synthesize(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
+        if self.mode == "dataset file":
+            sample = next(iter(self.pool["dataset"]))
+            return sample.specharm + sample.avgSpecharm
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""
         sequence, embeddings = self.makeSequence(noise, length, phonemeLength, expression)
         output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = torch.device("cpu"))

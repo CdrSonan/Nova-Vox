@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -15,7 +15,7 @@ import global_consts
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
-class PredaiUi(Frame):
+class MainaiUi(Frame):
     """Class of the Spectral Prediction AI UI window"""
 
     def __init__(self, master=None) -> None:
@@ -158,6 +158,10 @@ class PredaiUi(Frame):
         self.sideBar.additive.display["text"] = loc["additive"]
         self.sideBar.additive.display.pack(side = "right", fill = "x")
         self.sideBar.additive.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.sideBar.generatorMode = Frame(self.sideBar)
+        self.sideBar.generatorMode.variable = tkinter.StringVar(self.sideBar.generatorMode, "reclist")
+        self.sideBar.generatorMode.entry = tkinter.OptionMenu(self.sideBar.generatorMode, self.sideBar.generatorMode.variable, "reclist", "reclist (strict vowels)", "dictionary", "dictionary (syllables)", "dataset file")
 
         self.sideBar.logging = Frame(self.sideBar)
         self.sideBar.logging.variable = tkinter.BooleanVar(self.sideBar.logging, False)
@@ -328,6 +332,7 @@ class PredaiUi(Frame):
         loadedVB.trainMainAi(
             self.sideBar.epochs.variable.get(),
             self.sideBar.additive.variable.get(),
+            self.sideBar.generatorMode.variable.get(),
             self.sideBar.logging.variable.get()
         )
         numIter = self.phonemeList.list.lb.size()

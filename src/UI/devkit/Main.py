@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -20,7 +20,7 @@ loc = getLanguage()
 from UI.devkit.Metadata import MetadataUi
 from UI.devkit.PhonemeDict import PhonemedictUi
 from UI.devkit.CrfAi import CrfaiUi
-from UI.devkit.PredAi import PredaiUi
+from UI.devkit.MainAi import MainaiUi
 from UI.devkit.WordDict import WorddictUi
 from UI.devkit.UtauImport import UtauImportUi
 from UI.devkit.AdvSettings import AdvSettingsUi
@@ -147,7 +147,7 @@ class RootUi(Frame):
         """opens Spectral Prediction AI UI window when Spectral Prediction AI button in the main window is pressed"""
         
         logging.info("Predai button callback")
-        self.crfaiUi = PredaiUi(tkinter.Toplevel())
+        self.crfaiUi = MainaiUi(tkinter.Toplevel())
         self.crfaiUi.mainloop()
     
     def onWorddictPress(self) -> None:
