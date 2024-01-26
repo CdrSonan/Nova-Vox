@@ -162,6 +162,11 @@ class MainaiUi(Frame):
         self.sideBar.generatorMode = Frame(self.sideBar)
         self.sideBar.generatorMode.variable = tkinter.StringVar(self.sideBar.generatorMode, "reclist")
         self.sideBar.generatorMode.entry = tkinter.OptionMenu(self.sideBar.generatorMode, self.sideBar.generatorMode.variable, "reclist", "reclist (strict vowels)", "dictionary", "dictionary (syllables)", "dataset file")
+        self.sideBar.generatorMode.entry.pack(side = "right", fill = "x")
+        self.sideBar.generatorMode.display = Label(self.sideBar.generatorMode)
+        self.sideBar.generatorMode.display["text"] = loc["generator_mode"]
+        self.sideBar.generatorMode.display.pack(side = "right", fill = "x")
+        self.sideBar.generatorMode.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.sideBar.logging = Frame(self.sideBar)
         self.sideBar.logging.variable = tkinter.BooleanVar(self.sideBar.logging, False)

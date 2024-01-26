@@ -21,6 +21,7 @@ from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.Resampler.Resamplers import getSpecharm
 from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseInterp
+from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import calculateSpectra
 from Util import dec2bin
 
@@ -413,7 +414,9 @@ class DataGenerator:
             tkui.destroy()
             data = torch.load(path)
             for i in range(len(data)):
+                calculatePitch(data[i], False)
                 calculateSpectra(data[i], False)
+                data[i] = data[i].specharm + data[i].avgSpecharm
             self.pool["dataset"] = DataLoader(data, batch_size = 1, shuffle = True)
         else:
             self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
@@ -496,8 +499,7 @@ class DataGenerator:
 
     def synthesize(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
         if self.mode == "dataset file":
-            sample = next(iter(self.pool["dataset"]))
-            return sample.specharm + sample.avgSpecharm
+            return next(iter(self.pool["dataset"]))
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""
         sequence, embeddings = self.makeSequence(noise, length, phonemeLength, expression)
         output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = torch.device("cpu"))
