@@ -599,10 +599,13 @@ class ChangeNoteLength(UnifiedAction):
         @override
         def action(index, x, length):
             if index == 0:
-                oldStart = int(self.trackList[self.activeTrack].borders[0])
+                oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[0])
             else:
-                oldStart = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]])
-            oldEnd = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2])
+                oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[3 * middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1]])
+            if index == len(middleLayer.trackList[middleLayer.activeTrack].notes) - 1 or middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1] == middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index]:
+                oldEnd = int(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
+            else:
+                oldEnd = int(middleLayer.trackList[middleLayer.activeTrack].borders[3 * middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index] + 2])
             middleLayer.trackList[middleLayer.activeTrack].notes[index].length = max(length, 1)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
             switch = middleLayer.adjustNote(index, oldStart, oldEnd, adjustPrevious = True)
@@ -632,9 +635,9 @@ class MoveNote(UnifiedAction):
         @override
         def action(index, x, y):
             if index == 0:
-                oldStart = int(self.trackList[self.activeTrack].borders[0])
+                oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[0])
             else:
-                oldStart = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]])
+                oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[3 * middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1]])
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
             switch = middleLayer.adjustNote(index, oldStart, adjustPrevious = True)

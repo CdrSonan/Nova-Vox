@@ -178,7 +178,10 @@ class MiddleLayer(Widget):
             else:
                 oldStart = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]])
         elif oldEnd == None:
-            oldEnd = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2])
+            if index == len(self.trackList[self.activeTrack].notes) - 1 or self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
+                oldEnd = int(self.trackList[self.activeTrack].borders[-1])
+            else:
+                oldEnd = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2])
         switch = None
         if index > 0 and self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
             self.switchNote(index - 1)
@@ -447,10 +450,6 @@ class MiddleLayer(Widget):
             previousHeight = None
         elif self.trackList[self.activeTrack].notes[index].autopause:
             previousHeight = None
-            if index == 0:
-                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[0]))
-            else:
-                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]]))
         else:
             previousHeight = self.trackList[self.activeTrack].notes[index - 1].yPos
             transitionLength1 = min(transitionLength1, self.trackList[self.activeTrack].notes[index - 1].length)
@@ -463,7 +462,6 @@ class MiddleLayer(Widget):
             nextHeight = None
         elif self.trackList[self.activeTrack].notes[index].autopause:
             nextHeight = None
-            oldEnd = max(oldEnd, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2]))
         else:
             transitionPoint2 = self.trackList[self.activeTrack].notes[index + 1].xPos
             nextHeight = self.trackList[self.activeTrack].notes[index + 1].yPos
