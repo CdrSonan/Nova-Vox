@@ -13,6 +13,8 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.bubble import Bubble
 
+import torch
+
 from UI.editor.Util import ManagedToggleButton, ReferencingButton
 
 import API.Ops
@@ -467,13 +469,11 @@ class PianoRoll(ScrollView):
         end = min(ceil(self.length * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / 0.9), self.length)
         data1 = middleLayer.trackList[middleLayer.activeTrack].pitch
         data2 = middleLayer.trackList[middleLayer.activeTrack].basePitch
-        points1 = []
-        points2 = []
-        for i in range(start, end):
-            points1.append(i * self.xScale)
-            points1.append((data1[i].item() + 0.5) * self.yScale)
-            points2.append(i * self.xScale)
-            points2.append((data2[i].item() + 0.5) * self.yScale)
+        points1 = ((data1[start:end] + 0.5) * self.yScale).to(torch.int)
+        points2 = ((data2[start:end] + 0.5) * self.yScale).to(torch.int)
+        scale = torch.arange(start, end, dtype = torch.int) * self.xScale
+        points1 = torch.cat((scale.unsqueeze(1), torch.tensor(points1).unsqueeze(1)), dim = 1).flatten().tolist()
+        points2 = torch.cat((scale.unsqueeze(1), torch.tensor(points2).unsqueeze(1)), dim = 1).flatten().tolist()
         if self.pitchLine != None:
             self.children[0].canvas.remove(self.pitchLine)
         if self.basePitchLine != None:

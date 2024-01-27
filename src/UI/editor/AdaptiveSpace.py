@@ -13,6 +13,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.core.window import Window
 from kivy.app import App
 from kivy.metrics import dp
+import torch
 
 import API.Ops
 
@@ -129,10 +130,9 @@ class ParamCurve(ScrollView):
             data = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam].curve
         start = floor(self.seqLength * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width * 0.9)
         end = min(ceil(self.seqLength * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / 0.9), self.seqLength)
-        points = []
-        for i in range(start, end):
-            points.append(i * self.xScale)
-            points.append((data[i].item() + 1) * self.height / 2)
+        points = ((data[start:end] + 1) * self.height / 2).to(torch.int)
+        scale = torch.arange(start, end, dtype = torch.int) * self.xScale
+        points = torch.cat((scale.unsqueeze(1), torch.tensor(points).unsqueeze(1)), dim = 1).flatten().tolist()
         self.children[0].canvas.remove(self.color)
         self.children[0].canvas.remove(self.line)
         with self.children[0].canvas:
@@ -599,11 +599,11 @@ class PitchOptns(ScrollView):
         end = min(ceil(self.seqLength * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / 0.9), self.seqLength)
         data1 = middleLayer.trackList[middleLayer.activeTrack].vibratoStrength
         data2 = middleLayer.trackList[middleLayer.activeTrack].vibratoSpeed
-        points1 = []
-        points2 = []
-        for i in range(start, end):
-            points1.append((self.xScale * i, int((1 + data1[i]) * self.height / 4)))
-            points2.append((self.xScale * i, int((3 + data2[i]) * self.height / 4)))
+        points1 = ((data1[start:end] + 1) * self.height / 4).to(torch.int)
+        points2 = ((data2[start:end] + 3) * self.height / 4).to(torch.int)
+        scale = torch.arange(start, end, dtype = torch.int) * self.xScale
+        points1 = torch.cat((scale.unsqueeze(1), torch.tensor(points1).unsqueeze(1)), dim = 1).flatten().tolist()
+        points2 = torch.cat((scale.unsqueeze(1), torch.tensor(points2).unsqueeze(1)), dim = 1).flatten().tolist()
         with self.children[0].canvas:
             self.color = Color(1, 0, 0, 1)
             self.line1 = Line(points = points1)
