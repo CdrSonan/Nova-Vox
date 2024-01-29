@@ -37,7 +37,7 @@ ampContThreshold = 10
 #synthesis spectral processing
 spectralRolloff1 = 144
 spectralRolloff2 = 192
-pitchShiftSpectralRolloff = 4
+#pitchShiftSpectralRolloff = 4
 breCompPremul = 0.6
 crfBorderAbs = 7
 crfBorderRel = 0.1
@@ -54,8 +54,8 @@ pitchDipWidth = 40
 pitchDipHeight = 0.2
 
 #border synthesis
-refPhonemeLength = 30
-refTransitionLength = 10
+refPhonemeLength = 10
+refTransitionLength = 4
 refTransitionFrac = 0.2
 
 #editor UI

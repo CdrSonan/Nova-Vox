@@ -238,17 +238,6 @@ class AdvSettingsUi(Frame):
         self.hparams.crt_drp.display.pack(side = "right", fill = "x")
         self.hparams.crt_drp.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.hparams.vae_lr = Frame(self.hparams)
-        self.hparams.vae_lr.variable = tkinter.DoubleVar(self.hparams.vae_lr)
-        self.hparams.vae_lr.variable.set(loadedVB.ai.hparams["vae_lr"])
-        self.hparams.vae_lr.entry = Entry(self.hparams.vae_lr)
-        self.hparams.vae_lr.entry["textvariable"] = self.hparams.vae_lr.variable
-        self.hparams.vae_lr.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.vae_lr.display = Label(self.hparams.vae_lr)
-        self.hparams.vae_lr.display["text"] = loc["vae_lr"]
-        self.hparams.vae_lr.display.pack(side = "right", fill = "x")
-        self.hparams.vae_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
-        
         self.hparams.gan_guide_wgt = Frame(self.hparams)
         self.hparams.gan_guide_wgt.variable = tkinter.DoubleVar(self.hparams.gan_guide_wgt)
         self.hparams.gan_guide_wgt.variable.set(loadedVB.ai.hparams["gan_guide_wgt"])
@@ -270,6 +259,28 @@ class AdvSettingsUi(Frame):
         self.hparams.gan_train_asym.display["text"] = loc["gan_train_asym"]
         self.hparams.gan_train_asym.display.pack(side = "right", fill = "x")
         self.hparams.gan_train_asym.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.fargan_interval = Frame(self.hparams)
+        self.hparams.fargan_interval.variable = tkinter.IntVar(self.hparams.fargan_interval)
+        self.hparams.fargan_interval.variable.set(loadedVB.ai.hparams["fargan_interval"])
+        self.hparams.fargan_interval.entry = Spinbox(self.hparams.fargan_interval, from_ = 2, to = 256)
+        self.hparams.fargan_interval.entry["textvariable"] = self.hparams.fargan_interval
+        self.hparams.fargan_interval.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.fargan_interval.display = Label(self.hparams.fargan_interval)
+        self.hparams.fargan_interval.display["text"] = loc["fargan_interval"]
+        self.hparams.fargan_interval.display.pack(side = "right", fill = "x")
+        self.hparams.fargan_interval.pack(side = "top", fill = "x", padx = 5, pady = 2)
+        
+        self.hparams.embeddingDim = Frame(self.hparams)
+        self.hparams.embeddingDim.variable = tkinter.IntVar(self.hparams.embeddingDim)
+        self.hparams.embeddingDim.variable.set(loadedVB.ai.hparams["embeddingDim"])
+        self.hparams.embeddingDim.entry = Spinbox(self.hparams.embeddingDim, from_ = 1, to = 256)
+        self.hparams.embeddingDim.entry["textvariable"] = self.hparams.embeddingDim.variable
+        self.hparams.embeddingDim.entry.pack(side = "right", fill = "x", expand = True)
+        self.hparams.embeddingDim.display = Label(self.hparams.embeddingDim)
+        self.hparams.embeddingDim.display["text"] = loc["embeddingDim"]
+        self.hparams.embeddingDim.display.pack(side = "right", fill = "x")
+        self.hparams.embeddingDim.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
         self.hparams.pack(side = "top", fill = "x", padx = 5, pady = 2)
 
@@ -311,21 +322,23 @@ class AdvSettingsUi(Frame):
             "crt_lr": self.hparams.crt_lr.variable.get(),
             "crt_reg": self.hparams.crt_reg.variable.get(),
             "crt_drp": self.hparams.crt_drp.variable.get(),
-            "vae_lr": self.hparams.vae_lr.variable.get(),
             "gan_guide_wgt": self.hparams.gan_guide_wgt.variable.get(),
-            "gan_train_asym": self.hparams.gan_train_asym.variable.get()
+            "gan_train_asym": self.hparams.gan_train_asym.variable.get(),
+            "fargan_interval": self.hparams.fargan_interval.variable.get(),
+            "embeddingDim": self.hparams.embeddingDim.variable.get(),
         }
         if (loadedVB.ai.hparams["tr_hlc"] != hparams["tr_hlc"]) or (loadedVB.ai.hparams["tr_hls"] != hparams["tr_hls"]):
             resetTr = tkinter.messagebox.askokcancel(loc["warning"], loc["tr_warn"])
         else:
             resetTr = False
-        if any(any([i != j for i, j in zip(loadedVB.ai.hparams["main_blkA"], hparams["main_blkA"])]),
-               any([i != j for i, j in zip(loadedVB.ai.hparams["main_blkB"], hparams["main_blkB"])]),
-               any([i != j for i, j in zip(loadedVB.ai.hparams["main_blkC"], hparams["main_blkC"])]),
-               any([i != j for i, j in zip(loadedVB.ai.hparams["crt_blkA"], hparams["crt_blkA"])]),
-               any([i != j for i, j in zip(loadedVB.ai.hparams["crt_blkB"], hparams["crt_blkB"])]),
-               any([i != j for i, j in zip(loadedVB.ai.hparams["crt_blkC"], hparams["crt_blkC"])]),
-               loadedVB.ai.hparams["latent_dim"] != hparams["latent_dim"]
+        if any([any([i != j for i, j in zip(loadedVB.ai.hparams["main_blkA"], hparams["main_blkA"])]),
+                any([i != j for i, j in zip(loadedVB.ai.hparams["main_blkB"], hparams["main_blkB"])]),
+                any([i != j for i, j in zip(loadedVB.ai.hparams["main_blkC"], hparams["main_blkC"])]),
+                any([i != j for i, j in zip(loadedVB.ai.hparams["crt_blkA"], hparams["crt_blkA"])]),
+                any([i != j for i, j in zip(loadedVB.ai.hparams["crt_blkB"], hparams["crt_blkB"])]),
+                any([i != j for i, j in zip(loadedVB.ai.hparams["crt_blkC"], hparams["crt_blkC"])]),
+                loadedVB.ai.hparams["latent_dim"] != hparams["latent_dim"],
+                loadedVB.ai.hparams["embeddingDim"] != hparams["embeddingDim"]]
            ):
             resetMain = tkinter.messagebox.askokcancel(loc["warning"], loc["pred_warn"])
         else:
@@ -338,7 +351,7 @@ class AdvSettingsUi(Frame):
             resetTrOptim = False
         if resetMain:
             resetMainOptim = True
-        elif ((loadedVB.ai.hparams["main_lr"] != hparams["main_lr"]) or (loadedVB.ai.hparams["main_reg"] != hparams["main_reg"]) or loadedVB.ai.hparams["vae_lr"] != hparams["vae_lr"]):
+        elif ((loadedVB.ai.hparams["main_lr"] != hparams["main_lr"]) or (loadedVB.ai.hparams["main_reg"] != hparams["main_reg"]) or loadedVB.ai.hparams["fargan_interval"] != hparams["fargan_interval"]):
             resetMainOptim = tkinter.messagebox.askokcancel(loc["warning"], loc["pred_optim_warn"])
         else:
             resetMainOptim = False
@@ -353,6 +366,7 @@ class AdvSettingsUi(Frame):
             loadedVB.ai.trAi = TrAi(device = loadedVB.ai.device, learningRate=loadedVB.ai.hparams["tr_lr"], regularization=loadedVB.ai.hparams["tr_reg"], hiddenLayerCount=loadedVB.ai.hparams["tr_hlc"], hiddenLayerSize=loadedVB.ai.hparams["tr_hls"])
         if resetMain:
             loadedVB.ai.hparams["latent_dim"] = hparams["latent_dim"]
+            loadedVB.ai.hparams["embeddingDim"] = hparams["embeddingDim"]
             loadedVB.ai.hparams["main_blkA"] = hparams["main_blkA"]
             loadedVB.ai.hparams["main_blkB"] = hparams["main_blkB"]
             loadedVB.ai.hparams["main_blkC"] = hparams["main_blkC"]
@@ -361,6 +375,7 @@ class AdvSettingsUi(Frame):
             loadedVB.ai.hparams["crt_blkC"] = hparams["crt_blkC"]
             loadedVB.ai.mainAi = MainAi(device = loadedVB.ai.device,
                                         dim = loadedVB.ai.hparams["latent_dim"],
+                                        embedDim = loadedVB.ai.hparams["embeddingDim"],
                                         blockA = loadedVB.ai.hparams["main_blkA"],
                                         blockB = loadedVB.ai.hparams["main_blkB"],
                                         blockC = loadedVB.ai.hparams["main_blkC"],
@@ -369,6 +384,7 @@ class AdvSettingsUi(Frame):
                                         dropout = loadedVB.ai.hparams["main_drp"])
             loadedVB.ai.mainCritic = MainCritic(device = loadedVB.ai.device,
                                         dim = loadedVB.ai.hparams["latent_dim"],
+                                        embedDim = loadedVB.ai.hparams["embeddingDim"],
                                         blockA = loadedVB.ai.hparams["main_blkA"],
                                         blockB = loadedVB.ai.hparams["main_blkB"],
                                         blockC = loadedVB.ai.hparams["main_blkC"],
@@ -384,10 +400,15 @@ class AdvSettingsUi(Frame):
             loadedVB.ai.hparams["main_reg"] = hparams["main_reg"]
             loadedVB.ai.hparams["crt_lr"] = hparams["crt_lr"]
             loadedVB.ai.hparams["crt_reg"] = hparams["crt_reg"]
-            loadedVB.ai.hparams["vae_lr"] = hparams["vae_lr"]
-            loadedVB.ai.mainAiOptimizer = torch.optim.Adam(loadedVB.ai.mainAi.parameters(), lr=loadedVB.ai.mainAi.learningRate, weight_decay=loadedVB.ai.mainAi.regularization)
-            loadedVB.ai.mainCriticOptimizer = torch.optim.Adam(loadedVB.ai.mainCritic.parameters(), lr=loadedVB.ai.mainCritic.learningRate, weight_decay=loadedVB.ai.mainCritic.regularization)
-            loadedVB.ai.VAEOptimizer = torch.optim.Adam(loadedVB.ai.VAE.parameters(), lr=loadedVB.ai.VAE.learningRate)
+            loadedVB.ai.hparams["fargan_interval"] = hparams["fargan_interval"]
+            loadedVB.mainAiOptimizer = [torch.optim.AdamW([*loadedVB.mainAi.baseEncoder.parameters(), *loadedVB.mainAi.baseDecoder.parameters()], lr=loadedVB.mainAi.learningRate, weight_decay=loadedVB.mainAi.regularization),
+                                    torch.optim.AdamW([*loadedVB.mainAi.encoderA.parameters(), *loadedVB.mainAi.decoderA.parameters()], lr=loadedVB.mainAi.learningRate, weight_decay=loadedVB.mainAi.regularization),
+                                    torch.optim.AdamW([*loadedVB.mainAi.encoderB.parameters(), *loadedVB.mainAi.decoderB.parameters()], lr=loadedVB.mainAi.learningRate * 4, weight_decay=loadedVB.mainAi.regularization),
+                                    torch.optim.AdamW([*loadedVB.mainAi.encoderC.parameters(), *loadedVB.mainAi.decoderC.parameters()], lr=loadedVB.mainAi.learningRate * 16, weight_decay=loadedVB.mainAi.regularization)]
+            loadedVB.mainCriticOptimizer = [torch.optim.AdamW([*loadedVB.mainCritic.baseEncoder.parameters(), *loadedVB.mainCritic.baseDecoder.parameters(), *loadedVB.mainCritic.final.parameters()], lr=loadedVB.mainCritic.learningRate, weight_decay=loadedVB.mainCritic.regularization),
+                                        torch.optim.AdamW([*loadedVB.mainCritic.encoderA.parameters(), *loadedVB.mainCritic.decoderA.parameters()], lr=loadedVB.mainCritic.learningRate, weight_decay=loadedVB.mainCritic.regularization),
+                                        torch.optim.AdamW([*loadedVB.mainCritic.encoderB.parameters(), *loadedVB.mainCritic.decoderB.parameters()], lr=loadedVB.mainCritic.learningRate * 4, weight_decay=loadedVB.mainCritic.regularization),
+                                        torch.optim.AdamW([*loadedVB.mainCritic.encoderC.parameters(), *loadedVB.mainCritic.decoderC.parameters()], lr=loadedVB.mainCritic.learningRate * 16, weight_decay=loadedVB.mainCritic.regularization)]
 
     def applyResampSettings(self) -> None:
         """placeholder function for saving resampler settings into the Voicebank file"""

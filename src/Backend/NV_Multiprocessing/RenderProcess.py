@@ -202,11 +202,11 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         originSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1, device = device), torch.tensor([global_consts.halfTripleBatchSize - 2,], device = device))
         newHarmonics = harmonics / interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device), torch.square(inputSpectrum), originSpace)
         targetSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * targetPitch, int(global_consts.nHarmonics / 2) + 1, device = device), torch.tensor([global_consts.halfTripleBatchSize - 2,], device = device))
-        newHarmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device), torch.square(inputSpectrum), targetSpace)#max. targetSpace too large!
-        slope = torch.ones([global_consts.pitchShiftSpectralRolloff,], device = device)
-        slope[int(global_consts.pitchShiftSpectralRolloff / 2):] = torch.linspace(1, 0, int(global_consts.pitchShiftSpectralRolloff / 2), device = device)
-        newHarmonics[:global_consts.pitchShiftSpectralRolloff] *= 1. - slope
-        newHarmonics[:global_consts.pitchShiftSpectralRolloff] += slope * harmonics[:global_consts.pitchShiftSpectralRolloff]
+        newHarmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device), torch.square(inputSpectrum), targetSpace)
+        #slope = torch.ones([global_consts.pitchShiftSpectralRolloff,], device = device)
+        #slope[int(global_consts.pitchShiftSpectralRolloff / 2):] = torch.linspace(1, 0, int(global_consts.pitchShiftSpectralRolloff / 2), device = device)
+        #newHarmonics[:global_consts.pitchShiftSpectralRolloff] *= 1. - slope
+        #newHarmonics[:global_consts.pitchShiftSpectralRolloff] += slope * harmonics[:global_consts.pitchShiftSpectralRolloff]
         phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
         phases = phaseShift(phases, previousShift, device)
         previousShift += phaseDifference * 2 * math.pi

@@ -416,7 +416,8 @@ class DataGenerator:
             for i in range(len(data)):
                 calculatePitch(data[i], False)
                 calculateSpectra(data[i], False)
-                data[i] = data[i].specharm + data[i].avgSpecharm
+                data[i] = data[i].specharm + torch.cat((data[i].avgSpecharm[:global_consts.halfHarms], torch.zeros((global_consts.halfHarms,), device = data[i].avgSpecharm.device), data[i].avgSpecharm[global_consts.halfHarms:]), 0)
+                data[i] = data[i].to(torch.device(self.crfAi.device))
             self.pool["dataset"] = DataLoader(data, batch_size = 1, shuffle = True)
         else:
             self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
@@ -499,7 +500,7 @@ class DataGenerator:
 
     def synthesize(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
         if self.mode == "dataset file":
-            return next(iter(self.pool["dataset"]))
+            return next(iter(self.pool["dataset"]))[0]
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""
         sequence, embeddings = self.makeSequence(noise, length, phonemeLength, expression)
         output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = torch.device("cpu"))

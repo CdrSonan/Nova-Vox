@@ -82,7 +82,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                      windowEnd = windowEnd,
                                      offset = offset)
     phoneme = getClosestSample(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey], torch.mean(vocalSegment.pitch))
-    """pitches = [i.pitch for i in vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey]]
+    pitches = [i.pitch for i in vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey]]
     lowerPitchIndices = torch.full([vocalSegment.pitch.size()[0],], pitches.index(min(pitches)), device = device)
     upperPitchIndices = torch.full([vocalSegment.pitch.size()[0],], pitches.index(max(pitches)), device = device)
     pitches = torch.tensor(pitches, device = device)
@@ -95,8 +95,8 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     avgSpecharm = torch.zeros([global_consts.halfTripleBatchSize + global_consts.halfHarms + 1], device = device)
     for i in range(vocalSegment.pitch.size()[0]):
         avgSpecharm += (ratio[i] * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][upperPitchIndices[i]].avgSpecharm + (1 - ratio[i]) * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][lowerPitchIndices[i]].avgSpecharm).to(device)
-    avgSpecharm /= vocalSegment.pitch.size()[0]"""
-    avgSpecharm = phoneme.avgSpecharm
+    avgSpecharm /= vocalSegment.pitch.size()[0]
+    #avgSpecharm = phoneme.avgSpecharm
     C_Bridge.resampler.resampleSpecharm(ctypes.cast(avgSpecharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                ctypes.cast(phoneme.specharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.specharm.size()[0]),
