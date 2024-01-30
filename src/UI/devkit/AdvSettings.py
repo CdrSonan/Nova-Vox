@@ -401,14 +401,14 @@ class AdvSettingsUi(Frame):
             loadedVB.ai.hparams["crt_lr"] = hparams["crt_lr"]
             loadedVB.ai.hparams["crt_reg"] = hparams["crt_reg"]
             loadedVB.ai.hparams["fargan_interval"] = hparams["fargan_interval"]
-            loadedVB.mainAiOptimizer = [torch.optim.AdamW([*loadedVB.mainAi.baseEncoder.parameters(), *loadedVB.mainAi.baseDecoder.parameters()], lr=loadedVB.mainAi.learningRate, weight_decay=loadedVB.mainAi.regularization),
-                                    torch.optim.AdamW([*loadedVB.mainAi.encoderA.parameters(), *loadedVB.mainAi.decoderA.parameters()], lr=loadedVB.mainAi.learningRate, weight_decay=loadedVB.mainAi.regularization),
-                                    torch.optim.AdamW([*loadedVB.mainAi.encoderB.parameters(), *loadedVB.mainAi.decoderB.parameters()], lr=loadedVB.mainAi.learningRate * 4, weight_decay=loadedVB.mainAi.regularization),
-                                    torch.optim.AdamW([*loadedVB.mainAi.encoderC.parameters(), *loadedVB.mainAi.decoderC.parameters()], lr=loadedVB.mainAi.learningRate * 16, weight_decay=loadedVB.mainAi.regularization)]
-            loadedVB.mainCriticOptimizer = [torch.optim.AdamW([*loadedVB.mainCritic.baseEncoder.parameters(), *loadedVB.mainCritic.baseDecoder.parameters(), *loadedVB.mainCritic.final.parameters()], lr=loadedVB.mainCritic.learningRate, weight_decay=loadedVB.mainCritic.regularization),
-                                        torch.optim.AdamW([*loadedVB.mainCritic.encoderA.parameters(), *loadedVB.mainCritic.decoderA.parameters()], lr=loadedVB.mainCritic.learningRate, weight_decay=loadedVB.mainCritic.regularization),
-                                        torch.optim.AdamW([*loadedVB.mainCritic.encoderB.parameters(), *loadedVB.mainCritic.decoderB.parameters()], lr=loadedVB.mainCritic.learningRate * 4, weight_decay=loadedVB.mainCritic.regularization),
-                                        torch.optim.AdamW([*loadedVB.mainCritic.encoderC.parameters(), *loadedVB.mainCritic.decoderC.parameters()], lr=loadedVB.mainCritic.learningRate * 16, weight_decay=loadedVB.mainCritic.regularization)]
+            loadedVB.ai.mainAiOptimizer = [torch.optim.AdamW([*loadedVB.ai.mainAi.baseEncoder.parameters(), *loadedVB.ai.mainAi.baseDecoder.parameters()], lr=loadedVB.ai.mainAi.learningRate, weight_decay=loadedVB.ai.mainAi.regularization),
+                                    torch.optim.AdamW([*loadedVB.ai.mainAi.encoderA.parameters(), *loadedVB.ai.mainAi.decoderA.parameters()], lr=loadedVB.ai.mainAi.learningRate, weight_decay=loadedVB.ai.mainAi.regularization),
+                                    torch.optim.AdamW([*loadedVB.ai.mainAi.encoderB.parameters(), *loadedVB.ai.mainAi.decoderB.parameters()], lr=loadedVB.ai.mainAi.learningRate * 4, weight_decay=loadedVB.ai.mainAi.regularization),
+                                    torch.optim.AdamW([*loadedVB.ai.mainAi.encoderC.parameters(), *loadedVB.ai.mainAi.decoderC.parameters()], lr=loadedVB.ai.mainAi.learningRate * 16, weight_decay=loadedVB.ai.mainAi.regularization)]
+            loadedVB.ai.mainCriticOptimizer = [torch.optim.AdamW([*loadedVB.ai.mainCritic.baseEncoder.parameters(), *loadedVB.ai.mainCritic.baseDecoder.parameters(), *loadedVB.ai.mainCritic.final.parameters()], lr=loadedVB.ai.mainCritic.learningRate, weight_decay=loadedVB.ai.mainCritic.regularization),
+                                        torch.optim.AdamW([*loadedVB.ai.mainCritic.encoderA.parameters(), *loadedVB.ai.mainCritic.decoderA.parameters()], lr=loadedVB.ai.mainCritic.learningRate, weight_decay=loadedVB.ai.mainCritic.regularization),
+                                        torch.optim.AdamW([*loadedVB.ai.mainCritic.encoderB.parameters(), *loadedVB.ai.mainCritic.decoderB.parameters()], lr=loadedVB.ai.mainCritic.learningRate * 4, weight_decay=loadedVB.ai.mainCritic.regularization),
+                                        torch.optim.AdamW([*loadedVB.ai.mainCritic.encoderC.parameters(), *loadedVB.ai.mainCritic.decoderC.parameters()], lr=loadedVB.ai.mainCritic.learningRate * 16, weight_decay=loadedVB.ai.mainCritic.regularization)]
 
     def applyResampSettings(self) -> None:
         """placeholder function for saving resampler settings into the Voicebank file"""

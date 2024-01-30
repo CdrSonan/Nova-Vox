@@ -419,7 +419,7 @@ class AIWrapper():
                 expression = expression[-1]
             if expression not in self.mainEmbedding.keys():
                 self.mainEmbedding[expression] = newEmbedding(len(self.mainEmbedding), self.hparams["embeddingDim"], self.device)
-        self.deskewingPremul /= total
+        self.deskewingPremul /= max(total, 1.)
         
         fargan_smp = None
         fargan_embedding = None
