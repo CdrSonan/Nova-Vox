@@ -103,7 +103,7 @@ class GuideRelLoss(nn.Module):
         out = torch.mean(torch.max(error - self.threshold, torch.tensor([0,], device = self.threshold.device))) * self.weight
         return out
 
-def gradientPenalty(model, real, fake, level, device):
+def gradientPenalty(model, real, fake, phase, embedding, device):
     """calculates gradient penalty for a given model, real, and fake inputs.
     
     Arguments:
@@ -118,14 +118,14 @@ def gradientPenalty(model, real, fake, level, device):
     Returns:
         gradient penalty as Float"""
     
-    limit = min(real.shape[0], fake.shape[0])
-    alpha = torch.rand(1, 1, device=device)
-    interpolates = alpha * real[:limit] + ((1 - alpha) * fake[:limit])
-    interpolates.requires_grad_(True)
-    disc_interpolates = model(interpolates, level)
+    #limit = min(real.shape[0], fake.shape[0])
+    #alpha = torch.rand(1, 1, device=device)
+    #interpolates = alpha * real[:limit] + ((1 - alpha) * fake[:limit])
+    #interpolates.requires_grad_(True)
+    disc_interpolates = model(real, phase, embedding)
     output = torch.ones_like(disc_interpolates, device=device)
-    gradient = torch.autograd.grad(outputs=disc_interpolates, inputs=interpolates, grad_outputs=output, create_graph=True, retain_graph=True, only_inputs=True)[0]
-    result = torch.pow(gradient.flatten().norm(2) - 1,  2).mean()
+    gradient = torch.autograd.grad(outputs=disc_interpolates, inputs=real, grad_outputs=output, create_graph=True, retain_graph=True, only_inputs=True)[0]
+    result = torch.pow(torch.clamp(gradient.flatten().norm(2) - 1, min = 0),  6).mean() * 2
     return result
 
 class HighwayLSTM(nn.Module):

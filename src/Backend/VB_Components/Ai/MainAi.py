@@ -572,3 +572,78 @@ class DataGenerator:
             harms[i] = torch.max(harms[i], torch.tensor([0.,], device = self.crfAi.device))
         output = torch.cat((harms, phases, spectrum), 1)
         return output
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+from s5 import S5Block
+class MainAi(nn.Module):
+    def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
+        super().__init__()
+        self.preNet = nn.Sequential(
+            nn.Linear(input_dim + embedDim, dim, device = device),
+            nn.GELU(),
+        )
+        self.s5 = nn.Sequential(*[S5Block(dim, blockA[0], False, block_count=blockA[1]).to(device) for _ in range(3)])
+        self.postNet = nn.Sequential(
+            nn.LayerNorm(dim, device = device),
+            nn.Linear(dim, input_dim, device = device),
+            nn.ReLU(),
+        )
+        self.device = device
+        self.learningRate = learningRate
+        self.dim = dim
+        self.blockAHParams = blockA
+        self.blockBHParams = blockB
+        self.blockCHParams = blockC
+        self.regularization = regularization
+        self.epoch = 0
+        self.sampleCount = 0
+    def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
+        if level == 0:
+            return input
+        latent = torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1)
+        x = self.preNet(latent)
+        x = self.s5(x.unsqueeze(0)).squeeze(0)
+        x = self.postNet(x)
+        return x + input
+    def resetState(self) -> None:
+        pass
+
+class MainCritic(nn.Module):
+    
+    def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
+        super().__init__()
+        self.preNet = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim + embedDim, dim, device = device)),
+            nn.GELU(),
+        )
+        self.s5 = nn.Sequential(*[S5Block(dim, blockA[0], False, block_count=blockA[1]).to(device) for _ in range(2)])
+        self.postNet = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.LayerNorm(dim, elementwise_affine = True, device = device)),
+            nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, device = device)),
+        )
+        self.device = device
+        self.learningRate = learningRate
+        self.dim = dim
+        self.blockAHParams = blockA
+        self.blockBHParams = blockB
+        self.blockCHParams = blockC
+        self.regularization = regularization
+        self.outputWeight = outputWeight
+        self.epoch = 0
+        self.sampleCount = 0
+    def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
+        latent = torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1)
+        x = self.preNet(latent)
+        x = self.s5(x.unsqueeze(0)).squeeze(0)
+        x = self.postNet(x)
+        return self.outputWeight * x[-1] + (1 - self.outputWeight) * torch.mean(x)
+    def resetState(self) -> None:
+        pass
