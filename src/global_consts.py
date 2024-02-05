@@ -30,8 +30,8 @@ DIOTolerance = 0.2
 DIOLastWinTolerance = 0.9
 filterTEEMult = 32
 filterHRSSMult = 4
-nHarmonics = 128
-halfHarms = 65
+nHarmonics = 64
+halfHarms = 33
 ampContThreshold = 10
 
 #synthesis spectral processing

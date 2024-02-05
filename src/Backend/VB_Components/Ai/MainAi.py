@@ -257,9 +257,11 @@ class EncoderBlock(nn.Module):
         self.tgtDim = tgtDim
         self.stateDim = stateDim
         self.device = device
+        self.specnorm = specnorm
         self.ssm = PseudoSSM(tgtDim, 2 * tgtDim, stateDim, device = device, specnorm = specnorm)
+        self.projection = nn.Conv1d(srcDim, 2 * tgtDim, 4, 2, 3, device = device)
+        self.norm = nn.InstanceNorm1d(tgtDim, device = device)
         self.nl1 = nn.GLU()
-        self.projection = nn.Conv1d(srcDim, 2 * tgtDim, 4, 2, 1, device = device)
         self.nl2 = nn.GLU()
         nn.init.orthogonal_(self.projection.weight)
         nn.init.zeros_(self.projection.bias)
@@ -270,6 +272,7 @@ class EncoderBlock(nn.Module):
         x = self.nl1(x)
         x = self.ssm(x)
         x = self.nl2(x)
+        x = self.norm(x.transpose(-1, -2)).transpose(-1, -2)
         return x, input.size()[-2]
 
 class DecoderBlock(nn.Module):
@@ -279,9 +282,11 @@ class DecoderBlock(nn.Module):
         self.tgtDim = tgtDim
         self.stateDim = stateDim
         self.device = device
+        self.specnorm = specnorm
         self.ssm = PseudoSSM(tgtDim, 2 * tgtDim, stateDim, device = device, specnorm = specnorm)
-        self.nl1 = nn.GLU()
         self.projection = nn.ConvTranspose1d(srcDim, 2 * tgtDim, 4, 2, device = device)
+        self.norm = nn.InstanceNorm1d(tgtDim, device = device)
+        self.nl1 = nn.GLU()
         self.nl2 = nn.GLU()
         nn.init.orthogonal_(self.projection.weight)
         nn.init.zeros_(self.projection.bias)
@@ -292,7 +297,8 @@ class DecoderBlock(nn.Module):
         x = self.nl1(x)
         x = self.ssm(x)
         x = self.nl2(x)
-        return x[1:targetLength + 1]
+        x = self.norm(x.transpose(-1, -2)).transpose(-1, -2)
+        return x[3:targetLength + 3]
 
 class MainAi(nn.Module):
     def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
@@ -309,7 +315,7 @@ class MainAi(nn.Module):
         self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device)
         self.postNet = nn.Sequential(
             nn.Linear(dim, input_dim, device = device),
-            nn.ReLU(),
+            nn.Softplus(),
         )
         self.device = device
         self.learningRate = learningRate
