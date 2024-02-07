@@ -40,7 +40,7 @@ class DataGenerator:
 
     def rebuildPool(self) -> None:
         if self.mode == "reclist (strict vowels)":
-            self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.keys() if value[0].isPlosive and value[0].isVoiced]
+            self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive and value[0].isVoiced]
             self.pool["short"] = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive or not value[0].isVoiced]
         elif self.mode == "dataset file":
             tkui = Tk()
@@ -260,7 +260,7 @@ class EncoderBlock(nn.Module):
         self.specnorm = specnorm
         self.ssm = PseudoSSM(tgtDim, 2 * tgtDim, stateDim, device = device, specnorm = specnorm)
         self.projection = nn.Conv1d(srcDim, 2 * tgtDim, 4, 2, 3, device = device)
-        self.norm = nn.InstanceNorm1d(tgtDim, device = device)
+        self.norm = nn.LayerNorm(tgtDim, device = device)
         self.nl1 = nn.GLU()
         self.nl2 = nn.GLU()
         nn.init.orthogonal_(self.projection.weight)
@@ -272,7 +272,7 @@ class EncoderBlock(nn.Module):
         x = self.nl1(x)
         x = self.ssm(x)
         x = self.nl2(x)
-        x = self.norm(x.transpose(-1, -2)).transpose(-1, -2)
+        x = self.norm(x)
         return x, input.size()[-2]
 
 class DecoderBlock(nn.Module):
@@ -285,7 +285,7 @@ class DecoderBlock(nn.Module):
         self.specnorm = specnorm
         self.ssm = PseudoSSM(tgtDim, 2 * tgtDim, stateDim, device = device, specnorm = specnorm)
         self.projection = nn.ConvTranspose1d(srcDim, 2 * tgtDim, 4, 2, device = device)
-        self.norm = nn.InstanceNorm1d(tgtDim, device = device)
+        self.norm = nn.LayerNorm(tgtDim, device = device)
         self.nl1 = nn.GLU()
         self.nl2 = nn.GLU()
         nn.init.orthogonal_(self.projection.weight)
@@ -297,7 +297,7 @@ class DecoderBlock(nn.Module):
         x = self.nl1(x)
         x = self.ssm(x)
         x = self.nl2(x)
-        x = self.norm(x.transpose(-1, -2)).transpose(-1, -2)
+        x = self.norm(x)
         return x[3:targetLength + 3]
 
 class MainAi(nn.Module):
