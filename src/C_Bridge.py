@@ -83,11 +83,11 @@ def makeCSample(sample: AudioSample, useVariance:bool) -> cSample:
                         specDepth = sample.specDepth,
                         tempWidth = sample.tempWidth,
                         tempDepth = sample.tempDepth)
-    sample.waveform = sample.waveform.to(torch.float)
-    sample.pitchDeltas = sample.pitchDeltas.to(torch.int)
-    sample.specharm = sample.specharm.to(torch.float)
-    sample.avgSpecharm = sample.avgSpecharm.to(torch.float)
-    sample.excitation = sample.excitation.to(torch.float)
+    sample.waveform = sample.waveform.to(torch.float).contiguous()
+    sample.pitchDeltas = sample.pitchDeltas.to(torch.int).contiguous()
+    sample.specharm = sample.specharm.to(torch.float).contiguous()
+    sample.avgSpecharm = sample.avgSpecharm.to(torch.float).contiguous()
+    sample.excitation = sample.excitation.to(torch.float).contiguous()
     return cSample(waveform = ctypes.cast(sample.waveform.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                    pitchDeltas = ctypes.cast(sample.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_int)),
                    specharm = ctypes.cast(sample.specharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
