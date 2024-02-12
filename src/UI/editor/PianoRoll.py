@@ -472,8 +472,8 @@ class PianoRoll(ScrollView):
         points1 = ((data1[start:end] + 0.5) * self.yScale).to(torch.int)
         points2 = ((data2[start:end] + 0.5) * self.yScale).to(torch.int)
         scale = torch.arange(start, end, dtype = torch.int) * self.xScale
-        points1 = torch.cat((scale.unsqueeze(1), torch.tensor(points1).unsqueeze(1)), dim = 1).flatten().tolist()
-        points2 = torch.cat((scale.unsqueeze(1), torch.tensor(points2).unsqueeze(1)), dim = 1).flatten().tolist()
+        points1 = torch.cat((scale.unsqueeze(1), points1.unsqueeze(1)), dim = 1).flatten().tolist()
+        points2 = torch.cat((scale.unsqueeze(1), points2.unsqueeze(1)), dim = 1).flatten().tolist()
         if self.pitchLine != None:
             self.children[0].canvas.remove(self.pitchLine)
         if self.basePitchLine != None:

@@ -132,7 +132,7 @@ class ParamCurve(ScrollView):
         end = min(ceil(self.seqLength * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / 0.9), self.seqLength)
         points = ((data[start:end] + 1) * self.height / 2).to(torch.int)
         scale = torch.arange(start, end, dtype = torch.int) * self.xScale
-        points = torch.cat((scale.unsqueeze(1), torch.tensor(points).unsqueeze(1)), dim = 1).flatten().tolist()
+        points = torch.cat((scale.unsqueeze(1), points.unsqueeze(1)), dim = 1).flatten().tolist()
         self.children[0].canvas.remove(self.color)
         self.children[0].canvas.remove(self.line)
         with self.children[0].canvas:
@@ -602,8 +602,8 @@ class PitchOptns(ScrollView):
         points1 = ((data1[start:end] + 1) * self.height / 4).to(torch.int)
         points2 = ((data2[start:end] + 3) * self.height / 4).to(torch.int)
         scale = torch.arange(start, end, dtype = torch.int) * self.xScale
-        points1 = torch.cat((scale.unsqueeze(1), torch.tensor(points1).unsqueeze(1)), dim = 1).flatten().tolist()
-        points2 = torch.cat((scale.unsqueeze(1), torch.tensor(points2).unsqueeze(1)), dim = 1).flatten().tolist()
+        points1 = torch.cat((scale.unsqueeze(1), points1.unsqueeze(1)), dim = 1).flatten().tolist()
+        points2 = torch.cat((scale.unsqueeze(1), points2.unsqueeze(1)), dim = 1).flatten().tolist()
         with self.children[0].canvas:
             self.color = Color(1, 0, 0, 1)
             self.line1 = Line(points = points1)
