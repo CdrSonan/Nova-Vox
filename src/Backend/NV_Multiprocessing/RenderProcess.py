@@ -197,7 +197,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         targetPitch = global_consts.tripleBatchSize / (internalInputs.pitch[k] + pitchOffset * steadiness)
         nativePitch = global_consts.tripleBatchSize / (voicebank.phonemeDict[internalInputs.phonemes[j]][0].pitch + pitchOffset * steadiness)
         inputSpectrum = spectrumInput[global_consts.nHarmonics + 2:]
-        phaseDifference = global_consts.batchSize / internalInputs.pitch[k].to(torch.float64)
+        #phaseDifference = global_consts.batchSize / internalInputs.pitch[k].to(torch.float64)
         harmonics = spectrumInput[:int(global_consts.nHarmonics / 2) + 1]
         originSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1, device = device), torch.tensor([global_consts.halfTripleBatchSize - 2,], device = device))
         newHarmonics = harmonics / interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device), torch.square(inputSpectrum), originSpace)
@@ -208,9 +208,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         #newHarmonics[:global_consts.pitchShiftSpectralRolloff] *= 1. - slope
         #newHarmonics[:global_consts.pitchShiftSpectralRolloff] += slope * harmonics[:global_consts.pitchShiftSpectralRolloff]
         phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
-        phases = phaseShift(phases, previousShift, device)
-        previousShift += phaseDifference * 2 * math.pi
-        previousShift = previousShift % (2 * math.pi)
+        #phases = phaseShift(phases, previousShift, device)
+        #previousShift += phaseDifference * 2 * math.pi
+        #previousShift = previousShift % (2 * math.pi)
         return torch.cat((newHarmonics, phases, torch.square(inputSpectrum)), 0), previousShift
 
     #setting up caching and other required data that is independent of each individual rendering iteration
@@ -493,49 +493,41 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
                         if aiActive:
                             startPoint = internalInputs.borders[3 * firstPoint]
-                            abs = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, :int(global_consts.nHarmonics / 2) + 1]
-                            angle = processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
-                            pitchOffset = pitch.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])
-                            steadiness = torch.pow(1. - internalInputs.steadiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]], 2)
-                            harms = torch.polar(abs, angle)
-                            #sines = harms.imag
-                            #cosines = harms.real
-                            #newSines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
-                            #newCosines = torch.empty(harms.size()[0], global_consts.halfTripleBatchSize + 1)
-                            voicedSignal = torch.empty((internalInputs.borders[3 * (j - 1) + 5] - startPoint, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = device_rs)
-                            for k in range(harms.size()[0]):
-                                requiredSize = torch.max(global_consts.tripleBatchSize / (internalInputs.pitch[k + startPoint].item() + pitchOffset[k] * steadiness[k]), torch.tensor([1.,], device = device_rs))
-                                harmCurve = torch.tile(torch.fft.irfft(harms[k], global_consts.nHarmonics), (math.ceil(requiredSize),))[:int(requiredSize * global_consts.nHarmonics)]
-                                voicedSignal[k] = torch.fft.rfft(interp(torch.linspace(0, 1, int(requiredSize * global_consts.nHarmonics), device = device_rs), harmCurve, torch.linspace(0, 1, global_consts.tripleBatchSize, device = device_rs)) * window)
-                                #inputFreqs = torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1).unsqueeze(0).tile(global_consts.halfTripleBatchSize + 1, 1) * requiredSize
-                                #outputFreqs = torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1).unsqueeze(1).tile(1, int(global_consts.nHarmonics / 2) + 1)
-                                #sineToSine = outputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
-                                #sineToSine[0, 0] = 1.
-                                #cosineToCosine = inputFreqs * torch.sin(2 * math.pi * inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
-                                #cosineToCosine[0, 0] = 1.
-                                #sineToCosine = (-inputFreqs * torch.cos(2 * math.pi * inputFreqs) + inputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
-                                #sineToCosine[0, 0] = 1.
-                                #cosineToSine = (outputFreqs * torch.cos(2 * math.pi * inputFreqs) - outputFreqs) / (torch.pow(inputFreqs, 2) - torch.pow(outputFreqs, 2)) / math.pi
-                                #cosineToSine[0, 0] = 1.
-                                #newSines[k] = torch.matmul(sineToSine, sines[k]) + torch.matmul(cosineToSine, cosines[k])
-                                #newCosines[k] = torch.matmul(cosineToCosine, cosines[k]) + torch.matmul(sineToCosine, sines[k])
-                            #voicedSignal = torch.complex(newCosines, newSines)
+                            endPoint = internalInputs.borders[3 * lastPoint + 5]
+                            
                             if internalInputs.useBreathiness:
-                                breathiness = internalInputs.breathiness[startPoint:internalInputs.borders[3 * (j - 1) + 5]].to(device = device_rs)
+                                breathiness = internalInputs.breathiness[startPoint:endPoint].to(device = device_rs)
                             else:
-                                breathiness = torch.zeros([internalInputs.borders[3 * (j - 1) + 5] - startPoint,], device = device_rs)
+                                breathiness = torch.zeros([endPoint - startPoint,], device = device_rs)
 
-                            excitationSignal = torch.transpose(excitation.read(startPoint, internalInputs.borders[3 * (j - 1) + 5]) * processedSpectrum.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])[:, global_consts.nHarmonics + 2:], 0, 1)
-                            breathinessCompensation = torch.sum(torch.abs(voicedSignal), 1) / torch.maximum(torch.sum(torch.abs(excitation.read(startPoint, internalInputs.borders[3 * (j - 1) + 5])), 1), torch.tensor([0.0001], device = device_rs)) * global_consts.breCompPremul
+                            excitationSignal = torch.transpose(excitation.read(startPoint, endPoint) * processedSpectrum.read(startPoint, endPoint)[:, global_consts.nHarmonics + 2:], 0, 1)
+                            breathinessCompensation = 1.#torch.sum(torch.abs(voicedSignal), 1) / torch.maximum(torch.sum(torch.abs(excitation.read(startPoint, endPoint)), 1), torch.tensor([0.0001], device = device_rs)) * global_consts.breCompPremul#Fix!!!
                             breathinessUnvoiced = 1. + breathiness * breathinessCompensation * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                             breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
-                            voicedSignal *= torch.unsqueeze(breathinessVoiced, 1)
+                            
+                            abs = processedSpectrum.read(startPoint, endPoint)[:, :int(global_consts.nHarmonics / 2) + 1]
+                            angle = processedSpectrum.read(startPoint, endPoint)[:, int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
+                            steadiness = torch.pow(1. - internalInputs.steadiness[startPoint:endPoint], 2)
+                            pitchOffset = pitch.read(startPoint, endPoint)
+                            pitchOffset = internalInputs.pitch[k] + pitchOffset * steadiness
+                            interpAbs = torch.zeros([(endPoint - startPoint) * global_consts.batchSize, int(global_consts.nHarmonics / 2) + 1], device = device_rs)
+                            interpAngle = torch.zeros([(endPoint - startPoint) * global_consts.batchSize, int(global_consts.nHarmonics / 2) + 1], device = device_rs)
+                            for k in range(int(global_consts.nHarmonics / 2) + 1):
+                                interpAbs[:, k] = interp(torch.linspace(0, 1, endPoint - startPoint, device = device_rs), abs[:, k] * breathinessVoiced, torch.linspace(0, 1, (endPoint - startPoint) * global_consts.batchSize, device = device_rs))
+                                interpAngle[:, k] = interp(torch.linspace(0, 1, endPoint - startPoint, device = device_rs), angle[:, k], torch.linspace(0, 1, (endPoint - startPoint) * global_consts.batchSize, device = device_rs))#switch to PhaseInterp
+                            pitchOffset = interp(torch.linspace(0, 1, endPoint - startPoint, device = device_rs), pitchOffset, torch.linspace(0, 1, (endPoint - startPoint) * global_consts.batchSize, device = device_rs))
+                            pitchSpacePos = 0.
+                            voicedSignal = torch.zeros([(endPoint - startPoint) * global_consts.batchSize,], device = device_rs)
+                            for k in range(voicedSignal.size()[0]):
+                                voicedSignal[k] = torch.sum(
+                                    torch.cos(interpAngle[k] + pitchSpacePos * 2 * math.pi * torch.linspace(0, int(global_consts.nHarmonics / 2), int(global_consts.nHarmonics / 2) + 1, device = device_rs))
+                                    * interpAbs[k]
+                                )
+                                pitchSpacePos += 1. / pitchOffset[k]
                             excitationSignal *= breathinessUnvoiced
-                            voicedSignal = torch.transpose(voicedSignal, 0, 1)
-                            waveform = torch.istft(voicedSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize).to(device = torch.device("cpu"))
-                            excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = internalInputs.borders[3 * (j - 1) + 5] * global_consts.batchSize)
-                            waveform += excitationSignal.to(device = torch.device("cpu"))
-                            remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, waveform.detach(), "updateAudio"))
+                            excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = (endPoint - startPoint) * global_consts.batchSize)
+                            voicedSignal += excitationSignal.to(device = torch.device("cpu"))
+                            remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, voicedSignal.detach(), "updateAudio"))
                         remoteConnection.put(StatusChange(i, j - 1, 5))
                     if j > 0 and (j == len(internalStatusControl.ai) or internalInputs.phonemes[j] in ("pau", "_autopause")):
                         aiActive = False
