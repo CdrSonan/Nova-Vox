@@ -23,15 +23,15 @@ halfTripleBatchSize = 288
 LSTMBatchSize = 250000
 
 #analysis spectral processing
-filterBSMult = 2
+filterBSMult = 4
 DIOBias = 0.4
 DIOBias2 = 0.2
 DIOTolerance = 0.2
 DIOLastWinTolerance = 0.9
 filterTEEMult = 32
 filterHRSSMult = 4
-nHarmonics = 64
-halfHarms = 33
+nHarmonics = 128
+halfHarms = 65
 ampContThreshold = 10
 
 #synthesis spectral processing
