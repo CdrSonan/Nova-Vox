@@ -23,7 +23,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     from Util import ensureTensorLength
     from MiddleLayer.IniParser import readSettings
     from Backend.Resampler.CubicSplineInter import interp
-    from Backend.Resampler.PhaseShift import phaseShift
+    from Backend.Resampler.PhaseShift import phaseInterp
 
     global statusControl, voicebankList, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
 
@@ -481,7 +481,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             remoteConnection.put(StatusChange(i, j, 3))
 
                     #final rendering and istft of pause-to-pause segment
-                    if (j > 0) & (interOutput or (j == lastPoint)):
+                    if (j > 0) & (interOutput or (j - 1 == lastPoint)):
                         logging.info("performing final rendering up to sample " + str(j - 1) + ", sequence " + str(i))
                         if aiActive:
                             startPoint = internalInputs.borders[3 * firstPoint]
@@ -508,6 +508,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             for k in range(int(global_consts.nHarmonics / 2) + 1):
                                 interpAbs[:, k] = interp(torch.linspace(0, 1, endPoint - startPoint, device = device_rs), abs[:, k] * breathinessVoiced, torch.linspace(0, 1, (endPoint - startPoint) * global_consts.batchSize, device = device_rs))
                                 interpAngle[:, k] = interp(torch.linspace(0, 1, endPoint - startPoint, device = device_rs), angle[:, k], torch.linspace(0, 1, (endPoint - startPoint) * global_consts.batchSize, device = device_rs))#switch to PhaseInterp
+                            #interpAngle = torch.zeros_like(interpAngle)# temporary (hopefully not permanent) fix for phase interpolation not being properly implemented
                             pitchOffset = interp(torch.linspace(0, 1, endPoint - startPoint, device = device_rs), pitchOffset, torch.linspace(0, 1, (endPoint - startPoint) * global_consts.batchSize, device = device_rs))
                             pitchSpacePos = 0.
                             voicedSignal = torch.zeros([(endPoint - startPoint) * global_consts.batchSize,], device = device_rs)
@@ -518,7 +519,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 )
                                 pitchSpacePos += 1. / pitchOffset[k]
                             excitationSignal *= breathinessUnvoiced
-                            #excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, length = (endPoint - startPoint) * global_consts.batchSize)
                             excitationSignal = torch.istft(excitationSignal, global_consts.tripleBatchSize, hop_length = global_consts.batchSize, win_length = global_consts.tripleBatchSize, window = window, onesided=True, normalized = True, length = (endPoint - startPoint) * global_consts.batchSize)
                             voicedSignal += excitationSignal.to(device = torch.device("cpu"))
                             remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, voicedSignal.detach(), "updateAudio"))
