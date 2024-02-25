@@ -97,7 +97,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         avgSpecharm += (ratio[i] * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][upperPitchIndices[i]].avgSpecharm + (1 - ratio[i]) * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][lowerPitchIndices[i]].avgSpecharm).to(device)
     avgSpecharm /= vocalSegment.pitch.size()[0]
     #avgSpecharm = phoneme.avgSpecharm
-    C_Bridge.resampler.resampleSpecharm(ctypes.cast(avgSpecharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
+    C_Bridge.esper.resampleSpecharm(ctypes.cast(avgSpecharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                ctypes.cast(phoneme.specharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.specharm.size()[0]),
                                ctypes.cast(vocalSegment.steadiness.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -161,7 +161,7 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                      windowStart = 0,
                                      windowEnd = 0,
                                      offset = 0)
-    C_Bridge.resampler.resamplePitch(ctypes.cast(phoneme.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_short)),
+    C_Bridge.esper.resamplePitch(ctypes.cast(phoneme.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_short)),
                                int(phoneme.pitchDeltas.size()[0]),
                                ctypes.c_float(phoneme.pitch.item()),
                                ctypes.c_float(vocalSegment.repetititionSpacing),
