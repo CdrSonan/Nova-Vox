@@ -503,12 +503,12 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             
                             abs = processedSpectrum.read(startPoint, endPoint)[:, :int(global_consts.nHarmonics / 2) + 1]
                             
-                            excitationSignal = excitation.read(startPoint, endPoint) * processedSpectrum.read(startPoint, endPoint)[:, global_consts.nHarmonics + 2:]
+                            excitationSignal = excitation.read(startPoint, endPoint) * processedSpectrum.read(startPoint, endPoint)[:, global_consts.nHarmonics + 2:] / 3.
                             breathinessCompensation = torch.sum(torch.square(abs), 1) / (torch.sum(torch.square(torch.abs(excitationSignal)), 1) + 0.001) * global_consts.breCompPremul
                             breathinessUnvoiced = 1. + breathiness * breathinessCompensation * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                             breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
                             excitationSignal *= breathinessUnvoiced.unsqueeze(1)
-                            excitationSignal = torch.cat((torch.real(excitationSignal), torch.imag(excitationSignal)), 1)
+                            excitationSignal = torch.cat((torch.real(excitationSignal), torch.imag(excitationSignal)), 0)
                             
                             steadiness = torch.pow(1. - internalInputs.steadiness[startPoint:endPoint], 2)
                             pitchOffset = pitch.read(startPoint, endPoint)
