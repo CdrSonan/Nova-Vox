@@ -33,6 +33,8 @@ filterHRSSMult = 4
 nHarmonics = 64
 halfHarms = 33
 ampContThreshold = 10
+frameSize = nHarmonics + halfTripleBatchSize + 3
+reducedFrameSize = halfHarms + halfTripleBatchSize + 1
 
 #synthesis spectral processing
 spectralRolloff1 = 144
@@ -103,7 +105,7 @@ config = engineCfg(sampleRate = sampleRate,
                    filterHRSSMult = filterHRSSMult,
                    nHarmonics = nHarmonics,
                    halfHarmonics = int(nHarmonics / 2) + 1,
-                   frameSize = nHarmonics + halfTripleBatchSize + 3,
+                   frameSize = frameSize,
                    ampContThreshold = ampContThreshold,
                    spectralRolloff1 = spectralRolloff1,
                    spectralRolloff2 = spectralRolloff2)
