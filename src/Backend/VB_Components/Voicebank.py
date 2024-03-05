@@ -11,7 +11,7 @@ from tqdm.auto import tqdm
 
 from Backend.VB_Components.VbMetadata import VbMetadata
 from Backend.VB_Components.Ai.Wrapper import AIWrapper
-from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample, AISample
+from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample, AISample, AISampleCollection, LiteSampleCollection
 from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import calculateSpectra
 from Backend.DataHandler.UtauSample import UtauSample
@@ -98,8 +98,10 @@ class Voicebank():
         self.ai = AIWrapper(self, device)
         self.parameters = []
         self.wordDict = (dict(), [])
-        self.stagedTrTrainSamples = []
-        self.stagedMainTrainSamples = []
+        self.stagedTrTrainSamples = AISampleCollection(isTransition = True)
+        self.trTrainSamples = LiteSampleCollection(isTransition = True)
+        self.stagedMainTrainSamples = AISampleCollection()
+        self.mainTrainSamples = LiteSampleCollection()
         self.device = device
         if filepath != None:
             data = torch.load(filepath, map_location = torch.device("cpu"))
@@ -286,8 +288,7 @@ class Voicebank():
     def addTrTrainSample(self, filepath:str) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
 
-        self.stagedTrTrainSamples.append(AISample(filepath))
-        self.stagedTrTrainSamples[-1].embedding = (0, 0)
+        self.stagedTrTrainSamples.append(AISample(filepath, True))
 
     def addTrTrainSampleUtau(self, sample:UtauSample) -> None:
         """stages an audio sample the phoneme crossfade Ai is to be trained with"""
@@ -300,12 +301,13 @@ class Voicebank():
     def delTrTrainSample(self, index:int) -> None:
         """removes an audio sample from the list of staged training phonemes"""
 
-        del self.stagedTrTrainSamples[index]
+        self.stagedTrTrainSamples.delete(index)
     
     def changeTrTrainSampleFile(self, index:int, filepath:str) -> None:
         """currently unused method that changes the file of a staged phoneme crossfade Ai training sample"""
 
-        self.stagedTrTrainSamples[index] = AISample(filepath)
+        self.delTrTrainSample(index)
+        self.addTrTrainSample(filepath)
 
     def addMainTrainSample(self, filepath:str) -> None:
         """stages an audio sample the prediction Ai is to be trained with"""
@@ -323,12 +325,13 @@ class Voicebank():
     def delMainTrainSample(self, index:int) -> None:
         """removes an audio sample from the list of staged training samples"""
 
-        del self.stagedMainTrainSamples[index]
+        self.stagedMainTrainSamples.delete(index)
     
     def changeMainTrainSampleFile(self, index:int, filepath:str) -> None:
         """currently unused method that changes the file of a staged prediction Ai training sample"""
 
-        self.stagedMainTrainSamples[index] = AISample(filepath)
+        self.delMainTrainSample(index)
+        self.addMainTrainSample(filepath)
     
     def trainTrAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
         """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
@@ -345,11 +348,10 @@ class Voicebank():
         sampleCount = len(self.stagedTrTrainSamples)
         stagedTrTrainSamples = []
         for _ in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            sample = self.stagedTrTrainSamples.pop().convert(False)
+            sample = self.stagedTrTrainSamples.fetch(0).convert(False)
             calculatePitch(sample, True)
             calculateSpectra(sample, False)
-            avgSpecharm = torch.cat((sample.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), sample.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-            stagedTrTrainSamples.append(((avgSpecharm + sample.specharm).to(device = self.device), sample.embedding, sample.key))
+            self.trTrainSamples.append(sample)
         print("sample preprocessing complete")
         print("AI training started")
         self.ai.trainTr(stagedTrTrainSamples, epochs = epochs, logging = logging, reset = not additive)
@@ -374,8 +376,7 @@ class Voicebank():
             for j in samples:
                 calculatePitch(j, False)
                 calculateSpectra(j, False)
-                avgSpecharm = torch.cat((j.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), j.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-                stagedMainTrainSamples.append(((avgSpecharm + j.specharm).to(device = self.device), j.key))
+                self.mainTrainSamples.append(j)
         print("sample preprocessing complete")
         print("AI training started")
         self.ai.trainMain(stagedMainTrainSamples, epochs = epochs, logging = logging, reset = not additive, generatorMode = generatorMode)

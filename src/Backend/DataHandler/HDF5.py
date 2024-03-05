@@ -15,7 +15,7 @@ from API.Addon import override
 class SampleStorage:
     """Class for handling audio data in an HDF5 file"""
 
-    def __init__(self, path:str, groups:list = []):
+    def __init__(self, path:str, groups:list = [], isTransition:bool = False):
         self.path = path
         self.groups = groups
         self.file = h5py.File(path, "r+")
@@ -52,9 +52,14 @@ class SampleStorage:
         if "floatCfg" not in self.group:
             self.group.create_dataset("floatCfg", (0, 3), maxshape=(None, 3), dtype="float32")
         if "intCfg" not in self.group:
-            self.group.create_dataset("intCfg", (0, 5), maxshape=(None, 5), dtype="int16")
+            if isTransition:
+                self.group.create_dataset("intCfg", (0, 6), maxshape=(None, 5), dtype="int16")
+            else:
+                self.group.create_dataset("intCfg", (0, 5), maxshape=(None, 5), dtype="int16")
         if "length" not in self.group.attrs:
             self.group.attrs["length"] = 0
+        if "isTransition" not in self.group.attrs:
+            self.group.attrs["isTransition"] = isTransition
     
     def __len__(self):
         return self.group.attrs["length"]
@@ -101,7 +106,10 @@ class SampleStorage:
         sample.specDepth = self.group["intCfg"][idx][1]
         sample.tempWidth = self.group["intCfg"][idx][2]
         sample.tempDepth = self.group["intCfg"][idx][3]
-        sample.embedding = self.group["intCfg"][idx][4]
+        if self.group.attrs["isTransition"]:
+            sample.embedding = (self.group["intCfg"][idx][4], self.group["intCfg"][idx][5])
+        else:
+            sample.embedding = self.group["intCfg"][idx][4]
     
     def fetchAI(self, idx:int):
         sample = AISample()
@@ -122,7 +130,10 @@ class SampleStorage:
         sample.specDepth = self.group["intCfg"][idx][1]
         sample.tempWidth = self.group["intCfg"][idx][2]
         sample.tempDepth = self.group["intCfg"][idx][3]
-        sample.embedding = self.group["intCfg"][idx][4]
+        if self.group.attrs["isTransition"]:
+            sample.embedding = (self.group["intCfg"][idx][4], self.group["intCfg"][idx][5])
+        else:
+            sample.embedding = self.group["intCfg"][idx][4]
     
     def fetchLite(self, key:str, byKey:bool = False):
         if byKey:
@@ -140,7 +151,10 @@ class SampleStorage:
         sample.avgSpecharm = torch.tensor(self.group["avgSpecharm"][idx], dtype=torch.float32)
         sample.isVoiced = self.group["flags"][idx][0]
         sample.isPlosive = self.group["flags"][idx][1]
-        sample.embedding = self.group["intCfg"][idx][4]
+        if self.group.attrs["isTransition"]:
+            sample.embedding = (self.group["intCfg"][idx][4], self.group["intCfg"][idx][5])
+        else:
+            sample.embedding = self.group["intCfg"][idx][4]
     
     def append(self, sample):
         if isinstance(sample, AISample):
@@ -179,7 +193,10 @@ class SampleStorage:
         self.group["floatCfg"].resize(self.group["floatCfg"].shape[0] + 1, axis=0)
         self.group["floatCfg"][-1] = [sample.expectedPitch, sample.searchRange, sample.voicedThrh]
         self.group["intCfg"].resize(self.group["intCfg"].shape[0] + 1, axis=0)
-        self.group["intCfg"][-1] = [sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding]
+        if self.group.attrs["isTransition"]:
+            self.group["intCfg"][-1] = [sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding[0], sample.embedding[1]]
+        else:
+            self.group["intCfg"][-1] = [sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding]
         self.group.attrs["length"] += 1
         
     def delete(self, idx:int):
@@ -227,3 +244,6 @@ class SampleStorage:
             raise NotImplementedError("LiteAudioSample objects cannot be appended to a SampleStorage")
         for i in collection:
             self.append(i)
+    
+    def close(self):
+        self.file.close()

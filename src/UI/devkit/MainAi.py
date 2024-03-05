@@ -7,11 +7,11 @@
 
 import logging
 import tkinter
-import torch
 import sys
 
 from UI.devkit.Widgets import *
 import global_consts
+from Backend.DataHandler.HDF5 import SampleStorage
 from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
@@ -315,17 +315,20 @@ class MainaiUi(Frame):
 
         logging.info("Crfai dataset export callback")
         global loadedVB
-        filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".dat", filetypes = ((".dat", ".dat"), (loc["all_files_desc"], "*")))
-        torch.save(loadedVB.stagedMainTrainSamples, filepath)
+        filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".hdf5", filetypes = ((".hdf5", ".hdf5"), (loc["all_files_desc"], "*")))
+        storage = SampleStorage(filepath, [], False)
+        storage.fromCollection(loadedVB.stagedMainTrainSamples, True)
+        storage.close()
 
     def onImportPress(self) -> None:
         """UI Frontend function for importing a previously saved AI training dataset. Overwrites any previously staged training samples."""
 
         logging.info("Crfai dataset export callback")
         global loadedVB
-        filepaths = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
-        for i in filepaths:
-            loadedVB.stagedMainTrainSamples.extend(torch.load(i, map_location = torch.device("cpu")))
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = False)
+        storage = SampleStorage(filepath, [], False)
+        loadedVB.stagedMainTrainSamples = storage.toCollection("AI")
+        storage.close()
                 
     def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""

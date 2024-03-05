@@ -310,9 +310,10 @@ class AIWrapper():
         reportedLoss = 0.
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
-                embedding1 = dec2bin(data[1][0].to(self.device), 32)
-                embedding2 = dec2bin(data[1][1].to(self.device), 32)
-                data = data[0].to(device = self.device)
+                avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+                embedding1 = dec2bin(data.embedding[0].to(self.device), 32)
+                embedding2 = dec2bin(data.embedding[1].to(self.device), 32)
+                data = (avgSpecharm + data.specharm).to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
                 spectrum2 = data[3, 2 * halfHarms:]
@@ -434,8 +435,9 @@ class AIWrapper():
         for phaseIdx, phase in enumerate(phases):
             for epoch in tqdm(range(epochs), desc = "training phase " + str(phaseIdx + 1), position = 1, unit = "epochs"):
                 for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 0, total = len(indata), unit = "samples")):
-                    key = data[1][0]
-                    data = data[0]
+                    avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+                    key = data.key
+                    data = (avgSpecharm + data.specharm).to(device = self.device)
                     if index % self.hparams["fargan_interval"] == self.hparams["fargan_interval"] - 1:
                         embedding = fargan_embedding
                         expression = fargan_expression
