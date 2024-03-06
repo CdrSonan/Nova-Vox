@@ -10,7 +10,6 @@ import torch
 
 from Backend.DataHandler.AudioSample import AudioSample, AISample, LiteAudioSample, AudioSampleCollection, AISampleCollection, LiteSampleCollection
 import global_consts as gc
-from API.Addon import override
 
 class SampleStorage:
     """Class for handling audio data in an HDF5 file"""
@@ -18,7 +17,7 @@ class SampleStorage:
     def __init__(self, path:str, groups:list = [], isTransition:bool = False):
         self.path = path
         self.groups = groups
-        self.file = h5py.File(path, "r+")
+        self.file = h5py.File(path, "a")
         self.group = self.file
         for i in groups:
             if i not in self.group:
@@ -53,9 +52,9 @@ class SampleStorage:
             self.group.create_dataset("floatCfg", (0, 3), maxshape=(None, 3), dtype="float32")
         if "intCfg" not in self.group:
             if isTransition:
-                self.group.create_dataset("intCfg", (0, 6), maxshape=(None, 5), dtype="int16")
+                self.group.create_dataset("intCfg", (0, 6), maxshape=(None, 6), dtype="int64")
             else:
-                self.group.create_dataset("intCfg", (0, 5), maxshape=(None, 5), dtype="int16")
+                self.group.create_dataset("intCfg", (0, 5), maxshape=(None, 5), dtype="int64")
         if "length" not in self.group.attrs:
             self.group.attrs["length"] = 0
         if "isTransition" not in self.group.attrs:
@@ -149,6 +148,9 @@ class SampleStorage:
             sample.specharm = torch.tensor(self.group["specharm"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32)
         sample.pitch = self.group["pitch"][idx]
         sample.avgSpecharm = torch.tensor(self.group["avgSpecharm"][idx], dtype=torch.float32)
+        sample.key = self.group["keys"][idx].decode("utf-8")
+        if sample.key == "_None":
+            sample.key = None
         sample.isVoiced = self.group["flags"][idx][0]
         sample.isPlosive = self.group["flags"][idx][1]
         if self.group.attrs["isTransition"]:

@@ -7,6 +7,7 @@
 
 import torchaudio
 import torch
+import torch.utils.data as torch_data
 
 import global_consts
 
@@ -44,7 +45,7 @@ class AudioSample():
         __init__: Constructor for initialising an AudioSample based on an audio file"""
         
         
-    def __init__(self, filepath:str) -> None:
+    def __init__(self, filepath:str, isTransition:bool = False) -> None:
         """Constructor for initialising an AudioSample based on an audio file and desired sample rate.
         
         Arguments:
@@ -69,16 +70,19 @@ class AudioSample():
             del sampleRate
         else:
             self.filepath = ""
-            self.waveform = torch.tensor([], dtype = float)
-        self.pitchDeltas = torch.tensor([], dtype = int)
-        self.pitch = torch.tensor([global_consts.defaultExpectedPitch], dtype = int)
-        self.specharm = torch.tensor([[]], dtype = float)
-        self.avgSpecharm = torch.tensor([], dtype = float)
-        self.excitation = torch.tensor([], dtype = float)
+            self.waveform = torch.tensor([], dtype = torch.float)
+        self.pitchDeltas = torch.tensor([], dtype = torch.int)
+        self.pitch = torch.tensor([global_consts.defaultExpectedPitch], dtype = torch.int)
+        self.specharm = torch.tensor([[]], dtype = torch.float)
+        self.avgSpecharm = torch.tensor([], dtype = torch.float)
+        self.excitation = torch.tensor([], dtype = torch.float)
         self.isVoiced = True
         self.isPlosive = False
         
-        self.embedding = 0
+        if isTransition:
+            self.embedding = (0, 0)
+        else:
+            self.embedding = 0
         self.key = None
         
         self.expectedPitch = global_consts.defaultExpectedPitch
@@ -111,7 +115,7 @@ class AISample():
         __init__: Constructor for initialising an AudioSample based on an audio file"""
         
         
-    def __init__(self, filepath:str, isTransition:bool = False) -> None:
+    def __init__(self, filepath:str = None, isTransition:bool = False) -> None:
         """Constructor for initialising an AISample based on an audio file and desired sample rate.
         
         Arguments:
@@ -123,15 +127,19 @@ class AISample():
         This method initializes the properties used for spectral and excitation calculation to the default values, loads the selected audio file (based on filepath string) into the waveform property, and resamples it to the desired sample rate"""
 
         
-        loadedData = torchaudio.load(filepath)
-        self.filepath = filepath
-        self.waveform = loadedData[0][0]
-        sampleRate = loadedData[1]
-        del loadedData
-        transform = torchaudio.transforms.Resample(sampleRate, global_consts.sampleRate)
-        self.waveform = transform(self.waveform)
-        del transform
-        del sampleRate
+        if filepath not in (None, ""):
+            loadedData = torchaudio.load(filepath)
+            self.filepath = filepath
+            self.waveform = loadedData[0][0]
+            sampleRate = loadedData[1]
+            del loadedData
+            transform = torchaudio.transforms.Resample(sampleRate, global_consts.sampleRate)
+            self.waveform = transform(self.waveform)
+            del transform
+            del sampleRate
+        else:
+            self.filepath = ""
+            self.waveform = torch.tensor([], dtype = torch.float)
         self.isVoiced = True
         self.isPlosive = False
         
@@ -197,7 +205,7 @@ class LiteAudioSample():
         __init__: Constructor for initialising the class based on an AudioSample object, discarding all extraneous data."""
     
     
-    def __init__(self, audioSample:AudioSample) -> None:
+    def __init__(self, audioSample:AudioSample = None) -> None:
         """Constructor for initialising the class based on an AudioSample object, discarding all extraneous data.
         
         Arguments:
@@ -207,37 +215,52 @@ class LiteAudioSample():
             None"""
             
             
-        self.pitchDeltas = audioSample.pitchDeltas
-        self.pitch = audioSample.pitch
-        self.specharm = audioSample.specharm
-        self.avgSpecharm = audioSample.avgSpecharm
-        self.excitation = audioSample.excitation
-        self.isVoiced = audioSample.isVoiced
-        self.isPlosive = audioSample.isPlosive
-        self.embedding = audioSample.embedding
+        if audioSample is None:
+            self.pitchDeltas = torch.tensor([], dtype = torch.int)
+            self.pitch = torch.tensor([], dtype = torch.int)
+            self.specharm = torch.tensor([], dtype = torch.float)
+            self.avgSpecharm = torch.tensor([], dtype = torch.float)
+            self.excitation = torch.tensor([], dtype = torch.complex64)
+            self.key = None
+            self.isVoiced = False
+            self.isPlosive = False
+            self.embedding = 0
+        else:
+            self.pitchDeltas = audioSample.pitchDeltas
+            self.pitch = audioSample.pitch
+            self.specharm = audioSample.specharm
+            self.avgSpecharm = audioSample.avgSpecharm
+            self.excitation = audioSample.excitation
+            self.key = audioSample.key
+            self.isVoiced = audioSample.isVoiced
+            self.isPlosive = audioSample.isPlosive
+            self.embedding = audioSample.embedding
 
 def addElement(tensor:torch.Tensor, element:torch.Tensor, length:int) -> torch.Tensor:
+    if length == 0:
+        return element.unsqueeze(0)
     if tensor.size()[0] <= length:
         tensor = torch.cat([tensor, torch.empty_like(tensor)], 0)
     tensor[length] = element
     return tensor
 
 def addIdx(tensor:torch.Tensor, idx:int, length:int) -> torch.Tensor:
+    if length == 0:
+        return torch.tensor([idx,], dtype = torch.int64)
     if tensor.size()[0] <= length:
         tensor = torch.cat([tensor, torch.empty_like(tensor)], 0)
-    if length > 0:
-        tensor[length] = tensor[length - 1] + idx
-    else:
-        tensor[length] = idx
+    tensor[length] = tensor[length - 1] + idx
     return tensor
 
 def addElementWithIdxs(tensor:torch.Tensor, element:torch.Tensor, idxs:torch.Tensor, length:int) -> torch.Tensor:
-    if tensor.size()[0] <= idxs[length - 1] + element.size()[0]:
+    if length == 0:
+        return element
+    while tensor.size()[0] <= idxs[length - 1] + element.size()[0]:
         tensor = torch.cat([tensor, torch.empty_like(tensor)], 0)
     tensor[idxs[length - 1]:idxs[length - 1] + element.size()[0]] = element
     return tensor
 
-class AISampleCollection():
+class AISampleCollection(torch_data.Dataset):
     """Class for holding a collection of AISample instances."""
     
     def __init__(self, source:list = None, isTransition:bool = False) -> None:
@@ -262,14 +285,17 @@ class AISampleCollection():
             self.flags = torch.tensor([[i.isVoiced, i.isPlosive] for i in source], dtype = torch.bool)
             self.floatCfg = torch.tensor([[i.expectedPitch, i.searchRange, i.voicedThrh] for i in source], dtype = torch.float32)
             if isTransition:
-                self.intCfg = torch.tensor([[i.specWidth, i.specDepth, i.tempWidth, i.tempDepth, i.embedding[0], i.embedding[1]] for i in source], dtype = torch.int16)
+                self.intCfg = torch.tensor([[i.specWidth, i.specDepth, i.tempWidth, i.tempDepth, i.embedding[0], i.embedding[1]] for i in source], dtype = torch.int64)
             else:
-                self.intCfg = torch.tensor([[i.specWidth, i.specDepth, i.tempWidth, i.tempDepth, i.embedding] for i in source], dtype = torch.int16)
+                self.intCfg = torch.tensor([[i.specWidth, i.specDepth, i.tempWidth, i.tempDepth, i.embedding] for i in source], dtype = torch.int64)
             self.length = len(source)
         self.pendingDeletions = []
         self.isTransition = isTransition
+        self.iterIdx = 0
     
-    def fetch(self, idx:int) -> AISample:
+    def __getitem__(self, idx:int) -> AISample:
+        if idx < 0:
+            idx += self.length
         for i in self.pendingDeletions:
             if i <= idx:
                 idx += 1
@@ -279,7 +305,7 @@ class AISampleCollection():
         if idx == 0:
             sample.waveform = self.audio.narrow(0, 0, self.audioIdxs[idx])
         else:
-            sample.waveform = self.audio.narrow(0, self.audioIdxs[idx - 1], self.audioIdxs[idx])
+            sample.waveform = self.audio.narrow(0, self.audioIdxs[idx - 1], self.audioIdxs[idx] - self.audioIdxs[idx - 1])
         sample.filepath = self.filepaths[idx]
         sample.key = self.keys[idx]
         sample.isVoiced = self.flags.select(0, idx).select(0, 0)
@@ -295,27 +321,46 @@ class AISampleCollection():
             sample.embedding = (self.intCfg.select(0, idx).select(0, 4), self.intCfg.select(0, idx).select(0, 5))
         else:
             sample.embedding = self.intCfg.select(0, idx).select(0, 4)
+        return sample
+    
+    def __len__(self) -> int:
+        return self.length
+    
+    def __iter__(self):
+        self.iterIdx = 0
+        return self
+    
+    def __next__(self) -> LiteAudioSample:
+        if self.iterIdx >= self.length:
+            raise StopIteration
+        sample = self.__getitem__(self.iterIdx)
+        self.iterIdx += 1
+        return sample
     
     def append(self, sample:AISample) -> None:
         """Appends an AISample instance to the collection."""
-        addElementWithIdxs(self.audio, sample.waveform, self.audioIdxs, self.length)
-        addIdx(self.audioIdxs, sample.waveform.size()[0], self.length)
+        self.audio = addElementWithIdxs(self.audio, sample.waveform, self.audioIdxs, self.length)
+        self.audioIdxs = addIdx(self.audioIdxs, sample.waveform.size()[0], self.length)
         self.filepaths.append(sample.filepath)
         self.keys.append(sample.key)
-        addElement(self.flags, torch.tensor([sample.isVoiced, sample.isPlosive], dtype = torch.bool), self.length)
-        addElement(self.floatCfg, torch.tensor([sample.expectedPitch, sample.searchRange, sample.voicedThrh], dtype = torch.float32), self.length)
+        self.flags = addElement(self.flags, torch.tensor([sample.isVoiced, sample.isPlosive], dtype = torch.bool), self.length)
+        self.floatCfg = addElement(self.floatCfg, torch.tensor([sample.expectedPitch, sample.searchRange, sample.voicedThrh], dtype = torch.float32), self.length)
         if self.isTransition:
-            addElement(self.intCfg, torch.tensor([sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding[0], sample.embedding[1]], dtype = torch.int16), self.length)
+            self.intCfg = addElement(self.intCfg, torch.tensor([sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding[0], sample.embedding[1]], dtype = torch.int64), self.length)
         else:
-            addElement(self.intCfg, torch.tensor([sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding], dtype = torch.int16), self.length)
+            self.intCfg = addElement(self.intCfg, torch.tensor([sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding], dtype = torch.int64), self.length)
         self.length += 1
     
     def delete(self, idx:int) -> None:
+        if idx < 0:
+            idx += self.length
         self.pendingDeletions.append(idx)
     
     def commitDeletions(self) -> None:
         if len(self.pendingDeletions) == 0:
             return
+        if len(self.pendingDeletions) == self.length:
+            self.__init__(None, self.isTransition)
         if len(self.pendingDeletions) > self.length / 2:
             idxs = list(range(self.length))
             for i in self.pendingDeletions:
@@ -343,7 +388,7 @@ class AISampleCollection():
                 self.length -= 1
         self.pendingDeletions = []
 
-class AudioSampleCollection():
+class AudioSampleCollection(torch_data.Dataset):
     """Class for holding a collection of AudioSample instances."""
     
     def __init__(self, source:list = None, isTransition:bool = False) -> None:
@@ -384,14 +429,17 @@ class AudioSampleCollection():
             self.flags = torch.tensor([[i.isVoiced, i.isPlosive] for i in source], dtype = torch.bool)
             self.floatCfg = torch.tensor([[i.expectedPitch, i.searchRange, i.voicedThrh] for i in source], dtype = torch.float32)
             if isTransition:
-                self.intCfg = torch.tensor([[i.specWidth, i.specDepth, i.tempWidth, i.tempDepth, i.embedding[0], i.embedding[1]] for i in source], dtype = torch.int16)
+                self.intCfg = torch.tensor([[i.specWidth, i.specDepth, i.tempWidth, i.tempDepth, i.embedding[0], i.embedding[1]] for i in source], dtype = torch.int64)
             else:
-                self.intCfg = torch.tensor([[i.specWidth, i.specDepth, i.tempWidth, i.tempDepth, i.embedding] for i in source], dtype = torch.int16)
+                self.intCfg = torch.tensor([[i.specWidth, i.specDepth, i.tempWidth, i.tempDepth, i.embedding] for i in source], dtype = torch.int64)
             self.length = len(source)
         self.pendingDeletions = []
         self.isTransition = isTransition
+        self.iterIdx = 0
     
-    def fetch(self, idx:int) -> AISample:
+    def __getitem__(self, idx:int) -> AudioSample:
+        if idx < 0:
+            idx += self.length
         for i in self.pendingDeletions:
             if i <= idx:
                 idx += 1
@@ -401,22 +449,22 @@ class AudioSampleCollection():
         if idx == 0:
             sample.waveform = self.audio.narrow(0, 0, self.audioIdxs[idx])
         else:
-            sample.waveform = self.audio.narrow(0, self.audioIdxs[idx - 1], self.audioIdxs[idx])
+            sample.waveform = self.audio.narrow(0, self.audioIdxs[idx - 1], self.audioIdxs[idx] - self.audioIdxs[idx - 1])
         sample.filepath = self.filepaths[idx]
         if idx == 0:
             sample.pitchDeltas = self.pitchDeltas.narrow(0, 0, self.pitchDeltaIdxs[idx])
         else:
-            sample.pitchDeltas = self.pitchDeltas.narrow(0, self.pitchDeltaIdxs[idx - 1], self.pitchDeltaIdxs[idx])
+            sample.pitchDeltas = self.pitchDeltas.narrow(0, self.pitchDeltaIdxs[idx - 1], self.pitchDeltaIdxs[idx] - self.pitchDeltaIdxs[idx - 1])
         sample.pitch = self.pitch.select(0, idx)
         if idx == 0:
             sample.specharm = self.specharm.narrow(0, 0, self.specharmIdxs[idx])
         else:
-            sample.specharm = self.specharm.narrow(0, self.specharmIdxs[idx - 1], self.specharmIdxs[idx])
+            sample.specharm = self.specharm.narrow(0, self.specharmIdxs[idx - 1], self.specharmIdxs[idx] - self.specharmIdxs[idx - 1])
         sample.avgSpecharm = self.avgSpecharm.select(0, idx)
         if idx == 0:
             sample.excitation = self.excitation.narrow(0, 0, self.specharmIdxs[idx])
         else:
-            sample.excitation = self.excitation.narrow(0, self.specharmIdxs[idx - 1], self.specharmIdxs[idx])
+            sample.excitation = self.excitation.narrow(0, self.specharmIdxs[idx - 1], self.specharmIdxs[idx] - self.specharmIdxs[idx - 1])
         sample.key = self.keys[idx]
         sample.isVoiced = self.flags.select(0, idx).select(0, 0)
         sample.isPlosive = self.flags.select(0, idx).select(0, 1)
@@ -431,32 +479,51 @@ class AudioSampleCollection():
             sample.embedding = (self.intCfg.select(0, idx).select(0, 4), self.intCfg.select(0, idx).select(0, 5))
         else:
             sample.embedding = self.intCfg.select(0, idx).select(0, 4)
+        return sample
+    
+    def __len__(self) -> int:
+        return self.length
+    
+    def __iter__(self):
+        self.iterIdx = 0
+        return self
+    
+    def __next__(self) -> LiteAudioSample:
+        if self.iterIdx >= self.length:
+            raise StopIteration
+        sample = self.__getitem__(self.iterIdx)
+        self.iterIdx += 1
+        return sample
     
     def append(self, sample:AudioSample) -> None:
         """Appends an AISample instance to the collection."""
-        addElementWithIdxs(self.audio, sample.waveform, self.audioIdxs, self.length)
-        addIdx(self.audioIdxs, sample.waveform.size()[0], self.length)
-        addElementWithIdxs(self.pitchDeltas, sample.pitchDeltas, self.pitchDeltaIdxs, self.length)
-        addIdx(self.pitchDeltaIdxs, sample.pitchDeltas.size()[0], self.length)
-        addElement(self.pitch, sample.pitch, self.length)
-        addElementWithIdxs(self.specharm, sample.specharm, self.specharmIdxs, self.length)
-        addIdx(self.specharmIdxs, sample.specharm.size()[0], self.length)
-        addElement(self.avgSpecharm, sample.avgSpecharm, self.length)
-        addElementWithIdxs(self.excitation, sample.excitation, self.specharmIdxs, self.length)
+        self.audio = addElementWithIdxs(self.audio, sample.waveform, self.audioIdxs, self.length)
+        self.audioIdxs = addIdx(self.audioIdxs, sample.waveform.size()[0], self.length)
+        self.pitchDeltas = addElementWithIdxs(self.pitchDeltas, sample.pitchDeltas, self.pitchDeltaIdxs, self.length)
+        self.pitchDeltaIdxs = addIdx(self.pitchDeltaIdxs, sample.pitchDeltas.size()[0], self.length)
+        self.pitch = addElement(self.pitch, sample.pitch, self.length)
+        self.specharm = addElementWithIdxs(self.specharm, sample.specharm, self.specharmIdxs, self.length)
+        self.specharmIdxs = addIdx(self.specharmIdxs, sample.specharm.size()[0], self.length)
+        self.avgSpecharm = addElement(self.avgSpecharm, sample.avgSpecharm, self.length)
+        self.excitation = addElementWithIdxs(self.excitation, sample.excitation, self.specharmIdxs, self.length)
         self.filepaths.append(sample.filepath)
         self.keys.append(sample.key)
-        addElement(self.flags, torch.tensor([sample.isVoiced, sample.isPlosive], dtype = torch.bool), self.length)
-        addElement(self.floatCfg, torch.tensor([sample.expectedPitch, sample.searchRange, sample.voicedThrh], dtype = torch.float32), self.length)
+        self.flags = addElement(self.flags, torch.tensor([sample.isVoiced, sample.isPlosive], dtype = torch.bool), self.length)
+        self.floatCfg = addElement(self.floatCfg, torch.tensor([sample.expectedPitch, sample.searchRange, sample.voicedThrh], dtype = torch.float32), self.length)
         if self.isTransition:
-            addElement(self.intCfg, torch.tensor([sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding[0], sample.embedding[1]], dtype = torch.int16), self.length)
+            self.intCfg = addElement(self.intCfg, torch.tensor([sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding[0], sample.embedding[1]], dtype = torch.int64), self.length)
         else:
-            addElement(self.intCfg, torch.tensor([sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding], dtype = torch.int16), self.length)
+            self.intCfg = addElement(self.intCfg, torch.tensor([sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding], dtype = torch.int64), self.length)
         self.length += 1
     
     def delete(self, idx:int) -> None:
+        if idx < 0:
+            idx += self.length
         self.pendingDeletions.append(idx)
     
     def commitDeletions(self) -> None:
+        if len(self.pendingDeletions) == self.length:
+            self.__init__(None, self.isTransition)
         if len(self.pendingDeletions) == 0:
             return
         if len(self.pendingDeletions) > self.length / 2:
@@ -500,7 +567,7 @@ class AudioSampleCollection():
                 self.length -= 1
         self.pendingDeletions = []
 
-class LiteSampleCollection():
+class LiteSampleCollection(torch_data.Dataset):
     """Class for holding a collection of AudioSample instances."""
     
     def __init__(self, source:list = None, isTransition:bool = False) -> None:
@@ -512,12 +579,13 @@ class LiteSampleCollection():
             self.specharmIdxs = torch.empty([0,], dtype = torch.int64)
             self.avgSpecharm = torch.empty([0, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3], dtype = torch.float)
             self.excitation = torch.empty([0, global_consts.halfTripleBatchSize + 1], dtype = torch.complex64)
+            self.keys = []
             self.keysInv = {}
             self.flags = torch.empty([0, 2], dtype = torch.bool)
             if isTransition:
-                self.embedding = torch.empty([0, 2], dtype = torch.int16)
+                self.embedding = torch.empty([0, 2], dtype = torch.int64)
             else:
-                self.embedding = torch.empty([0,], dtype = torch.int16)
+                self.embedding = torch.empty([0,], dtype = torch.int64)
             self.length = 0
         else:
             self.pitchDeltas = torch.cat([i.pitchDeltas for i in source], 0)
@@ -529,19 +597,25 @@ class LiteSampleCollection():
             self.specharmIdxs = torch.cumsum(self.specharmIdxs, 0)
             self.avgSpecharm = torch.cat([i.avgSpecharm for i in source], 0)
             self.excitation = torch.cat([i.excitation for i in source], 0)
+            self.keys = [i.key for i in source]
             self.keysInv = {i.key: idx for idx, i in enumerate(source)}
             self.flags = torch.tensor([[i.isVoiced, i.isPlosive] for i in source], dtype = torch.bool)
             if isTransition:
-                self.embedding = torch.tensor([[i.embedding[0], i.embedding[1]] for i in source], dtype = torch.int16)
+                self.embedding = torch.tensor([[i.embedding[0], i.embedding[1]] for i in source], dtype = torch.int64)
             else:
-                self.embedding = torch.tensor([i.embedding for i in source], dtype = torch.int16)
+                self.embedding = torch.tensor([i.embedding for i in source], dtype = torch.int64)
             self.length = len(source)
         self.pendingDeletions = []
         self.isTransition = isTransition
+        self.iterIdx = 0
     
-    def fetch(self, key:str, byKey:bool = False) -> AISample:
+    def fetch(self, key:str, byKey:bool = False) -> LiteAudioSample:
         if byKey:
             idx = self.keysInv[key]
+        else:
+            idx = key
+        if idx < 0:
+            idx += self.length
         for i in self.pendingDeletions:
             if i <= idx:
                 idx += 1
@@ -551,17 +625,54 @@ class LiteSampleCollection():
         if idx == 0:
             sample.pitchDeltas = self.pitchDeltas.narrow(0, 0, self.pitchDeltaIdxs[idx])
         else:
-            sample.pitchDeltas = self.pitchDeltas.narrow(0, self.pitchDeltaIdxs[idx - 1], self.pitchDeltaIdxs[idx])
+            sample.pitchDeltas = self.pitchDeltas.narrow(0, self.pitchDeltaIdxs[idx - 1], self.pitchDeltaIdxs[idx] - self.pitchDeltaIdxs[idx - 1])
         sample.pitch = self.pitch.select(0, idx)
         if idx == 0:
             sample.specharm = self.specharm.narrow(0, 0, self.specharmIdxs[idx])
         else:
-            sample.specharm = self.specharm.narrow(0, self.specharmIdxs[idx - 1], self.specharmIdxs[idx])
+            sample.specharm = self.specharm.narrow(0, self.specharmIdxs[idx - 1], self.specharmIdxs[idx] - self.specharmIdxs[idx - 1])
         sample.avgSpecharm = self.avgSpecharm.select(0, idx)
         if idx == 0:
             sample.excitation = self.excitation.narrow(0, 0, self.specharmIdxs[idx])
         else:
-            sample.excitation = self.excitation.narrow(0, self.specharmIdxs[idx - 1], self.specharmIdxs[idx])
+            sample.excitation = self.excitation.narrow(0, self.specharmIdxs[idx - 1], self.specharmIdxs[idx] - self.specharmIdxs[idx - 1])
+        sample.key = self.keys[idx]
         sample.isVoiced = self.flags.select(0, idx).select(0, 0)
         sample.isPlosive = self.flags.select(0, idx).select(0, 1)
         sample.embedding = self.embedding.select(0, idx)
+        return sample
+    
+    def __getitem__(self, index) -> LiteAudioSample:
+        return self.fetch(index, False)
+    
+    def __len__(self) -> int:
+        return self.length
+
+    def __iter__(self):
+        self.iterIdx = 0
+        return self
+    
+    def __next__(self) -> LiteAudioSample:
+        if self.iterIdx >= self.length:
+            raise StopIteration
+        sample = self.__getitem__(self.iterIdx)
+        self.iterIdx += 1
+        return sample
+
+    def append(self, sample:AudioSample) -> None:
+        """Appends an AISample instance to the collection."""
+        self.pitchDeltas = addElementWithIdxs(self.pitchDeltas, sample.pitchDeltas, self.pitchDeltaIdxs, self.length)
+        self.pitchDeltaIdxs = addIdx(self.pitchDeltaIdxs, sample.pitchDeltas.size()[0], self.length)
+        self.pitch = addElement(self.pitch, sample.pitch, self.length)
+        self.specharm = addElementWithIdxs(self.specharm, sample.specharm, self.specharmIdxs, self.length)
+        self.specharmIdxs = addIdx(self.specharmIdxs, sample.specharm.size()[0], self.length)
+        self.avgSpecharm = addElement(self.avgSpecharm, sample.avgSpecharm, self.length)
+        self.excitation = addElementWithIdxs(self.excitation, sample.excitation, self.specharmIdxs, self.length)
+        self.keysInv[sample.key] = self.length
+        self.keys.append(sample.key)
+        self.flags = addElement(self.flags, torch.tensor([sample.isVoiced, sample.isPlosive], dtype = torch.bool), self.length)
+        if self.isTransition:
+            self.embedding = addElement(self.embedding, torch.tensor([sample.embedding[0], sample.embedding[1]], dtype = torch.int64), self.length)
+        else:
+            self.embedding = addElement(self.embedding, torch.tensor([sample.embedding,], dtype = torch.int64), self.length)
+        self.length += 1

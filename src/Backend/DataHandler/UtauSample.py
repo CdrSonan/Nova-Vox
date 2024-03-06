@@ -52,7 +52,7 @@ class UtauSample():
             None"""
             
 
-        self.audioSample = AISample(filepath, self._type == 1)
+        self.audioSample = AISample(filepath, _type == 1)
         self._type = _type
         self.key = key
         self.start = start

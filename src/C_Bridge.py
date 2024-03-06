@@ -8,8 +8,6 @@
 import ctypes
 import torch
 
-from Backend.DataHandler.AudioSample import AudioSample
-
 esper = ctypes.CDLL("bin/esper.dll")
 
 class engineCfg(ctypes.Structure):
@@ -67,7 +65,7 @@ class segmentTiming(ctypes.Structure):
                 ("windowEnd", ctypes.c_uint),
                 ("offset", ctypes.c_uint)]
 
-def makeCSample(sample: AudioSample, useVariance:bool) -> cSample:
+def makeCSample(sample, useVariance:bool, allow_oop:bool = False) -> cSample:
     config = cSampleCfg(length = sample.waveform.size()[0],
                         batches = 0,
                         pitchLength = sample.pitchDeltas.size()[0],
@@ -82,11 +80,18 @@ def makeCSample(sample: AudioSample, useVariance:bool) -> cSample:
                         specDepth = sample.specDepth,
                         tempWidth = sample.tempWidth,
                         tempDepth = sample.tempDepth)
-    sample.waveform = sample.waveform.to(torch.float).contiguous()
-    sample.pitchDeltas = sample.pitchDeltas.to(torch.int).contiguous()
-    sample.specharm = sample.specharm.to(torch.float).contiguous()
-    sample.avgSpecharm = sample.avgSpecharm.to(torch.float).contiguous()
-    sample.excitation = sample.excitation.to(torch.float).contiguous()
+    if allow_oop:
+        sample.waveform = sample.waveform.to(torch.float).contiguous()
+        sample.pitchDeltas = sample.pitchDeltas.to(torch.int).contiguous()
+        sample.specharm = sample.specharm.to(torch.float).contiguous()
+        sample.avgSpecharm = sample.avgSpecharm.to(torch.float).contiguous()
+        sample.excitation = sample.excitation.to(torch.float).contiguous()
+    else:
+        assert sample.waveform.is_contiguous() & (sample.waveform.dtype == torch.float)
+        assert sample.pitchDeltas.is_contiguous() & (sample.pitchDeltas.dtype == torch.int)
+        assert sample.specharm.is_contiguous() & (sample.specharm.dtype == torch.float)
+        assert sample.avgSpecharm.is_contiguous() & (sample.avgSpecharm.dtype == torch.float)
+        assert sample.excitation.is_contiguous() & (sample.excitation.dtype == torch.float)
     return cSample(waveform = ctypes.cast(sample.waveform.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                    pitchDeltas = ctypes.cast(sample.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_int)),
                    specharm = ctypes.cast(sample.specharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),

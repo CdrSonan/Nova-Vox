@@ -99,9 +99,7 @@ class Voicebank():
         self.parameters = []
         self.wordDict = (dict(), [])
         self.stagedTrTrainSamples = AISampleCollection(isTransition = True)
-        self.trTrainSamples = LiteSampleCollection(isTransition = True)
         self.stagedMainTrainSamples = AISampleCollection()
-        self.mainTrainSamples = LiteSampleCollection()
         self.device = device
         if filepath != None:
             data = torch.load(filepath, map_location = torch.device("cpu"))
@@ -346,15 +344,17 @@ class Voicebank():
 
         print("sample preprocessing started")
         sampleCount = len(self.stagedTrTrainSamples)
-        stagedTrTrainSamples = []
+        trTrainSamples = LiteSampleCollection(isTransition = True)
         for _ in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            sample = self.stagedTrTrainSamples.fetch(0).convert(False)
+            sample = self.stagedTrTrainSamples[-1].convert(False)
             calculatePitch(sample, True)
             calculateSpectra(sample, False)
-            self.trTrainSamples.append(sample)
+            trTrainSamples.append(sample)
+            self.stagedTrTrainSamples.delete(-1)
+            self.stagedTrTrainSamples.commitDeletions()
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainTr(stagedTrTrainSamples, epochs = epochs, logging = logging, reset = not additive)
+        self.ai.trainTr(trTrainSamples, epochs = epochs, logging = logging, reset = not additive)
         print("AI training complete")
 
     def trainMainAi(self, epochs:int, additive:bool, generatorMode:str = "reclist", logging:bool = False) -> None:
@@ -370,16 +370,18 @@ class Voicebank():
 
         print("sample preprocessing started")
         sampleCount = len(self.stagedMainTrainSamples)
-        stagedMainTrainSamples = []
+        mainTrainSamples = LiteSampleCollection()
         for _ in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            samples = self.stagedMainTrainSamples.pop().convert(True)
+            samples = self.stagedMainTrainSamples[-1].convert(True)
             for j in samples:
                 calculatePitch(j, False)
                 calculateSpectra(j, False)
-                self.mainTrainSamples.append(j)
+                mainTrainSamples.append(j)
+            self.stagedMainTrainSamples.delete(-1)
+            self.stagedMainTrainSamples.commitDeletions()
         print("sample preprocessing complete")
         print("AI training started")
-        self.ai.trainMain(stagedMainTrainSamples, epochs = epochs, logging = logging, reset = not additive, generatorMode = generatorMode)
+        self.ai.trainMain(mainTrainSamples, epochs = epochs, logging = logging, reset = not additive, generatorMode = generatorMode)
         print("AI training complete")
 
 class LiteVoicebank():

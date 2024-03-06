@@ -23,6 +23,10 @@ from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 
+def dataLoader_collate(data):
+    return data[0]
+    """This is exactly as dumb as it looks. This function is only here to work around DataLoader default collation being active even when there is nothing to collate, with no way to turn it off.
+    Also, it needs to be defined here because the Pickle pipes used by DataLoader can't send it to a worker process when it is defined in the scope it would normally belong in."""
 
 class AIWrapper():
     """Wrapper class for the mandatory AI components of a Voicebank. Controls data pre- and postprocessing, state loading and saving, Hyperparameters, and both training and inference."""
@@ -94,8 +98,7 @@ class AIWrapper():
         Returns:
             Iterable representing the same dataset, with the order of its elements shuffled"""
         
-        
-        return DataLoader(dataset=data, shuffle=True)
+        return DataLoader(dataset=data, shuffle=True, collate_fn = dataLoader_collate, batch_size=1, num_workers=4)
 
     def getState(self) -> dict:
         """returns the state of the NN, its optimizer and their prerequisites as well as its epoch and sample count attributes in a Dictionary.
@@ -346,9 +349,10 @@ class AIWrapper():
         criterionSteps = 0
         with torch.no_grad():
             for data in self.dataLoader(indata):
-                embedding1 = dec2bin(data[1][0].clone().to(self.device), 32)
-                embedding2 = dec2bin(data[1][1].clone().to(self.device), 32)
-                data = data[0].to(device = self.device)
+                avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+                embedding1 = dec2bin(data.embedding[0].clone().to(self.device), 32)
+                embedding2 = dec2bin(data.embedding[1].clone().to(self.device), 32)
+                data = (avgSpecharm + data.specharm).to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
                 spectrum2 = data[3, 2 * halfHarms:]
