@@ -15,6 +15,7 @@ from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample, AISamp
 from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import calculateSpectra
 from Backend.DataHandler.UtauSample import UtauSample
+from Backend.DataHandler.HDF5 import SampleStorage, DictStorage
 import global_consts
 
 class Voicebank():
@@ -117,6 +118,18 @@ class Voicebank():
     def save(self, filepath:str) -> None:
         """saves the loaded Voicebank to a file"""
 
+        aiStorage = DictStorage(filepath, ["aiState",], "w", "tensor")
+        aiStorage.fromDict(self.ai.getState())
+        aiStorage.close()
+        hparamStorage = DictStorage(filepath, ["hparams",], "r+", "list")
+        hparamStorage.fromDict(self.ai.hparams)
+        hparamStorage.close()
+        phonemeStorage = SampleStorage(filepath, ["phonemeDict",], "r+", False)
+        phonemeStorage.fromCollection(self.phonemeDict, True)
+        phonemeStorage.close()
+        parameterStorage = DictStorage(filepath, ["Parameters",], "r+", "tensor")
+        parameterStorage.fromDict(self.parameters)
+        parameterStorage.close()
         torch.save({
             "metadata":self.metadata,
             "aiState":self.ai.getState(),

@@ -43,9 +43,9 @@ class SampleStorage:
         if "excitation" not in self.group:
             self.group.create_dataset("excitation", (0, gc.halfTripleBatchSize, 2), maxshape=(None, gc.halfTripleBatchSize, 2), dtype="float32", compression="gzip")
         if "filepaths" not in self.group:
-            self.group.create_dataset("filepaths", (0,), maxshape=(None,), dtype="S256")
+            self.group.create_dataset("filepaths", (0,), maxshape=(None,), dtype=h5py.string_dtype(encoding="utf-8"))
         if "keys" not in self.group:
-            self.group.create_dataset("keys", (0,), maxshape=(None,), dtype="S32")
+            self.group.create_dataset("keys", (0,), maxshape=(None,), dtype=h5py.string_dtype(encoding="utf-8"))
         if "flags" not in self.group:
             self.group.create_dataset("flags", (0, 2), maxshape=(None, 2), dtype="bool")
         if "floatCfg" not in self.group:
@@ -260,6 +260,148 @@ class SampleStorage:
             raise NotImplementedError("LiteAudioSample objects cannot be appended to a SampleStorage")
         for i in collection:
             self.append(i)
+    
+    def close(self):
+        self.file.close()
+
+
+class DictStorage:
+    """Class for handling dictionaries in an HDF5 file"""
+
+    def __init__(self, path:str, groups:list = [], mode:str = "r+", storageType:str = "tensor"):
+        self.path = path
+        self.groups = groups
+        self.file = h5py.File(path, mode)
+        self.group = self.file
+        for i in groups:
+            if i not in self.group:
+                self.group.create_group(i)
+            self.group = self.group[i]
+        self.storageType = storageType
+    
+    def pack(self, data):
+            if data.size == 0:
+                return None
+            elif data.size == 1:
+                return data.item()
+            elif self.storageType == "tensor":
+                return torch.from_numpy(data)
+            elif self.storageType == "numpy":
+                return data
+            elif self.storageType == "list":
+                return data.tolist()
+    
+    def fetch(self, keys:list):
+        position = self.group
+        for i in keys:
+            if i not in position:
+                raise KeyError("Key not found")
+            position = position[i]
+        return position[()]
+    
+    def insert(self, keys:list, value):
+        position = self.group
+        for i in keys[:-1]:
+            if i not in position:
+                position.create_group(i)
+            position = position[i]
+        if keys[-1] in position:
+            del position[keys[-1]]
+        position.create_dataset(keys[-1], data=value)
+        
+    def delete(self, keys:list, recursive:bool = False):
+        position = self.group
+        for i in keys[:-1]:
+            if i not in position:
+                raise KeyError("Key not found")
+            position = position[i]
+        if keys[-1] not in position:
+            raise KeyError("Key not found")
+        del position[keys[-1]]
+        if recursive:
+            while len(position.keys()) == 0:
+                newPosition = position.parent
+                del position
+                position = newPosition
+        
+    def toDict(self):
+        def recursiveFetch(position):
+            dictionary = {}
+            for i in position:
+                if isinstance(position[i], h5py.Group):
+                    dictionary[i] = recursiveFetch(position[i])
+                else:
+                    dictionary[i] = self.pack(position[i][()])
+            return dictionary
+        return recursiveFetch(self.group)
+        
+    
+    def fromDict(self, dictionary):
+        def unpack(data):
+            if data is None:
+                return torch.empty(0)
+            elif isinstance(data, torch.Tensor):
+                return data.numpy()
+            else:
+                return data
+        def recursiveInsert(position, data):
+            for i in data:
+                if isinstance(data[i], dict):
+                    if i not in position:
+                        position.create_group(i)
+                    recursiveInsert(position[i], data[i])
+                else:
+                    position.create_dataset(i, data=unpack(data[i]))
+        recursiveInsert(self.group, dictionary)
+    
+    def close(self):
+        self.file.close()
+
+class WordStorage:
+    """Class for handling word data in an HDF5 file"""
+
+    def __init__(self, path:str, groups:list = [], mode:str = "r+"):
+        self.path = path
+        self.file = h5py.File(path, mode)
+        self.group = self.file
+        for i in groups:
+            if i not in self.group:
+                self.group.create_group(i)
+            self.group = self.group[i]
+        if "wordDict" not in self.group:
+            self.group.create_group("wordDict")
+        self.group["wordDict"].create_group("words")
+        self.group["wordDict"].create_group("syllables")
+    
+    def fetchWord(self, word:str):
+        if word not in self.group["wordDict"]["words"]:
+            raise KeyError("Word not found")
+        return self.group[word][()]
+    
+    def fetchSyllable(self, syllable:str):
+        if syllable not in self.group["wordDict"]["syllables"]:
+            raise KeyError("Syllable not found")
+        return self.group[syllable][()]
+    
+    def insert(self, word:str, value):
+        if word in self.group:
+            del self.group[word]
+        self.group.create_dataset(word, data=value)
+    
+    def delete(self, word:str):
+        if word not in self.group:
+            raise KeyError("Word not found")
+        del self.group[word]
+    
+    def toDict(self):
+        dictionary = {}
+        for i in self.group:
+            dictionary[i] = self.group[i][()]
+        return dictionary
+    
+    def fromDict(self, dictionary):
+        for i in dictionary:
+            self.insert(i, dictionary[i])
     
     def close(self):
         self.file.close()
