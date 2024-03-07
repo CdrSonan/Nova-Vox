@@ -72,10 +72,10 @@ class AudioSample():
             self.filepath = ""
             self.waveform = torch.tensor([], dtype = torch.float)
         self.pitchDeltas = torch.tensor([], dtype = torch.int)
-        self.pitch = torch.tensor([global_consts.defaultExpectedPitch], dtype = torch.int)
-        self.specharm = torch.tensor([[]], dtype = torch.float)
-        self.avgSpecharm = torch.tensor([], dtype = torch.float)
-        self.excitation = torch.tensor([], dtype = torch.float)
+        self.pitch = torch.tensor([global_consts.defaultExpectedPitch,], dtype = torch.int)
+        self.specharm = torch.empty((0, global_consts.frameSize), dtype = torch.float)
+        self.avgSpecharm = torch.empty((0, global_consts.reducedFrameSize), dtype = torch.float)
+        self.excitation = torch.empty((0, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
         self.isVoiced = True
         self.isPlosive = False
         

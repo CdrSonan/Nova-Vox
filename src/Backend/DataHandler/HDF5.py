@@ -14,10 +14,10 @@ import global_consts as gc
 class SampleStorage:
     """Class for handling audio data in an HDF5 file"""
 
-    def __init__(self, path:str, groups:list = [], isTransition:bool = False):
+    def __init__(self, path:str, groups:list = [], mode:str = "r+", isTransition:bool = False):
         self.path = path
         self.groups = groups
-        self.file = h5py.File(path, "a")
+        self.file = h5py.File(path, mode)
         self.group = self.file
         for i in groups:
             if i not in self.group:
@@ -41,7 +41,7 @@ class SampleStorage:
         if "avgSpecharm" not in self.group:
             self.group.create_dataset("avgSpecharm", (0, gc.reducedFrameSize), maxshape=(None, gc.reducedFrameSize), dtype="float32")
         if "excitation" not in self.group:
-            self.group.create_dataset("excitation", (0, gc.halfTripleBatchSize), maxshape=(None, gc.halfTripleBatchSize), dtype="float32", compression="gzip")
+            self.group.create_dataset("excitation", (0, gc.halfTripleBatchSize, 2), maxshape=(None, gc.halfTripleBatchSize, 2), dtype="float32", compression="gzip")
         if "filepaths" not in self.group:
             self.group.create_dataset("filepaths", (0,), maxshape=(None,), dtype="S256")
         if "keys" not in self.group:
@@ -79,7 +79,7 @@ class SampleStorage:
             raise ValueError("Invalid sample dtype")
         
     def fetchFull(self, idx:int):
-        sample = AudioSample()
+        sample = AudioSample(isTransition = self.group.attrs["isTransition"])
         if idx == 0:
             sample.waveform = torch.tensor(self.group["audio"][:self.group["audioIdxs"][idx]], dtype=torch.float32)
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
@@ -89,29 +89,30 @@ class SampleStorage:
             sample.waveform = torch.tensor(self.group["audio"][self.group["audioIdxs"][idx - 1]:self.group["audioIdxs"][idx]], dtype=torch.float32)
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][self.group["pitchDeltasIdxs"][idx - 1]:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32)
-            sample.excitation = torch.tensor(self.group["excitation"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32)
+            sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32))
         sample.pitch = self.group["pitch"][idx]
         sample.avgSpecharm = torch.tensor(self.group["avgSpecharm"][idx], dtype=torch.float32)
         sample.filepath = self.group["filepaths"][idx].decode("utf-8")
         sample.key = self.group["keys"][idx].decode("utf-8")
         if sample.key == "_None":
             sample.key = None
-        sample.isVoiced = self.group["flags"][idx][0]
-        sample.isPlosive = self.group["flags"][idx][1]
-        sample.expectedPitch = self.group["floatCfg"][idx][0]
-        sample.searchRange = self.group["floatCfg"][idx][1]
-        sample.voicedThrh = self.group["floatCfg"][idx][2]
-        sample.specWidth = self.group["intCfg"][idx][0]
-        sample.specDepth = self.group["intCfg"][idx][1]
-        sample.tempWidth = self.group["intCfg"][idx][2]
-        sample.tempDepth = self.group["intCfg"][idx][3]
+        sample.isVoiced = self.group["flags"][idx][0].item()
+        sample.isPlosive = self.group["flags"][idx][1].item()
+        sample.expectedPitch = self.group["floatCfg"][idx][0].item()
+        sample.searchRange = self.group["floatCfg"][idx][1].item()
+        sample.voicedThrh = self.group["floatCfg"][idx][2].item()
+        sample.specWidth = self.group["intCfg"][idx][0].item()
+        sample.specDepth = self.group["intCfg"][idx][1].item()
+        sample.tempWidth = self.group["intCfg"][idx][2].item()
+        sample.tempDepth = self.group["intCfg"][idx][3].item()
         if self.group.attrs["isTransition"]:
-            sample.embedding = (self.group["intCfg"][idx][4], self.group["intCfg"][idx][5])
+            sample.embedding = (self.group["intCfg"][idx][4].item(), self.group["intCfg"][idx][5].item())
         else:
-            sample.embedding = self.group["intCfg"][idx][4]
+            sample.embedding = self.group["intCfg"][idx][4].item()
+        return sample
     
     def fetchAI(self, idx:int):
-        sample = AISample()
+        sample = AISample(isTransition = self.group.attrs["isTransition"])
         if idx == 0:
             sample.waveform = torch.tensor(self.group["audio"][:self.group["audioIdxs"][idx]], dtype=torch.float32)
         else:
@@ -120,19 +121,20 @@ class SampleStorage:
         sample.key = self.group["keys"][idx].decode("utf-8")
         if sample.key == "_None":
             sample.key = None
-        sample.isVoiced = self.group["flags"][idx][0]
-        sample.isPlosive = self.group["flags"][idx][1]
-        sample.expectedPitch = self.group["floatCfg"][idx][0]
-        sample.searchRange = self.group["floatCfg"][idx][1]
-        sample.voicedThrh = self.group["floatCfg"][idx][2]
-        sample.specWidth = self.group["intCfg"][idx][0]
-        sample.specDepth = self.group["intCfg"][idx][1]
-        sample.tempWidth = self.group["intCfg"][idx][2]
-        sample.tempDepth = self.group["intCfg"][idx][3]
+        sample.isVoiced = self.group["flags"][idx][0].item()
+        sample.isPlosive = self.group["flags"][idx][1].item()
+        sample.expectedPitch = self.group["floatCfg"][idx][0].item()
+        sample.searchRange = self.group["floatCfg"][idx][1].item()
+        sample.voicedThrh = self.group["floatCfg"][idx][2].item()
+        sample.specWidth = self.group["intCfg"][idx][0].item()
+        sample.specDepth = self.group["intCfg"][idx][1].item()
+        sample.tempWidth = self.group["intCfg"][idx][2].item()
+        sample.tempDepth = self.group["intCfg"][idx][3].item()
         if self.group.attrs["isTransition"]:
-            sample.embedding = (self.group["intCfg"][idx][4], self.group["intCfg"][idx][5])
+            sample.embedding = (self.group["intCfg"][idx][4].item(), self.group["intCfg"][idx][5].item())
         else:
-            sample.embedding = self.group["intCfg"][idx][4]
+            sample.embedding = self.group["intCfg"][idx][4].item()
+        return sample
     
     def fetchLite(self, key:str, byKey:bool = False):
         if byKey:
@@ -143,20 +145,23 @@ class SampleStorage:
         if idx == 0:
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][:self.group["specharmIdxs"][idx]], dtype=torch.float32)
+            sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][:self.group["specharmIdxs"][idx]], dtype=torch.float32))
         else:
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][self.group["pitchDeltasIdxs"][idx - 1]:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32)
-        sample.pitch = self.group["pitch"][idx]
+            sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32))
+        sample.pitch = self.group["pitch"][idx].item()
         sample.avgSpecharm = torch.tensor(self.group["avgSpecharm"][idx], dtype=torch.float32)
         sample.key = self.group["keys"][idx].decode("utf-8")
         if sample.key == "_None":
             sample.key = None
-        sample.isVoiced = self.group["flags"][idx][0]
-        sample.isPlosive = self.group["flags"][idx][1]
+        sample.isVoiced = self.group["flags"][idx][0].item()
+        sample.isPlosive = self.group["flags"][idx][1].item()
         if self.group.attrs["isTransition"]:
             sample.embedding = (self.group["intCfg"][idx][4], self.group["intCfg"][idx][5])
         else:
             sample.embedding = self.group["intCfg"][idx][4]
+        return sample
     
     def append(self, sample):
         if isinstance(sample, AISample):
@@ -168,21 +173,30 @@ class SampleStorage:
         self.group["audio"].resize(self.group["audio"].shape[0] + sample.waveform.shape[0], axis=0)
         self.group["audio"][-sample.waveform.shape[0]:] = sample.waveform
         self.group["audioIdxs"].resize(self.group["audioIdxs"].shape[0] + 1, axis=0)
-        self.group["audioIdxs"][-1] = self.group["audioIdxs"][-2] + self.group["audio"].shape[0]
+        if self.group["audioIdxs"].shape[0] == 1:
+            self.group["audioIdxs"][-1] = sample.waveform.shape[0]
+        else:
+            self.group["audioIdxs"][-1] = self.group["audioIdxs"][-2] + sample.waveform.shape[0]
         self.group["pitchDeltas"].resize(self.group["pitchDeltas"].shape[0] + sample.pitchDeltas.shape[0], axis=0)
         self.group["pitchDeltas"][-sample.pitchDeltas.shape[0]:] = sample.pitchDeltas
         self.group["pitchDeltasIdxs"].resize(self.group["pitchDeltasIdxs"].shape[0] + 1, axis=0)
-        self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltasIdxs"][-2] + self.group["pitchDeltas"].shape[0]
+        if self.group["pitchDeltasIdxs"].shape[0] == 1:
+            self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltas"].shape[0]
+        else:
+            self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltasIdxs"][-2] + self.group["pitchDeltas"].shape[0]
         self.group["pitch"].resize(self.group["pitch"].shape[0] + 1, axis=0)
         self.group["pitch"][-1] = sample.pitch
         self.group["specharm"].resize(self.group["specharm"].shape[0] + sample.specharm.shape[0], axis=0)
         self.group["specharm"][-sample.specharm.shape[0]:] = sample.specharm
         self.group["specharmIdxs"].resize(self.group["specharmIdxs"].shape[0] + 1, axis=0)
-        self.group["specharmIdxs"][-1] = self.group["specharmIdxs"][-2] + self.group["specharm"].shape[0]
+        if self.group["specharmIdxs"].shape[0] == 1:
+            self.group["specharmIdxs"][-1] = self.group["specharm"].shape[0]
+        else:
+            self.group["specharmIdxs"][-1] = self.group["specharmIdxs"][-2] + self.group["specharm"].shape[0]
         self.group["avgSpecharm"].resize(self.group["avgSpecharm"].shape[0] + 1, axis=0)
         self.group["avgSpecharm"][-1] = sample.avgSpecharm
         self.group["excitation"].resize(self.group["excitation"].shape[0] + sample.excitation.shape[0], axis=0)
-        self.group["excitation"][-sample.excitation.shape[0]:] = sample.excitation
+        self.group["excitation"][-sample.excitation.shape[0]:] = torch.view_as_real(sample.excitation)
         self.group["filepaths"].resize(self.group["filepaths"].shape[0] + 1, axis=0)
         self.group["filepaths"][-1] = sample.filepath.encode("utf-8")
         self.group["keys"].resize(self.group["keys"].shape[0] + 1, axis=0)
@@ -226,11 +240,11 @@ class SampleStorage:
     
     def toCollection(self, dType:str = "full"):
         if dType == "full":
-            collection = AudioSampleCollection()
+            collection = AudioSampleCollection(isTransition=self.group.attrs["isTransition"])
         elif dType == "AI":
-            collection = AISampleCollection()
+            collection = AISampleCollection(isTransition=self.group.attrs["isTransition"])
         elif dType == "lite":
-            collection = LiteSampleCollection()
+            collection = LiteSampleCollection(isTransition=self.group.attrs["isTransition"])
         else:
             raise ValueError("Invalid sample dtype")
         for i in range(len(self)):

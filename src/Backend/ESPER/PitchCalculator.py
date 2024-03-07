@@ -50,7 +50,7 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
         pitchDeltas = torch.tensor([audioSample.expectedPitch,], device = audioSample.pitchDeltas.device)
     if (pitchDeltas.size()[0] > 1):
         pitchDeltas = interp(torch.linspace(0., 1., pitchDeltas.size()[0], device = audioSample.pitchDeltas.device), pitchDeltas, torch.linspace(0., 1., length, device = audioSample.pitchDeltas.device))
-        audioSample.pitchDeltas = pitchDeltas.to(torch.int)
+    audioSample.pitchDeltas = pitchDeltas.to(torch.int)
 
 def calculatePitchFallback(audioSample:AudioSample) -> None:
     """Fallback method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.

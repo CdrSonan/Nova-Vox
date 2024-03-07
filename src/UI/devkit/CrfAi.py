@@ -334,19 +334,27 @@ class CrfaiUi(Frame):
         logging.info("Crfai dataset export callback")
         global loadedVB
         filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".hdf5", filetypes = ((".hdf5", ".hdf5"), (loc["all_files_desc"], "*")))
-        storage = SampleStorage(filepath, [], True)
-        storage.fromCollection(loadedVB.stagedMainTrainSamples, True)
-        storage.close()
+        storage = SampleStorage(filepath, [], "w", True)
+        try:
+            storage.fromCollection(loadedVB.stagedTrTrainSamples, True)
+        except Exception as e:
+            raise e
+        finally:
+            storage.close()
 
     def onImportPress(self) -> None:
         """UI Frontend function for importing a previously saved AI training dataset. Overwrites any previously staged training samples."""
 
         logging.info("Crfai dataset export callback")
         global loadedVB
-        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = True)
-        storage = SampleStorage(filepath, [], True)
-        loadedVB.stagedMainTrainSamples = storage.toCollection("AI")
-        storage.close()
+        filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = False)
+        storage = SampleStorage(filepath, [], "r", True)
+        try:
+            loadedVB.stagedTrTrainSamples = storage.toCollection("AI")
+        except Exception as e:
+            raise e
+        finally:
+            storage.close()
                 
     def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""
