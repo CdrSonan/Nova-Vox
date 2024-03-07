@@ -12,7 +12,7 @@ from tkinter import Tk, filedialog
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, IterableDataset
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.Util import specNormS5
@@ -28,7 +28,7 @@ from Util import dec2bin
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 input_dim = global_consts.halfTripleBatchSize + halfHarms + 1
 
-class DataGenerator:
+class DataGenerator(IterableDataset):
     """generates synthetic data for the discriminator to train on"""
     
     def __init__(self, voicebank, crfAi:TrAi, mode:str = "reclist") -> None:
@@ -37,6 +37,18 @@ class DataGenerator:
         self.mode = mode
         self.pool = {}
         self.rebuildPool()
+        self.savedParams = None
+    
+    def __iter__(self):
+        if self.savedParams is not None:
+            raise ValueError("Data Generation parameters have not been configured. Use setParams() method to set parameters, or use synthesize() method to generate a single sample.")
+        return self
+    
+    def __next__(self):
+        return self.synthesize(*self.savedParams)
+    
+    def setParams(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> None:
+        self.savedParams = [noise, length, phonemeLength, expression]
 
     def rebuildPool(self) -> None:
         if self.mode == "reclist (strict vowels)":
