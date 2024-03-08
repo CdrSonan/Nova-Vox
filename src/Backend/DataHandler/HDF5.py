@@ -7,8 +7,11 @@
 
 import h5py
 import torch
+import numpy as np
+from PIL import Image
 
 from Backend.DataHandler.AudioSample import AudioSample, AISample, LiteAudioSample, AudioSampleCollection, AISampleCollection, LiteSampleCollection
+from Backend.VB_Components.VbMetadata import VbMetadata
 import global_consts as gc
 
 class SampleStorage:
@@ -268,7 +271,7 @@ class SampleStorage:
 class DictStorage:
     """Class for handling dictionaries in an HDF5 file"""
 
-    def __init__(self, path:str, groups:list = [], mode:str = "r+", storageType:str = "tensor"):
+    def __init__(self, path:str, groups:list = [], mode:str = "r+", torchDevice:str = "cpu"):
         self.path = path
         self.groups = groups
         self.file = h5py.File(path, mode)
@@ -277,19 +280,7 @@ class DictStorage:
             if i not in self.group:
                 self.group.create_group(i)
             self.group = self.group[i]
-        self.storageType = storageType
-    
-    def pack(self, data):
-            if data.size == 0:
-                return None
-            elif data.size == 1:
-                return data.item()
-            elif self.storageType == "tensor":
-                return torch.from_numpy(data)
-            elif self.storageType == "numpy":
-                return data
-            elif self.storageType == "list":
-                return data.tolist()
+        self.torchDevice = torchDevice
     
     def fetch(self, keys:list):
         position = self.group
@@ -325,34 +316,114 @@ class DictStorage:
                 position = newPosition
         
     def toDict(self):
+        def unpack(data):
+            if data.attrs["type"] == "None":
+                return None
+            elif data.attrs["type"] in ("float", "int"):
+                return data[()].item()
+            elif data.attrs["type"] == "str":
+                return data[()].decode("utf-8")
+            elif data.attrs["type"] == "tensor":
+                return torch.tensor(data[()], device=self.torchDevice)
+            else:
+                print("WARNING: unknown data type hint in loaded file, deserialization may not produce expected results")
+                return data[()]
         def recursiveFetch(position):
-            dictionary = {}
-            for i in position:
-                if isinstance(position[i], h5py.Group):
-                    dictionary[i] = recursiveFetch(position[i])
-                else:
-                    dictionary[i] = self.pack(position[i][()])
-            return dictionary
+            if position.attrs["type"] in ("list", "tuple"):
+                target = []
+                for i in position:
+                    if isinstance(position[i], h5py.Group):
+                        target.append(recursiveFetch(position[i]))
+                    else:
+                        target.append(unpack(position[i]))
+                if position.attrs["type"] == "tuple":
+                    target = tuple(target)
+            else:
+                target = {}
+                for i in position.keys():
+                    if i == "__emptyString__":
+                        iOut = ""
+                    else:
+                        iOut = i
+                    if isinstance(position[i], h5py.Group):
+                        target[iOut] = recursiveFetch(position[i])
+                    else:
+                        target[iOut] = unpack(position[i])
+            
+            return target
         return recursiveFetch(self.group)
         
     
-    def fromDict(self, dictionary):
-        def unpack(data):
+    def fromDict(self, dictionary, rootType:str = "dict"):
+        def pack(data):
             if data is None:
-                return torch.empty(0)
+                outData = np.array([])
+                outDType = "None"
             elif isinstance(data, torch.Tensor):
-                return data.numpy()
+                outData = data.cpu().numpy()
+                outDType = "tensor"
+            elif isinstance(data, float):
+                outData = np.array(data)
+                outDType = "float"
+            elif isinstance(data, int):
+                outData = np.array(data)
+                outDType = "int"
+            elif isinstance(data, str):
+                outData = data.encode("utf-8")
+                outDType = "str"
             else:
-                return data
-        def recursiveInsert(position, data):
-            for i in data:
-                if isinstance(data[i], dict):
-                    if i not in position:
-                        position.create_group(i)
-                    recursiveInsert(position[i], data[i])
-                else:
-                    position.create_dataset(i, data=unpack(data[i]))
-        recursiveInsert(self.group, dictionary)
+                raise ValueError("Invalid data type for serialization")
+            return outData, outDType
+        def recursiveInsert(position, data, type:str = "dict"):
+            if type in ("list", "tuple"):
+                for i in range(len(data)):
+                    if isinstance(data[i], dict):
+                        if str(i) not in position:
+                            position.create_group(str(i))
+                            position[str(i)].attrs["type"] = "dict"
+                        recursiveInsert(position[str(i)], data[i], type="dict")
+                    elif isinstance(data[i], list):
+                        if str(i) not in position:
+                            position.create_group(str(i))
+                            position[str(i)].attrs["type"] = "list"
+                        recursiveInsert(position[str(i)], data[i], type="list")
+                    elif isinstance(data[i], tuple):
+                        if str(i) not in position:
+                            position.create_group(str(i))
+                            position[str(i)].attrs["type"] = "tuple"
+                        recursiveInsert(position[str(i)], data[i], type="tuple")
+                    else:
+                        outData, outDType = pack(data[i])
+                        position.create_dataset(str(i), data=outData)
+                        position[str(i)].attrs["type"] = outDType
+            else:
+                for i in data.keys():
+                    if i == "__emptyString__":
+                        raise ValueError("__emptyString__ must not be a key in the provided dictionary")
+                    if i == "":
+                        iOut = "__emptyString__"
+                    else:
+                        iOut = i
+                    if isinstance(data[i], dict):
+                        if i not in position:
+                            position.create_group(iOut)
+                            position[i].attrs["type"] = "dict"
+                        recursiveInsert(position[i], data[i], type="dict")
+                    elif isinstance(data[i], list):
+                        if i not in position:
+                            position.create_group(iOut)
+                            position[i].attrs["type"] = "list"
+                        recursiveInsert(position[i], data[i], type="list")
+                    elif isinstance(data[i], tuple):
+                        if i not in position:
+                            position.create_group(iOut)
+                            position[i].attrs["type"] = "tuple"
+                        recursiveInsert(position[i], data[i], type="tuple")
+                    else:
+                        outData, outDType = pack(data[i])
+                        position.create_dataset(iOut, data=outData)
+                        position[iOut].attrs["type"] = outDType
+        recursiveInsert(self.group, dictionary, rootType)
     
     def close(self):
         self.file.close()
@@ -368,40 +439,94 @@ class WordStorage:
             if i not in self.group:
                 self.group.create_group(i)
             self.group = self.group[i]
-        if "wordDict" not in self.group:
-            self.group.create_group("wordDict")
-        self.group["wordDict"].create_group("words")
-        self.group["wordDict"].create_group("syllables")
+        if "words" not in self.group:
+            self.group.create_group("words")
+        if "syllables_keys" not in self.group:
+            self.group.create_group("syllables_keys")
+        if "syllables_vals" not in self.group:
+            self.group.create_group("syllables_vals")
     
     def fetchWord(self, word:str):
-        if word not in self.group["wordDict"]["words"]:
+        if word not in self.group["words"]:
             raise KeyError("Word not found")
         return self.group[word][()]
     
     def fetchSyllable(self, syllable:str):
-        if syllable not in self.group["wordDict"]["syllables"]:
-            raise KeyError("Syllable not found")
-        return self.group[syllable][()]
+        tgtLength = len(syllable)
+        for i, key in enumerate(self.group["syllables_keys"][tgtLength][()]):
+            if key == syllable:
+                return self.group["syllables_vals"][tgtLength][i]
+        raise KeyError("Syllable not found")
     
-    def insert(self, word:str, value):
+    def insertWord(self, word:str, value):
         if word in self.group:
             del self.group[word]
-        self.group.create_dataset(word, data=value)
+        self.group.create_dataset(word, data=value, dtype=h5py.string_dtype(encoding="utf-8"))
     
-    def delete(self, word:str):
-        if word not in self.group:
-            raise KeyError("Word not found")
-        del self.group[word]
+    def insertSyllable(self, syllable:str, value):
+        tgtLength = len(syllable)
+        if str(tgtLength) not in self.group["syllables_keys"]:
+            self.group["syllables_keys"].create_dataset(str(tgtLength), data=[syllable], dtype=h5py.string_dtype(encoding="utf-8"))
+            self.group["syllables_vals"].create_dataset(str(tgtLength), data=[value], dtype=h5py.string_dtype(encoding="utf-8"))
+        else:
+            self.group["syllables_keys"][str(tgtLength)].resize(self.group["syllables_keys"][str(tgtLength)].shape[0] + 1, axis=0)
+            self.group["syllables_keys"][str(tgtLength)][-1] = syllable
+            self.group["syllables_vals"][str(tgtLength)].resize(self.group["syllables_vals"][str(tgtLength)].shape[0] + 1, axis=0)
+            self.group["syllables_vals"][str(tgtLength)][-1] = value
     
     def toDict(self):
-        dictionary = {}
-        for i in self.group:
-            dictionary[i] = self.group[i][()]
-        return dictionary
+        words = self.group["words"]
+        wordDict = [{}, []]
+        for i in words.keys():
+            wordDict[0][i] = words[i][()]
+        syllableKeys = self.group["syllables_keys"]
+        syllableValues = self.group["syllables_vals"]
+        for keys, values in zip(syllableKeys, syllableValues):
+            syllableDict = {i: j for i, j in zip(keys[()], values[()])}
+            wordDict[1].append(syllableDict)
+        return wordDict
     
     def fromDict(self, dictionary):
-        for i in dictionary:
-            self.insert(i, dictionary[i])
+        words = dictionary[0]
+        for word, mappings in words.items():
+            self.insertWord(word, mappings)
+        for syllableDict in dictionary[1]:
+            for syllable, value in syllableDict.items():
+                self.insertSyllable(syllable, value)
     
+    def close(self):
+        self.file.close()
+
+class MetadataStorage:
+    
+    def __init__(self, path:str, groups:list = [], mode:str = "r+"):
+        self.path = path
+        self.file = h5py.File(path, mode)
+        self.group = self.file
+        for i in groups:
+            if i not in self.group:
+                self.group.create_group(i)
+            self.group = self.group[i]
+        if "image" not in self.group:
+            self.group.create_dataset("image", (200, 200, 4), dtype="uint8")
+    
+    def fromMetadata(self, metadata):
+        self.group.attrs["name"] = metadata.name
+        self.group.attrs["sampleRate"] = metadata.sampleRate
+        self.group.attrs["version"] = metadata.version
+        self.group.attrs["description"] = metadata.description
+        self.group.attrs["license"] = metadata.license
+        self.group["image"][:, :, :] = np.array(metadata.image)
+    
+    def toMetadata(self):
+        metadata = VbMetadata()
+        metadata.name = self.group.attrs["name"]
+        metadata.sampleRate = self.group.attrs["sampleRate"]
+        metadata.version = self.group.attrs["version"]
+        metadata.description = self.group.attrs["description"]
+        metadata.license = self.group.attrs["license"]
+        metadata.image = Image.fromarray(self.group["image"][()])
+        return metadata
+
     def close(self):
         self.file.close()

@@ -15,7 +15,7 @@ from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample, AISamp
 from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import calculateSpectra
 from Backend.DataHandler.UtauSample import UtauSample
-from Backend.DataHandler.HDF5 import SampleStorage, DictStorage
+from Backend.DataHandler.HDF5 import SampleStorage, DictStorage, WordStorage, MetadataStorage
 import global_consts
 
 class Voicebank():
@@ -103,47 +103,43 @@ class Voicebank():
         self.stagedMainTrainSamples = AISampleCollection()
         self.device = device
         if filepath != None:
-            data = torch.load(filepath, map_location = torch.device("cpu"))
-            if self.device == torch.device("cpu"):
-                data_ai = data
-            else:
-                data_ai = torch.load(filepath, map_location = self.device)
-            self.loadMetadata(self.filepath, data)
-            self.loadPhonemeDict(self.filepath, False, data)
-            self.loadTrWeights(self.filepath, data_ai)
-            self.loadMainWeights(self.filepath, data_ai)
-            self.loadParameters(self.filepath, False, data)
-            self.loadWordDict(self.filepath, False, data)
+            self.loadMetadata(self.filepath)
+            self.loadPhonemeDict(self.filepath, False)
+            self.loadTrWeights(self.filepath)
+            self.loadMainWeights(self.filepath)
+            self.loadParameters(self.filepath, False)
+            self.loadWordDict(self.filepath, False)
         
     def save(self, filepath:str) -> None:
         """saves the loaded Voicebank to a file"""
 
-        aiStorage = DictStorage(filepath, ["aiState",], "w", "tensor")
+        aiStorage = DictStorage(filepath, ["aiState",], "w", self.ai.device)
         aiStorage.fromDict(self.ai.getState())
         aiStorage.close()
-        hparamStorage = DictStorage(filepath, ["hparams",], "r+", "list")
+        hparamStorage = DictStorage(filepath, ["hparams",], "r+", self.ai.device)
         hparamStorage.fromDict(self.ai.hparams)
         hparamStorage.close()
         phonemeStorage = SampleStorage(filepath, ["phonemeDict",], "r+", False)
         phonemeStorage.fromCollection(self.phonemeDict, True)
         phonemeStorage.close()
-        parameterStorage = DictStorage(filepath, ["Parameters",], "r+", "tensor")
-        parameterStorage.fromDict(self.parameters)
+        parameterStorage = DictStorage(filepath, ["Parameters",], "r+", self.ai.device)
+        parameterStorage.fromDict(self.parameters, "list")
         parameterStorage.close()
-        torch.save({
-            "metadata":self.metadata,
-            "aiState":self.ai.getState(),
-            "hparams":self.ai.hparams,
-            "phonemeDict":self.phonemeDict,
-            "Parameters":self.parameters,
-            "wordDict":self.wordDict
-            }, filepath)
+        wordDictStorage = WordStorage(filepath, ["wordDict,"], "r+")
+        wordDictStorage.fromDict(self.wordDict)
+        wordDictStorage.close()
+        metadataStorage = MetadataStorage(filepath, ["metadata",], "r+")
+        metadataStorage.fromMetadata(self.metadata)
+        metadataStorage.close()
         
     def loadMetadata(self, filepath:str, data:dict=None) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
         if not data:
-            data = torch.load(filepath, map_location = torch.device("cpu"))
-        self.metadata = data["metadata"]
+            storage = MetadataStorage(filepath, ["metadata",], "r")
+            self.metadata = storage.toMetadata()
+            storage.close()
+        else:
+            self.metadata = data["metadata"]
     
     def loadPhonemeDict(self, filepath:str, additive:bool, data:dict=None) -> None:
         """loads Phoneme data from a Voicebank file.
@@ -156,16 +152,20 @@ class Voicebank():
             None"""
             
         if not data:
-            data = torch.load(filepath, map_location = torch.device("cpu"))
+            storage = SampleStorage(filepath, ["phonemeDict",], "r", False)
+            data = storage.toCollection()
+            storage.close()
+        else:
+            data = data["phonemeDict"]
         if additive:
-            for i in data["phonemeDict"].keys():
+            for i in data.keys():
                 if i in self.phonemeDict.keys():
-                    self.phonemeDict[i + "#"] = data["phonemeDict"][i]
+                    self.phonemeDict[i + "#"] = data[i]
                     print("phoneme " + i + " is already present in voicebank; its key has been changed to " + i + "#")
                 else:
-                    self.phonemeDict[i] = data["phonemeDict"][i]
+                    self.phonemeDict[i] = data[i]
         else:
-            self.phonemeDict = data["phonemeDict"]
+            self.phonemeDict = data
     
     def loadTrWeights(self, filepath:str, data:dict=None) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
@@ -174,8 +174,12 @@ class Voicebank():
             aiState = data["aiState"]
             hparams = data["hparams"]
         else:
-            aiState = torch.load(filepath, map_location = self.device)["aiState"]
-            hparams = torch.load(filepath, map_location = self.device)["hparams"]
+            aiStorage = DictStorage(filepath, ["aiState",], "r", self.ai.device)
+            aiState = aiStorage.toDict()
+            aiStorage.close()
+            hparamStorage = DictStorage(filepath, ["hparams",], "r", self.ai.device)
+            hparams = hparamStorage.toDict()
+            hparamStorage.close()
         self.ai.hparams["tr_lr"] = hparams["tr_lr"]
         self.ai.hparams["tr_reg"] = hparams["tr_reg"]
         self.ai.hparams["tr_hlc"] = hparams["tr_hlc"]
@@ -190,8 +194,12 @@ class Voicebank():
             aiState = data["aiState"]
             hparams = data["hparams"]
         else:
-            aiState = torch.load(filepath, map_location = self.device)["aiState"]
-            hparams = torch.load(filepath, map_location = self.device)["hparams"]
+            aiStorage = DictStorage(filepath, ["aiState",], "r", self.ai.device)
+            aiState = aiStorage.toDict()
+            aiStorage.close()
+            hparamStorage = DictStorage(filepath, ["hparams",], "r", self.ai.device)
+            hparams = hparamStorage.toDict()
+            hparamStorage.close()
         self.ai.hparams["latent_dim"] = hparams["latent_dim"]
         self.ai.hparams["main_blkA"] = hparams["main_blkA"]
         self.ai.hparams["main_blkB"] = hparams["main_blkB"]
@@ -224,7 +232,9 @@ class Voicebank():
         if data:
             self.wordDict = data["wordDict"]
         else:
-            self.wordDict = torch.load(filepath, map_location = torch.device("cpu"))["wordDict"]
+            wordStorage = WordStorage(filepath, ["wordDict,"], "r")
+            self.wordDict = wordStorage.toDict()
+            wordStorage.close()
         
     def addPhoneme(self, key:str, filepath:str) -> None:
         """adds a phoneme to the Voicebank's PhonemeDict.
