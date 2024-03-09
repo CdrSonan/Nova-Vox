@@ -199,7 +199,7 @@ class WorddictUi(Frame):
             del loadedVB.wordDict[0][self.overrideList.list.lb.get(self.overrideList.list.lastFocusedIndex)]
             self.overrideList.list.lb.delete(self.overrideList.list.lastFocusedIndex)
             self.overrideList.list.lastFocusedIndex = None
-            while self.overrideMappingList.list.length > 0:
+            while self.overrideMappingList.list.lb.size() > 0:
                 self.overrideMappingList.list.lb.delete(0, "end")
             self.overrideMappingList.list.lastFocusedIndex = None
 

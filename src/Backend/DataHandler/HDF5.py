@@ -478,31 +478,30 @@ class WordStorage:
                 return self.group["syllables_vals"][tgtLength][i]
         raise KeyError("Syllable not found")
     
-    def insertWord(self, word:str, value):
-        if word in self.group:
-            del self.group[word]
-        self.group.create_dataset(word, data=value, dtype=h5py.string_dtype(encoding="utf-8"))
+    def insertWord(self, word:str, value:str):
+        words = self.group["words"]
+        if word in words:
+            del words[word]
+        words.create_dataset(word, data=[i.encode("utf-8") for i in value], dtype=h5py.string_dtype(encoding="utf-8"))
     
-    def insertSyllable(self, syllable:str, value):
+    def insertSyllable(self, syllable:str, value:str):
         tgtLength = len(syllable)
-        if str(tgtLength) not in self.group["syllables_keys"]:
-            self.group["syllables_keys"].create_dataset(str(tgtLength), data=[syllable], dtype=h5py.string_dtype(encoding="utf-8"))
-            self.group["syllables_vals"].create_dataset(str(tgtLength), data=[value], dtype=h5py.string_dtype(encoding="utf-8"))
-        else:
-            self.group["syllables_keys"][str(tgtLength)].resize(self.group["syllables_keys"][str(tgtLength)].shape[0] + 1, axis=0)
-            self.group["syllables_keys"][str(tgtLength)][-1] = syllable
-            self.group["syllables_vals"][str(tgtLength)].resize(self.group["syllables_vals"][str(tgtLength)].shape[0] + 1, axis=0)
-            self.group["syllables_vals"][str(tgtLength)][-1] = value
+        self.group["syllables_keys"][str(tgtLength)].resize(self.group["syllables_keys"][str(tgtLength)].shape[0] + 1, axis=0)
+        self.group["syllables_keys"][str(tgtLength)][-1] = syllable.encode("utf-8")
+        self.group["syllables_vals"][str(tgtLength)].resize(self.group["syllables_vals"][str(tgtLength)].shape[0] + 1, axis=0)
+        self.group["syllables_vals"][str(tgtLength)][-1] = value.encode("utf-8")
     
     def toDict(self):
         words = self.group["words"]
         wordDict = [{}, []]
         for i in words.keys():
-            wordDict[0][i] = words[i][()]
+            wordDict[0][i] = [j.decode("utf-8") for j in words[i][()]]
         syllableKeys = self.group["syllables_keys"]
         syllableValues = self.group["syllables_vals"]
-        for keys, values in zip(syllableKeys, syllableValues):
-            syllableDict = {i: j for i, j in zip(keys[()], values[()])}
+        for keyIdx, valueIdx in zip(syllableKeys, syllableValues):
+            keys = syllableKeys[keyIdx][()]
+            values = syllableValues[valueIdx][()]
+            syllableDict = {i.decode("utf-8"): j.decode("utf-8") for i, j in zip(keys, values)}
             wordDict[1].append(syllableDict)
         return wordDict
     
@@ -510,7 +509,9 @@ class WordStorage:
         words = dictionary[0]
         for word, mappings in words.items():
             self.insertWord(word, mappings)
-        for syllableDict in dictionary[1]:
+        for idx, syllableDict in enumerate(dictionary[1]):
+            self.group["syllables_keys"].create_dataset(str(idx + 1), (0,), maxshape=(None,), dtype=h5py.string_dtype(encoding="utf-8"))
+            self.group["syllables_vals"].create_dataset(str(idx + 1), (0,), maxshape=(None,), dtype=h5py.string_dtype(encoding="utf-8"))
             for syllable, value in syllableDict.items():
                 self.insertSyllable(syllable, value)
     
