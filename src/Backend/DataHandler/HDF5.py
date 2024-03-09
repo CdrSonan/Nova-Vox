@@ -44,7 +44,7 @@ class SampleStorage:
         if "avgSpecharm" not in self.group:
             self.group.create_dataset("avgSpecharm", (0, gc.reducedFrameSize), maxshape=(None, gc.reducedFrameSize), dtype="float32")
         if "excitation" not in self.group:
-            self.group.create_dataset("excitation", (0, gc.halfTripleBatchSize, 2), maxshape=(None, gc.halfTripleBatchSize, 2), dtype="float32", compression="gzip")
+            self.group.create_dataset("excitation", (0, gc.halfTripleBatchSize + 1, 2), maxshape=(None, gc.halfTripleBatchSize + 1, 2), dtype="float32", compression="gzip")
         if "filepaths" not in self.group:
             self.group.create_dataset("filepaths", (0,), maxshape=(None,), dtype=h5py.string_dtype(encoding="utf-8"))
         if "keys" not in self.group:
@@ -87,13 +87,13 @@ class SampleStorage:
             sample.waveform = torch.tensor(self.group["audio"][:self.group["audioIdxs"][idx]], dtype=torch.float32)
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][:self.group["specharmIdxs"][idx]], dtype=torch.float32)
-            sample.excitation = torch.tensor(self.group["excitation"][:self.group["specharmIdxs"][idx]], dtype=torch.float32)
+            sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][:self.group["specharmIdxs"][idx]], dtype=torch.float32))
         else:
             sample.waveform = torch.tensor(self.group["audio"][self.group["audioIdxs"][idx - 1]:self.group["audioIdxs"][idx]], dtype=torch.float32)
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][self.group["pitchDeltasIdxs"][idx - 1]:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32)
             sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32))
-        sample.pitch = self.group["pitch"][idx]
+        sample.pitch = self.group["pitch"][idx].item()
         sample.avgSpecharm = torch.tensor(self.group["avgSpecharm"][idx], dtype=torch.float32)
         sample.filepath = self.group["filepaths"][idx].decode("utf-8")
         sample.key = self.group["keys"][idx].decode("utf-8")
@@ -264,6 +264,25 @@ class SampleStorage:
         for i in collection:
             self.append(i)
     
+    def toDict(self):
+        dictionary = {}
+        for i in range(len(self)):
+            key = self.group["keys"][i].decode("utf-8")
+            if key in dictionary.keys():
+                dictionary[key].append(self.fetch(i))
+            else:
+                dictionary[key] = [self.fetch(i),]
+        return dictionary
+    
+    def fromDict(self, dictionary, overwrite:bool = False):
+        if overwrite:
+            for i in range(len(self)):
+                self.delete(-1)
+            self.commitDeletions()
+        for i in dictionary.keys():
+            for j in dictionary[i]:
+                self.append(j)
+    
     def close(self):
         self.file.close()
 
@@ -423,6 +442,7 @@ class DictStorage:
                         outData, outDType = pack(data[i])
                         position.create_dataset(iOut, data=outData)
                         position[iOut].attrs["type"] = outDType
+        self.group.attrs["type"] = rootType
         recursiveInsert(self.group, dictionary, rootType)
     
     def close(self):

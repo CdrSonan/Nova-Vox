@@ -45,7 +45,7 @@ class AudioSample():
         __init__: Constructor for initialising an AudioSample based on an audio file"""
         
         
-    def __init__(self, filepath:str, isTransition:bool = False) -> None:
+    def __init__(self, filepath:str = None, isTransition:bool = False) -> None:
         """Constructor for initialising an AudioSample based on an audio file and desired sample rate.
         
         Arguments:
@@ -238,9 +238,14 @@ class LiteAudioSample():
 
 def addElement(tensor:torch.Tensor, element:torch.Tensor, length:int) -> torch.Tensor:
     if length == 0:
-        return element.unsqueeze(0)
+        if isinstance(element, torch.Tensor):
+            return element.unsqueeze(0)
+        elif isinstance(element, float):
+            return torch.tensor([element,], dtype = torch.float)
+        else:
+            return torch.tensor([element,], dtype = torch.int64)
     if tensor.size()[0] <= length:
-        tensor = torch.cat([tensor, torch.empty_like(tensor)], 0)
+        tensor = torch.cat([tensor, torch.empty_like(tensor)], 0).contiguous()
     tensor[length] = element
     return tensor
 
@@ -248,7 +253,7 @@ def addIdx(tensor:torch.Tensor, idx:int, length:int) -> torch.Tensor:
     if length == 0:
         return torch.tensor([idx,], dtype = torch.int64)
     if tensor.size()[0] <= length:
-        tensor = torch.cat([tensor, torch.empty_like(tensor)], 0)
+        tensor = torch.cat([tensor, torch.empty_like(tensor)], 0).contiguous()
     tensor[length] = tensor[length - 1] + idx
     return tensor
 
@@ -256,7 +261,7 @@ def addElementWithIdxs(tensor:torch.Tensor, element:torch.Tensor, idxs:torch.Ten
     if length == 0:
         return element
     while tensor.size()[0] <= idxs[length - 1] + element.size()[0]:
-        tensor = torch.cat([tensor, torch.empty_like(tensor)], 0)
+        tensor = torch.cat([tensor, torch.empty_like(tensor)], 0).contiguous()
     tensor[idxs[length - 1]:idxs[length - 1] + element.size()[0]] = element
     return tensor
 
@@ -580,7 +585,6 @@ class LiteSampleCollection(torch_data.Dataset):
             self.avgSpecharm = torch.empty([0, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3], dtype = torch.float)
             self.excitation = torch.empty([0, global_consts.halfTripleBatchSize + 1], dtype = torch.complex64)
             self.keys = []
-            self.keysInv = {}
             self.flags = torch.empty([0, 2], dtype = torch.bool)
             if isTransition:
                 self.embedding = torch.empty([0, 2], dtype = torch.int64)
@@ -598,7 +602,6 @@ class LiteSampleCollection(torch_data.Dataset):
             self.avgSpecharm = torch.cat([i.avgSpecharm for i in source], 0)
             self.excitation = torch.cat([i.excitation for i in source], 0)
             self.keys = [i.key for i in source]
-            self.keysInv = {i.key: idx for idx, i in enumerate(source)}
             self.flags = torch.tensor([[i.isVoiced, i.isPlosive] for i in source], dtype = torch.bool)
             if isTransition:
                 self.embedding = torch.tensor([[i.embedding[0], i.embedding[1]] for i in source], dtype = torch.int64)
@@ -611,7 +614,8 @@ class LiteSampleCollection(torch_data.Dataset):
     
     def fetch(self, key:str, byKey:bool = False) -> LiteAudioSample:
         if byKey:
-            idx = self.keysInv[key]
+            idx = [i for i in range(self.length) if self.keys[i] == key]
+            return [self.fetch(i, False) for i in idx]
         else:
             idx = key
         if idx < 0:
@@ -668,7 +672,6 @@ class LiteSampleCollection(torch_data.Dataset):
         self.specharmIdxs = addIdx(self.specharmIdxs, sample.specharm.size()[0], self.length)
         self.avgSpecharm = addElement(self.avgSpecharm, sample.avgSpecharm, self.length)
         self.excitation = addElementWithIdxs(self.excitation, sample.excitation, self.specharmIdxs, self.length)
-        self.keysInv[sample.key] = self.length
         self.keys.append(sample.key)
         self.flags = addElement(self.flags, torch.tensor([sample.isVoiced, sample.isPlosive], dtype = torch.bool), self.length)
         if self.isTransition:

@@ -64,7 +64,7 @@ class DataGenerator(IterableDataset):
             for i in range(len(data)):
                 for sample in data[i].convert(True):
                     calculatePitch(sample, False)
-                    calculateSpectra(sample, False)
+                    calculateSpectra(sample, False, False)
                     sample = sample.specharm + torch.cat((sample.avgSpecharm[:global_consts.halfHarms], torch.zeros((global_consts.halfHarms,), device = sample.avgSpecharm.device), sample.avgSpecharm[global_consts.halfHarms:]), 0)
                     sample = sample.to(torch.device(self.crfAi.device))
                     dataset.append(sample)
