@@ -260,7 +260,7 @@ def addIdx(tensor:torch.Tensor, idx:int, length:int) -> torch.Tensor:
 def addElementWithIdxs(tensor:torch.Tensor, element:torch.Tensor, idxs:torch.Tensor, length:int) -> torch.Tensor:
     if length == 0:
         return element
-    while tensor.size()[0] <= idxs[length - 1] + element.size()[0]:
+    while tensor.size()[0] < idxs[length - 1] + element.size()[0]:
         tensor = torch.cat([tensor, torch.empty_like(tensor)], 0).contiguous()
     tensor[idxs[length - 1]:idxs[length - 1] + element.size()[0]] = element
     return tensor

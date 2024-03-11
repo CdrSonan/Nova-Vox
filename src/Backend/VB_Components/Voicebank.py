@@ -341,13 +341,13 @@ class Voicebank():
             sample = self.stagedTrTrainSamples[i].convert(False)
             inputQueue.put(sample)
             expectedSamples += 1
+        self.stagedTrTrainSamples.__init__(None, True)
         for _ in tqdm(range(expectedSamples), desc = "processing", unit = "samples"):
             trTrainSamples.append(outputQueue.get())
         for _ in processes:
             inputQueue.put(None)
         for process in processes:
             process.join()
-        self.stagedTrTrainSamples.__init__(None, True)
         
         print("sample preprocessing complete")
         print("AI training started")
@@ -376,13 +376,13 @@ class Voicebank():
             for sample in samples:
                 inputQueue.put(sample)
                 expectedSamples += 1
+        self.stagedMainTrainSamples.__init__()
         for _ in tqdm(range(expectedSamples), desc = "processing", unit = "samples"):
             mainTrainSamples.append(outputQueue.get())
         for _ in processes:
             inputQueue.put(None)
         for process in processes:
             process.join()
-        self.stagedMainTrainSamples.__init__()    
         
         print("sample preprocessing complete")
         print("AI training started")

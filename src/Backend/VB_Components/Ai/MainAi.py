@@ -77,13 +77,13 @@ class DataGenerator(IterableDataset):
                 for j in samples:
                     inputQueue.put(j)
                     expectedSamples += 1
+            del data
             for _ in tqdm(range(expectedSamples), desc = "processing", unit = "samples"):
                 dataset.append(outputQueue.get())
             for _ in processes:
                 inputQueue.put(None)
             for process in processes:
                 process.join()
-            del data
             self.pool["dataset"] = DataLoader(dataset, batch_size = 1, shuffle = True)
         else:
             self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
