@@ -9,6 +9,7 @@ import random
 from math import floor, ceil, log
 from copy import copy
 from tkinter import Tk, filedialog
+from tqdm.auto import tqdm
 
 import torch
 import torch.nn as nn
@@ -18,11 +19,13 @@ from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.Util import specNormS5
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
+from Backend.DataHandler.AudioSample import LiteSampleCollection
+from Backend.DataHandler.HDF5 import SampleStorage
 from Backend.Resampler.Resamplers import getSpecharm
 from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.ESPER.PitchCalculator import calculatePitch
-from Backend.ESPER.SpectralCalculator import calculateSpectra
+from Backend.ESPER.SpectralCalculator import asyncProcess
 from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
@@ -59,15 +62,28 @@ class DataGenerator(IterableDataset):
             tkui.withdraw()
             path = filedialog.askopenfilename(title = "Select dataset file", filetypes = (("Dataset files", "*.dataset"), ("All files", "*.*")))
             tkui.destroy()
-            data = torch.load(path)
-            dataset = []
-            for i in range(len(data)):
-                for sample in data[i].convert(True):
-                    calculatePitch(sample, False)
-                    calculateSpectra(sample, False, False)
-                    sample = sample.specharm + torch.cat((sample.avgSpecharm[:global_consts.halfHarms], torch.zeros((global_consts.halfHarms,), device = sample.avgSpecharm.device), sample.avgSpecharm[global_consts.halfHarms:]), 0)
-                    sample = sample.to(torch.device(self.crfAi.device))
-                    dataset.append(sample)
+            storage = SampleStorage(path, [], "r", False)
+            try:
+                data = storage.toCollection("AI")
+            except Exception as e:
+                raise e
+            finally:
+                storage.close()
+            dataset = LiteSampleCollection(None, False)
+            inputQueue, outputQueue, processes = asyncProcess(False, False, True)
+            expectedSamples = 0
+            for i in tqdm(range(len(data)), desc = "preprocessing", unit = "samples"):
+                samples = data[i].convert(True)
+                for j in samples:
+                    inputQueue.put(j)
+                    expectedSamples += 1
+            for _ in tqdm(range(expectedSamples), desc = "processing", unit = "samples"):
+                dataset.append(outputQueue.get())
+            for _ in processes:
+                inputQueue.put(None)
+            for process in processes:
+                process.join()
+            del data
             self.pool["dataset"] = DataLoader(dataset, batch_size = 1, shuffle = True)
         else:
             self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
@@ -150,7 +166,9 @@ class DataGenerator(IterableDataset):
 
     def synthesize(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
         if self.mode == "dataset file":
-            return next(iter(self.pool["dataset"]))[0]
+            sample = next(iter(self.pool["dataset"]))[0]
+            sample = sample.specharm + torch.cat((sample.avgSpecharm[:global_consts.halfHarms], torch.zeros((global_consts.halfHarms,), device = sample.avgSpecharm.device), sample.avgSpecharm[global_consts.halfHarms:]), 0)
+            return sample.to(torch.device(self.crfAi.device))
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""
         sequence, embeddings = self.makeSequence(noise, length, phonemeLength, expression)
         output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = torch.device("cpu"))

@@ -7,12 +7,11 @@
 
 import torch
 from math import floor
-import ctypes
-from time import sleep
 
 import C_Bridge
 import global_consts
 from Backend.DataHandler.AudioSample import AudioSample
+from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpecCalcComponents import finalizeSpectra, separateVoicedUnvoiced, lowRangeSmooth, highRangeSmooth, averageSpectra
 
 def calculateSpectra(audioSample:AudioSample, useVariance:bool = True, allow_oop:bool = True) -> None:
@@ -46,14 +45,6 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True, allow_oop
     C_Bridge.esper.specCalc(cSample, global_consts.config)
     audioSample.excitation = torch.complex(audioSample.excitation[:batches * (global_consts.halfTripleBatchSize + 1)], audioSample.excitation[batches * (global_consts.halfTripleBatchSize + 1):])
     audioSample.excitation = audioSample.excitation.reshape((batches, global_consts.halfTripleBatchSize + 1))
-    """extSpecharm = audioSample.specharm.clone()
-    extAvgSpecharm = audioSample.avgSpecharm.clone()
-    extExcitation = audioSample.excitation.clone()
-    calculateSpectra_legacy(audioSample, useVariance)
-    audioSample.specharm[:, :global_consts.nHarmonics + 2] -= extSpecharm[:, :global_consts.nHarmonics + 2]
-    audioSample.specharm[:, global_consts.nHarmonics + 2:] -= extSpecharm[:, global_consts.nHarmonics + 2:]
-    audioSample.avgSpecharm -= extAvgSpecharm
-    audioSample.excitation -= extExcitation"""
 
 def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) -> None:
     length = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
@@ -66,3 +57,22 @@ def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) ->
     audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)
     audioSample = separateVoicedUnvoiced(audioSample)
     audioSample = averageSpectra(audioSample, useVariance)
+
+def processWorker(input, output, limiter, useVariance, allow_oop):
+    while True:
+        sample = input.get()
+        if sample is None:
+            break
+        calculatePitch(sample, limiter)
+        calculateSpectra(sample, useVariance, allow_oop)
+        output.put(sample)
+
+def asyncProcess(limiter, useVariance, allow_oop):
+    inputQueue = torch.multiprocessing.Queue()
+    outputQueue = torch.multiprocessing.Queue()
+    processes = []
+    for _ in range(torch.multiprocessing.cpu_count()):
+        p = torch.multiprocessing.Process(target = processWorker, args = (inputQueue, outputQueue, limiter, useVariance, allow_oop))
+        p.start()
+        processes.append(p)
+    return inputQueue, outputQueue, processes

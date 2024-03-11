@@ -311,8 +311,9 @@ class AIWrapper():
         else:
             self.trAi.epoch = None
         reportedLoss = 0.
+        loader = self.dataLoader(indata)
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
-            for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
+            for data in tqdm(loader, desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
                 avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
                 embedding1 = dec2bin(data.embedding[0].to(self.device), 32)
                 embedding2 = dec2bin(data.embedding[1].to(self.device), 32)
@@ -348,7 +349,7 @@ class AIWrapper():
         criterion = torch.zeros((global_consts.halfTripleBatchSize + 1,), device = self.device)
         criterionSteps = 0
         with torch.no_grad():
-            for data in self.dataLoader(indata):
+            for data in loader:
                 avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
                 embedding1 = dec2bin(data.embedding[0].clone().to(self.device), 32)
                 embedding2 = dec2bin(data.embedding[1].clone().to(self.device), 32)

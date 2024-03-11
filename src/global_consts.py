@@ -76,7 +76,7 @@ defaultTempWidth = 2
 defaultTempDepth = 10
 
 #oto.ini parser
-consonantEndOffset = 15
+consonantEndOffset = 30
 
 #control/reserved phoneme list
 controlPhonemes = (

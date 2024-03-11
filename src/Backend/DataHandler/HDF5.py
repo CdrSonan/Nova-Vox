@@ -422,22 +422,22 @@ class DictStorage:
                     if i == "":
                         iOut = "__emptyString__"
                     else:
-                        iOut = i
+                        iOut = str(i)
                     if isinstance(data[i], dict):
-                        if i not in position:
+                        if iOut not in position:
                             position.create_group(iOut)
-                            position[i].attrs["type"] = "dict"
-                        recursiveInsert(position[i], data[i], type="dict")
+                            position[iOut].attrs["type"] = "dict"
+                        recursiveInsert(position[iOut], data[i], type="dict")
                     elif isinstance(data[i], list):
                         if i not in position:
                             position.create_group(iOut)
-                            position[i].attrs["type"] = "list"
-                        recursiveInsert(position[i], data[i], type="list")
+                            position[iOut].attrs["type"] = "list"
+                        recursiveInsert(position[iOut], data[i], type="list")
                     elif isinstance(data[i], tuple):
                         if i not in position:
                             position.create_group(iOut)
-                            position[i].attrs["type"] = "tuple"
-                        recursiveInsert(position[i], data[i], type="tuple")
+                            position[iOut].attrs["type"] = "tuple"
+                        recursiveInsert(position[iOut], data[i], type="tuple")
                     else:
                         outData, outDType = pack(data[i])
                         position.create_dataset(iOut, data=outData)

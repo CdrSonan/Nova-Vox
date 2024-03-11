@@ -13,7 +13,7 @@ from Backend.VB_Components.VbMetadata import VbMetadata
 from Backend.VB_Components.Ai.Wrapper import AIWrapper
 from Backend.DataHandler.AudioSample import AudioSample, LiteAudioSample, AISample, AISampleCollection, LiteSampleCollection
 from Backend.ESPER.PitchCalculator import calculatePitch
-from Backend.ESPER.SpectralCalculator import calculateSpectra
+from Backend.ESPER.SpectralCalculator import calculateSpectra, asyncProcess
 from Backend.DataHandler.UtauSample import UtauSample
 from Backend.DataHandler.HDF5 import SampleStorage, DictStorage, WordStorage, MetadataStorage
 import global_consts
@@ -334,13 +334,21 @@ class Voicebank():
         print("sample preprocessing started")
         sampleCount = len(self.stagedTrTrainSamples)
         trTrainSamples = LiteSampleCollection(isTransition = True)
-        for _ in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            sample = self.stagedTrTrainSamples[-1].convert(False)
-            calculatePitch(sample, True)
-            calculateSpectra(sample, False, False)
-            trTrainSamples.append(sample)
-            self.stagedTrTrainSamples.delete(-1)
-            self.stagedTrTrainSamples.commitDeletions()
+        
+        inputQueue, outputQueue, processes = asyncProcess(True, False, True)
+        expectedSamples = 0
+        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
+            sample = self.stagedTrTrainSamples[i].convert(False)
+            inputQueue.put(sample)
+            expectedSamples += 1
+        for _ in tqdm(range(expectedSamples), desc = "processing", unit = "samples"):
+            trTrainSamples.append(outputQueue.get())
+        for _ in processes:
+            inputQueue.put(None)
+        for process in processes:
+            process.join()
+        self.stagedTrTrainSamples.__init__(None, True)
+        
         print("sample preprocessing complete")
         print("AI training started")
         self.ai.trainTr(trTrainSamples, epochs = epochs, logging = logging, reset = not additive)
@@ -360,14 +368,22 @@ class Voicebank():
         print("sample preprocessing started")
         sampleCount = len(self.stagedMainTrainSamples)
         mainTrainSamples = LiteSampleCollection()
-        for _ in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            samples = self.stagedMainTrainSamples[-1].convert(True)
-            for j in samples:
-                calculatePitch(j, False)
-                calculateSpectra(j, False, False)
-                mainTrainSamples.append(j)
-            self.stagedMainTrainSamples.delete(-1)
-            self.stagedMainTrainSamples.commitDeletions()
+        
+        inputQueue, outputQueue, processes = asyncProcess(False, False, True)
+        expectedSamples = 0
+        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
+            samples = self.stagedMainTrainSamples[i].convert(True)
+            for sample in samples:
+                inputQueue.put(sample)
+                expectedSamples += 1
+        for _ in tqdm(range(expectedSamples), desc = "processing", unit = "samples"):
+            mainTrainSamples.append(outputQueue.get())
+        for _ in processes:
+            inputQueue.put(None)
+        for process in processes:
+            process.join()
+        self.stagedMainTrainSamples.__init__()    
+        
         print("sample preprocessing complete")
         print("AI training started")
         self.ai.trainMain(mainTrainSamples, epochs = epochs, logging = logging, reset = not additive, generatorMode = generatorMode)
