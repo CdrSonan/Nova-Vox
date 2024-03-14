@@ -8,6 +8,7 @@
 import logging
 import torch
 from tqdm.auto import tqdm
+import h5py
 
 from Backend.VB_Components.VbMetadata import VbMetadata
 from Backend.VB_Components.Ai.Wrapper import AIWrapper
@@ -113,30 +114,25 @@ class Voicebank():
     def save(self, filepath:str) -> None:
         """saves the loaded Voicebank to a file"""
 
-        aiStorage = DictStorage(filepath, ["aiState",], "w", self.ai.device)
-        aiStorage.fromDict(self.ai.getState())
-        aiStorage.close()
-        hparamStorage = DictStorage(filepath, ["hparams",], "r+", self.ai.device)
-        hparamStorage.fromDict(self.ai.hparams)
-        hparamStorage.close()
-        phonemeStorage = SampleStorage(filepath, ["phonemeDict",], "r+", False)
-        phonemeStorage.fromDict(self.phonemeDict, True)
-        phonemeStorage.close()
-        parameterStorage = DictStorage(filepath, ["Parameters",], "r+", self.ai.device)
-        parameterStorage.fromDict(self.parameters, "list")
-        parameterStorage.close()
-        wordDictStorage = WordStorage(filepath, ["wordDict"], "r+")
-        wordDictStorage.fromDict(self.wordDict)
-        wordDictStorage.close()
-        metadataStorage = MetadataStorage(filepath, ["metadata",], "r+")
-        metadataStorage.fromMetadata(self.metadata)
-        metadataStorage.close()
+        with h5py.File(filepath, "w") as f:
+            aiStorage = DictStorage(f, ["aiState",], self.ai.device)
+            aiStorage.fromDict(self.ai.getState())
+            hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
+            hparamStorage.fromDict(self.ai.hparams)
+            phonemeStorage = SampleStorage(f, ["phonemeDict",], False)
+            phonemeStorage.fromDict(self.phonemeDict, True)
+            parameterStorage = DictStorage(f, ["Parameters",], self.ai.device)
+            parameterStorage.fromDict(self.parameters)
+            wordDictStorage = WordStorage(f, ["wordDict",])
+            wordDictStorage.fromDict(self.wordDict)
+            metadataStorage = MetadataStorage(f, ["metadata",])
+            metadataStorage.fromMetadata(self.metadata)
         
     def loadMetadata(self, filepath:str) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
-        storage = MetadataStorage(filepath, ["metadata",], "r")
-        self.metadata = storage.toMetadata()
-        storage.close()
+        with h5py.File(filepath, "r") as f:
+            storage = MetadataStorage(f, ["metadata",])
+            self.metadata = storage.toMetadata()
     
     def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
         """loads Phoneme data from a Voicebank file.
@@ -148,9 +144,9 @@ class Voicebank():
         Returns:
             None"""
             
-        storage = SampleStorage(filepath, ["phonemeDict",], "r", False)
-        data = storage.toDict()
-        storage.close()
+        with h5py.File(filepath, "r") as f:
+            storage = SampleStorage(f, ["phonemeDict",], False)
+            data = storage.toDict()
         if additive:
             for i in data.keys():
                 if i in self.phonemeDict.keys():
@@ -163,23 +159,21 @@ class Voicebank():
     def loadTrWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
-        hparamStorage = DictStorage(filepath, ["hparams",], "r", self.ai.device)
-        self.ai.hparams = hparamStorage.toDict()
-        hparamStorage.close()
-        aiStorage = DictStorage(filepath, ["aiState",], "r", self.ai.device)
-        aiState = aiStorage.toDict()
-        aiStorage.close()
+        with h5py.File(filepath, "r") as f:
+            hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
+            self.ai.hparams = hparamStorage.toDict()
+            aiStorage = DictStorage(f, ["aiState",], self.ai.device)
+            aiState = aiStorage.toDict()
         self.ai.loadState(aiState, "tr", True)
 
     def loadMainWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
-        hparamStorage = DictStorage(filepath, ["hparams",], "r", self.ai.device)
-        self.ai.hparams = hparamStorage.toDict()
-        hparamStorage.close()
-        aiStorage = DictStorage(filepath, ["aiState",], "r", self.ai.device)
-        aiState = aiStorage.toDict()
-        aiStorage.close()
+        with h5py.File(filepath, "r") as f:
+            hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
+            self.ai.hparams = hparamStorage.toDict()
+            aiStorage = DictStorage(f, ["aiState",], self.ai.device)
+            aiState = aiStorage.toDict()
         self.ai.loadState(aiState, "main", True)
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
@@ -192,9 +186,9 @@ class Voicebank():
         
     def loadWordDict(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
-        wordStorage = WordStorage(filepath, ["wordDict"], "r")
-        self.wordDict = wordStorage.toDict()
-        wordStorage.close()
+        with h5py.File(filepath, "r") as f:
+            wordStorage = WordStorage(f, ["wordDict"])
+            self.wordDict = wordStorage.toDict()
         
     def addPhoneme(self, key:str, filepath:str) -> None:
         """adds a phoneme to the Voicebank's PhonemeDict.
@@ -457,9 +451,9 @@ class LiteVoicebank():
         
     def loadMetadata(self, filepath:str) -> None:
         """loads Voicebank Metadata from a Voicebank file"""
-        storage = MetadataStorage(filepath, ["metadata",], "r")
-        self.metadata = storage.toMetadata()
-        storage.close()
+        with h5py.File(filepath, "r") as f:
+            storage = MetadataStorage(f, ["metadata",])
+            self.metadata = storage.toMetadata()
     
     def loadPhonemeDict(self, filepath:str, additive:bool) -> None:
         """loads Phoneme data from a Voicebank file.
@@ -470,10 +464,10 @@ class LiteVoicebank():
             
         Returns:
             None"""
-            
-        storage = SampleStorage(filepath, ["phonemeDict",], "r", False)
-        data = storage.toCollection()
-        storage.close()
+        
+        with h5py.File(filepath, "r") as f:
+            storage = SampleStorage(f, ["phonemeDict",], False)
+            data = storage.toCollection()
         if additive:
             for i in data.keys():
                 if i in self.phonemeDict.keys():
@@ -487,23 +481,21 @@ class LiteVoicebank():
     def loadTrWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
-        hparamStorage = DictStorage(filepath, ["hparams",], "r", self.ai.device)
-        self.ai.hparams = hparamStorage.toDict()
-        hparamStorage.close()
-        aiStorage = DictStorage(filepath, ["aiState",], "r", self.ai.device)
-        aiState = aiStorage.toDict()
-        aiStorage.close()
+        with h5py.File(filepath, "r") as f:
+            hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
+            self.ai.hparams = hparamStorage.toDict()
+            aiStorage = DictStorage(f, ["aiState",], self.ai.device)
+            aiState = aiStorage.toDict()
         self.ai.loadState(aiState, "tr", True)
 
     def loadMainWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
-        hparamStorage = DictStorage(filepath, ["hparams",], "r", self.ai.device)
-        self.ai.hparams = hparamStorage.toDict()
-        hparamStorage.close()
-        aiStorage = DictStorage(filepath, ["aiState",], "r", self.ai.device)
-        aiState = aiStorage.toDict()
-        aiStorage.close()
+        with h5py.File(filepath, "r") as f:
+            hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
+            self.ai.hparams = hparamStorage.toDict()
+            aiStorage = DictStorage(f, ["aiState",], self.ai.device)
+            aiState = aiStorage.toDict()
         self.ai.loadState(aiState, "main", True)
         
     def loadParameters(self, filepath:str, additive:bool) -> None:
@@ -516,6 +508,6 @@ class LiteVoicebank():
         
     def loadWordDict(self, filepath:str, additive:bool) -> None:
         """currently placeholder"""
-        wordStorage = WordStorage(filepath, ["wordDict"], "r")
-        self.wordDict = wordStorage.toDict()
-        wordStorage.close()
+        with h5py.File(filepath, "r") as f:
+            wordStorage = WordStorage(f, ["wordDict"])
+            self.wordDict = wordStorage.toDict()

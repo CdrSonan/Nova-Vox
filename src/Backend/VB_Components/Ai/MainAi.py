@@ -10,6 +10,7 @@ from math import floor, ceil, log
 from copy import copy
 from tkinter import Tk, filedialog
 from tqdm.auto import tqdm
+import h5py
 
 import torch
 import torch.nn as nn
@@ -30,6 +31,11 @@ from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 input_dim = global_consts.halfTripleBatchSize + halfHarms + 1
+
+def dataLoader_collate(data):
+    return data[0]
+    """This is exactly as dumb as it looks. This function is only here to work around DataLoader default collation being active even when there is nothing to collate, with no way to turn it off.
+    Also, it needs to be defined here because the Pickle pipes used by DataLoader can't send it to a worker process when it is defined in the scope it would normally belong in."""
 
 class DataGenerator(IterableDataset):
     """generates synthetic data for the discriminator to train on"""
@@ -62,13 +68,9 @@ class DataGenerator(IterableDataset):
             tkui.withdraw()
             path = filedialog.askopenfilename(title = "Select dataset file", filetypes = (("Dataset files", "*.dataset"), ("All files", "*.*")))
             tkui.destroy()
-            storage = SampleStorage(path, [], "r", False)
-            try:
+            with h5py.File(path, "r") as f:
+                storage = SampleStorage(f, [], False)
                 data = storage.toCollection("AI")
-            except Exception as e:
-                raise e
-            finally:
-                storage.close()
             dataset = LiteSampleCollection(None, False)
             inputQueue, outputQueue, processes = asyncProcess(False, False, True)
             expectedSamples = 0
@@ -84,7 +86,7 @@ class DataGenerator(IterableDataset):
                 inputQueue.put(None)
             for process in processes:
                 process.join()
-            self.pool["dataset"] = DataLoader(dataset, batch_size = 1, shuffle = True)
+            self.pool["dataset"] = DataLoader(dataset, batch_size = 1, shuffle = True, collate_fn = dataLoader_collate)
         else:
             self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
             self.pool["short"] = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive]
@@ -166,7 +168,7 @@ class DataGenerator(IterableDataset):
 
     def synthesize(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
         if self.mode == "dataset file":
-            sample = next(iter(self.pool["dataset"]))[0]
+            sample = next(iter(self.pool["dataset"]))
             sample = sample.specharm + torch.cat((sample.avgSpecharm[:global_consts.halfHarms], torch.zeros((global_consts.halfHarms,), device = sample.avgSpecharm.device), sample.avgSpecharm[global_consts.halfHarms:]), 0)
             return sample.to(torch.device(self.crfAi.device))
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""

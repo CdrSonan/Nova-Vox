@@ -17,11 +17,8 @@ import global_consts as gc
 class SampleStorage:
     """Class for handling audio data in an HDF5 file"""
 
-    def __init__(self, path:str, groups:list = [], mode:str = "r+", isTransition:bool = False):
-        self.path = path
-        self.groups = groups
-        self.file = h5py.File(path, mode)
-        self.group = self.file
+    def __init__(self, file, groups:list = [], isTransition:bool = False):
+        self.group = file
         for i in groups:
             if i not in self.group:
                 self.group.create_group(i)
@@ -195,7 +192,7 @@ class SampleStorage:
         if self.group["specharmIdxs"].shape[0] == 1:
             self.group["specharmIdxs"][-1] = self.group["specharm"].shape[0]
         else:
-            self.group["specharmIdxs"][-1] = self.group["specharmIdxs"][-2] + self.group["specharm"].shape[0]
+            self.group["specharmIdxs"][-1] = self.group["specharmIdxs"][-2] + sample.specharm.shape[0]
         self.group["avgSpecharm"].resize(self.group["avgSpecharm"].shape[0] + 1, axis=0)
         self.group["avgSpecharm"][-1] = sample.avgSpecharm
         self.group["excitation"].resize(self.group["excitation"].shape[0] + sample.excitation.shape[0], axis=0)
@@ -282,19 +279,13 @@ class SampleStorage:
         for i in dictionary.keys():
             for j in dictionary[i]:
                 self.append(j)
-    
-    def close(self):
-        self.file.close()
 
 
 class DictStorage:
     """Class for handling dictionaries in an HDF5 file"""
 
-    def __init__(self, path:str, groups:list = [], mode:str = "r+", torchDevice:str = "cpu"):
-        self.path = path
-        self.groups = groups
-        self.file = h5py.File(path, mode)
-        self.group = self.file
+    def __init__(self, file, groups:list = [], torchDevice:str = "cpu"):
+        self.group = file
         for i in groups:
             if i not in self.group:
                 self.group.create_group(i)
@@ -340,6 +331,8 @@ class DictStorage:
                 return None
             elif data.attrs["type"] in ("float", "int"):
                 return data[()].item()
+            elif data.attrs["type"] == "bool":
+                return bool(data[()].item())
             elif data.attrs["type"] == "str":
                 return data[()].decode("utf-8")
             elif data.attrs["type"] == "tensor":
@@ -362,6 +355,8 @@ class DictStorage:
                 for i in position.keys():
                     if i == "__emptyString__":
                         iOut = ""
+                    elif i.startswith("__int__"):
+                        iOut = int(i[7:])
                     else:
                         iOut = i
                     if isinstance(position[i], h5py.Group):
@@ -373,7 +368,7 @@ class DictStorage:
         return recursiveFetch(self.group)
         
     
-    def fromDict(self, dictionary, rootType:str = "dict"):
+    def fromDict(self, dictionary):
         def pack(data):
             if data is None:
                 outData = np.array([])
@@ -381,6 +376,9 @@ class DictStorage:
             elif isinstance(data, torch.Tensor):
                 outData = data.cpu().numpy()
                 outDType = "tensor"
+            elif isinstance(data, bool):
+                outData = np.array(data)
+                outDType = "bool"
             elif isinstance(data, float):
                 outData = np.array(data)
                 outDType = "float"
@@ -393,68 +391,79 @@ class DictStorage:
             else:
                 raise ValueError("Invalid data type for serialization")
             return outData, outDType
-        def recursiveInsert(position, data, type:str = "dict"):
-            if type in ("list", "tuple"):
-                for i in range(len(data)):
-                    if isinstance(data[i], dict):
-                        if str(i) not in position:
-                            position.create_group(str(i))
-                            position[str(i)].attrs["type"] = "dict"
-                        recursiveInsert(position[str(i)], data[i], type="dict")
-                    elif isinstance(data[i], list):
-                        if str(i) not in position:
-                            position.create_group(str(i))
-                            position[str(i)].attrs["type"] = "list"
-                        recursiveInsert(position[str(i)], data[i], type="list")
-                    elif isinstance(data[i], tuple):
-                        if str(i) not in position:
-                            position.create_group(str(i))
-                            position[str(i)].attrs["type"] = "tuple"
-                        recursiveInsert(position[str(i)], data[i], type="tuple")
+        def recursiveInsert(position, data):
+            print(position, data)
+            if isinstance(data, dict):
+                for key in data.keys():
+                    if isinstance(key, int):
+                        newKey = "__int__" + str(key)
+                    elif isinstance(key, str):
+                        if key.startswith("__int__"):
+                            raise ValueError("Keys starting with __int__ are reserved for internal use")
+                        elif key == "__emptyString__":
+                            raise ValueError("__emptyString__ is reserved for internal use")
+                        elif key == "":
+                            newKey = "__emptyString__"
+                        else:
+                            newKey = key
                     else:
-                        outData, outDType = pack(data[i])
-                        position.create_dataset(str(i), data=outData)
-                        position[str(i)].attrs["type"] = outDType
-            else:
-                for i in data.keys():
-                    if i == "__emptyString__":
-                        raise ValueError("__emptyString__ must not be a key in the provided dictionary")
-                    if i == "":
-                        iOut = "__emptyString__"
+                        raise ValueError("Keys must be strings or ints")
+                    print("key:", key)
+                    if isinstance(data[key], dict):
+                        if newKey not in position:
+                            position.create_group(newKey)
+                            position[newKey].attrs["type"] = "dict"
+                        recursiveInsert(position[newKey], data[key])
+                    elif isinstance(data[key], list):
+                        if newKey not in position:
+                            position.create_group(newKey)
+                            position[newKey].attrs["type"] = "list"
+                        recursiveInsert(position[newKey], data[key])
+                    elif isinstance(data[key], tuple):
+                        if newKey not in position:
+                            position.create_group(newKey)
+                            position[newKey].attrs["type"] = "tuple"
+                        recursiveInsert(position[newKey], data[key])
                     else:
-                        iOut = str(i)
-                    if isinstance(data[i], dict):
-                        if iOut not in position:
-                            position.create_group(iOut)
-                            position[iOut].attrs["type"] = "dict"
-                        recursiveInsert(position[iOut], data[i], type="dict")
-                    elif isinstance(data[i], list):
-                        if i not in position:
-                            position.create_group(iOut)
-                            position[iOut].attrs["type"] = "list"
-                        recursiveInsert(position[iOut], data[i], type="list")
-                    elif isinstance(data[i], tuple):
-                        if i not in position:
-                            position.create_group(iOut)
-                            position[iOut].attrs["type"] = "tuple"
-                        recursiveInsert(position[iOut], data[i], type="tuple")
+                        outData, outDType = pack(data[key])
+                        position.create_dataset(newKey, data=outData)
+                        position[newKey].attrs["type"] = outDType
+            elif isinstance(data, list) or isinstance(data, tuple):
+                for idx, i in enumerate(data):
+                    print("key:", str(idx))
+                    if isinstance(i, dict):
+                        if str(idx) not in position:
+                            position.create_group(str(idx))
+                            position[str(idx)].attrs["type"] = "dict"
+                        recursiveInsert(position[str(idx)], i)
+                    elif isinstance(i, list):
+                        if str(idx) not in position:
+                            position.create_group(str(idx))
+                            position[str(idx)].attrs["type"] = "list"
+                        recursiveInsert(position[str(idx)], i)
+                    elif isinstance(i, tuple):
+                        if str(idx) not in position:
+                            position.create_group(str(idx))
+                            position[str(idx)].attrs["type"] = "tuple"
+                        recursiveInsert(position[str(idx)], i)
                     else:
-                        outData, outDType = pack(data[i])
-                        position.create_dataset(iOut, data=outData)
-                        position[iOut].attrs["type"] = outDType
-        self.group.attrs["type"] = rootType
-        recursiveInsert(self.group, dictionary, rootType)
-    
-    def close(self):
-        self.file.close()
+                        outData, outDType = pack(i)
+                        position.create_dataset(str(idx), data = outData)
+                        position[str(idx)].attrs["type"] = outDType
+        if isinstance(dictionary, dict):
+            self.group.attrs["type"] = "dict"
+        elif isinstance(dictionary, list):
+            self.group.attrs["type"] = "list"
+        elif isinstance(dictionary, tuple):
+            self.group.attrs["type"] = "tuple"
+        recursiveInsert(self.group, dictionary)
+
 
 class WordStorage:
     """Class for handling word data in an HDF5 file"""
 
-    def __init__(self, path:str, groups:list = [], mode:str = "r+"):
-        self.path = path
-        self.file = h5py.File(path, mode)
-        self.group = self.file
+    def __init__(self, file, groups:list = ["wordDict",],):
+        self.group = file
         for i in groups:
             if i not in self.group:
                 self.group.create_group(i)
@@ -514,16 +523,12 @@ class WordStorage:
             self.group["syllables_vals"].create_dataset(str(idx + 1), (0,), maxshape=(None,), dtype=h5py.string_dtype(encoding="utf-8"))
             for syllable, value in syllableDict.items():
                 self.insertSyllable(syllable, value)
-    
-    def close(self):
-        self.file.close()
+
 
 class MetadataStorage:
     
-    def __init__(self, path:str, groups:list = [], mode:str = "r+"):
-        self.path = path
-        self.file = h5py.File(path, mode)
-        self.group = self.file
+    def __init__(self, file, groups:list = ["metadata",]):
+        self.group = file
         for i in groups:
             if i not in self.group:
                 self.group.create_group(i)
@@ -549,5 +554,3 @@ class MetadataStorage:
         metadata.image = Image.fromarray(self.group["image"][()])
         return metadata
 
-    def close(self):
-        self.file.close()
