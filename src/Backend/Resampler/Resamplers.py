@@ -31,7 +31,7 @@ def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tenso
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         premul = 1
     else:
-        phoneme = getClosestSample(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey], torch.mean(vocalSegment.pitch))
+        phoneme = getClosestSample(vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True), torch.mean(vocalSegment.pitch))
         premul = phoneme.excitation.size()[0] / (vocalSegment.end3 - vocalSegment.start1 + 1)
     if vocalSegment.startCap:
         windowStart = 0
@@ -59,7 +59,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         offset = 0
     else:
-        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm.size()[0] / 2)
+        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)[0].specharm.size()[0] / 2)
     if vocalSegment.startCap:
         windowStart = offset
     else:
@@ -81,8 +81,8 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                      windowStart = windowStart,
                                      windowEnd = windowEnd,
                                      offset = offset)
-    phoneme = getClosestSample(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey], torch.mean(vocalSegment.pitch))
-    pitches = [i.pitch for i in vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey]]
+    phoneme = getClosestSample(vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True), torch.mean(vocalSegment.pitch))
+    pitches = [i.pitch for i in vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)]
     lowerPitchIndices = torch.full([vocalSegment.pitch.size()[0],], pitches.index(min(pitches)), device = device)
     upperPitchIndices = torch.full([vocalSegment.pitch.size()[0],], pitches.index(max(pitches)), device = device)
     pitches = torch.tensor(pitches, device = device)
@@ -94,7 +94,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                         torch.pow(torch.sin(abs(vocalSegment.pitch - pitches[lowerPitchIndices]) / abs(pitches[upperPitchIndices] - pitches[lowerPitchIndices]) * math.pi / 2), 2))
     avgSpecharm = torch.zeros([global_consts.halfTripleBatchSize + global_consts.halfHarms + 1], device = device)
     for i in range(vocalSegment.pitch.size()[0]):
-        avgSpecharm += (ratio[i] * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][upperPitchIndices[i]].avgSpecharm + (1 - ratio[i]) * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][lowerPitchIndices[i]].avgSpecharm).to(device)
+        avgSpecharm += (ratio[i] * vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)[upperPitchIndices[i]].avgSpecharm + (1 - ratio[i]) * vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)[lowerPitchIndices[i]].avgSpecharm).to(device)
     avgSpecharm /= vocalSegment.pitch.size()[0]
     #avgSpecharm = phoneme.avgSpecharm
     C_Bridge.esper.resampleSpecharm(ctypes.cast(avgSpecharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -107,6 +107,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                ctypes.cast(output.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                timings,
                                global_consts.config)
+    output[:, global_consts.halfHarms:global_consts.nHarmonics + 2] *= 0.
     return output
     
 def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
@@ -115,7 +116,7 @@ def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         offset = 0
     else:
-        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm.size()[0] / 2)
+        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)[0].specharm.size()[0] / 2)
     if vocalSegment.startCap:
         windowStart = offset
     else:
@@ -126,8 +127,8 @@ def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.
         windowEnd = vocalSegment.end1 - vocalSegment.start1 + offset
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return torch.full([windowEnd - windowStart, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], 0.001, device = device)
-    spectrum = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].avgSpecharm.to(device = device)
-    specharm = Loop.loopSamplerSpecharm(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
+    spectrum = vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)[0].avgSpecharm.to(device = device)
+    specharm = Loop.loopSamplerSpecharm(vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)[0].specharm, windowEnd, vocalSegment.repetititionSpacing, device)[windowStart:windowEnd]
     specharm[:, :int(global_consts.nHarmonics / 2) + 1] *= torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2)
     specharm[:, global_consts.nHarmonics + 2:] *= torch.pow(1 - torch.unsqueeze(vocalSegment.steadiness[windowStart-offset:windowEnd-offset], 1), 2)
     specharm[:, :int(global_consts.nHarmonics / 2) + 1] += spectrum[:int(global_consts.nHarmonics / 2) + 1]
@@ -149,7 +150,7 @@ def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.
 def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,], device = device)
-    phoneme = getClosestSample(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey], torch.mean(vocalSegment.pitch))
+    phoneme = getClosestSample(vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True), torch.mean(vocalSegment.pitch))
     requiredSize = math.ceil(torch.max(phoneme.pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1)
     output = torch.zeros([requiredSize,], device = device, dtype = torch.float32)
     timings = C_Bridge.segmentTiming(start1 = vocalSegment.start1,
@@ -177,9 +178,9 @@ def getPitch_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Ten
 
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,], device = device)
-    pitchDeltas = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].pitchDeltas
+    pitchDeltas = vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)[0].pitchDeltas
     requiredSize = math.ceil(torch.max(pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1)
-    pitch = vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].pitch.to(device = device)
+    pitch = vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)[0].pitch.to(device = device)
     pitchDeltas = Loop.loopSamplerPitch(pitchDeltas, requiredSize, vocalSegment.repetititionSpacing, device = device)
     pitchDeltas -= pitch
     if vocalSegment.startCap == False:

@@ -183,7 +183,7 @@ class SampleStorage:
         if self.group["pitchDeltasIdxs"].shape[0] == 1:
             self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltas"].shape[0]
         else:
-            self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltasIdxs"][-2] + self.group["pitchDeltas"].shape[0]
+            self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltasIdxs"][-2] + sample.pitchDeltas.shape[0]
         self.group["pitch"].resize(self.group["pitch"].shape[0] + 1, axis=0)
         self.group["pitch"][-1] = sample.pitch
         self.group["specharm"].resize(self.group["specharm"].shape[0] + sample.specharm.shape[0], axis=0)

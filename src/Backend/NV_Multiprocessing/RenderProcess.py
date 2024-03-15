@@ -195,7 +195,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             return spectrumInput, 0.
         steadiness = torch.pow(1. - internalInputs.steadiness[k], 2)
         targetPitch = global_consts.tripleBatchSize / (internalInputs.pitch[k] + pitchOffset * steadiness)
-        nativePitch = global_consts.tripleBatchSize / (voicebank.phonemeDict[internalInputs.phonemes[j]][0].pitch + pitchOffset * steadiness)
+        nativePitch = global_consts.tripleBatchSize / (voicebank.phonemeDict.fetch(internalInputs.phonemes[j], True)[0].pitch + pitchOffset * steadiness)
         inputSpectrum = spectrumInput[global_consts.nHarmonics + 2:]
         harmonics = spectrumInput[:int(global_consts.nHarmonics / 2) + 1]
         originSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1, device = device), torch.tensor([global_consts.halfTripleBatchSize - 2,], device = device))
@@ -406,8 +406,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     previousSpectrum[-1].to(device = device_ai),
                                     currentSpectrum[0].to(device = device_ai),
                                     specB.to(device = device_ai),
-                                    voicebank.phonemeDict[internalInputs.phonemes[j - 1]][0].embedding,
-                                    voicebank.phonemeDict[internalInputs.phonemes[j]][0].embedding,
+                                    voicebank.phonemeDict.fetch(internalInputs.phonemes[j - 1], True)[0].embedding,
+                                    voicebank.phonemeDict.fetch(internalInputs.phonemes[j], True)[0].embedding,
                                     previousExpression,
                                     expression,
                                     internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j],
@@ -454,8 +454,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     currentSpectrum[-1].to(device = device_ai),
                                     nextSpectrum[0].to(device = device_ai),
                                     specB.to(device = device_ai),
-                                    voicebank.phonemeDict[internalInputs.phonemes[j]][0].embedding,
-                                    voicebank.phonemeDict[internalInputs.phonemes[j + 1]][0].embedding,
+                                    voicebank.phonemeDict.fetch(internalInputs.phonemes[j], True)[0].embedding,
+                                    voicebank.phonemeDict.fetch(internalInputs.phonemes[j + 1], True)[0].embedding,
                                     expression,
                                     nextExpression,
                                     internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3],

@@ -467,7 +467,7 @@ class LiteVoicebank():
         
         with h5py.File(filepath, "r") as f:
             storage = SampleStorage(f, ["phonemeDict",], False)
-            data = storage.toCollection()
+            data = storage.toCollection("lite")
         if additive:
             for i in data.keys():
                 if i in self.phonemeDict.keys():
