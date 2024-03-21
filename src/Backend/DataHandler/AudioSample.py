@@ -647,7 +647,9 @@ class LiteSampleCollection(torch_data.Dataset):
         return sample
     
     def __getitem__(self, index) -> LiteAudioSample:
-        return self.fetch(index, False)
+        if isinstance(index, int):
+            return self.fetch(index, False)
+        return self.fetch(index, True)
     
     def __len__(self) -> int:
         return self.length

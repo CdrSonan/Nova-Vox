@@ -149,7 +149,6 @@ class AIWrapper():
             
             reset: indicates whether the NNs and their optimizers should be reset before applying changed weights to them. Must be True when the dictionary contains weights
             for a NN using different hyperparameters than the currently active one."""
-
         if (mode == None) or (mode == "tr"):
             if reset:
                 self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
@@ -177,8 +176,8 @@ class AIWrapper():
             self.deskewingPremul = aiState["deskew_premul"]
             if not aiState["final"] and not self.inferOnly:
                 self.mainCritic.load_state_dict(aiState['mainCritic_model_state_dict'])
-                self.mainAiOptimizer.load_state_dict(aiState['mainAi_optimizer_state_dict'])
-                self.mainCriticOptimizer.load_state_dict(aiState['mainCritic_optimizer_state_dict'])
+                #self.mainAiOptimizer.load_state_dict(aiState['mainAi_optimizer_state_dict'])
+                #self.mainCriticOptimizer.load_state_dict(aiState['mainCritic_optimizer_state_dict'])
         self.trAi.eval()
         self.mainAi.eval()
 

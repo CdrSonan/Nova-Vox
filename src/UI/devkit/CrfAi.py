@@ -336,7 +336,7 @@ class CrfaiUi(Frame):
         global loadedVB
         filepath = tkinter.filedialog.asksaveasfilename(defaultextension = ".hdf5", filetypes = ((".hdf5", ".hdf5"), (loc["all_files_desc"], "*")))
         with h5py.File(filepath, "w") as f:
-            storage = SampleStorage(f, [], "w", True)
+            storage = SampleStorage(f, [], True)
             storage.fromCollection(loadedVB.stagedTrTrainSamples, True)
 
     def onImportPress(self) -> None:
