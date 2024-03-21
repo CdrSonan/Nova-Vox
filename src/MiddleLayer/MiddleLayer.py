@@ -11,7 +11,7 @@ from kivy.clock import mainthread
 
 import torch
 import math
-from bisect import bisect_left
+from bisect import bisect_right
 
 import sounddevice
 
@@ -355,7 +355,8 @@ class MiddleLayer(Widget):
         for i in self.trackList[track].offsets:
             if i[0] <= index:
                 index += i[1]
-        noteIndex = bisect_left(self.trackList[track].phonemeIndices, index)
+        noteIndex = bisect_right(self.trackList[track].phonemeIndices, index)
+        print(self.trackList[track].phonemeIndices, index, noteIndex)
         while (self.trackList[track].phonemeIndices[noteIndex] == self.trackList[track].phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
             noteIndex -= 1
         if noteIndex > 0:
