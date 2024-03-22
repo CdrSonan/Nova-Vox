@@ -19,6 +19,8 @@ import os
 import torch
 import subprocess
 
+import h5py
+
 import sounddevice
 import soundfile
 
@@ -26,6 +28,8 @@ import global_consts
 
 import API.Ops
 from API.Addon import UIExtensions
+
+from Backend.DataHandler.HDF5 import MetadataStorage
 
 from MiddleLayer.IniParser import readSettings, writeSettings, writeCustomSettings
 from MiddleLayer.FileIO import saveNVX
@@ -142,8 +146,9 @@ class SingerSidePanel(CursorAwareView):
         files = os.listdir(voicePath)
         for file in files:
             if file.endswith(".nvvb"):
-                data = torch.load(os.path.join(voicePath, file), map_location = torch.device("cpu"))
-                self.voicebanks.append(data["metadata"])
+                with h5py.File(os.path.join(voicePath, file), "r") as f:
+                    metadata = MetadataStorage(f).toMetadata()
+                self.voicebanks.append(metadata)
                 self.filepaths.append(os.path.join(voicePath, file))
         j = 0
         for i in self.voicebanks:

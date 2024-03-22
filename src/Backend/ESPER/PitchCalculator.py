@@ -29,26 +29,28 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
     In case the pitch detection fails in spite of the correctly set search range, it uses a fallback."""
 
     try:
-        audioSample.pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
+        pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
     except RuntimeError as e:
         #tqdm.write("nonfatal pitch calculation error:")
         #tqdm.write(repr(e))
         #tqdm.write("using fallback method for current sample")
         calculatePitchFallback_legacy(audioSample)
-    if audioSample.pitchDeltas.size()[0] < 2:
+        pitchDeltas = audioSample.pitchDeltas
+    if pitchDeltas.size()[0] < 2:
         calculatePitchFallback_legacy(audioSample)
+        pitchDeltas = audioSample.pitchDeltas
     if limiter:
-        mul1 = torch.maximum(torch.floor(audioSample.pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate + 0.5), torch.ones([1,], device = audioSample.pitchDeltas.device))
-        mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / audioSample.pitchDeltas + 0.5), torch.ones([1,], device = audioSample.pitchDeltas.device))
-        audioSample.pitchDeltas /= mul1
-        audioSample.pitchDeltas *= mul2
-    audioSample.pitch = torch.mean(audioSample.pitchDeltas).int()
+        mul1 = torch.maximum(torch.floor(pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate + 0.5), torch.ones([1,], device = audioSample.pitchDeltas.device))
+        mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / pitchDeltas + 0.5), torch.ones([1,], device = audioSample.pitchDeltas.device))
+        pitchDeltas /= mul1
+        pitchDeltas *= mul2
+    audioSample.pitch = torch.mean(pitchDeltas).to(torch.int)
     length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
-    if (audioSample.pitchDeltas.size()[0] < 1):
-        audioSample.pitchDeltas = torch.tensor([audioSample.expectedPitch,], device = audioSample.pitchDeltas.device)
-    if (audioSample.pitchDeltas.size()[0] > 1):
-        audioSample.pitchDeltas = interp(torch.linspace(0., 1., audioSample.pitchDeltas.size()[0], device = audioSample.pitchDeltas.device), audioSample.pitchDeltas, torch.linspace(0., 1., length, device = audioSample.pitchDeltas.device))
-        audioSample.pitchDeltas = audioSample.pitchDeltas.to(torch.int16)
+    if (pitchDeltas.size()[0] < 1):
+        pitchDeltas = torch.tensor([audioSample.expectedPitch,], device = audioSample.pitchDeltas.device)
+    if (pitchDeltas.size()[0] > 1):
+        pitchDeltas = interp(torch.linspace(0., 1., pitchDeltas.size()[0], device = audioSample.pitchDeltas.device), pitchDeltas, torch.linspace(0., 1., length, device = audioSample.pitchDeltas.device))
+    audioSample.pitchDeltas = pitchDeltas.to(torch.int)
 
 def calculatePitchFallback(audioSample:AudioSample) -> None:
     """Fallback method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.

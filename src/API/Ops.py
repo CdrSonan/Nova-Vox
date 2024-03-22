@@ -12,6 +12,8 @@ import os
 
 import torch
 
+import h5py
+
 from io import BytesIO
 from kivy.core.image import Image as CoreImage
 
@@ -22,6 +24,7 @@ from MiddleLayer.DataHandlers import Note, Track
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
 
 from Backend.VB_Components.Voicebank import LiteVoicebank
+from Backend.DataHandler.HDF5 import MetadataStorage
 
 from Util import noteToPitch, convertFormat
 
@@ -190,7 +193,8 @@ class ImportVoicebank(UnifiedAction):
             middleLayer.audioBuffer.append(torch.zeros([track.length * global_consts.batchSize,]))
             middleLayer.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
             middleLayer.submitAddTrack(middleLayer.trackList[-1])
-        data = torch.load(os.path.join(readSettings()["datadir"], "Voices", file), map_location = torch.device("cpu"))["metadata"]
+        with h5py.File(os.path.join(readSettings()["datadir"], "Voices", file), "r") as f:
+            data = MetadataStorage(f).toMetadata()
         super().__init__(action, file, data.name, data.image, *args, **kwargs)
 
     def inverseAction(self):
@@ -255,7 +259,8 @@ class CopyTrack(UnifiedAction):
             middleLayer.audioBuffer.append(deepcopy(middleLayer.audioBuffer[index]))
             middleLayer.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
             middleLayer.submitDuplicateTrack(index)
-        data = torch.load(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[index].vbPath), map_location = torch.device("cpu"))["metadata"]
+        with h5py.File(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[index].vbPath), "r") as f:
+            data = MetadataStorage(f).toMetadata()
         super().__init__(action, index, data.name, data.image, *args, **kwargs)
 
     def inverseAction(self):
@@ -297,7 +302,8 @@ class _ReinsertTrack(UnifiedAction):
     def __init__(self, track, index, *args, **kwargs):
         @override
         def action(track, index):
-            metadata = torch.load(os.path.join(readSettings()["datadir"], "Voices", track.vbPath), map_location = torch.device("cpu"))["metadata"]
+            with h5py.File(os.path.join(readSettings()["datadir"], "Voices", track.vbPath), "r") as f:
+                metadata = MetadataStorage(f).toMetadata()
             middleLayer.trackList.insert(index, track)
             data = BytesIO()
             metadata.image.save(data, format='png')
@@ -787,7 +793,8 @@ class ChangeVoicebank(UnifiedAction):
         return ChangeVoicebank(self.index, middleLayer.trackList[middleLayer.activeTrack].vbPath)
     
     def uiCallback(self):
-        data = torch.load(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[self.index].vbPath), map_location = torch.device("cpu"))["metadata"]
+        with h5py.File(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[self.index].vbPath), "r") as f:
+            data = MetadataStorage(f).toMetadata()
         for i in middleLayer.ids["singerList"].children:
             if i.index == self.index:
                 i.name = data.name
@@ -834,7 +841,8 @@ class LoadNVX(UnifiedAction):
                 DeleteTrack(0)()
             for trackData in tracks:
                 track = validateTrackData(trackData)
-                vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
+                with h5py.File(track["vbPath"], "r") as f:
+                    vbData = MetadataStorage(f).toMetadata()
                 _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
                 middleLayer.trackList[-1].volume = track["volume"]
                 for note in track["notes"]:
@@ -877,7 +885,8 @@ class LoadNVX(UnifiedAction):
                 middleLayer.deleteTrack(0)
             for trackData in tracks:
                 track = validateTrackData(trackData)
-                vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
+                with h5py.File(track["vbPath"], "r") as f:
+                    vbData = MetadataStorage(f).toMetadata()
                 _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
                 middleLayer.trackList[-1].volume = track["volume"]
                 for note in track["notes"]:

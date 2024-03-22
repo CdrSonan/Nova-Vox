@@ -9,26 +9,35 @@ import random
 from math import floor, ceil, log
 from copy import copy
 from tkinter import Tk, filedialog
+from tqdm.auto import tqdm
+import h5py
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, IterableDataset
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
 from Backend.VB_Components.Ai.Util import specNormS5
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
+from Backend.DataHandler.AudioSample import LiteSampleCollection
+from Backend.DataHandler.HDF5 import SampleStorage
 from Backend.Resampler.Resamplers import getSpecharm
 from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.ESPER.PitchCalculator import calculatePitch
-from Backend.ESPER.SpectralCalculator import calculateSpectra
+from Backend.ESPER.SpectralCalculator import asyncProcess
 from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 input_dim = global_consts.halfTripleBatchSize + halfHarms + 1
 
-class DataGenerator:
+def dataLoader_collate(data):
+    return data[0]
+    """This is exactly as dumb as it looks. This function is only here to work around DataLoader default collation being active even when there is nothing to collate, with no way to turn it off.
+    Also, it needs to be defined here because the Pickle pipes used by DataLoader can't send it to a worker process when it is defined in the scope it would normally belong in."""
+
+class DataGenerator(IterableDataset):
     """generates synthetic data for the discriminator to train on"""
     
     def __init__(self, voicebank, crfAi:TrAi, mode:str = "reclist") -> None:
@@ -37,6 +46,18 @@ class DataGenerator:
         self.mode = mode
         self.pool = {}
         self.rebuildPool()
+        self.savedParams = None
+    
+    def __iter__(self):
+        if self.savedParams is not None:
+            raise ValueError("Data Generation parameters have not been configured. Use setParams() method to set parameters, or use synthesize() method to generate a single sample.")
+        return self
+    
+    def __next__(self):
+        return self.synthesize(*self.savedParams)
+    
+    def setParams(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> None:
+        self.savedParams = [noise, length, phonemeLength, expression]
 
     def rebuildPool(self) -> None:
         if self.mode == "reclist (strict vowels)":
@@ -47,16 +68,25 @@ class DataGenerator:
             tkui.withdraw()
             path = filedialog.askopenfilename(title = "Select dataset file", filetypes = (("Dataset files", "*.dataset"), ("All files", "*.*")))
             tkui.destroy()
-            data = torch.load(path)
-            dataset = []
-            for i in range(len(data)):
-                for sample in data[i].convert(True):
-                    calculatePitch(sample, False)
-                    calculateSpectra(sample, False)
-                    sample = sample.specharm + torch.cat((sample.avgSpecharm[:global_consts.halfHarms], torch.zeros((global_consts.halfHarms,), device = sample.avgSpecharm.device), sample.avgSpecharm[global_consts.halfHarms:]), 0)
-                    sample = sample.to(torch.device(self.crfAi.device))
-                    dataset.append(sample)
-            self.pool["dataset"] = DataLoader(dataset, batch_size = 1, shuffle = True)
+            with h5py.File(path, "r") as f:
+                storage = SampleStorage(f, [], False)
+                data = storage.toCollection("AI")
+            dataset = LiteSampleCollection(None, False)
+            inputQueue, outputQueue, processes = asyncProcess(False, False, True)
+            expectedSamples = 0
+            for i in tqdm(range(len(data)), desc = "preprocessing", unit = "samples"):
+                samples = data[i].convert(True)
+                for j in samples:
+                    inputQueue.put(j)
+                    expectedSamples += 1
+            del data
+            for _ in tqdm(range(expectedSamples), desc = "processing", unit = "samples"):
+                dataset.append(outputQueue.get())
+            for _ in processes:
+                inputQueue.put(None)
+            for process in processes:
+                process.join()
+            self.pool["dataset"] = DataLoader(dataset, batch_size = 1, shuffle = True, collate_fn = dataLoader_collate)
         else:
             self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
             self.pool["short"] = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive]
@@ -138,7 +168,9 @@ class DataGenerator:
 
     def synthesize(self, noise:list, length:int, phonemeLength:int = None, expression:str = "") -> torch.Tensor:
         if self.mode == "dataset file":
-            return next(iter(self.pool["dataset"]))[0]
+            sample = next(iter(self.pool["dataset"]))
+            sample = sample.specharm + torch.cat((sample.avgSpecharm[:global_consts.halfHarms], torch.zeros((global_consts.halfHarms,), device = sample.avgSpecharm.device), sample.avgSpecharm[global_consts.halfHarms:]), 0)
+            return sample.to(torch.device(self.crfAi.device))
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""
         sequence, embeddings = self.makeSequence(noise, length, phonemeLength, expression)
         output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = torch.device("cpu"))

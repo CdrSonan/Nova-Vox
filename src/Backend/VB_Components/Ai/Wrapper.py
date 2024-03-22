@@ -23,6 +23,10 @@ from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
 
+def dataLoader_collate(data):
+    return data[0]
+    """This is exactly as dumb as it looks. This function is only here to work around DataLoader default collation being active even when there is nothing to collate, with no way to turn it off.
+    Also, it needs to be defined here because the Pickle pipes used by DataLoader can't send it to a worker process when it is defined in the scope it would normally belong in."""
 
 class AIWrapper():
     """Wrapper class for the mandatory AI components of a Voicebank. Controls data pre- and postprocessing, state loading and saving, Hyperparameters, and both training and inference."""
@@ -94,8 +98,7 @@ class AIWrapper():
         Returns:
             Iterable representing the same dataset, with the order of its elements shuffled"""
         
-        
-        return DataLoader(dataset=data, shuffle=True)
+        return DataLoader(dataset=data, shuffle=True, collate_fn = dataLoader_collate, batch_size=1, num_workers=4)
 
     def getState(self) -> dict:
         """returns the state of the NN, its optimizer and their prerequisites as well as its epoch and sample count attributes in a Dictionary.
@@ -146,7 +149,6 @@ class AIWrapper():
             
             reset: indicates whether the NNs and their optimizers should be reset before applying changed weights to them. Must be True when the dictionary contains weights
             for a NN using different hyperparameters than the currently active one."""
-
         if (mode == None) or (mode == "tr"):
             if reset:
                 self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
@@ -174,8 +176,8 @@ class AIWrapper():
             self.deskewingPremul = aiState["deskew_premul"]
             if not aiState["final"] and not self.inferOnly:
                 self.mainCritic.load_state_dict(aiState['mainCritic_model_state_dict'])
-                self.mainAiOptimizer.load_state_dict(aiState['mainAi_optimizer_state_dict'])
-                self.mainCriticOptimizer.load_state_dict(aiState['mainCritic_optimizer_state_dict'])
+                #self.mainAiOptimizer.load_state_dict(aiState['mainAi_optimizer_state_dict'])
+                #self.mainCriticOptimizer.load_state_dict(aiState['mainCritic_optimizer_state_dict'])
         self.trAi.eval()
         self.mainAi.eval()
 
@@ -308,11 +310,13 @@ class AIWrapper():
         else:
             self.trAi.epoch = None
         reportedLoss = 0.
+        loader = self.dataLoader(indata)
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
-            for data in tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
-                embedding1 = dec2bin(data[1][0].to(self.device), 32)
-                embedding2 = dec2bin(data[1][1].to(self.device), 32)
-                data = data[0].to(device = self.device)
+            for data in tqdm(loader, desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
+                avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+                embedding1 = dec2bin(data.embedding[0].to(self.device), 32)
+                embedding2 = dec2bin(data.embedding[1].to(self.device), 32)
+                data = (avgSpecharm + data.specharm).to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
                 spectrum2 = data[3, 2 * halfHarms:]
@@ -344,10 +348,11 @@ class AIWrapper():
         criterion = torch.zeros((global_consts.halfTripleBatchSize + 1,), device = self.device)
         criterionSteps = 0
         with torch.no_grad():
-            for data in self.dataLoader(indata):
-                embedding1 = dec2bin(data[1][0].clone().to(self.device), 32)
-                embedding2 = dec2bin(data[1][1].clone().to(self.device), 32)
-                data = data[0].to(device = self.device)
+            for data in loader:
+                avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+                embedding1 = dec2bin(data.embedding[0].clone().to(self.device), 32)
+                embedding2 = dec2bin(data.embedding[1].clone().to(self.device), 32)
+                data = (avgSpecharm + data.specharm).to(device = self.device)
                 data = torch.squeeze(data)
                 spectrum1 = data[2, 2 * halfHarms:]
                 spectrum2 = data[3, 2 * halfHarms:]
@@ -434,8 +439,9 @@ class AIWrapper():
         for phaseIdx, phase in enumerate(phases):
             for epoch in tqdm(range(epochs), desc = "training phase " + str(phaseIdx + 1), position = 1, unit = "epochs"):
                 for index, data in enumerate(tqdm(self.dataLoader(indata), desc = "epoch " + str(epoch), position = 0, total = len(indata), unit = "samples")):
-                    key = data[1][0]
-                    data = data[0]
+                    avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
+                    key = data.key
+                    data = (avgSpecharm + data.specharm).to(device = self.device)
                     if index % self.hparams["fargan_interval"] == self.hparams["fargan_interval"] - 1:
                         embedding = fargan_embedding
                         expression = fargan_expression

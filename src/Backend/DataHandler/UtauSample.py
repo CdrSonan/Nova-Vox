@@ -26,7 +26,7 @@ class UtauSample():
         Arguments:
             filepath: the path to the .wav file of the sample
 
-            _type: the type of the sample. Can be either 0 for phoneme 1 for transition or 2 fo sequence
+            _type: the type of the sample. Can be either 0 for phoneme, 1 for transition or 2 fo sequence
 
             key: the kay of the phoneme. Expected to be None for transition samples.
 
@@ -52,7 +52,7 @@ class UtauSample():
             None"""
             
 
-        self.audioSample = AISample(filepath)
+        self.audioSample = AISample(filepath, _type == 1)
         self._type = _type
         self.key = key
         self.start = start

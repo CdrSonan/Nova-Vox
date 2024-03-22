@@ -107,6 +107,7 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                ctypes.cast(output.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                timings,
                                global_consts.config)
+    output[:, global_consts.halfHarms:global_consts.nHarmonics + 2] *= 0.
     return output
     
 def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
@@ -115,7 +116,7 @@ def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         offset = 0
     else:
-        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][0].specharm.size()[0] / 2)
+        offset = math.ceil(vocalSegment.offset * vocalSegment.vb.phonemeDict.fetch(vocalSegment.phonemeKey, True)[0].specharm.size()[0] / 2)
     if vocalSegment.startCap:
         windowStart = offset
     else:

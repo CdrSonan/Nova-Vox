@@ -77,10 +77,11 @@ class Track():
         self.offsets = []
         self.length = 5000
         self.phonemeLengths = dict()
-        tmpVb = LiteVoicebank(self.vbPath)
-        for i in tmpVb.phonemeDict.keys():
-            if tmpVb.phonemeDict[i][0].isPlosive:
-                self.phonemeLengths[i] = tmpVb.phonemeDict[i][0].specharm.size()[0]
+        tmpVb = LiteVoicebank(None)
+        tmpVb.loadPhonemeDict(self.vbPath, False)
+        for i in tmpVb.phonemeDict.keys:
+            if tmpVb.phonemeDict.fetch(i, True)[0].isPlosive:
+                self.phonemeLengths[i] = tmpVb.phonemeDict.fetch(i, True)[0].specharm.size()[0]
             else:
                 self.phonemeLengths[i] = None
             self.wordDict = tmpVb.wordDict
