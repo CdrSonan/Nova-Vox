@@ -17,7 +17,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, IterableDataset
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
-from Backend.VB_Components.Ai.Util import specNormS5
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.DataHandler.AudioSample import LiteSampleCollection
@@ -25,7 +24,6 @@ from Backend.DataHandler.HDF5 import SampleStorage
 from Backend.Resampler.Resamplers import getSpecharm
 from Backend.Resampler.CubicSplineInter import interp
 from Backend.Resampler.PhaseShift import phaseInterp
-from Backend.ESPER.PitchCalculator import calculatePitch
 from Backend.ESPER.SpectralCalculator import asyncProcess
 from Util import dec2bin
 

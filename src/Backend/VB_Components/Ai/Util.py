@@ -1,15 +1,14 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-from math import sqrt, floor
+from math import floor
 
 import torch
 import torch.nn as nn
-from s5 import S5Block
 import global_consts
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
@@ -91,22 +90,3 @@ def newEmbedding(currentEmbeddings:int, dim:int, device:torch.device) -> torch.T
     power = 1. / (floor(currentEmbeddings / dim) + 1)
     embedding[currentEmbeddings % dim] = power
     return embedding
-
-def specNormS5(s5:S5Block)->S5Block:
-    """normalizes S5Block weights using a spectral norm.
-    
-    Arguments:
-        s5: S5Block to normalize
-        
-    Returns:
-        normalized S5Block"""
-    
-    s5.attn_norm = nn.utils.parametrizations.spectral_norm(s5.attn_norm)
-    s5.ff_enc = nn.utils.parametrizations.spectral_norm(s5.ff_enc)
-    s5.ff_dec = nn.utils.parametrizations.spectral_norm(s5.ff_dec)
-    s5.ff_norm = nn.utils.parametrizations.spectral_norm(s5.ff_norm)
-    s5.s5.seq = nn.utils.parametrizations.spectral_norm(s5.s5.seq, "B")
-    s5.s5.seq = nn.utils.parametrizations.spectral_norm(s5.s5.seq, "C")
-    s5.s5.seq = nn.utils.parametrizations.spectral_norm(s5.s5.seq, "D")
-    s5.s5.seq = nn.utils.parametrizations.spectral_norm(s5.s5.seq, "Lambda")
-    return s5
