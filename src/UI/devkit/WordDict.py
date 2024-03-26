@@ -378,7 +378,7 @@ class WorddictUi(Frame):
             syllable = self.syllableList.list.lb.get(index)
             newSyllable = self.syllableSettings.syllable.variable.get()
             if syllable != newSyllable:
-                while len(loadedVB.wordDict[1]) < len(newSyllable) - 1:
+                while len(loadedVB.wordDict[1]) < len(newSyllable):
                     loadedVB.wordDict[1].append(dict())
                 if newSyllable in loadedVB.wordDict[1][len(newSyllable) - 1].keys():
                     tkinter.messagebox.showerror(loc["error"], loc["worddict_syllable_exists_error"])
@@ -414,10 +414,9 @@ class WorddictUi(Frame):
                         if i != "\n":
                             syllable = i.split(",")[0]
                             mapping = i.split(",")[1].strip()
-                            if len(loadedVB.wordDict[1]) < len(syllable) - 1:
-                                while len(loadedVB.wordDict[1]) < len(syllable) - 1:
-                                    loadedVB.wordDict[1].append(dict())
-                            if syllable in loadedVB.wordDict[1][len(syllable)].keys():
+                            while len(loadedVB.wordDict[1]) < len(syllable):
+                                loadedVB.wordDict[1].append(dict())
+                            if syllable in loadedVB.wordDict[1][len(syllable) - 1].keys():
                                 tkinter.messagebox.showerror(loc["error"], loc["worddict_syllable_exists_error"])
                                 return
                             loadedVB.wordDict[1][len(syllable) - 1][syllable] = mapping

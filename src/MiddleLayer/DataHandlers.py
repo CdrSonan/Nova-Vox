@@ -393,6 +393,7 @@ class BorderProxy():
                 step = val.step
             return [self[i] for i in range(start, stop, step)]
         else:
+            print("border get", val, self.track.phonemeIndices, *[i.borders for i in self.track.notes])
             if val < 0:
                 brdIndex = len(self) + val
             else:
@@ -405,7 +406,7 @@ class BorderProxy():
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
             if noteIndex > 0:
-                return self.track.notes[noteIndex].borders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3 - 1]
+                return self.track.notes[noteIndex].borders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3 - 1]#TODO: Index out of range error occurs here
             return self.track.notes[noteIndex].borders[brdIndex - 1]
     
     def __setitem__(self, val, newVal):

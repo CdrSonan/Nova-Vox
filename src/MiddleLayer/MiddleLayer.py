@@ -144,6 +144,7 @@ class MiddleLayer(Widget):
     def switchNote(self, index:int) -> None:
         """Switches the places of the notes at positions index and index + 1 or the active track. Does currently not clean up timing markers afterwards, so doing so manually or by prompting a call of offsetPhonemes is currently required."""
 
+        print("switching notes", index)
         note = self.trackList[self.activeTrack].notes.pop(index + 1)
         self.trackList[self.activeTrack].notes.insert(index, note)
         self.adjustNote(index + 1, None, None, False, False)
@@ -356,7 +357,6 @@ class MiddleLayer(Widget):
             if i[0] <= index:
                 index += i[1]
         noteIndex = bisect_right(self.trackList[track].phonemeIndices, index)
-        print(self.trackList[track].phonemeIndices, index, noteIndex)
         while (self.trackList[track].phonemeIndices[noteIndex] == self.trackList[track].phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
             noteIndex -= 1
         if noteIndex > 0:
