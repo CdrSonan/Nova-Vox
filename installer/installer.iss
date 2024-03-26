@@ -23,8 +23,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{680531A2-5B3C-47B5-8380-CA6D7033BF13}
 AppName="Nova-Vox"
-AppVersion="0.10.0"
-AppVerName="Nova-Vox 0.10.0"
+AppVersion="0.10.1"
+AppVerName="Nova-Vox 0.10.1"
 AppPublisher="Nova-Vox development team"
 AppPublisherURL="https://nova-vox.org/"
 AppSupportURL="https://nova-vox.org/"
@@ -125,9 +125,9 @@ begin
     DownloadPage.Clear;
     // Use AddEx to specify a username and password
     if WizardIsComponentSelected('voices\TYC') then
-      DownloadPage.Add('https://dl.nova-vox.org/TYC-1.0.0.nvvb', 'TYC-1.0.0.nvvb', '');
+      DownloadPage.Add('https://dl.nova-vox.org/TYC-1.0.1.nvvb', 'TYC-1.0.1.nvvb', '');
     if WizardIsComponentSelected('voices\Arachne') then
-      DownloadPage.Add('https://dl.nova-vox.org/Arachne-1.0.0.nvvb', 'Arachne-1.0.0.nvvb', '');
+      DownloadPage.Add('https://dl.nova-vox.org/Arachne-1.0.1.nvvb', 'Arachne-1.0.1.nvvb', '');
     DownloadPage.Show;
     try
       try
@@ -152,8 +152,8 @@ end;
 Source: "..\dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\assets\settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
 Source: "..\dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
-Source: "{tmp}\TYC-1.0.0.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\TYC; Flags: ignoreversion uninsneveruninstall external
-Source: "{tmp}\Arachne-1.0.0.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Arachne; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\TYC-1.0.1.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\TYC; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\Arachne-1.0.1.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Arachne; Flags: ignoreversion uninsneveruninstall external
 ;Source: "Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion uninsneveruninstall
 ;Source: "Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
 Source: "..\assets\Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
