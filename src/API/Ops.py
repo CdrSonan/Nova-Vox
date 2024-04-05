@@ -550,8 +550,10 @@ class AddNote(UnifiedAction):
                 return
             if index == len(middleLayer.trackList[middleLayer.activeTrack].notes):
                 middleLayer.trackList[middleLayer.activeTrack].notes.append(Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
+                reference.reference = middleLayer.trackList[middleLayer.activeTrack].notes[-1]
             else:
                 middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
+                reference.reference = middleLayer.trackList[middleLayer.activeTrack].notes[index]
             middleLayer.adjustNote(index, 100, None, False, True)
             middleLayer.submitFinalize()
         super().__init__(action, index, x, y, reference, *args, **kwargs)

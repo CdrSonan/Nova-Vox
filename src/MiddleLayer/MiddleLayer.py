@@ -149,10 +149,6 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes.insert(index, note)
         self.adjustNote(index + 1, None, None, False, False)
         self.adjustNote(index, None, None, False, True)
-        print(self.trackList[self.activeTrack].notes[index].reference.index, index)
-        self.trackList[self.activeTrack].notes[index].reference.index = index
-        print(self.trackList[self.activeTrack].notes[index + 1].reference.index, index + 1)
-        self.trackList[self.activeTrack].notes[index + 1].reference.index = index + 1
         if index == 0:
             start = 0
             borderStart = 0
