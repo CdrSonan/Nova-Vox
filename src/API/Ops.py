@@ -19,7 +19,6 @@ from kivy.core.image import Image as CoreImage
 
 from UI.editor.Main import middleLayer
 from MiddleLayer.IniParser import readSettings
-from MiddleLayer.FileIO import validateTrackData
 from MiddleLayer.DataHandlers import Note, Track
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
 
@@ -837,47 +836,58 @@ class LoadNVX(UnifiedAction):
         def action(path):
             if path == "":
                 return
-            data = torch.load(path, map_location = torch.device("cpu"))
-            tracks = data["tracks"]
             for i in range(len(middleLayer.trackList)):
                 DeleteTrack(0)()
-            for trackData in tracks:
-                track = validateTrackData(trackData)
-                with h5py.File(track["vbPath"], "r") as f:
+            file = h5py.File(path, "r")
+            for group in file.values():
+                with h5py.File(group.attrs["vbPath"], "r") as f:
                     vbData = MetadataStorage(f).toMetadata()
-                _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
-                middleLayer.trackList[-1].volume = track["volume"]
-                for note in track["notes"]:
-                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], middleLayer.trackList[-1], None))
-                    middleLayer.trackList[-1].notes[-1].length = note["length"]
-                    middleLayer.trackList[-1].notes[-1].phonemeMode = note["phonemeMode"]
-                    middleLayer.trackList[-1].notes[-1].content = note["content"]
-                    middleLayer.trackList[-1].notes[-1].pronuncIndex = note["pronuncIndex"]
-                    middleLayer.trackList[-1].notes[-1].phonemes = note["phonemes"]
-                    middleLayer.trackList[-1].notes[-1].autopause = note["autopause"]
-                    middleLayer.trackList[-1].notes[-1].borders = note["borders"]
-                    middleLayer.trackList[-1].notes[-1].carryOver = note["carryOver"]
-                    middleLayer.trackList[-1].notes[-1].loopOverlap = note["loopOverlap"]
-                    middleLayer.trackList[-1].notes[-1].loopOffset = note["loopOffset"]
-                middleLayer.trackList[-1].pitch = track["pitch"]
-                middleLayer.trackList[-1].basePitch = track["basePitch"]
-                middleLayer.trackList[-1].breathiness = track["breathiness"]
-                middleLayer.trackList[-1].steadiness = track["steadiness"]
-                middleLayer.trackList[-1].aiBalance = track["aiBalance"]
-                middleLayer.trackList[-1].vibratoSpeed = track["vibratoSpeed"]
-                middleLayer.trackList[-1].vibratoStrength = track["vibratoStrength"]
-                middleLayer.trackList[-1].usePitch = track["usePitch"]
-                middleLayer.trackList[-1].useBreathiness = track["useBreathiness"]
-                middleLayer.trackList[-1].useSteadiness = track["useSteadiness"]
-                middleLayer.trackList[-1].useAIBalance = track["useAIBalance"]
-                middleLayer.trackList[-1].useVibratoSpeed = track["useVibratoSpeed"]
-                middleLayer.trackList[-1].useVibratoStrength = track["useVibratoStrength"]
-                middleLayer.trackList[-1].nodegraph = track["nodegraph"]
-                middleLayer.trackList[-1].length = track["length"]
-                middleLayer.trackList[-1].mixinVB = track["mixinVB"]
-                middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
-                middleLayer.trackList[-1].borders.wrappingBorders = track["wrappingBorders"]
+                _importVoicebankNoSubmit(group.attrs["vbPath"], vbData.name, vbData.image)
+                middleLayer.trackList[-1].volume = group.attrs["volume"]
+                for xPos, yPos, length, phonemeMode, content, pronuncIndex, phonemes, autopause, carryOver in zip(
+                    group["xPos"], group["yPos"], group["lengths"], group["phonemeMode"], group["content"], group["pronuncIndex"], group["phonemes"], group["autopause"], group["carryOver"]
+                ):
+                    middleLayer.trackList[-1].notes.append(Note(int(xPos), int(yPos), middleLayer.trackList[-1], None))
+                    middleLayer.trackList[-1].notes[-1].length = int(length)
+                    middleLayer.trackList[-1].notes[-1].phonemeMode = bool(phonemeMode)
+                    middleLayer.trackList[-1].notes[-1].content = content.decode("utf-8")
+                    if pronuncIndex == -1:
+                        pronuncIndex = None
+                    else:
+                        pronuncIndex = int(pronuncIndex)
+                    middleLayer.trackList[-1].notes[-1].pronuncIndex = pronuncIndex
+                    middleLayer.trackList[-1].notes[-1].phonemes = phonemes.decode("utf-8").split(" ")
+                    middleLayer.trackList[-1].notes[-1].loopOffset = [0 for _ in range(len(middleLayer.trackList[-1].notes[-1].phonemes))]
+                    middleLayer.trackList[-1].notes[-1].loopOverlap = [0 for _ in range(len(middleLayer.trackList[-1].notes[-1].phonemes))]
+                    middleLayer.trackList[-1].notes[-1].autopause = bool(autopause)
+                    middleLayer.trackList[-1].notes[-1].borders = [0 for _ in range(3 * len(phonemes))]
+                    middleLayer.trackList[-1].notes[-1].carryOver = bool(carryOver)
+                middleLayer.trackList[-1].pitch = torch.tensor(group["pitch"][:])
+                middleLayer.trackList[-1].basePitch = torch.tensor(group["basePitch"][:])
+                middleLayer.trackList[-1].breathiness = torch.tensor(group["breathiness"][:])
+                middleLayer.trackList[-1].steadiness = torch.tensor(group["steadiness"][:])
+                middleLayer.trackList[-1].aiBalance = torch.tensor(group["aiBalance"][:])
+                middleLayer.trackList[-1].vibratoSpeed = torch.tensor(group["vibratoSpeed"][:])
+                middleLayer.trackList[-1].vibratoStrength = torch.tensor(group["vibratoStrength"][:])
+                middleLayer.trackList[-1].usePitch = bool(group.attrs["usePitch"])
+                middleLayer.trackList[-1].useBreathiness = bool(group.attrs["useBreathiness"])
+                middleLayer.trackList[-1].useSteadiness = bool(group.attrs["useSteadiness"])
+                middleLayer.trackList[-1].useAIBalance = bool(group.attrs["useAIBalance"])
+                middleLayer.trackList[-1].useVibratoSpeed = bool(group.attrs["useVibratoSpeed"])
+                middleLayer.trackList[-1].useVibratoStrength = bool(group.attrs["useVibratoStrength"])
+                #middleLayer.trackList[-1].nodegraph = group["nodegraph"]
+                middleLayer.trackList[-1].length = int(group.attrs["length"])
+                if group.attrs["mixinVB"] == "":
+                    middleLayer.trackList[-1].mixinVB = None
+                else:
+                    middleLayer.trackList[-1].mixinVB = group.attrs["mixinVB"]
+                middleLayer.trackList[-1].pauseThreshold = int(group.attrs["pauseThreshold"])
                 middleLayer.trackList[-1].buildPhonemeIndices()
+                for i in range(len(middleLayer.trackList[-1].borders)):
+                    middleLayer.trackList[-1].borders[i] = int(group["borders"][i])
+                for i in range(len(middleLayer.trackList[-1].phonemes)):
+                    middleLayer.trackList[-1].loopOffset[i] = float(group["loopOffset"][i])
+                    middleLayer.trackList[-1].loopOverlap[i] = float(group["loopOverlap"][i])
             middleLayer.validate()
         super().__init__(action, path, *args, **kwargs)
     
@@ -885,8 +895,7 @@ class LoadNVX(UnifiedAction):
         def restoreTrackList(tracks:list):
             for i in range(len(middleLayer.trackList)):
                 middleLayer.deleteTrack(0)
-            for trackData in tracks:
-                track = validateTrackData(trackData)
+            for track in tracks:
                 with h5py.File(track["vbPath"], "r") as f:
                     vbData = MetadataStorage(f).toMetadata()
                 _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)

@@ -14,9 +14,10 @@ from kivy.uix.treeview import TreeViewLabel
 from kivy.core.image import Image as CoreImage
 from kivy.properties import ObjectProperty
 
-import torch
+import h5py
 
 from Backend import NodeLib
+from Backend.DataHandler.HDF5 import MetadataStorage
 from MiddleLayer.IniParser import readSettings
 from UI.editor.Util import ManagedPopup
 
@@ -75,9 +76,10 @@ class SingerSettingsPanel(Popup):
         files = os.listdir(voicePath)
         for file in files:
             if file.endswith(".nvvb"):
-                data = torch.load(os.path.join(voicePath, file), map_location = torch.device("cpu"))
-                self.vbData.append(data["metadata"])
-                self.voicebanks.append(data["metadata"].name)
+                with h5py.File(os.path.join(voicePath, file), "r") as f:
+                    metadata = MetadataStorage(f).toMetadata()
+                self.vbData.append(metadata)
+                self.voicebanks.append(metadata.name)
                 self.filepaths.append(os.path.join(voicePath, file))
         self.modVoicebanks = copy(self.voicebanks)
         self.modVoicebanks.append("None")
