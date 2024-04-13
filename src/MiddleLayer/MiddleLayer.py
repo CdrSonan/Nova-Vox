@@ -149,10 +149,6 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].notes.insert(index, note)
         self.adjustNote(index + 1, None, None, False, False)
         self.adjustNote(index, None, None, False, True)
-        print(self.trackList[self.activeTrack].notes[index].reference.index, index)
-        self.trackList[self.activeTrack].notes[index].reference.index = index
-        print(self.trackList[self.activeTrack].notes[index + 1].reference.index, index + 1)
-        self.trackList[self.activeTrack].notes[index + 1].reference.index = index + 1
         if index == 0:
             start = 0
             borderStart = 0
@@ -357,7 +353,7 @@ class MiddleLayer(Widget):
             if i[0] <= index:
                 index += i[1]
         noteIndex = bisect_right(self.trackList[track].phonemeIndices, index)
-        while (self.trackList[track].phonemeIndices[noteIndex] == self.trackList[track].phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
+        while (self.trackList[track].phonemeIndices[noteIndex] == self.trackList[track].phonemeIndices[noteIndex - 1]) and (noteIndex > 0): #noteIndex out of range here, presumably after _autopause
             noteIndex -= 1
         if noteIndex > 0:
             if (index - self.trackList[track].phonemeIndices[noteIndex]) >= len(self.trackList[track].notes[noteIndex].phonemes):

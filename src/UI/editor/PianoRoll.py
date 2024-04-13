@@ -66,7 +66,6 @@ class PhonemeSelector(Bubble):
 class Note(ManagedToggleButton):
     """class for a note on the piano roll"""
 
-    index = NumericProperty()
     xPos = NumericProperty()
     yPos = NumericProperty()
     length = NumericProperty()
@@ -77,6 +76,7 @@ class Note(ManagedToggleButton):
         super().__init__(**kwargs)
         Window.bind(mouse_pos=self.on_mouseover)
         self.propertiesBubble = None
+        self.reference = None
 
     def on_mouseover(self, window, pos):
         super().on_mouseover(window, pos)
@@ -105,13 +105,12 @@ class Note(ManagedToggleButton):
         from UI.editor.Main import middleLayer
         if len(middleLayer.trackList[middleLayer.activeTrack].phonemes) == 0:
             return
-        reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
         if index >= len(self.statusBars) or index < 0:
             return
         self.canvas.remove(self.statusBars[index])
         del self.statusBars[index]
-        rectanglePos = (self.pos[0] + (index) / len(reference.phonemes) * self.width, self.pos[1] + self.height * status / 5.)
-        rectangleSize = (self.width / len(reference.phonemes), self.height * (1. - status / 5.))
+        rectanglePos = (self.pos[0] + (index) / len(self.reference.phonemes) * self.width, self.pos[1] + self.height * status / 5.)
+        rectangleSize = (self.width / len(self.reference.phonemes), self.height * (1. - status / 5.))
         group = InstructionGroup()
         group.add(Color(0., 0., 0., 0.5))
         group.add(Rectangle(pos = rectanglePos, size = rectangleSize))
@@ -138,7 +137,8 @@ class Note(ManagedToggleButton):
         if self.collide_point(*touch.pos):
             coord = self.to_local(touch.x, touch.y)
             touch.ud["initialPos"] = coord
-            touch.ud["noteIndex"] = self.index
+            index = middleLayer.trackList[middleLayer.activeTrack].notes.index(self.reference)
+            touch.ud["noteIndex"] = index
             if coord[0] <= self.x + self.width and coord[0] > max(self.x, self.x + self.width - 10):
                 touch.ud["grabMode"] = "end"
             elif coord[0] >= self.x and coord[0] < min(self.x + 10, self.x + self.width):
@@ -185,20 +185,19 @@ class Note(ManagedToggleButton):
         global middleLayer
         from UI.editor.Main import middleLayer
         self.inputMode = not self.inputMode
-        middleLayer.trackList[middleLayer.activeTrack].notes[self.index].phonemeMode = self.inputMode
-        API.Ops.ChangeLyrics(self.index, self.children[1].text)
+        self.reference.phonemeMode = self.inputMode
+        index = middleLayer.trackList[middleLayer.activeTrack].notes.index(self.reference)
+        API.Ops.ChangeLyrics(index, self.children[1].text)
 
     def delete(self) -> None:
         """deletes the note"""
 
         global middleLayer
         from UI.editor.Main import middleLayer
-        for i in self.parent.parent.notes:
-            if i.index > self.index:
-                i.index -= 1
         self.parent.parent.notes.remove(self)
         self.parent.remove_widget(self)
-        API.Ops.RemoveNote(self.index)()
+        index = middleLayer.trackList[middleLayer.activeTrack].notes.index(self.reference)
+        API.Ops.RemoveNote(index)()
 
     def changeLyrics(self, text:str, focus = False) -> None:
         """changes the lyrics of the note"""
@@ -207,7 +206,8 @@ class Note(ManagedToggleButton):
         from UI.editor.Main import middleLayer
         if focus:
             return
-        API.Ops.ChangeLyrics(self.index, text)()
+        index = middleLayer.trackList[middleLayer.activeTrack].notes.index(self.reference)
+        API.Ops.ChangeLyrics(index, text)()
         self.redrawStatusBars()
 
     def redrawStatusBars(self, complete = False) -> None:
@@ -215,8 +215,7 @@ class Note(ManagedToggleButton):
         "complete" is a flag that indicates whether the status bars are to be drawn as if rendering of their respective phonemes had been completed.
         If the flag is not set, the status bars are instead drawn without any rendering progress."""
         
-        reference = middleLayer.trackList[middleLayer.activeTrack].notes[self.index]
-        phonemeLength = len(reference.phonemes)
+        phonemeLength = len(self.reference.phonemes)
         for i in range(len(self.statusBars)):
             self.canvas.remove(self.statusBars[-1])
             del self.statusBars[-1]
@@ -319,14 +318,13 @@ class PianoRoll(ScrollView):
 
         global middleLayer
         from UI.editor.Main import middleLayer
-        index = 0
         for i in middleLayer.trackList[middleLayer.activeTrack].notes:
-            note = Note(index = index, xPos = i.xPos, yPos = i.yPos, length = i.length, height = self.yScale, inputMode = i.phonemeMode)
+            note = Note(xPos = i.xPos, yPos = i.yPos, length = i.length, height = self.yScale, inputMode = i.phonemeMode)
+            note.reference = i
+            i.reference = note
             note.children[0].text = i.content
             self.children[0].add_widget(note)
             self.notes.append(note)
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].reference = note
-            index += 1
 
     @mainthread
     def generateTimingMarkers(self) -> None:
@@ -690,9 +688,7 @@ class PianoRoll(ScrollView):
                     for i in self.notes:
                         if i.xPos < xQuant:
                             index += 1
-                        elif i.xPos > xQuant:
-                            i.index += 1
-                        else:
+                        elif i.xPos == xQuant:
                             index += 1
                             xQuant += 1
                     touch.ud["newNote"] = (index, xQuant, y, coord)
@@ -740,7 +736,7 @@ class PianoRoll(ScrollView):
             yMod = coord[1]
             if "newNote" in touch.ud:
                 if self.to_local(touch.x, touch.y) != touch.ud["newNote"][3]:
-                    newNote = Note(index = touch.ud["newNote"][0], xPos = touch.ud["newNote"][1], yPos = touch.ud["newNote"][2], length = 100, height = self.yScale)
+                    newNote = Note(xPos = touch.ud["newNote"][1], yPos = touch.ud["newNote"][2], length = 100, height = self.yScale)
                     API.Ops.AddNote(touch.ud["newNote"][0], touch.ud["newNote"][1], touch.ud["newNote"][2], newNote)()
                     self.children[0].add_widget(newNote, index = 5)
                     self.notes.append(newNote)
@@ -765,7 +761,6 @@ class PianoRoll(ScrollView):
                     if switch == True:
                         touch.ud["noteIndex"] += 1
                     elif switch == False:
-                        note.index -= 1
                         touch.ud["noteIndex"] -= 1
                     note.redraw()
                 elif touch.ud["grabMode"] == "mid":
