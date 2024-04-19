@@ -303,12 +303,12 @@ class IntInput(TextInput, TooltipBehavior):
         s = re.sub(pat, '', substring)
         return super().insert_text(s, from_undo)
 
-class ReferencingButton(ManagedButton, TooltipBehavior):
+class ReferencingButton(ManagedButton):
     """A button with an additional property for keeping a reference to a different, arbitrary object"""
 
     reference = ObjectProperty()
 
-class ListElement(ManagedButton, TooltipBehavior):
+class ListElement(ManagedButton):
     """A button with an additional integer property representing its position in a list"""
 
     index = NumericProperty()

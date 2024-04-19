@@ -18,9 +18,11 @@
         ReferencingButton:
             text: "change input mode"
             on_press: self.reference.changeInputMode()
+            tooltip_txt: app.root.loc["note_mode_tt"]
         ReferencingButton:
             text: "delete"
             on_press: self.reference.delete()
+            tooltip_txt: app.root.loc["note_delete_tt"]
 
 <PhonemeSelector>:
     size_hint: (None, None)
@@ -29,6 +31,7 @@
     orientation: 'vertical'
     background_image: "assets/UI/Toolbar/overlay.png"
     arrow_pos: "top_mid"
+    tooltip_txt: app.root.loc["note_pronunc_tt"]
 
 <Note>:
     size_hint: (None, None)
@@ -47,3 +50,4 @@
         background_color: (0, 0, 0, 0)
         #transparent background of the text field, showing the parent widget
         on_focus: self.parent.changeLyrics(self.text, self.focus)
+        tooltip_txt: app.root.loc["note_tt"]
