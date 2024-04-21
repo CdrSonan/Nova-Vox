@@ -88,11 +88,11 @@ class ParamPanel(ManagedToggleButton):
 
         self.add_widget(Label(size_hint = (None, None), size = (self.width - 106, 30), pos = (self.x + 103, self.y + 3), text = self.visualName))
         if self.sortable:
-            self.add_widget(ImageButton(size_hint = (None, None), size = (40, 30), pos = (self.x + 33, self.y + 3), source = "assets/UI/ParamList/Adaptive03.png", on_release = self.moveParam), tooltip_txt = loc["param_move_tt"])
+            self.add_widget(ImageButton(size_hint = (None, None), size = (40, 30), pos = (self.x + 33, self.y + 3), source = "assets/UI/ParamList/Adaptive03.png", on_release = self.moveParam, tooltip_txt = loc["param_move_tt"]))
         if self.deletable:
-            self.add_widget(ImageButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 73, self.y + 3), source = "assets/UI/TrackList/SingerGrey03new.png", on_press = self.deleteParam), tooltip_txt = loc["param_delete_tt"])
+            self.add_widget(ImageButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 73, self.y + 3), source = "assets/UI/TrackList/SingerGrey03new.png", on_press = self.deleteParam, tooltip_txt = loc["param_delete_tt"]))
         if self.switchable:
-            self.add_widget(ImageToggleButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 3, self.y + 3), source = "assets/UI/ParamList/Adaptive02.png", function = self.enableParam), tooltip_txt = loc["param_enable_tt"])
+            self.add_widget(ImageToggleButton(size_hint = (None, None), size = (30, 30), pos = (self.x + 3, self.y + 3), source = "assets/UI/ParamList/Adaptive02.png", function = self.enableParam, tooltip_txt = loc["param_enable_tt"]))
             if switchState:
                 self.children[0].state = "down"
 
