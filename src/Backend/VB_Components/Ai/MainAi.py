@@ -91,6 +91,8 @@ class DataGenerator(IterableDataset):
             file = h5py.File(path, "r")
             for group in file.values():
                 phonemes = " ".join([phoneme.decode("utf-8") for phoneme in group["phonemes"]]).split(" ")
+                if len(phonemes) < 2:
+                    continue
                 self.pool["sequences"].append(VocalSequence(len(phonemes),
                                                             torch.tensor(group["borders"]),
                                                             phonemes,
@@ -134,21 +136,21 @@ class DataGenerator(IterableDataset):
             phonemeSequence = random.choice(self.voicebank.wordDict[0].values())
         elif self.mode == ".nvx file":
             sequence = random.choice(self.pool["sequences"])
-            start = random.randint(0, len(sequence.phonemes))
+            start = random.randint(0, len(sequence.phonemes) - 2)
             end = start
             while end < len(sequence.phonemes) and sequence.borders[3 * end + 1] - sequence.borders[3 * start + 1] < targetLength:
                 end += 1
-            return VocalSequence(end - start,
-                                 sequence.borders[3 * start:3 * end + 3],
+            sequence = VocalSequence(sequence.borders[3 * end + 2] - sequence.borders[3 * start],
+                                 [i - sequence.borders[3 * start] for i in sequence.borders[3 * start:3 * end + 3]],
                                  sequence.phonemes[start:end],
                                  sequence.offsets[start:end],
                                  sequence.repetititionSpacing[start:end],
-                                 sequence.pitch[sequence.borders[3 * start]:sequence.borders[3 * end + 3]],
-                                 sequence.steadiness[sequence.borders[3 * start]:sequence.borders[3 * end + 3]],
-                                 sequence.breathiness[sequence.borders[3 * start]:sequence.borders[3 * end + 3]],
-                                 sequence.aiBalance[sequence.borders[3 * start]:sequence.borders[3 * end + 3]],
-                                 sequence.vibratoSpeed[sequence.borders[3 * start]:sequence.borders[3 * end + 3]],
-                                 sequence.vibratoStrength[sequence.borders[3 * start]:sequence.borders[3 * end + 3]],
+                                 sequence.pitch[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
+                                 sequence.steadiness[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
+                                 sequence.breathiness[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
+                                 sequence.aiBalance[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
+                                 sequence.vibratoSpeed[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
+                                 sequence.vibratoStrength[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
                                  sequence.useBreathiness,
                                  sequence.useSteadiness,
                                  sequence.useAIBalance,
@@ -156,8 +158,12 @@ class DataGenerator(IterableDataset):
                                  sequence.useVibratoStrength,
                                  sequence.customCurves,
                                  sequence.nodeGraphFunction)
+            idx = [random.randint(0, len(self.voicebank.phonemeDict[i]) - 1) for i in sequence.phonemes]
+            embeddings = [self.voicebank.phonemeDict[phoneme][idx[i]].embedding for i, phoneme in enumerate(sequence.phonemes)]
+            return sequence, embeddings
         else:
             raise ValueError("Invalid mode for Data Generator")
+        
         def stripPhoneme(phoneme:str) -> str:
             phoneme = phoneme.split("_")
             if len(phoneme) == 1:

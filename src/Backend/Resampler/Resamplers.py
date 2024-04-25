@@ -17,7 +17,7 @@ import Backend.Resampler.Loop as Loop
 from Backend.DataHandler.VocalSegment import VocalSegment
 
 def getClosestSample(samples:list, pitch:float):
-    closestSample = 0
+    closestSample = None
     closestDistance = math.inf
     for sample in samples:
         if abs(sample.pitch - pitch) < closestDistance:
