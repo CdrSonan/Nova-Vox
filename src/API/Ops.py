@@ -553,7 +553,7 @@ class AddNote(UnifiedAction):
             else:
                 middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
                 reference.reference = middleLayer.trackList[middleLayer.activeTrack].notes[index]
-            middleLayer.adjustNote(index, 100, None, False, True)
+            middleLayer.adjustNote(index, None, None, False, True)
             middleLayer.submitFinalize()
         super().__init__(action, index, x, y, reference, *args, **kwargs)
         self.index = index
@@ -645,9 +645,13 @@ class MoveNote(UnifiedAction):
                 oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[0])
             else:
                 oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[3 * middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1]])
+            if index == len(middleLayer.trackList[middleLayer.activeTrack].notes) - 1 or middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1] == middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index]:
+                oldEnd = int(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
+            else:
+                oldEnd = int(middleLayer.trackList[middleLayer.activeTrack].borders[3 * middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index] + 2])
             middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
-            switch = middleLayer.adjustNote(index, oldStart, adjustPrevious = True)
+            switch = middleLayer.adjustNote(index, oldStart, oldEnd, adjustPrevious = True)
             middleLayer.submitFinalize()
             return switch
         super().__init__(action, index, x, y, *args, **kwargs)
