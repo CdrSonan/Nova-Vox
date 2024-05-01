@@ -24,6 +24,7 @@ from UI.devkit.MainAi import MainaiUi
 from UI.devkit.WordDict import WorddictUi
 from UI.devkit.UtauImport import UtauImportUi
 from UI.devkit.AdvSettings import AdvSettingsUi
+from UI.devkit.NewVB import NewVBUi
 from UI.devkit.Widgets import Frame, Label, Button
 
 global loadedVB
@@ -218,8 +219,9 @@ class RootUi(Frame):
         
         logging.info("new button callback")
         global loadedVB
-        if tkinter.messagebox.askokcancel(loc["warning"], loc["vb_discard_msg"], icon = "warning"):
-            loadedVB = Voicebank(None, self.device)
+        self.newVBUi = NewVBUi(tkinter.Toplevel())
+        self.newVBUi.mainloop()
+        if loadedVB is not None:
             self.metadataButton["state"] = "normal"
             self.phonemedictButton["state"] = "normal"
             self.crfaiButton["state"] = "normal"
