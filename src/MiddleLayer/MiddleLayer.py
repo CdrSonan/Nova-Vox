@@ -222,10 +222,10 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].basePitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
         self.trackList[self.activeTrack].pitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
         if index > 0:
-            self.recalculateBasePitch(index - 1)#oldStart, oldEnd)
+            self.recalculateBasePitch(index - 1)
         self.recalculateBasePitch(index)
         if index + 1 < len(self.trackList[self.activeTrack].notes):
-            self.recalculateBasePitch(index + 1)#oldStart, oldEnd)
+            self.recalculateBasePitch(index + 1)
         if (self.trackList[self.activeTrack].borders[start] != oldStart or adjustPrevious) and index > 0:
             self.adjustNote(index - 1, None, None, True, False)
             if index == 0:
@@ -460,8 +460,8 @@ class MiddleLayer(Widget):
                 transitionPoint1 = (transitionPoint1 + self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length) / 2
         if index == len(self.trackList[self.activeTrack].notes) - 1:
             nextHeight = None
-        elif self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
-            nextHeight = None
+        #elif self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
+            #nextHeight = None
         elif self.trackList[self.activeTrack].notes[index].autopause:
             nextHeight = None
         else:
