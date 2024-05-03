@@ -169,16 +169,20 @@ class MiddleLayer(Widget):
     def adjustNote(self, index:int, oldStart:int = None, oldEnd:int = None, keepStart:bool = False, adjustPrevious:bool = False) -> None:
         """Adjusts a note's attributes after it has been moved or scaled with respect to its surrounding notes. The current position and length are read from its UI representation, the old one must be given as arguments."""
 
+        print("adjust note ", index)
         if oldStart == None:
             if index == 0:
                 oldStart = int(self.trackList[self.activeTrack].borders[0])
             else:
                 oldStart = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]])
-        elif oldEnd == None:
+            print("old start override to ", oldStart)
+        if oldEnd == None:
             if index == len(self.trackList[self.activeTrack].notes) - 1 or self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
                 oldEnd = int(self.trackList[self.activeTrack].borders[-1])
             else:
                 oldEnd = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2])
+            print("old end override to ", oldEnd)
+        print("old start: ", oldStart, " old end: ", oldEnd)
         switch = None
         if index > 0 and self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
             self.switchNote(index - 1)
@@ -215,11 +219,13 @@ class MiddleLayer(Widget):
         else:
             end = self.trackList[self.activeTrack].phonemeIndices[index] * 3 + 1
         self.submitNamedPhonParamChange(False, "borders", start, list(self.trackList[self.activeTrack].borders[start:end]))
+        self.trackList[self.activeTrack].basePitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
+        self.trackList[self.activeTrack].pitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
         if index > 0:
-            self.recalculateBasePitch(index - 1, oldStart, oldEnd)
-        self.recalculateBasePitch(index, oldStart, oldEnd)
+            self.recalculateBasePitch(index - 1)
+        self.recalculateBasePitch(index)
         if index + 1 < len(self.trackList[self.activeTrack].notes):
-            self.recalculateBasePitch(index + 1, oldStart, oldEnd)
+            self.recalculateBasePitch(index + 1)
         if (self.trackList[self.activeTrack].borders[start] != oldStart or adjustPrevious) and index > 0:
             self.adjustNote(index - 1, None, None, True, False)
             if index == 0:
@@ -431,9 +437,10 @@ class MiddleLayer(Widget):
         return (pos1Out, pos2Out)
 
     @override
-    def recalculateBasePitch(self, index:int, oldStart:float, oldEnd:float) -> None:
+    def recalculateBasePitch(self, index:int) -> None:
         """recalculates the base pitch curve after the note at position index of the active track has been modified. oldStart and oldEnd are the start and end of the note before the transformation leading to the function call."""
 
+        print("recalculating base pitch for note ", index)
         dipWidth = global_consts.pitchDipWidth
         dipHeight = global_consts.pitchDipHeight
         transitionLength1 = min(global_consts.pitchTransitionLength, int(self.trackList[self.activeTrack].notes[index].length))
@@ -443,9 +450,7 @@ class MiddleLayer(Widget):
         transitionPoint2 = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
         if index == 0:
             previousHeight = None
-        elif len(self.trackList[self.activeTrack].notes[index]) == 0:
-            previousHeight = None
-        elif self.trackList[self.activeTrack].notes[index].autopause:
+        elif self.trackList[self.activeTrack].notes[index - 1].autopause:
             previousHeight = None
         else:
             previousHeight = self.trackList[self.activeTrack].notes[index - 1].yPos
@@ -455,8 +460,8 @@ class MiddleLayer(Widget):
                 transitionPoint1 = (transitionPoint1 + self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length) / 2
         if index == len(self.trackList[self.activeTrack].notes) - 1:
             nextHeight = None
-        elif self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
-            nextHeight = None
+        #elif self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
+            #nextHeight = None
         elif self.trackList[self.activeTrack].notes[index].autopause:
             nextHeight = None
         else:
@@ -467,6 +472,7 @@ class MiddleLayer(Widget):
                 transitionLength2 += transitionPoint2 - self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index].length
                 transitionPoint2 = (transitionPoint2 + self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length) / 2
         scalingFactor = min(self.trackList[self.activeTrack].notes[index].length / 2 / dipWidth, 1.)
+        print(previousHeight, nextHeight)
         dipWidth *= scalingFactor
         dipHeight *= scalingFactor
         start = int(transitionPoint1 - math.ceil(transitionLength1 / 2))
@@ -480,10 +486,12 @@ class MiddleLayer(Widget):
             else:
                 start = min(start, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]]))
         if nextHeight == None:
-            end = max(self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2]))
+            if self.trackList[self.activeTrack].notes[index].autopause:
+                end = max(self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] - 1]))
+            else:
+                end = max(self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2]))
         pitchDelta = (self.trackList[self.activeTrack].pitch[start:end] - self.trackList[self.activeTrack].basePitch[start:end]) * torch.heaviside(self.trackList[self.activeTrack].basePitch[start:end], torch.ones_like(self.trackList[self.activeTrack].basePitch[start:end]))
-        self.trackList[self.activeTrack].basePitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
-        self.trackList[self.activeTrack].pitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
+
         self.trackList[self.activeTrack].basePitch[start:end] = torch.full_like(self.trackList[self.activeTrack].basePitch[start:end], currentHeight)
         if previousHeight != None:
             self.trackList[self.activeTrack].basePitch[transitionPoint1 - math.ceil(transitionLength1 / 2):transitionPoint1 + math.ceil(transitionLength1 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * math.ceil(transitionLength1 / 2))), 2) * (previousHeight - currentHeight) + torch.full([2 * math.ceil(transitionLength1 / 2),], currentHeight)

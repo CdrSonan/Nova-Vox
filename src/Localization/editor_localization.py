@@ -94,6 +94,47 @@ def getLanguage():
         #unsaved changes warning
         locale["unsaved_changes"] = "Unsaved Changes"
         locale["unsaved_changes_msg"] = "You have unsaved changes. Do you want to save them before exiting?"
+        #tooltips
+        locale["play"] = "Play/Pause"
+        locale["fast_forward"] = "Jump to the end of the song"
+        locale["rewind"] = "Jump to the beginning of the song"
+        locale["undo"] = "Undo"
+        locale["redo"] = "Redo"
+        locale["license_tt"] = "View the licenses and contributors of the software used in Nova-Vox"
+        #\/ not added yet \/#
+        locale["piano_roll_tt"] = """Piano roll.
+        In note mode, drag to add notes. Drag the beginning or end of a note to change its length. Drag the middle of a note to move it.
+        In timing mode, drag to move individual timing points. Hold shift to move all timing points belonging to the same phoneme transition.
+        In pitch mode, use the pencil, line, arch and reset tools to edit the pitch curve.
+        In all modes, hold shift and use the mouse wheel to scroll horizontally. Hold ctrl and scroll to zoom in or out horizontally, and hold alt and scroll to zoom in or out vertically."""
+        locale["notes_tt"] = "Edit notes, phonemes, and sound parameters"
+        locale["timing_tt"] = "Edit timing and resampler parameters"
+        locale["pitch_tt"] = "Edit pitch and vibrato parameters"
+        locale["pencil_tt"] = "pencil tool. Draw freeform parameter or pitch curves"
+        locale["line_tt"] = "line tool. Draw straight lines as parameter or pitch curves. Hold shift to snap the beginning and/or end of the line to the existing curve."
+        locale["arch_tt"] = "arch tool. Draw arches as parameter or pitch curves. Hold shift to snap the beginning and/or end of the arch to the existing curve."
+        locale["reset_tt"] = "reset tool. Reset the parameter or pitch curve to its default shape."
+        locale["measure_tt"] = "Change the measure type of the song. Used for quantization."
+        locale["quant_tt"] = "Quantize notes to the selected beat division"
+        locale["tempo_tt"] = "Change the tempo of the song. Used for quantization."
+        locale["param_move_tt"] = "Move this parameter up or down in the list"
+        locale["param_delete_tt"] = "Delete this parameter"
+        locale["param_enable_tt"] = "Enable/disable this parameter"
+        locale["file_panel_tt"] = "save, load, import and export files, and render the current project to audio"
+        locale["singer_panel_tt"] = "list and import available voices"
+        locale["param_panel_tt"] = "list and add parameters to the current track"
+        locale["script_panel_tt"] = "manage and use addons and run scripts"
+        locale["settings_panel_tt"] = "change editor settings"
+        locale["renderer_restart_tt"] = "Restart the renderer. May fix audio issues and freezes."
+        locale["track_settings_tt"] = "Settings of this track"
+        locale["track_copy_tt"] = "duplicate this track"
+        #\/ not added yet \/#
+        locale["nodes_tree_tt"] = "add nodes to the nodegraph of this track"
+        locale["track_delete_tt"] = "delete this track"
+        locale["note_mode_tt"] = "Change this note between lyrics and phoneme input mode"
+        locale["note_delete_tt"] = "Delete this note"
+        locale["note_pronunc_tt"] = "Select the pronunciation of this note"
+        locale["note_tt"] = "In Note edit mode, drag to move the note, its start or end. Double click to edit the note's lyrics."
 
     if lang == "jp":
         #API interface
