@@ -20,7 +20,7 @@ from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
 class NewVBUi(Frame):
-    def __init__(self, master=ThemedTk(theme = "black")) -> None:
+    def __init__(self, reference, master=ThemedTk(theme = "black")) -> None:
         super().__init__(master)
         logging.info("initializing new VB UI")
         Frame.__init__(self, master)
@@ -109,6 +109,7 @@ class NewVBUi(Frame):
     def create(self):
         global loadedVB
         from UI.devkit.Main import loadedVB
+        logging.info("creating new VB")
         loadedVB = Voicebank(None, self.device)
         if self.dictionaryVariable.get() != "None":
             loadedVB.loadWordDict(os.path.join(readSettings()["dataDir"], "Devkit_Presets", "Dictionaries", self.dictionaryVariable.get() + ".hdf5"), False)
@@ -125,4 +126,5 @@ class NewVBUi(Frame):
                     loadedVB.addPhoneme(items[0], None)
                     loadedVB.phonemeDict[items[0]][0].isVoiced = (items[1] in ("V", "T"))
                     loadedVB.phonemeDict[items[0]][0].isTransition = (items[1] in ("P", "T"))
+        self.reference.onVBLoaded(loc["unsaved_vb"])
         self.master.destroy()
