@@ -10,7 +10,7 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.behaviors.drag import DragBehavior
 from kivy.properties import ObjectProperty
-from kivy.graphics import Color, Ellipse, RoundedRectangle
+from kivy.graphics import Color, Ellipse, RoundedRectangle, Bezier, InstructionGroup
 from kivy.clock import Clock
 from torch import Tensor
 
@@ -64,6 +64,7 @@ class Node(DragBehavior, BoxLayout):
 
         self.size = (250 * self.parent.parent.scale, (len(self.inputs) + len(self.outputs) + 1) * 30 * self.parent.parent.scale)
         self.recalculateRectangle()
+        self.recalculateConnections()
 
     def recalculateRectangle(self):
         """recalculates the position and size of the rectangle used for dragging the widget when the node is moved or zoom is used"""
@@ -72,6 +73,12 @@ class Node(DragBehavior, BoxLayout):
         with self.canvas:
             self.rectangle.pos = self.pos
             self.rectangle.size = self.size
+    
+    def recalculateConnections(self):
+        """recalculates the positions of all connections to the node when it is moved or zoom is used"""
+
+        for i in self.outputs.keys():
+            self.outputs[i].updateCurve()
 
     def on_parent(self, instance, parent):
         """call of recalculateSize() during initial widget creation"""
@@ -107,12 +114,14 @@ class Node(DragBehavior, BoxLayout):
         """updates the widget when it is being dragged"""
 
         self.recalculateRectangle()
+        self.recalculateConnections()
         return super().on_touch_move(touch)
 
     def on_touch_up(self, touch):
         """updates the widget after a dragging operation for it has been completed"""
 
         self.recalculateRectangle()
+        self.recalculateConnections()
         return super().on_touch_up(touch)
 
     @staticmethod
@@ -189,15 +198,14 @@ class Connector(BoxLayout):
         self.dtype = dtype()
         self.name = name
         self._value = self.dtype.defaultValue
-        self.attachedTo = ObjectProperty()
-        self.node = ObjectProperty()
+        self.attachedTo = None
         self.node = node
         self.orientation = "horizontal"
         self.add_widget(Label(text = self.name))
         self.add_widget(TextInput(multiline = False, is_focusable = not self.out))
         self.children[0].bind(focus = self.on_focus)
-        self.ellipse = ObjectProperty()
         with self.canvas:
+            self.curve = InstructionGroup()
             Color(self.dtype.UIColor)
             self.ellipse = Ellipse(segments = 16, pos = (self.x, self.y + self.height / 2), size = (10, 10))
 
@@ -208,6 +216,18 @@ class Connector(BoxLayout):
             self.ellipse.pos = (self.x + self.width + 5, self.y + self.height / 2 - 5)
         else:
             self.ellipse.pos = (self.x - 15, self.y + self.height / 2 - 5)
+    
+    def updateCurve(self):
+        """updates the visual position of the connector, and recursively prompts the update of all connectors connected to it"""
+
+        self.update()
+        if self.attachedTo is None:
+            return
+        with self.canvas:
+            self.curve = InstructionGroup()
+            self.curve.add(Color(1., 1., 1.))
+            self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, self.attachedTo.ellipse.pos[0] + 5, self.attachedTo.ellipse.pos[1] + 5],
+                                  control = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, self.attachedTo.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5]))
         
     def on_parent(self, instance, parent):
         """calls update() when the connector is initially created"""

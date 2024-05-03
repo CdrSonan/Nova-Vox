@@ -60,10 +60,11 @@ class TooltipBehavior(object):
         if not self.get_root_window() or self._tooltip.text == '':
             return
         pos = args[1]
-        self._tooltip.pos = pos
+        pos = self.to_widget(dp(pos[0]), dp(pos[1]))
+        self._tooltip.pos = (min(self.get_root_window().width - self._tooltip.width, pos[0] + 2), pos[1] + 2)
         Clock.unschedule(self.display_tooltip) # cancel scheduled event since I moved the cursor
         self.close_tooltip() # close if it's opened
-        if self.collide_point(*self.to_widget(dp(pos[0]), dp(pos[1]))):
+        if self.collide_point(*pos):
             Clock.schedule_once(self.display_tooltip, 1)
 
     def close_tooltip(self, *args):
@@ -303,12 +304,12 @@ class IntInput(TextInput, TooltipBehavior):
         s = re.sub(pat, '', substring)
         return super().insert_text(s, from_undo)
 
-class ReferencingButton(ManagedButton, TooltipBehavior):
+class ReferencingButton(ManagedButton):
     """A button with an additional property for keeping a reference to a different, arbitrary object"""
 
     reference = ObjectProperty()
 
-class ListElement(ManagedButton, TooltipBehavior):
+class ListElement(ManagedButton):
     """A button with an additional integer property representing its position in a list"""
 
     index = NumericProperty()

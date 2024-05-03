@@ -15,6 +15,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     from traceback import print_exc
     import Backend.Resampler.Resamplers as rs
     from copy import copy
+    from os import getenv, path
     from Backend.DataHandler.VocalSegment import VocalSegment
     from Backend.DataHandler.VoicebankManager import VoicebankManager
     from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
@@ -26,6 +27,14 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     from C_Bridge import esper
 
     global statusControl, voicebankList, nodeGraphList, inputList, connection, remoteConnection, internalStatusControl
+
+    logging.basicConfig(level = logging.INFO)
+    logPath = path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "editor_renderer.log")
+    logging.basicConfig(format='%(asctime)s:%(process)s:%(levelname)s:%(message)s',
+                        filename=logPath,
+                        filemode = "w",
+                        force = True,
+                        level=logging.INFO)
 
     #reading settings, setting device and interOutput properties accordingly
     logging.info("render process started, reading settings")

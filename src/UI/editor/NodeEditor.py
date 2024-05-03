@@ -9,6 +9,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.graphics import Color, Line
 from kivy.properties import NumericProperty
 from kivy.clock import mainthread
+from kivy.metrics import dp
 from math import pow, log, floor, ceil
 
 class NodeEditor(ScrollView):
@@ -17,11 +18,7 @@ class NodeEditor(ScrollView):
     def __init__(self, **kw):
         super().__init__(**kw)
         self.scale = NumericProperty()
-        self.scale = 1.
-        self.strictWidth = NumericProperty()
-        self.strictWidth = 0
-        self.strictHeight = NumericProperty()
-        self.strictHeight = 0
+        self.scale = 2.
         self.scroll_x = 0.5
         self.scroll_y = 0.5
         self.generateGrid()
@@ -31,12 +28,20 @@ class NodeEditor(ScrollView):
         """delayed call od updateGrid(). Required during widget initialization, when not all properties required by updateGrid() are available yet."""
 
         self.updateGrid()
+    
+    def updateNodes(self, scaleFactor = 1.):
+        """updates the position of all nodes in the node editor to reflect changed scroll values or zoom levels"""
+
+        for i in self.children[0].children[:-1]:
+            i.pos = (i.pos[0] * scaleFactor, i.pos[1] * scaleFactor)
+            i.recalculateRectangle()
+            i.recalculateConnections()
 
     def updateGrid(self):
         """updates the background grid of the node editor to reflect changed scroll values or zoom levels"""
 
         interval = self.scale * 100 / pow(5, ceil(log(self.scale, 5)))
-        self.children[0].size = (max(self.strictWidth * 2, self.width * 2) * self.scale, max(self.strictHeight * 2, self.height * 2) * self.scale)
+        self.children[0].size = (self.width * self.scale, self.height * self.scale)
         self.children[0].children[-1].canvas.clear()
         with self.children[0].children[-1].canvas:
             Color(0.4, 0.4, 0.4, 1.)
@@ -61,31 +66,23 @@ class NodeEditor(ScrollView):
         """callback function used for processing mouse input"""
 
         if touch.is_mouse_scrolling:
-            position = self.to_local(*touch.pos)
+            position = self.parent.to_widget(dp(touch.pos[0]), dp(touch.pos[1]))
             xPos = position[0]
             yPos = position[1]
             leftBorder = self.scroll_x * (self.children[0].width - self.width)
-            rightBorder = self.scroll_x * (self.children[0].width - self.width) + self.width
             lowerBorder = self.scroll_y * (self.children[0].height - self.height)
-            upperBorder = self.scroll_y * (self.children[0].height - self.height) + self.height
+            oldScale = self.scale
             if touch.button == 'scrolldown':
                 self.scale *= 1.1
-                xPos *= 1.1
-                yPos *= 1.1
-                #x *= 1.1
-                #y *= 1.1
+                self.scale = min(self.scale, 10.)
             elif touch.button == 'scrollup':
                 self.scale /= 1.1
-                xPos /= 1.1
-                yPos /= 1.1
-                #x /= 1.1
-                #y /= 1.1
-            
+                self.scale = max(self.scale, 1.)
+            self.updateNodes(self.scale / oldScale)
             self.updateGrid()
             return True
         for i in self.children[0].children[:-1]:
             if i.collide_point(*self.to_local(*touch.pos)):
-                print("collide")
                 i.on_touch_down(touch)
                 return False
         return super(NodeEditor, self).on_touch_down(touch)

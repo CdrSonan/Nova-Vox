@@ -25,7 +25,7 @@
         x: self.parent.x
         y: self.parent.y
         size_hint: (None, None)
-        size: (max(self.parent.strictWidth * 2, self.parent.width * 2) / self.parent.scale, max(self.parent.strictHeight * 2, self.parent.height * 2) / self.parent.scale)
+        size: (self.parent.width * self.parent.scale, self.parent.height * self.parent.scale)
         #size adapts to Zoom level
         Widget:
             x: self.parent.x
