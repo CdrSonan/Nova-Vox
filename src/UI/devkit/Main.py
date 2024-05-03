@@ -190,6 +190,17 @@ class RootUi(Frame):
             loadedVBPath = filepath
             loadedVB.save(filepath)
             self.master.wm_title(loadedVBPath)
+    
+    def onVBLoaded(self, title) -> None:
+        self.metadataButton["state"] = "normal"
+        self.phonemedictButton["state"] = "normal"
+        self.crfaiButton["state"] = "normal"
+        self.predaiButton["state"] = "normal"
+        self.worddictButton["state"] = "normal"
+        self.utauimportButton["state"] = "normal"
+        self.advSettingsButton["state"] = "normal"
+        self.saveButton["state"] = "normal"
+        self.master.wm_title(title)
         
     def onOpenPress(self) -> None:
         """opens a Voicebank and loads all of its data"""
@@ -204,30 +215,12 @@ class RootUi(Frame):
             if filepath != "":
                 loadedVBPath = filepath
                 loadedVB = Voicebank(filepath, self.device)
-                self.metadataButton["state"] = "normal"
-                self.phonemedictButton["state"] = "normal"
-                self.crfaiButton["state"] = "normal"
-                self.predaiButton["state"] = "normal"
-                self.worddictButton["state"] = "normal"
-                self.utauimportButton["state"] = "normal"
-                self.advSettingsButton["state"] = "normal"
-                self.saveButton["state"] = "normal"
-                self.master.wm_title(loadedVBPath)
+                self.onVBLoaded(loadedVBPath)
     
     def onNewPress(self) -> None:
         """creates a new, empty Voicebank object in memory"""
         
         logging.info("new button callback")
         global loadedVB
-        self.newVBUi = NewVBUi(tkinter.Toplevel())
+        self.newVBUi = NewVBUi(self, tkinter.Toplevel())
         self.newVBUi.mainloop()
-        if loadedVB is not None:
-            self.metadataButton["state"] = "normal"
-            self.phonemedictButton["state"] = "normal"
-            self.crfaiButton["state"] = "normal"
-            self.predaiButton["state"] = "normal"
-            self.worddictButton["state"] = "normal"
-            self.utauimportButton["state"] = "normal"
-            self.advSettingsButton["state"] = "normal"
-            self.saveButton["state"] = "normal"
-            self.master.wm_title(loc["unsaved_vb"])
