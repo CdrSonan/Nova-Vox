@@ -57,7 +57,7 @@ Name: "voices"; Description: "Default Voicebanks"; Types: full custom
 Name: "voices\TYC"; Description: "Tsukuyomi-chan demo Voicebank"; Types: full custom
 Name: "voices\Arachne"; Description: "Arachne Japanese UTAU port"; Types: full custom
 ;Name: "params"; Description: "Default Parameters"; Types: full custom
-Name: "voices\Barrels"; Description: "Barrels test Voicebank"; Types: full custom
+;Name: "voices\Barrels"; Description: "Barrels test Voicebank"; Types: full custom
 
 [Tasks]
 Name: "desktopiconeditor"; Description: "{cm:CreateDesktopIcon} (Editor)"; GroupDescription: "{cm:AdditionalIcons}"
