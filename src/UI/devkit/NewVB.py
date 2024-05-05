@@ -20,8 +20,7 @@ from Localization.devkit_localization import getLanguage
 loc = getLanguage()
 
 class NewVBUi(Frame):
-    def __init__(self, reference, master=ThemedTk(theme = "black")) -> None:
-        super().__init__(master)
+    def __init__(self, reference, master=None) -> None:
         logging.info("initializing new VB UI")
         Frame.__init__(self, master)
         self.pack(ipadx = 20, ipady = 20)
@@ -32,6 +31,7 @@ class NewVBUi(Frame):
         else:
             logo = tkinter.PhotoImage(file="assets/icon/nova-vox-logo-black.gif")
             self.master.call('wm', 'iconphoto', self.master._w, logo)
+        self.reference = reference
         accelerator = readSettings()["accelerator"]
         if accelerator == "CPU":
             self.device = torch.device("cpu")
@@ -80,17 +80,19 @@ class NewVBUi(Frame):
         self.phonemePHLabel["text"] = loc["new_phoneme_placeholder"]
         self.phonemePHLabel.pack(side = "right", fill = "x")
         
-        self.okButton = Button(self, text=loc["ok"])
+        self.okButton = Button(self)
+        self.okButton["text"] = loc["ok"]
         self.okButton["command"] = self.create
         self.okButton.pack(side = "right", expand = True)
         
-        self.cancelButton = Button(self, text=loc["cancel"])
+        self.cancelButton = Button(self)
+        self.cancelButton["text"] = loc["cancel"]
         self.cancelButton["command"] = self.close
         self.cancelButton.pack(side = "right", expand = True)
 
     @staticmethod
     def fetchPresets():
-        dataDir = readSettings()["dataDir"]
+        dataDir = readSettings()["datadir"]
         dictionaries = []
         trAis = []
         mainAis = []
