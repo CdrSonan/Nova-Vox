@@ -191,7 +191,11 @@ class RootUi(Frame):
             loadedVB.save(filepath)
             self.master.wm_title(loadedVBPath)
     
-    def onVBLoaded(self, title) -> None:
+    def onVBLoaded(self, vb, title) -> None:
+        global loadedVB
+        global loadedVBPath
+        loadedVB = vb
+        loadedVBPath = title
         self.metadataButton["state"] = "normal"
         self.phonemedictButton["state"] = "normal"
         self.crfaiButton["state"] = "normal"
@@ -221,6 +225,5 @@ class RootUi(Frame):
         """creates a new, empty Voicebank object in memory"""
         
         logging.info("new button callback")
-        global loadedVB
         self.newVBUi = NewVBUi(self, tkinter.Toplevel())
         self.newVBUi.mainloop()

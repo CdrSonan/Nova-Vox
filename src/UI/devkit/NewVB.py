@@ -7,7 +7,6 @@
 
 import logging
 import tkinter
-from ttkthemes import ThemedTk
 import sys
 import os
 
@@ -109,8 +108,6 @@ class NewVBUi(Frame):
         self.master.destroy()
 
     def create(self):
-        global loadedVB
-        from UI.devkit.Main import loadedVB
         logging.info("creating new VB")
         loadedVB = Voicebank(None, self.device)
         if self.dictionaryVariable.get() != "None":
@@ -128,5 +125,5 @@ class NewVBUi(Frame):
                     loadedVB.addPhoneme(items[0], None)
                     loadedVB.phonemeDict[items[0]][0].isVoiced = (items[1] in ("V", "T"))
                     loadedVB.phonemeDict[items[0]][0].isTransition = (items[1] in ("P", "T"))
-        self.reference.onVBLoaded(loc["unsaved_vb"])
+        self.reference.onVBLoaded(loadedVB, loc["unsaved_vb"])
         self.master.destroy()
