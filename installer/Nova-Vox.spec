@@ -27,7 +27,7 @@ common_datas = [("../assets/settings.ini", "./assets"),
                 ("../assets/UI/fonts/*", "assets/UI/fonts"),
                 ("../bin", "./bin")]
 
-devkit_imports = ["matplotlib.backends.backend_tkagg"]
+devkit_imports = ["matplotlib.backends.backend_tkagg", "PIL._tkinter._finder"]
 
 block_cipher = None
 
