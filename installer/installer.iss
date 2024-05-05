@@ -71,6 +71,9 @@ Name: "{code:GetDataDir}\Addons"; Flags: uninsneveruninstall
 Name: "{code:GetDataDir}\Devkit_Phonetics\IPAConversions"; Components: devkit
 Name: "{code:GetDataDir}\Devkit_Phonetics\Lists"; Components: devkit
 Name: "{code:GetDataDir}\Devkit_Phonetics\UtauConversions"; Components: devkit
+Name: "{code:GetDataDir}\Devkit_Presets\Dictionaries"; Components: devkit
+Name: "{code:GetDataDir}\Devkit_Presets\TrAis"; Components: devkit
+Name: "{code:GetDataDir}\Devkit_Presets\MainAis"; Components: devkit
 Name: "{userappdata}\Nova-Vox\Logs"
 
 

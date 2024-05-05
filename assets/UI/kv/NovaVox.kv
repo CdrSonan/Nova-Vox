@@ -40,6 +40,7 @@
             size: (48 * root.uiScale, 48 * root.uiScale)
             source: "assets/UI/TopBar/logo.gif"
             on_press: Factory.LicensePanel().open()
+            tooltip_txt: root.loc["license_tt"]
         ImageButton:
             #reverse button
             pos: (80 * root.uiScale, root.height - 40 * root.uiScale)
@@ -47,6 +48,7 @@
             size: (42 * root.uiScale, 30 * root.uiScale)
             source: "assets/UI/TopBar/Top01.png"
             on_press: root.spoolBack()
+            tooltip_txt: root.loc["rewind"]
         ImageToggleButton:
             #play button
             pos: (142 * root.uiScale, root.height - 45 * root.uiScale)
@@ -55,6 +57,7 @@
             source: "assets/UI/TopBar/Top02.png"
             id: playButton
             on_state: root.play(self.state)
+            tooltip_txt: root.loc["play"]
         ImageButton:
             #fast forward button
             pos: (190 * root.uiScale, root.height - 40 * root.uiScale)
@@ -62,6 +65,7 @@
             size: (42 * root.uiScale, 30 * root.uiScale)
             source: "assets/UI/TopBar/Top03.png"
             on_press: root.spoolForward()
+            tooltip_txt: root.loc["fast_forward"]
         ImageButton:
             #undo button
             pos: (260 * root.uiScale, root.height - 45 * root.uiScale)
@@ -69,6 +73,7 @@
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "assets/UI/TopBar/Top04.png"
             on_press: undo()
+            tooltip_txt: root.loc["undo"]
         ImageButton:
             #redo button
             pos: (314 * root.uiScale, root.height - 45 * root.uiScale)
@@ -76,6 +81,7 @@
             size: (40 * root.uiScale, 40 * root.uiScale)
             source: "assets/UI/TopBar/Top05.png"
             on_press: redo()
+            tooltip_txt: root.loc["redo"]
         
         #Side bar buttons
         ImageButton:
@@ -85,6 +91,7 @@
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "assets/UI/SideBar/Side01new.png"
             on_press: Factory.FileSidePanel().open()
+            tooltip_txt: root.loc["file_panel_tt"]
         ImageButton:
             #Singer/Voicebank button
             pos: (root.width - 50 * root.uiScale, root.height - 160 * root.uiScale)
@@ -92,6 +99,7 @@
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "assets/UI/SideBar/Side02new.png"
             on_press: Factory.SingerSidePanel().open()
+            tooltip_txt: root.loc["singer_panel_tt"]
         ImageButton:
             #Parameter button
             pos: (root.width - 50 * root.uiScale, root.height - 220 * root.uiScale)
@@ -99,6 +107,7 @@
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "assets/UI/SideBar/Side03new.png"
             on_press: Factory.ParamSidePanel().open()
+            tooltip_txt: root.loc["param_panel_tt"]
         ImageButton:
             #scripting/rocket button
             pos: (root.width - 50 * root.uiScale, root.height - 280 * root.uiScale)
@@ -106,6 +115,7 @@
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "assets/UI/SideBar/Side04new.png"
             on_press: Factory.ScriptingSidePanel().open()
+            tooltip_txt: root.loc["script_panel_tt"]
         ImageButton:
             #settings button
             pos: (root.width - 50 * root.uiScale, root.height - 340 * root.uiScale)
@@ -113,6 +123,7 @@
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "assets/UI/SideBar/Side05new.png"
             on_press: Factory.SettingsSidePanel().open()
+            tooltip_txt: root.loc["settings_panel_tt"]
         ImageButton:
             #renderer restart button
             pos: (root.width - 50 * root.uiScale, root.height - 400 * root.uiScale)
@@ -120,6 +131,7 @@
             size: (50 * root.uiScale, 50 * root.uiScale)
             source: "assets/UI/SideBar/Side06new.png"
             on_press: root.restart()
+            tooltip_txt: root.loc["renderer_restart_tt"]
         BoxLayout:
             #layout for the main part of the window
             orientation: "horizontal"
@@ -230,6 +242,7 @@
                                     allow_no_selection: False
                                     on_press: root.setMode("notes")
                                     state: "down"
+                                    tooltip_txt: root.loc["notes_tt"]
                                 ImageToggleButton:
                                     #timing edit mode button
                                     size_hint: (None, None)
@@ -238,6 +251,7 @@
                                     group: "DisplayModes"
                                     allow_no_selection: False
                                     on_press: root.setMode("timing")
+                                    tooltip_txt: root.loc["timing_tt"]
                                 ImageToggleButton:
                                     #pitch edit mode button
                                     size_hint: (None, None)
@@ -246,6 +260,7 @@
                                     group: "DisplayModes"
                                     allow_no_selection: False
                                     on_press: root.setMode("pitch")
+                                    tooltip_txt: root.loc["pitch_tt"]
                                 ImageToggleButton:
                                     #drawing tool button
                                     size_hint: (None, None)
@@ -255,6 +270,7 @@
                                     allow_no_selection: False
                                     on_press: root.setTool("draw")
                                     state: "down"
+                                    tooltip_txt: root.loc["pencil_tt"]
                                 ImageToggleButton:
                                     #line tool button
                                     size_hint: (None, None)
@@ -263,6 +279,7 @@
                                     group: "ToolModes"
                                     allow_no_selection: False
                                     on_press: root.setTool("line")
+                                    tooltip_txt: root.loc["line_tt"]
                                 ImageToggleButton:
                                     #arch/curve tool button
                                     size_hint: (None, None)
@@ -271,6 +288,7 @@
                                     group: "ToolModes"
                                     allow_no_selection: False
                                     on_press: root.setTool("arch")
+                                    tooltip_txt: root.loc["arch_tt"]
                                 ImageToggleButton:
                                     #reset tool button
                                     size_hint: (None, None)
@@ -279,6 +297,7 @@
                                     group: "ToolModes"
                                     allow_no_selection: False
                                     on_press: root.setTool("reset")
+                                    tooltip_txt: root.loc["reset_tt"]
                             ManagedSpinner:
                                 #measure type dropdown menu
                                 id: measureSelector
@@ -289,6 +308,7 @@
                                 text: "4/4"
                                 values: ["4/4", "3/4", "2/4", "6/8", "1/1"]
                                 on_text: root.ids["pianoRoll"].updateTempo(self.text, root.ids["tempoSelector"].text, root.ids["quantSelector"].text)
+                                tooltip_txt: root.loc["measure_tt"]
                             NumberInput:
                                 #tempo text input
                                 id: tempoSelector
@@ -304,6 +324,7 @@
                                 hint_text: "tempo" if app.root == None else app.root.loc["tempo"]
                                 text: "120"
                                 on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, self.text, root.ids["quantSelector"].text)
+                                tooltip_txt: root.loc["tempo_tt"]
                             ManagedSpinner:
                                 #quantization dropdown menu
                                 id: quantSelector
@@ -314,6 +335,7 @@
                                 text: root.loc["quant_off"] if app.root == None else app.root.loc["quant_off"]
                                 values: ["Q: 1/1", "Q: 1/2", "Q: 1/4", "Q: 1/8", "Q: 1/16", "Q: 1/32", root.loc["quant_off"]] if app.root == None else ["Q: 1/1", "Q: 1/2", "Q: 1/4", "Q: 1/8", "Q: 1/16", "Q: 1/32", app.root.loc["quant_off"]]
                                 on_text: root.ids["pianoRoll"].updateTempo(root.ids["measureSelector"].text, root.ids["tempoSelector"].text, self.text)
+                                tooltip_txt: root.loc["quant_tt"]
                         PianoRoll:
                             x: self.parent.x
                             y: self.parent.y + 40 * root.uiScale
