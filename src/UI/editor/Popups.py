@@ -89,7 +89,8 @@ class SingerSettingsPanel(Popup):
 
         
         NodeClasses = classesinmodule(NodeLib)
-        NodeClasses.append(*NodeLib.additionalNodes)
+        if len(NodeLib.additionalNodes) > 0:
+            NodeClasses.append(*NodeLib.additionalNodes)
         for i in NodeClasses:
             branch = i.name()
             parent = self.children[0].children[0].children[0].children[0].children[1].children[0].root
