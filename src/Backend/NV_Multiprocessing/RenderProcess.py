@@ -216,10 +216,16 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     
     def finalRender(specharm:torch.Tensor, excitation:torch.Tensor, pitch:torch.Tensor, length:int, device:torch.device) -> torch.Tensor:
         renderTarget = torch.zeros([length * global_consts.batchSize,], device = device)
-        specharm_ptr = ctypes.cast(specharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float))
-        excitation_ptr = ctypes.cast(excitation.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float))
-        pitch_ptr = ctypes.cast(pitch.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float))
-        renderTarget_ptr = ctypes.cast(renderTarget.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float))
+        specharm = specharm.contiguous()
+        specharm_ptr = ctypes.cast(specharm.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        excitation = excitation.contiguous()
+        excitation_ptr = ctypes.cast(excitation.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        pitch = pitch.contiguous()
+        pitch_ptr = ctypes.cast(pitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        renderTarget = renderTarget.contiguous()
+        renderTarget_ptr = ctypes.cast(renderTarget.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        print("pointers: ", specharm_ptr, excitation_ptr, pitch_ptr, renderTarget_ptr)
+        print("sizes: ", specharm.size(), excitation.size(), pitch.size(), renderTarget.size())
         esper.render(specharm_ptr, excitation_ptr, pitch_ptr, renderTarget_ptr, length, global_consts.config)
         return renderTarget
 

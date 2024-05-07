@@ -8,7 +8,7 @@
 import ctypes
 import torch
 
-esper = ctypes.CDLL("bin/esper.dll")
+esper = ctypes.PyDLL("bin/esper.dll")
 
 class engineCfg(ctypes.Structure):
     _fields_ = [("sampleRate", ctypes.c_uint),
