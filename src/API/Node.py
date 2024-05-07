@@ -78,7 +78,7 @@ class Node(DragBehavior, BoxLayout):
         """recalculates the positions of all connections to the node when it is moved or zoom is used"""
 
         for i in self.outputs.keys():
-            self.outputs[i].updateCurve()
+            self.outputs[i].update()
 
     def on_parent(self, instance, parent):
         """call of recalculateSize() during initial widget creation"""
@@ -88,6 +88,7 @@ class Node(DragBehavior, BoxLayout):
     def on_touch_down(self, touch):
         """processes initial Kivy touch input, and triggers scrolling or dragging accordingly"""
 
+        print("I'm not sure what is happening here, this should not be called")
         xx, yy, w, h = self.drag_rectangle
         x, y = self.parent.parent.to_local(*touch.pos)
         if not self.collide_point(x, y):
@@ -216,11 +217,6 @@ class Connector(BoxLayout):
             self.ellipse.pos = (self.x + self.width + 5, self.y + self.height / 2 - 5)
         else:
             self.ellipse.pos = (self.x - 15, self.y + self.height / 2 - 5)
-    
-    def updateCurve(self):
-        """updates the visual position of the connector, and recursively prompts the update of all connectors connected to it"""
-
-        self.update()
         if self.attachedTo is None:
             return
         with self.canvas:
@@ -305,6 +301,60 @@ class Connector(BoxLayout):
             tmpNode.checkStatic()
             self.node.checkStatic()
             self.is_focusable = True
+    
+    def on_touch_down(self, touch):
+        """processes initial Kivy touch input, and triggers scrolling or dragging accordingly"""
+
+        if not self.collide_point(*self.to_local(*touch.pos)):
+            return False
+        if self.attachedTo is not None:
+            self.detach()
+        touch.ud["draggedConnFrom"] = self
+        with self.canvas:
+            self.curve = InstructionGroup()
+            self.curve.add(Color(1., 1., 1.))
+            self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, touch.pos[0], touch.pos[1]],
+                                  control = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, touch.pos[0], self.ellipse.pos[1] + 5]))
+        return True
+
+    def on_touch_move(self, touch):
+        """updates the visual position of the connector during dragging"""
+
+        if "draggedConnFrom" in touch.ud:
+            with self.canvas:
+                self.curve = InstructionGroup()
+                self.curve.add(Color(1., 1., 1.))
+                self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, touch.pos[0], touch.pos[1]],
+                                      control = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, touch.pos[0], self.ellipse.pos[1] + 5]))
+            return True
+        return False
+    
+    def on_touch_up(self, touch):
+        """finalizes the connection between two connectors after dragging"""
+
+        if "draggedConnFrom" in touch.ud:
+            for i in self.node.parent.children:
+                if self.out:
+                    for j in i.inputs.values():
+                        if j.collide_point(*self.to_local(*touch.pos)):
+                            self.attach(j)
+                            break
+                    else:
+                        break
+                else:
+                    for j in i.outputs.values():
+                        if j.collide_point(*self.to_local(*touch.pos)):
+                            self.attach(j)
+                            break
+                    else:
+                        break
+            with self.canvas:
+                self.curve = InstructionGroup()
+                self.curve.add(Color(1., 1., 1.))
+                self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, self.attachedTo.ellipse.pos[0] + 5, self.attachedTo.ellipse.pos[1] + 5],
+                                      control = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, self.attachedTo.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5]))
+            return True
+        return False
 
 
 class NodeTypeMismatchError(Exception):
