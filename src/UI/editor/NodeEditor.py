@@ -66,11 +66,6 @@ class NodeEditor(ScrollView):
         """callback function used for processing mouse input"""
 
         if touch.is_mouse_scrolling:
-            position = self.parent.to_widget(dp(touch.pos[0]), dp(touch.pos[1]))
-            xPos = position[0]
-            yPos = position[1]
-            leftBorder = self.scroll_x * (self.children[0].width - self.width)
-            lowerBorder = self.scroll_y * (self.children[0].height - self.height)
             oldScale = self.scale
             if touch.button == 'scrolldown':
                 self.scale *= 1.1
@@ -86,3 +81,9 @@ class NodeEditor(ScrollView):
                 i.on_touch_down(touch)
                 return False
         return super(NodeEditor, self).on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if "draggedConnFrom" in touch.ud:
+            print("dragged connection")
+            return True
+        return super(NodeEditor, self).on_touch_move(touch)

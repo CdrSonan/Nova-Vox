@@ -88,7 +88,6 @@ class Node(DragBehavior, BoxLayout):
     def on_touch_down(self, touch):
         """processes initial Kivy touch input, and triggers scrolling or dragging accordingly"""
 
-        print("I'm not sure what is happening here, this should not be called")
         xx, yy, w, h = self.drag_rectangle
         x, y = self.parent.parent.to_local(*touch.pos)
         if not self.collide_point(x, y):
@@ -98,8 +97,25 @@ class Node(DragBehavior, BoxLayout):
                                 touch.button.startswith('scroll')) or\
                 not ((xx < x <= xx + w) and (yy < y <= yy + h)):
             return super(DragBehavior, self).on_touch_down(touch)
+        
+        def processConnector(conn:Connector, touch):
+            if conn.ellipse.pos[0] < x < conn.ellipse.pos[0] + 10 and conn.ellipse.pos[1] < y < conn.ellipse.pos[1] + 10:
+                touch.ud["draggedConnFrom"] = conn
+                if conn.attachedTo != None:
+                    conn.detach()
+                conn.drawCurve(touch)
+                return True
+            return False
+        
+        # check whether the touch collides with the ellipse of one of the connectors
+        for i in self.inputs.values():
+            if processConnector(i, touch):
+                return True
+        for i in self.outputs.values():
+            if processConnector(i, touch):
+                return True
 
-        # no mouse scrolling, so the user is going to drag with this touch.
+        # no mouse scrolling or ellipse hit, so the user is going to drag with this touch.
         self._drag_touch = touch
         uid = self._get_uid()
         touch.grab(self)
@@ -280,18 +296,32 @@ class Connector(BoxLayout):
         else:
             self.attachedTo = target
             target.attachedTo = self
+        self.curve = InstructionGroup()
+        self.curve.add(Color(1., 1., 1.))
         if self.out:
             self.node.checkStatic()
             target.node.checkStatic()
+            self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5,
+                                            self.ellipse.pos[0] + 55, self.ellipse.pos[1] + 5,
+                                            target.ellipse.pos[0] - 45, target.ellipse.pos[1] + 5,
+                                            target.ellipse.pos[0] + 5, target.ellipse.pos[1] + 5]))
         else:
             target.node.checkStatic()
             self.node.checkStatic()
             self.is_focusable = False
+            self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5,
+                                            self.ellipse.pos[0] - 45, self.ellipse.pos[1] + 5,
+                                            target.ellipse.pos[0] + 55, target.ellipse.pos[1] + 5,
+                                            target.ellipse.pos[0] + 5, target.ellipse.pos[1] + 5]))
         
     def detach(self) -> None:
         """detaches two connected connectors, and performs the nexessary checks and callbacks."""
 
         tmpNode = self.attachedTo.node
+        if self.out:
+            self.curve.clear()
+        else:
+            self.attachedTo.curve.clear()
         self.attachedTo.attachedTo = None
         self.attachedTo = None
         if self.out:
@@ -301,58 +331,22 @@ class Connector(BoxLayout):
             tmpNode.checkStatic()
             self.node.checkStatic()
             self.is_focusable = True
-    
-    def on_touch_down(self, touch):
-        """processes initial Kivy touch input, and triggers scrolling or dragging accordingly"""
 
-        if not self.collide_point(*self.to_local(*touch.pos)):
-            return False
-        if self.attachedTo is not None:
-            self.detach()
-        touch.ud["draggedConnFrom"] = self
-        with self.canvas:
-            self.curve = InstructionGroup()
-            self.curve.add(Color(1., 1., 1.))
-            self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, touch.pos[0], touch.pos[1]],
-                                  control = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, touch.pos[0], self.ellipse.pos[1] + 5]))
-        return True
-
-    def on_touch_move(self, touch):
+    def drawCurve(self, touch):
         """updates the visual position of the connector during dragging"""
 
         if "draggedConnFrom" in touch.ud:
             with self.canvas:
                 self.curve = InstructionGroup()
                 self.curve.add(Color(1., 1., 1.))
-                self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, touch.pos[0], touch.pos[1]],
-                                      control = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, touch.pos[0], self.ellipse.pos[1] + 5]))
-            return True
-        return False
-    
-    def on_touch_up(self, touch):
-        """finalizes the connection between two connectors after dragging"""
-
-        if "draggedConnFrom" in touch.ud:
-            for i in self.node.parent.children:
                 if self.out:
-                    for j in i.inputs.values():
-                        if j.collide_point(*self.to_local(*touch.pos)):
-                            self.attach(j)
-                            break
-                    else:
-                        break
+                    self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5,
+                                                    self.ellipse.pos[0] + 55, self.ellipse.pos[1] + 5,
+                                                    touch.pos[0], touch.pos[1]]))
                 else:
-                    for j in i.outputs.values():
-                        if j.collide_point(*self.to_local(*touch.pos)):
-                            self.attach(j)
-                            break
-                    else:
-                        break
-            with self.canvas:
-                self.curve = InstructionGroup()
-                self.curve.add(Color(1., 1., 1.))
-                self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, self.attachedTo.ellipse.pos[0] + 5, self.attachedTo.ellipse.pos[1] + 5],
-                                      control = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5, self.attachedTo.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5]))
+                    self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5,
+                                                    self.ellipse.pos[0] - 45, self.ellipse.pos[1] + 5,
+                                                    touch.pos[0], touch.pos[1]]))
             return True
         return False
 
