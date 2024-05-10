@@ -84,6 +84,30 @@ class NodeEditor(ScrollView):
 
     def on_touch_move(self, touch):
         if "draggedConnFrom" in touch.ud:
-            print("dragged connection")
+            touch.ud["draggedConnFrom"].drawCurve(touch)
             return True
         return super(NodeEditor, self).on_touch_move(touch)
+    
+    def on_touch_up(self, touch):
+        
+        def processConnector(conn, touch):
+            x, y = self.to_local(*touch.pos)
+            print(conn.ellipse.pos, x, y)
+            if conn.ellipse.pos[0] - 5 < x < conn.ellipse.pos[0] + 15 and conn.ellipse.pos[1] - 5 < y < conn.ellipse.pos[1] + 15:
+                touch.ud["draggedConnFrom"].attach(conn)
+                return True
+            return False
+        
+        if "draggedConnFrom" in touch.ud:
+            if touch.ud["draggedConnFrom"].out:
+                for node in self.children[0].children[:-1]:
+                    for conn in node.inputs.values():
+                        if processConnector(conn, touch):
+                            return True
+            else:
+                for node in self.children[0].children[:-1]:
+                    for conn in node.outputs.values():
+                        if processConnector(conn, touch):
+                            return True
+            touch.ud["draggedConnFrom"].curve.clear()
+        return super(NodeEditor, self).on_touch_up(touch)
