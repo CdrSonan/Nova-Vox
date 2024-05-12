@@ -90,7 +90,7 @@ class Node(DragBehavior, BoxLayout):
         
         def processConnector(conn:Connector, touch):
             if conn.ellipse.pos[0] - 5 < x < conn.ellipse.pos[0] + 15 and conn.ellipse.pos[1] - 5 < y < conn.ellipse.pos[1] + 15:
-                if conn.attachedTo == None:
+                if conn.attachedTo == None or conn.out:
                     touch.ud["draggedConnFrom"] = conn
                     conn.drawCurve(touch)
                 else:
@@ -219,7 +219,10 @@ class Connector(BoxLayout):
         self.dtype = dtype()
         self.name = name
         self._value = self.dtype.defaultValue
-        self.attachedTo = None
+        if self.out:
+            self.attachedTo = []
+        else:
+            self.attachedTo = None
         self.node = node
         self.orientation = "horizontal"
         self.add_widget(Label(text = self.name))
@@ -231,14 +234,13 @@ class Connector(BoxLayout):
             self.ellipse = Ellipse(segments = 16, pos = (self.x, self.y + self.height / 2), size = (10, 10))
 
     def update(self):
-        """updates the visual position of the connector"""
+        """updates the visual position of the connector and curve, if attached."""
 
         if self.out:
             self.ellipse.pos = (self.x + self.width + 5, self.y + self.height / 2 - 5)
         else:
             self.ellipse.pos = (self.x - 15, self.y + self.height / 2 - 5)
-        if self.attachedTo is None:
-            return
+        self.drawCurveAttached()
         
     def on_parent(self, instance, parent):
         """calls update() when the connector is initially created"""
@@ -294,49 +296,35 @@ class Connector(BoxLayout):
 
         if self.out == target.out:
             raise NodeAttachError()
-        else:
-            self.attachedTo = target
-            target.attachedTo = self
         if self.out:
+            self.attachedTo.append(target)
+            target.attachedTo = self
             self.node.checkStatic()
             target.node.checkStatic()
             self.curve.clear()
-            self.curve.add(Color(1., 1., 1.))
-            self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5,
-                                            self.ellipse.pos[0] + 105, self.ellipse.pos[1] + 5,
-                                            target.ellipse.pos[0] - 95, target.ellipse.pos[1] + 5,
-                                            target.ellipse.pos[0] + 5, target.ellipse.pos[1] + 5]))
         else:
+            self.attachedTo = target
+            target.attachedTo.append(self)
             target.node.checkStatic()
             self.node.checkStatic()
             self.is_focusable = False
-            target.curve.clear()
-            target.curve.add(Color(1., 1., 1.))
-            target.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5,
-                                            self.ellipse.pos[0] - 95, self.ellipse.pos[1] + 5,
-                                            target.ellipse.pos[0] + 105, target.ellipse.pos[1] + 5,
-                                            target.ellipse.pos[0] + 5, target.ellipse.pos[1] + 5]))
+        self.drawCurveAttached()
         
     def detach(self) -> None:
         """detaches two connected connectors, and performs the nexessary checks and callbacks."""
 
+        if self.out:
+            return
         tmpNode = self.attachedTo.node
-        if self.out:
-            self.curve.clear()
-        else:
-            self.attachedTo.curve.clear()
-        self.attachedTo.attachedTo = None
+        self.attachedTo.attachedTo.remove(self)
         self.attachedTo = None
-        if self.out:
-            self.node.checkStatic()
-            tmpNode.checkStatic()
-        else:
-            tmpNode.checkStatic()
-            self.node.checkStatic()
-            self.is_focusable = True
+        self.curve.clear()
+        tmpNode.checkStatic()
+        self.node.checkStatic()
+        self.is_focusable = True
 
     def drawCurve(self, touch):
-        """updates the visual position of the connector during dragging"""
+        """updates the visual of the curve attached to the connector during dragging"""
 
         if "draggedConnFrom" in touch.ud:
             x, y = self.parent.parent.parent.to_local(*touch.pos)
@@ -352,6 +340,22 @@ class Connector(BoxLayout):
                                                 x, y]))
             return True
         return False
+    
+    def drawCurveAttached(self):
+        """updates the visual of the curve of the connector when it is attached"""
+        
+        if self.attachedTo is None:
+            return
+        if self.out:
+            for i in self.attachedTo:
+                i.drawCurveAttached()
+            return
+        self.curve.clear()
+        self.curve.add(Color(1., 1., 1.))
+        self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5,
+                                        self.ellipse.pos[0] - 95, self.ellipse.pos[1] + 5,
+                                        self.attachedTo.ellipse.pos[0] + 105, self.attachedTo.ellipse.pos[1] + 5,
+                                        self.attachedTo.ellipse.pos[0] + 5, self.attachedTo.ellipse.pos[1] + 5]))
 
 
 class NodeTypeMismatchError(Exception):
