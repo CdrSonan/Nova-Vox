@@ -17,6 +17,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, IterableDataset
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
+from Backend.VB_Components.Ai.Util import SReLU
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.DataHandler.AudioSample import LiteSampleCollection
@@ -336,6 +337,47 @@ class PseudoSSM(nn.Module):
         x = self.recurrent(x, self.initialState.unsqueeze(0))[0]
         x = self.howb(x)
         return x + skip
+    
+class PseudoSSMChain(nn.Module):
+    """Chain of two PseudoSSMs, for use in an Inception-style block."""
+    
+    def __init__(self, srcDim:int, tgtDim:int, stateDim:int, timeStep:int, specnorm:bool = False, device:torch.device = torch.device("cpu")) -> None:
+        super().__init__()
+        self.timeStep = timeStep
+        intermediateDim = ceil((srcDim + tgtDim) * 1 / 3)
+        self.pool = nn.MaxPool1d(timeStep, timeStep, ceil_mode = True)
+        self.ssm1 = PseudoSSM(srcDim, 2 * intermediateDim, stateDim, device = device, specnorm = specnorm)
+        self.nla = nn.GLU()
+        self.nla2 = nn.Tanh()
+        self.ssm2 = PseudoSSM(intermediateDim, tgtDim, stateDim, device = device, specnorm = specnorm)
+        
+    def forward(self, input:torch.Tensor) -> torch.Tensor:
+        x = self.pool(input.transpose(-1, -2)).transpose(-1, -2)
+        x = self.ssm1(x)
+        x = self.nla(x)
+        x = self.ssm2(x)
+        x = self.nla2(x)
+        x = torch.tile(x, (self.timeStep, 1))[:input.size()[-2], :]
+        return x
+
+class PseudoSSMInception(nn.Module):
+    """Inception-style block consisting of multiple PseudoSSMs with different time steps, akin to the different convolutional kernel sizes in a traditional Inception block."""
+    
+    def __init__(self, dim:int, tgtDims:int, stateDims:tuple, timeSteps:tuple, specnorm:bool = False, device:torch.device = torch.device("cpu")) -> None:
+        super().__init__()
+        self.device = device
+        self.specnorm = specnorm
+        if len(tgtDims) != len(timeSteps) or len(stateDims) != len(timeSteps):
+            raise ValueError("Number of target dimensions, state dimensions and time steps must match")
+        if sum(tgtDims) != dim:
+            raise ValueError("Sum of target dimensions must equal input dimension")
+        self.ssms = nn.ModuleList([PseudoSSMChain(dim, tgtDim, stateDim, timeStep, specnorm = False, device = device) for timeStep, tgtDim, stateDim in zip(timeSteps, tgtDims, stateDims)])
+        self.nla = SReLU()
+    
+    def forward(self, input:torch.Tensor) -> torch.Tensor:
+        output = torch.cat([ssm(input) for ssm in self.ssms], -1)
+        output += input
+        return output
 
 class EncoderBlock(nn.Module):
     def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, specnorm:bool = False) -> None:
@@ -470,6 +512,79 @@ class MainCritic(nn.Module):
         y = self.decoderA(y + a, lengthA)
         x = self.postNet(x + y)
         return self.outputWeight * x[-1] + (1 - self.outputWeight) * torch.mean(x)
+    def resetState(self) -> None:
+        pass
+    def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
+        instance = super().__new__(cls)
+        if compile:
+            instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
+        return instance
+
+class MainAi(nn.Module):
+    def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
+        super().__init__()
+        self.preNet = nn.Sequential(
+            nn.Linear(input_dim + embedDim, dim, device = device),
+            nn.Softplus(),
+        )
+        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), False, device) for _ in range(12)])
+        self.postNet = nn.Sequential(
+            nn.Linear(dim, input_dim, device = device),
+            nn.Softplus(),
+        )
+        self.device = device
+        self.learningRate = learningRate
+        self.dim = dim
+        self.blockAHParams = blockA
+        self.blockBHParams = blockB
+        self.blockCHParams = blockC
+        self.regularization = regularization
+        self.epoch = 0
+        self.sampleCount = 0
+    def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
+        if level == 0:
+            return input
+        latent = torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1)
+        x = self.preNet(latent)
+        x = self.mainNet(x)
+        x = self.postNet(x)
+        return x * input
+    def resetState(self) -> None:
+        pass
+    def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
+        instance = super().__new__(cls)
+        if compile:
+            instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
+        return instance
+
+class MainCritic(nn.Module):
+    
+    def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
+        super().__init__()
+        self.preNet = nn.Sequential(
+            nn.Linear(input_dim + embedDim, dim, device = device),
+            nn.Softplus(),
+        )
+        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), True, device) for _ in range(8)])
+        self.postNet = nn.Linear(dim, 1, device = device)
+        self.device = device
+        self.learningRate = learningRate
+        self.dim = dim
+        self.blockAHParams = blockA
+        self.blockBHParams = blockB
+        self.blockCHParams = blockC
+        self.regularization = regularization
+        self.outputWeight = outputWeight
+        self.epoch = 0
+        self.sampleCount = 0
+    def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
+        latent = torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1)
+        x = self.preNet(latent)
+        x = self.mainNet(x)
+        x = self.postNet(x)
+        x = self.outputWeight * x[-1] + (1 - self.outputWeight) * torch.mean(x)
+        print(x)
+        return x
     def resetState(self) -> None:
         pass
     def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
