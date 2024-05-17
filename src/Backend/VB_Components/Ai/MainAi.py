@@ -527,7 +527,7 @@ class MainAi(nn.Module):
             nn.Linear(input_dim + embedDim, dim, device = device),
             nn.Softplus(),
         )
-        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), False, device) for _ in range(12)])
+        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), False, device) for _ in range(1)])
         self.postNet = nn.Sequential(
             nn.Linear(dim, input_dim, device = device),
             nn.Softplus(),
@@ -565,7 +565,7 @@ class MainCritic(nn.Module):
             nn.Linear(input_dim + embedDim, dim, device = device),
             nn.Softplus(),
         )
-        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), True, device) for _ in range(8)])
+        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), True, device) for _ in range(1)])
         self.postNet = nn.Linear(dim, 1, device = device)
         self.device = device
         self.learningRate = learningRate
@@ -583,7 +583,6 @@ class MainCritic(nn.Module):
         x = self.mainNet(x)
         x = self.postNet(x)
         x = self.outputWeight * x[-1] + (1 - self.outputWeight) * torch.mean(x)
-        print(x)
         return x
     def resetState(self) -> None:
         pass

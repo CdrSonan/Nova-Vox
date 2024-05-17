@@ -218,6 +218,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         renderTarget = torch.zeros([length * global_consts.batchSize,], device = device)
         specharm = specharm.contiguous()
         specharm_ptr = ctypes.cast(specharm.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        #excitation = torch.cat((torch.real(excitation), torch.imag(excitation)), 0)
         excitation = excitation.contiguous()
         excitation_ptr = ctypes.cast(excitation.data_ptr(), ctypes.POINTER(ctypes.c_float))
         pitch = pitch.contiguous()
@@ -227,6 +228,13 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         print("pointers: ", specharm_ptr, excitation_ptr, pitch_ptr, renderTarget_ptr)
         print("sizes: ", specharm.size(), excitation.size(), pitch.size(), renderTarget.size())
         esper.render(specharm_ptr, excitation_ptr, pitch_ptr, renderTarget_ptr, length, global_consts.config)
+        renderTarget += torch.istft(excitation.transpose(0, 1),
+                                    n_fft = global_consts.tripleBatchSize,
+                                    hop_length = global_consts.batchSize,
+                                    win_length = global_consts.tripleBatchSize,
+                                    window = window,
+                                    center = True,
+                                    length = renderTarget.size()[0]) * global_consts.batchSize
         return renderTarget
 
     #setting up caching and other required data that is independent of each individual rendering iteration
@@ -523,7 +531,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             breathinessUnvoiced = 1. + breathiness * breathinessCompensation * torch.gt(breathiness, 0) + breathiness * torch.logical_not(torch.gt(breathiness, 0))
                             breathinessVoiced = 1. - (breathiness * torch.gt(breathiness, 0))
                             excitationSignal *= breathinessUnvoiced.unsqueeze(1)
-                            excitationSignal = torch.cat((torch.real(excitationSignal), torch.imag(excitationSignal)), 0)
                             
                             steadiness = torch.pow(1. - internalInputs.steadiness[startPoint:endPoint], 2)
                             pitchOffset = pitch.read(startPoint, endPoint)
@@ -531,7 +538,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             
                             specharm = processedSpectrum.read(startPoint, endPoint)
                             specharm[:, :global_consts.halfHarms] *= breathinessVoiced.unsqueeze(1)
-                            
+                            import matplotlib.pyplot as plt
+                            plt.imshow(specharm.detach())
+                            plt.show()
                             output = finalRender(specharm, excitationSignal, pitchOffset, endPoint - startPoint, device_rs)
                             
                             remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, output, "updateAudio"))

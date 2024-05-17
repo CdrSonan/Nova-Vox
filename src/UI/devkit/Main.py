@@ -219,7 +219,7 @@ class RootUi(Frame):
             if filepath != "":
                 loadedVBPath = filepath
                 loadedVB = Voicebank(filepath, self.device)
-                self.onVBLoaded(loadedVBPath)
+                self.onVBLoaded(loadedVB, loadedVBPath)
     
     def onNewPress(self) -> None:
         """creates a new, empty Voicebank object in memory"""

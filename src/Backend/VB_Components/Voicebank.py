@@ -160,8 +160,8 @@ class Voicebank():
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
         with h5py.File(filepath, "r") as f:
-            hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
-            self.ai.hparams = hparamStorage.toDict()
+            #hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
+            #self.ai.hparams = hparamStorage.toDict()
             aiStorage = DictStorage(f, ["aiState",], self.ai.device)
             aiState = aiStorage.toDict()
         self.ai.loadState(aiState, "tr", True)
@@ -170,8 +170,8 @@ class Voicebank():
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
         with h5py.File(filepath, "r") as f:
-            hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
-            self.ai.hparams = hparamStorage.toDict()
+            #hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
+            #self.ai.hparams = hparamStorage.toDict()
             aiStorage = DictStorage(f, ["aiState",], self.ai.device)
             aiState = aiStorage.toDict()
         self.ai.loadState(aiState, "main", True)
@@ -482,8 +482,8 @@ class LiteVoicebank():
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
 
         with h5py.File(filepath, "r") as f:
-            hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
-            self.ai.hparams = hparamStorage.toDict()
+            #hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
+            #self.ai.hparams = hparamStorage.toDict()
             aiStorage = DictStorage(f, ["aiState",], self.ai.device)
             aiState = aiStorage.toDict()
         self.ai.loadState(aiState, "tr", True)
@@ -492,8 +492,8 @@ class LiteVoicebank():
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
 
         with h5py.File(filepath, "r") as f:
-            hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
-            self.ai.hparams = hparamStorage.toDict()
+            #hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
+            #self.ai.hparams = hparamStorage.toDict()
             aiStorage = DictStorage(f, ["aiState",], self.ai.device)
             aiState = aiStorage.toDict()
         self.ai.loadState(aiState, "main", True)

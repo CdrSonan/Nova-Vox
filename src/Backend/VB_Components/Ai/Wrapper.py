@@ -41,7 +41,7 @@ class AIWrapper():
             "tr_hlc": 1,
             "tr_hls": 4000,
             "tr_def_thrh" : 0.05,
-            "latent_dim": 256,
+            "latent_dim": 512,
             "main_blkA": [256, 192],
             "main_blkB": [256, 256],
             "main_blkC": [256, 256],
@@ -427,8 +427,8 @@ class AIWrapper():
         fargan_expression = None
         fargan_score = math.inf
         
-        phases = [(4, "pretrain"),
-                 (4, "train"),]
+        phases = [(1, "train"),]
+                 #(1, "train"),]
         
         #bceloss = nn.BCEWithLogitsLoss()
         
@@ -464,6 +464,10 @@ class AIWrapper():
                         print("NaN encountered in synthetic sample")
                         synthBase = torch.where(synthBase.isnan(), torch.zeros_like(synthBase), synthBase)
                     synthInput = self.mainAi(synthBase, phase[0], embedding)
+                    print(torch.mean(data), torch.max(data))
+                    print(torch.mean(synthBase), torch.max(synthBase))
+                    print(torch.mean(synthInput), torch.max(synthInput))
+                    print("\n\n\n")
                     
                     if phase[1] == "pretrain":
                         self.mainAi.zero_grad()
@@ -475,7 +479,7 @@ class AIWrapper():
                         self.mainCritic.zero_grad()
                         self.mainCritic.resetState()
                         generatorLoss = torch.square(self.mainCritic(synthInput, phase[0], embedding))
-                        guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthBase, synthInput)
+                        guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthInput, synthBase)
                         (generatorLoss + guideLoss).backward()
                         self.mainAiOptimizer.step()
                     
@@ -505,17 +509,17 @@ class AIWrapper():
                             "encA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.mainNet[0].modules() if isinstance(i, nn.Linear)]) if phase[0] > 0 else 0.,
                             "encB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.mainNet[2].modules() if isinstance(i, nn.Linear)]) if phase[0] > 1 else 0.,
                             "encC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.mainNet[4].modules() if isinstance(i, nn.Linear)]) if phase[0] > 2 else 0.,
-                            "decA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.mainNet[6].modules() if isinstance(i, nn.Linear)]) if phase[0] > 0 else 0.,
-                            "decB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.mainNet[8].modules() if isinstance(i, nn.Linear)]) if phase[0] > 1 else 0.,
-                            "decC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.mainNet[10].modules() if isinstance(i, nn.Linear)]) if phase[0] > 2 else 0.,
+                            "decA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.mainNet[6].modules() if isinstance(i, nn.Linear)]) if phase[0] > 3 else 0.,
+                            "decB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.mainNet[8].modules() if isinstance(i, nn.Linear)]) if phase[0] > 4 else 0.,
+                            "decC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.mainNet[10].modules() if isinstance(i, nn.Linear)]) if phase[0] > 5 else 0.,
                             "baseEnc": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.preNet.modules() if isinstance(i, nn.Linear)]),
                             "baseDec": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.postNet.modules() if isinstance(i, nn.Linear)]),
                             "CEncA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[0].modules() if isinstance(i, nn.Linear)]) if phase[0] > 0 else 0.,
                             "CEncB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[1].modules() if isinstance(i, nn.Linear)]) if phase[0] > 1 else 0.,
                             "CEncC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[2].modules() if isinstance(i, nn.Linear)]) if phase[0] > 2 else 0.,
-                            "CDecA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[3].modules() if isinstance(i, nn.Linear)]) if phase[0] > 0 else 0.,
-                            "CDecB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[4].modules() if isinstance(i, nn.Linear)]) if phase[0] > 1 else 0.,
-                            "CDecC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[5].modules() if isinstance(i, nn.Linear)]) if phase[0] > 2 else 0.,
+                            "CDecA": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[3].modules() if isinstance(i, nn.Linear)]) if phase[0] > 3 else 0.,
+                            "CDecB": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[4].modules() if isinstance(i, nn.Linear)]) if phase[0] > 4 else 0.,
+                            "CDecC": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[5].modules() if isinstance(i, nn.Linear)]) if phase[0] > 5 else 0.,
                             "CBaseEnc": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.preNet.modules() if isinstance(i, nn.Linear)]),
                             "CBaseDec": mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.postNet.modules() if isinstance(i, nn.Linear)]),
                             "final": 0.,#torch.mean(torch.abs(self.mainCritic.final.parametrizations.weight.original.grad)).item()
