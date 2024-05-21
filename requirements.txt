@@ -34,7 +34,7 @@ pypiwin32==223
 python-dateutil==2.8.2
 pywin32==306
 pywin32-ctypes==0.2.2
-requests==2.31.0
+requests==2.32.0
 six==1.16.0
 sounddevice==0.4.6
 soundfile==0.12.1
