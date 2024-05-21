@@ -344,10 +344,10 @@ class PseudoSSMChain(nn.Module):
     def __init__(self, srcDim:int, tgtDim:int, stateDim:int, timeStep:int, specnorm:bool = False, device:torch.device = torch.device("cpu")) -> None:
         super().__init__()
         self.timeStep = timeStep
-        intermediateDim = ceil((srcDim + tgtDim) * 1 / 3)
-        self.pool = nn.MaxPool1d(timeStep, timeStep, ceil_mode = True)
-        self.ssm1 = PseudoSSM(srcDim, 2 * intermediateDim, stateDim, device = device, specnorm = specnorm)
-        self.nla = nn.GLU()
+        intermediateDim = ceil((srcDim + tgtDim) / 2.)
+        self.pool = nn.AvgPool1d(timeStep, timeStep, ceil_mode = True)
+        self.ssm1 = PseudoSSM(srcDim, intermediateDim, stateDim, device = device, specnorm = specnorm)
+        self.nla = nn.GELU()
         self.nla2 = nn.Tanh()
         self.ssm2 = PseudoSSM(intermediateDim, tgtDim, stateDim, device = device, specnorm = specnorm)
         
@@ -366,16 +366,16 @@ class PseudoSSMInception(nn.Module):
     def __init__(self, dim:int, tgtDims:int, stateDims:tuple, timeSteps:tuple, specnorm:bool = False, device:torch.device = torch.device("cpu")) -> None:
         super().__init__()
         self.device = device
-        self.specnorm = specnorm
         if len(tgtDims) != len(timeSteps) or len(stateDims) != len(timeSteps):
             raise ValueError("Number of target dimensions, state dimensions and time steps must match")
         if sum(tgtDims) != dim:
             raise ValueError("Sum of target dimensions must equal input dimension")
-        self.ssms = nn.ModuleList([PseudoSSMChain(dim, tgtDim, stateDim, timeStep, specnorm = False, device = device) for timeStep, tgtDim, stateDim in zip(timeSteps, tgtDims, stateDims)])
-        self.nla = SReLU()
+        self.ssms = nn.ModuleList([PseudoSSMChain(dim, tgtDim, stateDim, timeStep, specnorm = specnorm, device = device) for timeStep, tgtDim, stateDim in zip(timeSteps, tgtDims, stateDims)])
+        self.norm = nn.LayerNorm(dim, device = device)
     
     def forward(self, input:torch.Tensor) -> torch.Tensor:
         output = torch.cat([ssm(input) for ssm in self.ssms], -1)
+        output = self.norm(output)
         output += input
         return output
 
@@ -444,7 +444,7 @@ class MainAi(nn.Module):
         self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device)
         self.postNet = nn.Sequential(
             nn.Linear(dim, input_dim, device = device),
-            nn.Softplus(),
+            nn.Tanh(),
         )
         self.device = device
         self.learningRate = learningRate
@@ -467,7 +467,7 @@ class MainAi(nn.Module):
         y = self.decoderB(y + b, lengthB)
         y = self.decoderA(y + a, lengthA)
         x = self.postNet(x + y)
-        return x
+        return input * (1. + 0.8 * x)
     def resetState(self) -> None:
         pass
     def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
@@ -520,14 +520,14 @@ class MainCritic(nn.Module):
             instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
         return instance
 
-class MainAi(nn.Module):
+class MainAiAlt(nn.Module):
     def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
         super().__init__()
         self.preNet = nn.Sequential(
             nn.Linear(input_dim + embedDim, dim, device = device),
-            nn.Softplus(),
+            nn.Tanh(),
         )
-        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), False, device) for _ in range(1)])
+        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), False, device) for _ in range(8)])
         self.postNet = nn.Sequential(
             nn.Linear(dim, input_dim, device = device),
             nn.Softplus(),
@@ -548,7 +548,7 @@ class MainAi(nn.Module):
         x = self.preNet(latent)
         x = self.mainNet(x)
         x = self.postNet(x)
-        return x * input
+        return x#(1. + 0.5 * x) * input
     def resetState(self) -> None:
         pass
     def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
@@ -557,16 +557,16 @@ class MainAi(nn.Module):
             instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
         return instance
 
-class MainCritic(nn.Module):
+class MainCriticAlt(nn.Module):
     
     def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
         super().__init__()
         self.preNet = nn.Sequential(
-            nn.Linear(input_dim + embedDim, dim, device = device),
-            nn.Softplus(),
+            nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim + embedDim, dim, device = device)),
+            nn.Tanh(),
         )
-        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), True, device) for _ in range(1)])
-        self.postNet = nn.Linear(dim, 1, device = device)
+        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), True, device) for _ in range(8)])
+        self.postNet = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, device = device))
         self.device = device
         self.learningRate = learningRate
         self.dim = dim
