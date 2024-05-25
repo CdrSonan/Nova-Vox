@@ -86,7 +86,7 @@ class AIWrapper():
             self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
             self.criterion = nn.L1Loss()
             self.guideCriterion = GuideRelLoss(device = self.device, threshold = 0.5)
-        self.deskewingPremul = torch.ones((global_consts.halfTripleBatchSize + global_consts.halfHarms + 1,), device = self.device)
+        self.deskewingPremul = torch.full((global_consts.halfTripleBatchSize + global_consts.halfHarms + 1,), 0.01, device = self.device)
     
     @staticmethod
     def dataLoader(data) -> DataLoader:
@@ -258,13 +258,13 @@ class AIWrapper():
         self.mainAi.requires_grad_(False)
         phases = specharm[:, halfHarms:2 * halfHarms]
         remainder = torch.cat((specharm[:, :halfHarms], specharm[:, 2 * halfHarms:]), 1)
-        latent = remainder# / self.deskewingPremul
+        latent = remainder / self.deskewingPremul
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
         if expression not in self.mainEmbedding.keys():
             expression = ""
         refined = self.mainAi(latent, 4, self.mainEmbedding[expression])
-        output = torch.squeeze(refined)# * self.deskewingPremul
+        output = torch.squeeze(refined) * self.deskewingPremul
         return torch.cat((output[:, :halfHarms], phases, output[:, halfHarms:]), 1)
 
     def reset(self) -> None:
@@ -409,9 +409,10 @@ class AIWrapper():
         else:
             self.mainAi.epoch = None
         total = 0
+        self.deskewingPremul = torch.full((global_consts.halfTripleBatchSize + global_consts.halfHarms + 1,), 0.01, device = self.device)
         for key in self.voicebank.phonemeDict.keys():
             for phoneme in self.voicebank.phonemeDict[key]:
-                self.deskewingPremul += phoneme.avgSpecharm.to(self.device)
+                self.deskewingPremul = torch.max(self.deskewingPremul, phoneme.avgSpecharm.to(self.device))
                 total += 1
             expression = key.split("_")
             if len(expression) == 1:
@@ -420,7 +421,6 @@ class AIWrapper():
                 expression = expression[-1]
             if expression not in self.mainEmbedding.keys():
                 self.mainEmbedding[expression] = newEmbedding(len(self.mainEmbedding), self.hparams["embeddingDim"], self.device)
-        self.deskewingPremul /= max(total, 1.)
         
         fargan_smp = None
         fargan_embedding = None
@@ -454,11 +454,11 @@ class AIWrapper():
                         embedding = self.mainEmbedding[expression]
                         data = torch.squeeze(data)
                         data = torch.cat((data[:, :halfHarms], data[:, 2 * halfHarms:]), 1)
-                        #data /= self.deskewingPremul
+                        data /= self.deskewingPremul
                     self.reset()
                     synthBase = self.mainGenerator.synthesize([0.1, 0., 0., 0.], data.size()[0], 14, expression)
                     synthBase = torch.cat((synthBase[:, :halfHarms], synthBase[:, 2 * halfHarms:]), 1)
-                    #synthBase /= self.deskewingPremul
+                    synthBase /= self.deskewingPremul
                     self.mainAi.resetState()
                     if synthBase.isnan().any():
                         print("NaN encountered in synthetic sample")
