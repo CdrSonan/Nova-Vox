@@ -380,7 +380,7 @@ class PseudoSSMInception(nn.Module):
         return output
 
 class EncoderBlock(nn.Module):
-    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, specnorm:bool = False) -> None:
+    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, dropout:float = 0., specnorm:bool = False) -> None:
         super().__init__()
         self.srcDim = srcDim
         self.tgtDim = tgtDim
@@ -392,6 +392,7 @@ class EncoderBlock(nn.Module):
         self.norm = nn.LayerNorm(tgtDim, device = device)
         self.nl1 = nn.GLU()
         self.nl2 = nn.GLU()
+        self.dropout = nn.Dropout(dropout)
         nn.init.orthogonal_(self.projection.weight)
         nn.init.zeros_(self.projection.bias)
         if specnorm:
@@ -402,10 +403,11 @@ class EncoderBlock(nn.Module):
         x = self.ssm(x)
         x = self.nl2(x)
         x = self.norm(x)
+        x = self.dropout(x)
         return x, input.size()[-2]
 
 class DecoderBlock(nn.Module):
-    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, specnorm:bool = False) -> None:
+    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, dropout:float = 0., specnorm:bool = False) -> None:
         super().__init__()
         self.srcDim = srcDim
         self.tgtDim = tgtDim
@@ -417,6 +419,7 @@ class DecoderBlock(nn.Module):
         self.norm = nn.LayerNorm(tgtDim, device = device)
         self.nl1 = nn.GLU()
         self.nl2 = nn.GLU()
+        self.dropout = nn.Dropout(dropout)
         nn.init.orthogonal_(self.projection.weight)
         nn.init.zeros_(self.projection.bias)
         if specnorm:
@@ -427,6 +430,7 @@ class DecoderBlock(nn.Module):
         x = self.ssm(x)
         x = self.nl2(x)
         x = self.norm(x)
+        x = self.dropout(x)
         return x[3:targetLength + 3]
 
 class MainAi(nn.Module):
@@ -436,15 +440,16 @@ class MainAi(nn.Module):
             nn.Linear(input_dim + embedDim, dim, device = device),
             nn.Tanh(),
         )
-        self.encoderA = EncoderBlock(dim, blockA[1], blockA[0], device = device)
-        self.encoderB = EncoderBlock(blockA[1], blockB[1], blockB[0], device = device)
-        self.encoderC = EncoderBlock(blockB[1], blockC[1], blockC[0], device = device)
-        self.decoderC = DecoderBlock(blockC[1], blockB[1], blockC[0], device = device)
-        self.decoderB = DecoderBlock(blockB[1], blockA[1], blockB[0], device = device)
-        self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device)
+        self.encoderA = EncoderBlock(dim, blockA[1], blockA[0], device = device, dropout = dropout)
+        self.encoderB = EncoderBlock(blockA[1], blockB[1], blockB[0], device = device, dropout = dropout)
+        self.encoderC = EncoderBlock(blockB[1], blockC[1], blockC[0], device = device, dropout = dropout)
+        self.decoderC = DecoderBlock(blockC[1], blockB[1], blockC[0], device = device, dropout = dropout)
+        self.decoderB = DecoderBlock(blockB[1], blockA[1], blockB[0], device = device, dropout = dropout)
+        self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device, dropout = dropout)
         self.postNet = nn.Sequential(
             nn.Linear(dim, input_dim, device = device),
-            nn.Tanh(),
+            #nn.Tanh(),
+            nn.Softplus(),
         )
         self.device = device
         self.learningRate = learningRate
@@ -467,7 +472,7 @@ class MainAi(nn.Module):
         y = self.decoderB(y + b, lengthB)
         y = self.decoderA(y + a, lengthA)
         x = self.postNet(x + y)
-        return input * (1. + 0.8 * x)
+        return input * (1. + 0.9 * x)
     def resetState(self) -> None:
         pass
     def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
@@ -484,12 +489,12 @@ class MainCritic(nn.Module):
             nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim + embedDim, dim, device = device)),
             nn.Tanh(),
         )
-        self.encoderA = EncoderBlock(dim, blockA[1], blockA[0], device = device, specnorm = True)
-        self.encoderB = EncoderBlock(blockA[1], blockB[1], blockB[0], device = device, specnorm = True)
-        self.encoderC = EncoderBlock(blockB[1], blockC[1], blockC[0], device = device, specnorm = True)
-        self.decoderC = DecoderBlock(blockC[1], blockB[1], blockC[0], device = device, specnorm = True)
-        self.decoderB = DecoderBlock(blockB[1], blockA[1], blockB[0], device = device, specnorm = True)
-        self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device, specnorm = True)
+        self.encoderA = EncoderBlock(dim, blockA[1], blockA[0], device = device, dropout = dropout, specnorm = True)
+        self.encoderB = EncoderBlock(blockA[1], blockB[1], blockB[0], device = device, dropout = dropout, specnorm = True)
+        self.encoderC = EncoderBlock(blockB[1], blockC[1], blockC[0], device = device, dropout = dropout, specnorm = True)
+        self.decoderC = DecoderBlock(blockC[1], blockB[1], blockC[0], device = device, dropout = dropout, specnorm = True)
+        self.decoderB = DecoderBlock(blockB[1], blockA[1], blockB[0], device = device, dropout = dropout, specnorm = True)
+        self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device, dropout = dropout, specnorm = True)
         self.postNet = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, device = device))
         self.device = device
         self.learningRate = learningRate

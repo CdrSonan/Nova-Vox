@@ -47,7 +47,7 @@ class AIWrapper():
             "main_blkC": [256, 256],
             "main_lr": 0.0012,
             "main_reg": 0.,
-            "main_drp":0.1,
+            "main_drp":0.5,
             "crt_blkA": [256, 192],
             "crt_blkB": [256, 256],
             "crt_blkC": [256, 256],
@@ -85,7 +85,7 @@ class AIWrapper():
             self.mainAiOptimizer = torch.optim.NAdam([*self.mainAi.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
             self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
             self.criterion = nn.L1Loss()
-            self.guideCriterion = GuideRelLoss(device = self.device, threshold = 0.5)
+            self.guideCriterion = GuideRelLoss(device = self.device, threshold = 0.6)
         self.deskewingPremul = torch.full((global_consts.halfTripleBatchSize + global_consts.halfHarms + 1,), 0.01, device = self.device)
     
     @staticmethod

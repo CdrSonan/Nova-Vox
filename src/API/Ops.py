@@ -483,7 +483,7 @@ class ChangeParam(UnifiedAction):
                     middleLayer.trackList[middleLayer.activeTrack].vibratoStrength[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                     middleLayer.submitNamedParamChange(True, "vibratoStrength", start, torch.tensor(data, dtype = torch.half))
                 for i in range(*middleLayer.posToNote(start, start + len(data))):
-                    middleLayer.recalculateBasePitch(i, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos + middleLayer.trackList[middleLayer.activeTrack].notes[i].length)
+                    middleLayer.recalculateBasePitch(i)
                 middleLayer.ids["pianoRoll"].redrawPitch()
                 middleLayer.submitFinalize()
             else:
