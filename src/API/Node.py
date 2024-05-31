@@ -7,12 +7,15 @@
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
+from kivy.uix.checkbox import CheckBox
+from kivy.uix.slider import Slider
 from kivy.uix.behaviors.drag import DragBehavior
 from kivy.properties import ObjectProperty
 from kivy.graphics import Color, Ellipse, RoundedRectangle, Bezier, InstructionGroup
 from kivy.clock import Clock
 from torch import Tensor
+
+from UI.editor.Util import FloatInput, IntInput
 
 class Node(DragBehavior, BoxLayout):
     """base class of an audio processing node. All node classes should inherit from this class."""
@@ -83,7 +86,8 @@ class Node(DragBehavior, BoxLayout):
     def on_parent(self, instance, parent):
         """call of recalculateSize() during initial widget creation"""
 
-        self.recalculateSize()
+        if parent is not None:
+            self.recalculateSize()
 
     def on_touch_down(self, touch):
         """processes initial Kivy touch input, and triggers scrolling or dragging accordingly"""
@@ -226,8 +230,8 @@ class Connector(BoxLayout):
         self.node = node
         self.orientation = "horizontal"
         self.add_widget(Label(text = self.name))
-        self.add_widget(TextInput(multiline = False, is_focusable = not self.out))
-        self.children[0].bind(focus = self.on_focus)
+        if not self.out and self.dtype.hasWidget:
+            self.dtype.make_widget(self, self.widget_setter)
         with self.canvas:
             self.curve = InstructionGroup()
             Color(self.dtype.UIColor)
@@ -257,11 +261,10 @@ class Connector(BoxLayout):
 
         self.update()
 
-    def on_focus(self, instance, focus):
+    def widget_setter(self, instance, value):
         """applies input changes when the widget is defocused, which indicates the user wants to confirm a text input"""
 
-        if not focus:
-            self.set(self.children[0].text)
+        self.set(value)
     
     def get(self):
         """getter function for the value of a connector. If the connector is an input, it gets its value through the connection.
@@ -302,12 +305,20 @@ class Connector(BoxLayout):
             self.node.checkStatic()
             target.node.checkStatic()
             self.curve.clear()
+            if target.dtype.hasWidget:
+                toRemove = target.children[0]
+                target.remove_widget(toRemove)
+                del toRemove
         else:
             self.attachedTo = target
             target.attachedTo.append(self)
             target.node.checkStatic()
             self.node.checkStatic()
             self.is_focusable = False
+            if self.dtype.hasWidget:
+                toRemove = self.children[0]
+                self.remove_widget(toRemove)
+                del toRemove
         self.drawCurveAttached()
         
     def detach(self) -> None:
@@ -322,6 +333,8 @@ class Connector(BoxLayout):
         tmpNode.checkStatic()
         self.node.checkStatic()
         self.is_focusable = True
+        if self.dtype.hasWidget:
+            self.dtype.make_widget(self, self.widget_setter)
 
     def drawCurve(self, touch):
         """updates the visual of the curve attached to the connector during dragging"""
@@ -380,7 +393,8 @@ class ClampedFloat():
 
     def __init__(self) -> None:
         self.UIColor = (1., 0.1, 0.1)
-        self.defaultValue = 0.5
+        self.defaultValue = 0.
+        self.hasWidget = True
 
     @staticmethod
     def convert(*args):
@@ -388,6 +402,11 @@ class ClampedFloat():
         result = max(-1., result)
         result = min(1., result)
         return result
+    
+    def make_widget(self, parent, setter = None):
+        widget = Slider(min = -1., max = 1., value = self.defaultValue)
+        parent.add_widget(widget)
+        widget.bind(value = setter)
 
 
 class Float():
@@ -396,10 +415,16 @@ class Float():
     def __init__(self) -> None:
         self.UIColor = (1., 0.7, 0.7)
         self.defaultValue = 0.5
+        self.hasWidget = True
 
     @staticmethod
     def convert(*args):
         return float(*args)
+    
+    def make_widget(self, parent, setter = None):
+        widget = FloatInput(text = str(self.defaultValue))
+        parent.add_widget(widget)
+        widget.bind(text = setter)
 
 
 class Int():
@@ -408,10 +433,16 @@ class Int():
     def __init__(self) -> None:
         self.UIColor = (0.1, 1., 0.1)
         self.defaultValue = 1
+        self.hasWidget = True
 
     @staticmethod
     def convert(*args):
         return int(*args)
+    
+    def make_widget(self, parent, setter = None):
+        widget = IntInput(text = str(self.defaultValue))
+        parent.add_widget(widget)
+        widget.bind(text = setter)
 
 
 class Bool():
@@ -420,10 +451,16 @@ class Bool():
     def __init__(self) -> None:
         self.UIColor = (0.5, 0.5, 0.5)
         self.defaultValue = False
+        self.hasWidget = True
 
     @staticmethod
     def convert(*args):
         return bool(*args)
+    
+    def make_widget(self, parent, setter = None):
+        widget = CheckBox(active = self.defaultValue)
+        parent.add_widget(widget)
+        widget.bind(active = setter)
 
 
 class ESPERAudio():
@@ -433,6 +470,7 @@ class ESPERAudio():
     def __init__(self) -> None:
         self.UIColor = (1., 1., 1.)
         self.defaultValue = 0.5
+        self.hasWidget = False
 
     @staticmethod
     def convert(*args):
@@ -446,6 +484,7 @@ class Phoneme():
     def __init__(self) -> None:
         self.UIColor = (0.1, 0.1, 1.)
         self.defaultValue = 0.5
+        self.hasWidget = False
 
     @staticmethod
     def convert(*args):

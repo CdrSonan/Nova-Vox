@@ -22,12 +22,23 @@ class NodeEditor(ScrollView):
         self.scroll_x = 0.5
         self.scroll_y = 0.5
         self.generateGrid()
+        self.generateNodes()
 
     @mainthread
     def generateGrid(self):
         """delayed call od updateGrid(). Required during widget initialization, when not all properties required by updateGrid() are available yet."""
 
         self.updateGrid()
+    
+    @mainthread
+    def generateNodes(self):
+        """delayed creation of node UI elementa and call of updateNodes(). Required during widget initialization, when not all properties required by updateNodes() are available yet."""
+
+        global middleLayer
+        from UI.editor.Main import middleLayer
+        for node in middleLayer.trackList[self.parent.parent.parent.parent.index].nodegraph.nodes:
+            self.addNode(node)
+        self.updateNodes()
     
     def updateNodes(self, scaleFactor = 1.):
         """updates the position of all nodes in the node editor to reflect changed scroll values or zoom levels"""
@@ -61,6 +72,31 @@ class NodeEditor(ScrollView):
                 c += 1
         for i in self.children[0].children[:-1]:
             i.recalculateSize()
+    
+    def addNode(self, node, new: bool = False):
+        """adds a node to the node editor"""
+
+        global middleLayer
+        from UI.editor.Main import middleLayer
+        if new:
+            node.pos = (self.scroll_x * (self.children[0].width - self.width) + self.width / 2, self.scroll_y * (self.children[0].height - self.height) + self.height / 2)
+            middleLayer.trackList[self.parent.parent.parent.parent.index].nodegraph.addNode(node)
+        self.children[0].add_widget(node)
+    
+    def removeNode(self, node):
+        """removes a node from the node editor"""
+
+        global middleLayer
+        from UI.editor.Main import middleLayer
+        middleLayer.trackList[self.parent.parent.parent.parent.index].nodegraph.removeNode(node)
+        self.children[0].remove_widget(node)
+        del node
+    
+    def prepareClose(self):
+        """preparation for closing the node editor"""
+
+        for _ in range(len(self.children[0].children) - 1):
+            self.children[0].remove_widget(self.children[0].children[0])
             
     def on_touch_down(self, touch):
         """callback function used for processing mouse input"""

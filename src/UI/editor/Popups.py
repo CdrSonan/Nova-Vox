@@ -34,7 +34,7 @@ class TreeViewButton(ButtonBehavior, TreeViewLabel):
     editor = ObjectProperty(None)
 
     def on_press(self):
-        self.editor.add_widget(self.node())
+        self.editor.addNode(self.node(), True)
         return super().on_press()
 
 class SingerSettingsPanel(Popup):
@@ -104,13 +104,15 @@ class SingerSettingsPanel(Popup):
                     self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(widget, parent)
                     parent = widget
                 branch = branch[1:]
-            self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(TreeViewButton(text = branch[0], node = i, always_release = True, editor = self.children[0].children[0].children[0].children[1].children[0]), parent)
+            self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(TreeViewButton(text = branch[0], node = i, always_release = True, editor = self.children[0].children[0].children[0].children[1]), parent)
+        
 
     def on_pre_dismiss(self) -> None:
         """applies all changed settings before closing the popup"""
 
         global middleLayer
         from UI.editor.Main import middleLayer
+        self.children[0].children[0].children[0].children[1].prepareClose()
         if self.children[0].children[0].children[0].children[0].children[2].children[2].text == "None":
             middleLayer.trackList[self.index].mixinVB = None
         else:

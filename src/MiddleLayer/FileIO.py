@@ -5,18 +5,35 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-import torch
 import h5py
 
 
 from API.Addon import override
+
+def serialize_nodegraph(nodegraph, group):
+    """serialize a nodegraph to an HDF5 group"""
+
+    group.create_group("nodes")
+    group.create_group("curves")
+    for i, node in enumerate(nodegraph.nodes):
+        node_group = group["nodes"].create_group(str(i))
+        node_group.attrs["type"] = node.__class__.__name__.encode("utf-8")
+        node_group.attrs["pos"] = (str(node.pos[0]) + " " + str(node.pos[1])).encode("utf-8")
+        node_group.attrs["size"] = (str(node.size[0]) + " " + str(node.size[1])).encode("utf-8")
+        node_group.create_group("inputs")
+        for name, value in node.inputs.items():
+            if value.dtype.hasWidget == False:
+                continue
+            if value.out or value.attachedTo is None:
+                node_group["inputs"].attrs[name] = str(value._value).encode("utf-8")
+            else:
+                node_group["inputs"].attrs[name] = ("attachedTo " + str(nodegraph.nodes.index(value.attachedTo.node)) + " " + value.attachedTo.name).encode("utf-8")
 
 @override
 def saveNVX(path:str, middleLayer) -> None:
     """backend function for saving a .nvx file"""
 
     str_dtype = h5py.string_dtype(encoding = "utf-8", length = None)
-    tracks = []
     with h5py.File(path, "w") as f:
         for i, track in enumerate(middleLayer.trackList):
             track.validate()
@@ -42,6 +59,7 @@ def saveNVX(path:str, middleLayer) -> None:
             group.create_dataset("vibratoStrength", data = track.vibratoStrength, dtype = "float32")
             group.create_dataset("borders", data = track.borders[:], dtype = "int64")
             group.create_group("nodegraph")
+            serialize_nodegraph(track.nodegraph, group["nodegraph"])
             group.attrs["volume"] = track.volume
             group.attrs["vbPath"] = track.vbPath
             group.attrs["usePitch"] = track.usePitch
@@ -57,47 +75,3 @@ def saveNVX(path:str, middleLayer) -> None:
                 group.attrs["mixinVB"] = track.mixinVB
             group.attrs["length"] = track.length
         return
-        notes = []
-        for note in track.notes:
-            notes.append({
-                "length": note.length,
-                "xPos": note.xPos,
-                "yPos": note.yPos,
-                "phonemeMode": note.phonemeMode,
-                "content": note.content,
-                "pronuncIndex": note.pronuncIndex,
-                "phonemes": note.phonemes,
-                "autopause": note.autopause,
-                "borders": note.borders,
-                "carryOver": note.carryOver,
-                "loopOverlap": note.loopOverlap,
-                "loopOffset": note.loopOffset,
-            })
-        tracks.append({
-            "volume": track.volume,
-            "vbPath": track.vbPath,
-            "notes": notes,
-            "pitch": track.pitch,
-            "basePitch": track.basePitch,
-            "breathiness": track.breathiness,
-            "steadiness": track.steadiness,
-            "aiBalance": track.aiBalance,
-            "vibratoSpeed": track.vibratoSpeed,
-            "vibratoStrength": track.vibratoStrength,
-            "usePitch": track.usePitch,
-            "useBreathiness": track.useBreathiness,
-            "useSteadiness": track.useSteadiness,
-            "useAIBalance": track.useAIBalance,
-            "useVibratoSpeed": track.useVibratoSpeed,
-            "useVibratoStrength": track.useVibratoStrength,
-            "pauseThreshold": track.pauseThreshold,
-            "mixinVB": track.mixinVB,
-            "nodegraph": track.nodegraph,
-            "length": track.length,
-            "wrappingBorders": track.borders.wrappingBorders
-        })
-    data = {
-        "tracks": tracks,
-        "audioBuffer": middleLayer.audioBuffer
-    }
-    torch.save(data, path)

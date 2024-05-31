@@ -19,11 +19,12 @@ from kivy.core.image import Image as CoreImage
 
 from UI.editor.Main import middleLayer
 from MiddleLayer.IniParser import readSettings
-from MiddleLayer.DataHandlers import Note, Track
+from MiddleLayer.DataHandlers import Note, Track, Nodegraph
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
 
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.DataHandler.HDF5 import MetadataStorage
+import Backend.NodeLib
 
 from Util import noteToPitch, convertFormat
 
@@ -834,6 +835,22 @@ class ChangeVolume(UnifiedAction):
             return self
         return None
 
+def deserialize_nodegraph(group):
+    nodegraph = Nodegraph()
+    for node_group in group["nodes"]:
+        nodegraph.addNode(Backend.NodeLib.getNodeCls(node_group.attrs["type"].decode("utf-8")))
+        nodegraph.nodes[-1].pos = node_group.attrs["pos"].split(" ")
+        nodegraph.nodes[-1].size = node_group.attrs["size"].split(" ")
+    for i, node_group in enumerate(group["nodes"]):
+        for input in node_group["inputs"].attrs.items():
+            if input[1].startswith("attachedTo"):
+                target_idx, target_output = input[1].split(" ")[1:]
+                nodegraph.nodes[i].inputs[input[0]].attach(nodegraph.nodes[int(target_idx)].outputs[target_output])
+            else:
+                nodegraph.nodes[i].inputs[input[0]].set(input[1])
+            
+    return nodegraph
+
 class LoadNVX(UnifiedAction):
     def __init__(self, path, *args, **kwargs):
         @override
@@ -879,7 +896,7 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].useAIBalance = bool(group.attrs["useAIBalance"])
                 middleLayer.trackList[-1].useVibratoSpeed = bool(group.attrs["useVibratoSpeed"])
                 middleLayer.trackList[-1].useVibratoStrength = bool(group.attrs["useVibratoStrength"])
-                #middleLayer.trackList[-1].nodegraph = group["nodegraph"]
+                middleLayer.trackList[-1].nodegraph = deserialize_nodegraph(group["nodegraph"])
                 middleLayer.trackList[-1].length = int(group.attrs["length"])
                 if group.attrs["mixinVB"] == "":
                     middleLayer.trackList[-1].mixinVB = None

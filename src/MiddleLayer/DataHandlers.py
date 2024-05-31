@@ -15,8 +15,13 @@ from Util import ensureTensorLength, noteToPitch
 class Nodegraph():
     def __init__(self) -> None:
         self.nodes = []
-        #self.nodes[1].connect()#TODO:finish
         self.params = dict()
+    
+    def addNode(self, node):
+        self.nodes.append(node)
+    
+    def removeNode(self, node):
+        self.nodes.remove(node)
 
     def pack(self):
         for i in self.nodes:

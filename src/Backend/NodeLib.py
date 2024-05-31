@@ -8,6 +8,8 @@
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
 
+from Util import classesinmodule
+
 from API.Node import *
 
 class addFloatNode(Node):
@@ -27,3 +29,12 @@ class addFloatNode(Node):
         return [loc["n_math"], name]
 
 additionalNodes = []
+
+def getNodeCls(name:str) -> type:
+    NodeClasses = classesinmodule(__loader__.__module__)
+    if len(additionalNodes) > 0:
+        NodeClasses.append(*additionalNodes)
+    for cls in NodeClasses:
+        if cls.__name__ == name:
+            return cls
+    return None
