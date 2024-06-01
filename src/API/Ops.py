@@ -329,7 +329,9 @@ class AddParam(UnifiedAction):
     def __init__(self, param, name, *args, **kwargs):
         @override
         def action(param, name):
-            pass
+            middleLayer.trackList[self.activeTrack].nodegraph.addParam(param, name)
+            #TODO: handle UI update
+            middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.activeTrack].nodegraph)
         super().__init__(action, param, name, *args, **kwargs)
 
     def inverseAction(self):
@@ -339,13 +341,13 @@ class RemoveParam(UnifiedAction):
     def __init__(self, name, *args, **kwargs):
         @override
         def action(name):
-            middleLayer.trackList[self.activeTrack].nodegraph.delete(name)
+            middleLayer.trackList[self.activeTrack].nodegraph.deleteParam(name)
             if name == self.activeParam:
                 middleLayer.changeParam(self.activeParam - 1)
             for i in middleLayer.ids["paramList"].children:
                 if i.name == name:
                     i.parent.remove_widget(i)
-        middleLayer.submitNodegraphUpdate
+        middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.activeTrack].nodegraph)
         super().__init__(action, name, *args, **kwargs)
         self.name = name
 

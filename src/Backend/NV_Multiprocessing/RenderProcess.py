@@ -14,7 +14,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     import logging
     from traceback import print_exc
     import Backend.Resampler.Resamplers as rs
-    from copy import copy
+    from copy import deepcopy
     from os import getenv, path
     from Backend.DataHandler.VocalSegment import VocalSegment
     from Backend.DataHandler.VoicebankManager import VoicebankManager
@@ -75,7 +75,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         elif change.type == "addTrack":
             statusControl.append(SequenceStatusControl(change.data[2]))
             voicebankList.append(voicebankManager.getVoicebank(change.data[0], device_ai))
-            nodeGraphList.append(change.data[1])
+            nodeGraphList.append(change.data[1].unpack())
             inputList.append(change.data[2])
             if settings["cachingmode"] == "best rendering speed":
                 length = inputList[-1].pitch.size()[0]
@@ -98,7 +98,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         elif change.type == "duplicateTrack":
             statusControl.append(statusControl[change.data[0]].duplicate())
             voicebankList.append(voicebankList[change.data[0]])
-            nodeGraphList.append(copy(nodeGraphList[change.data[0]]))
+            nodeGraphList.append(deepcopy(nodeGraphList[change.data[0]]))
             inputList.append(inputList[change.data[0]].duplicate())
             if settings["cachingmode"] == "best rendering speed":
                 spectrumCache.append(spectrumCache[change.data[0]].duplicate())
@@ -190,6 +190,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             inputList[change.data[0]].vibratoStrength = ensureTensorLength(inputList[change.data[0]].vibratoStrength, change.data[1], 0.)
             for i in range(len(inputList[change.data[0]].customCurves)):
                 inputList[change.data[0]].customCurves[i] = ensureTensorLength(inputList[change.data[0]].customCurves[i], change.data[1], 0.)
+        elif change.type == "changeNodegraph":
+            nodeGraphList[change.data[0]] = change.data[1].unpack()
+            statusControl[change.data[0]].ai *= 0
 
         if change.final == False:
             return updateFromMain(connection.get())

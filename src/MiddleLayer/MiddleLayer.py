@@ -315,9 +315,8 @@ class MiddleLayer(Widget):
     def submitChangeVB(self, index:int, path:str) -> None:
         self.manager.sendChange("changeVB", False, index, path)
     
-    def submitNodegraphUpdate(self) -> None:
-        #placeholder until NodeGraph is fully implemented
-        self.manager.sendChange("nodeUpdate", True, self.activeTrack, None)
+    def submitNodegraphUpdate(self, nodegraph) -> None:
+        self.manager.sendChange("changeNodegraph", True, self.activeTrack, nodegraph.pack())
     
     def submitEnableParam(self, name:str) -> None:
         self.manager.sendChange("enableParam", True, self.activeTrack, name)

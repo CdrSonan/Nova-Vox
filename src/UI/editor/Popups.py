@@ -123,6 +123,7 @@ class SingerSettingsPanel(Popup):
         if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]:
             middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
             API.Ops.ChangeVoicebank(self.index, middleLayer.trackList[self.index].vbPath)()
+        middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.index].nodegraph)
 
 class LicensePanel(Popup):
     """panel displaying the Nova-Vox license, contributors and other info"""
