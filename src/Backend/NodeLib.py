@@ -31,7 +31,12 @@ class addFloatNode(Node):
 additionalNodes = []
 
 def getNodeCls(name:str) -> type:
-    NodeClasses = classesinmodule(__loader__.__module__)
+    md = globals()
+    NodeClasses = [
+        md[c] for c in md if (
+            isinstance(md[c], type) and md[c].__module__ == __name__
+        )
+    ]
     if len(additionalNodes) > 0:
         NodeClasses.append(*additionalNodes)
     for cls in NodeClasses:

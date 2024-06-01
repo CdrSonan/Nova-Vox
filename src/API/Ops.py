@@ -837,11 +837,11 @@ class ChangeVolume(UnifiedAction):
 
 def deserialize_nodegraph(group):
     nodegraph = Nodegraph()
-    for node_group in group["nodes"]:
-        nodegraph.addNode(Backend.NodeLib.getNodeCls(node_group.attrs["type"].decode("utf-8")))
+    for node_group in group["nodes"].values():
+        nodegraph.addNode(Backend.NodeLib.getNodeCls(node_group.attrs["type"])())
         nodegraph.nodes[-1].pos = node_group.attrs["pos"].split(" ")
         nodegraph.nodes[-1].size = node_group.attrs["size"].split(" ")
-    for i, node_group in enumerate(group["nodes"]):
+    for i, node_group in enumerate(group["nodes"].values()):
         for input in node_group["inputs"].attrs.items():
             if input[1].startswith("attachedTo"):
                 target_idx, target_output = input[1].split(" ")[1:]
