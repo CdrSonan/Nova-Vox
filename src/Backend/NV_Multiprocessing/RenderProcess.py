@@ -63,7 +63,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     voicebankList = []
     for vbPath in voicebankListIn:
         voicebankList.append(voicebankManager.getVoicebank(vbPath, device_ai))
-    nodeGraphList = nodeGraphListIn#TODO: add node unwrapping
+    nodeGraphList = nodeGraphListIn
     inputList = inputListIn
     connection = connectionIn
     remoteConnection = remoteConnectionIn
@@ -75,7 +75,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         elif change.type == "addTrack":
             statusControl.append(SequenceStatusControl(change.data[2]))
             voicebankList.append(voicebankManager.getVoicebank(change.data[0], device_ai))
-            nodeGraphList.append(change.data[1].unpack())
+            nodeGraphList.append(change.data[1])
             inputList.append(change.data[2])
             if settings["cachingmode"] == "best rendering speed":
                 length = inputList[-1].pitch.size()[0]
@@ -111,9 +111,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             voicebankManager.clean()
             statusControl[change.data[0]].rs *= 0
             statusControl[change.data[0]].ai *= 0
-        elif change.type == "nodeUpdate":
-            nodeGraphList[change.data[0]].update(change.data[1])
-            statusControl[change.data[0]].ai *= 0
         elif change.type == "enableParam":
             if change.data[1] == "breathiness":
                 inputList[change.data[0]].useBreathiness = True
@@ -131,7 +128,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].useAIBalance = True
                 statusControl[change.data[0]].rs *= 0
             else:
-                nodeGraphList[change.data[1]].enableParam(change.data[2])
+                nodeGraphList[change.data[0]].enableParam(change.data[1])
             statusControl[change.data[0]].ai *= 0
         elif change.type == "disableParam":
             if change.data[1] == "breathiness":
@@ -191,7 +188,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             for i in range(len(inputList[change.data[0]].customCurves)):
                 inputList[change.data[0]].customCurves[i] = ensureTensorLength(inputList[change.data[0]].customCurves[i], change.data[1], 0.)
         elif change.type == "changeNodegraph":
-            nodeGraphList[change.data[0]] = change.data[1].unpack()
+            nodeGraphList[change.data[0]] = change.data[1]
             statusControl[change.data[0]].ai *= 0
 
         if change.final == False:

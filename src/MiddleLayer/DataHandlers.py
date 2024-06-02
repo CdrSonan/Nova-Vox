@@ -11,6 +11,7 @@ import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Util import ensureTensorLength, noteToPitch
+from API.Node import PackedNode
 
 class Nodegraph():
     def __init__(self) -> None:
@@ -24,12 +25,14 @@ class Nodegraph():
         self.nodes.remove(node)
 
     def pack(self):
+        packedNodes = []
         for i in self.nodes:
-            i.pack()
-
-    def unpack(self):
-        for i in self.nodes:
-            i.unpack()
+            packedNodes.append(PackedNode(i))
+        for idx, i in enumerate(self.nodes):
+            for j in i.inputs.keys():
+                if i.inputs[j].attachedTo is not None:
+                    packedNodes[idx].inputs[j].attachedTo = packedNodes[self.nodes.index(i.inputs[j].attachedTo.node)].outputs[i.inputs[j].attachedTo.name]
+        return packedNodes, self.params
 
 class Parameter():
     """class for holding and managing a parameter curve as seen by the main process. Exact layout will change with node tree implementation."""

@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -15,6 +15,7 @@ from kivy.graphics import Color, Ellipse, RoundedRectangle, Bezier, InstructionG
 from kivy.clock import Clock
 from torch import Tensor
 
+from Backend.NV_Multiprocessing.PackedNodes import *
 from UI.editor.Util import FloatInput, IntInput
 
 class Node(DragBehavior, BoxLayout):
@@ -60,7 +61,6 @@ class Node(DragBehavior, BoxLayout):
         self.static = not self.timed
         self.isUpdated = False
         self.isUpdating = False
-        self.isPacked = True
 
     def recalculateSize(self):
         """recalculates the visual size of the node based on the current zoom level of the node editor"""
@@ -159,9 +159,6 @@ class Node(DragBehavior, BoxLayout):
     def calculate(self) -> None:
         """evaluates the node, and recursively prompts evaluation of all nodes connected to its inputs, if required"""
 
-        if self.isPacked:
-            self.unpack()
-            self.isPacked = False
         inputs = dict()
         for i in self.inputs.keys():
             inputs[i] = self.inputs[i].get()
@@ -187,17 +184,6 @@ class Node(DragBehavior, BoxLayout):
         """resets time-dependent components of the node when evaluation jumps to a different point of the track. Designed to be overloaded by inheriting classes."""
 
         pass
-
-    def pack(self):
-        """packs the node, lowering its memory footprint and simplifying its transfer between processes. Designed to be overloaded by inheriting classes."""
-
-        pass
-
-    def unpack(self):
-        """unpacks the node, restoring its full functionality. Designed to be overloaded by inheriting classes."""
-
-        pass
-
 
 class Connector(BoxLayout):
     """Connector used for processing in- or output for a node. Always instantiated as child of a node."""
@@ -369,23 +355,6 @@ class Connector(BoxLayout):
                                         self.ellipse.pos[0] - 95, self.ellipse.pos[1] + 5,
                                         self.attachedTo.ellipse.pos[0] + 105, self.attachedTo.ellipse.pos[1] + 5,
                                         self.attachedTo.ellipse.pos[0] + 5, self.attachedTo.ellipse.pos[1] + 5]))
-
-
-class NodeTypeMismatchError(Exception):
-    def __init__(self, connection, *args: object) -> None:
-        super().__init__(*args)
-        self.connection = connection
-
-
-class NodeLoopError(Exception):
-    def __init__(self, connection, *args: object) -> None:
-        super().__init__(*args)
-        self.connection = connection
-
-
-class NodeAttachError(Exception):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
 
 
 class ClampedFloat():

@@ -8,8 +8,6 @@
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
 
-from Util import classesinmodule
-
 from API.Node import *
 
 class addFloatNode(Node):
