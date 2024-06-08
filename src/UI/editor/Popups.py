@@ -16,7 +16,7 @@ from kivy.properties import ObjectProperty
 
 import h5py
 
-from Backend import NodeLib
+from Backend.Node import NodeLib
 from Backend.DataHandler.HDF5 import MetadataStorage
 from MiddleLayer.IniParser import readSettings
 from UI.editor.Util import ManagedPopup

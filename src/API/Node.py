@@ -7,16 +7,13 @@
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
-from kivy.uix.checkbox import CheckBox
-from kivy.uix.slider import Slider
 from kivy.uix.behaviors.drag import DragBehavior
 from kivy.properties import ObjectProperty
 from kivy.graphics import Color, Ellipse, RoundedRectangle, Bezier, InstructionGroup
 from kivy.clock import Clock
-from torch import Tensor
 
-from Backend.NV_Multiprocessing.PackedNodes import *
-from UI.editor.Util import FloatInput, IntInput
+from Backend.Node.NodeBase import NodeBase, ConnectorBase, NodeAttachError, NodeLoopError, NodeTypeMismatchError
+from Backend.Node.Types import getType
 
 class Node(DragBehavior, BoxLayout):
     """base class of an audio processing node. All node classes should inherit from this class."""
@@ -39,6 +36,7 @@ class Node(DragBehavior, BoxLayout):
 
 
         super().__init__(**kwargs)
+        self.base = NodeBase(inputs, outputs, func, timed)
         self.rectangle = ObjectProperty()
         with self.canvas:
             Color(0.322, 0.259, 0.463, 1.)
@@ -188,7 +186,7 @@ class Node(DragBehavior, BoxLayout):
 class Connector(BoxLayout):
     """Connector used for processing in- or output for a node. Always instantiated as child of a node."""
 
-    def __init__(self, out:bool, node:Node, dtype:object, name:str, **kwargs) -> None:
+    def __init__(self, base:ConnectorBase, node:Node, dtype:str, **kwargs) -> None:
         """
         Constructor function.
         
@@ -204,15 +202,9 @@ class Connector(BoxLayout):
 
 
         super().__init__(**kwargs)
+        self.dtype, value = getType(dtype)
+        self.base = base
         self.multiline = False
-        self.out = out
-        self.dtype = dtype()
-        self.name = name
-        self._value = self.dtype.defaultValue
-        if self.out:
-            self.attachedTo = []
-        else:
-            self.attachedTo = None
         self.node = node
         self.orientation = "horizontal"
         self.add_widget(Label(text = self.name))
@@ -256,29 +248,13 @@ class Connector(BoxLayout):
         """getter function for the value of a connector. If the connector is an input, it gets its value through the connection.
         If it is an output, it instead causes its own node to be evaluated if necessary, and catches loops in the node graph."""
 
-        if self.out:
-            if self.node.isUpdating:
-                raise NodeLoopError(self.node)
-            if self.node.isUpdated == False and self.node.static == False:
-                self.isUpdating = True
-                self.node.calculate()
-                self.isUpdating = False
-            return self._value
-        else:
-            if self.attachedTo is None:
-                return self._value
-            return self.attachedTo.get()
+        return self.base.get()
     
     def set(self, value):
         """sets the value of the connector, both internally and visually, using the conversion function of its node data type class, and performs error handling."""
 
-        try:
-            value = self.dtype.convert(value)
-        except:
-            raise NodeTypeMismatchError(self.node)
-        else:
-            self._value = value
-            self.children[0].text = repr(self._value)
+        self.base.set(value)
+        self.children[0].text = repr(self._value)
 
     def attach(self, target:object) -> None:
         """attaches two connectors to each other, and performs the nexessary checks and callbacks."""
@@ -355,118 +331,3 @@ class Connector(BoxLayout):
                                         self.ellipse.pos[0] - 95, self.ellipse.pos[1] + 5,
                                         self.attachedTo.ellipse.pos[0] + 105, self.attachedTo.ellipse.pos[1] + 5,
                                         self.attachedTo.ellipse.pos[0] + 5, self.attachedTo.ellipse.pos[1] + 5]))
-
-
-class ClampedFloat():
-    """node data type class for a Float confined within the [-1, 1] interval"""
-
-    def __init__(self) -> None:
-        self.UIColor = (1., 0.1, 0.1)
-        self.defaultValue = 0.
-        self.hasWidget = True
-
-    @staticmethod
-    def convert(*args):
-        result = float(*args)
-        result = max(-1., result)
-        result = min(1., result)
-        return result
-    
-    def make_widget(self, parent, setter = None):
-        widget = Slider(min = -1., max = 1., value = self.defaultValue)
-        parent.add_widget(widget)
-        widget.bind(value = setter)
-
-
-class Float():
-    """node data type class for a standard Float"""
-
-    def __init__(self) -> None:
-        self.UIColor = (1., 0.7, 0.7)
-        self.defaultValue = 0.5
-        self.hasWidget = True
-
-    @staticmethod
-    def convert(*args):
-        return float(*args)
-    
-    def make_widget(self, parent, setter = None):
-        widget = FloatInput(text = str(self.defaultValue))
-        parent.add_widget(widget)
-        widget.bind(text = setter)
-
-
-class Int():
-    """node data type class for a standard integer"""
-
-    def __init__(self) -> None:
-        self.UIColor = (0.1, 1., 0.1)
-        self.defaultValue = 1
-        self.hasWidget = True
-
-    @staticmethod
-    def convert(*args):
-        return int(*args)
-    
-    def make_widget(self, parent, setter = None):
-        widget = IntInput(text = str(self.defaultValue))
-        parent.add_widget(widget)
-        widget.bind(text = setter)
-
-
-class Bool():
-    """node data type class for a standard boolean"""
-
-    def __init__(self) -> None:
-        self.UIColor = (0.5, 0.5, 0.5)
-        self.defaultValue = False
-        self.hasWidget = True
-
-    @staticmethod
-    def convert(*args):
-        return bool(*args)
-    
-    def make_widget(self, parent, setter = None):
-        widget = CheckBox(active = self.defaultValue)
-        parent.add_widget(widget)
-        widget.bind(active = setter)
-
-
-class ESPERAudio():
-    """node data type class for a PyTorch tensor representing a "Specharm", a point in an audio signal encoded using ESPER."""
-
-    #TODO: finish this class
-    def __init__(self) -> None:
-        self.UIColor = (1., 1., 1.)
-        self.defaultValue = 0.5
-        self.hasWidget = False
-
-    @staticmethod
-    def convert(*args):
-        return Tensor(*args)
-
-
-class Phoneme():
-    """node data type class for a "phoneme state" of a track. Consists of one or two phonemes, and a value between 0 and 1 representing their relative strength in the case of two phonemes"""
-
-    #TODO: finish this class
-    def __init__(self) -> None:
-        self.UIColor = (0.1, 0.1, 1.)
-        self.defaultValue = 0.5
-        self.hasWidget = False
-
-    @staticmethod
-    def convert(*args):
-        return None
-
-#basic unit test
-def testfunc(**kwargs) -> dict:
-    return {"testoutput" : 2.}
-def testfunc2(testinput, **kwargs) -> dict:
-    print(testinput)
-    return dict()
-
-nodeA = Node({"testinput":Float}, dict(), testfunc2)
-nodeB = Node(dict(), {"testoutput":Float}, testfunc)
-nodeA.inputs["testinput"].attach(nodeB.outputs["testoutput"])
-print(nodeA.inputs["testinput"].get())

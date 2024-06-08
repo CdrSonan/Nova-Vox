@@ -24,7 +24,7 @@ from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
 
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.DataHandler.HDF5 import MetadataStorage
-import Backend.NodeLib
+import Backend.Node.NodeLib
 
 from Util import noteToPitch, convertFormat
 
@@ -840,7 +840,7 @@ class ChangeVolume(UnifiedAction):
 def deserialize_nodegraph(group):
     nodegraph = Nodegraph()
     for node_group in group["nodes"].values():
-        nodegraph.addNode(Backend.NodeLib.getNodeCls(node_group.attrs["type"])())
+        nodegraph.addNode(Backend.Node.NodeLib.getNodeCls(node_group.attrs["type"])())
         nodegraph.nodes[-1].pos = node_group.attrs["pos"].split(" ")
         nodegraph.nodes[-1].size = node_group.attrs["size"].split(" ")
     for i, node_group in enumerate(group["nodes"].values()):

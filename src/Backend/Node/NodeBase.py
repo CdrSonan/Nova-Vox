@@ -5,7 +5,7 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-from inspect import getsource
+from Backend.Node.TypeConverters import getConverter
 
 class NodeTypeMismatchError(Exception):
     def __init__(self, connection, *args: object) -> None:
@@ -24,31 +24,48 @@ class NodeAttachError(Exception):
         super().__init__(*args)
 
 
-class PackedNode():
-    """base class of a packed audio processing node. All packed node classes should inherit from this class."""
+class NodeBase():
+    """base class of an audio processing node. All node classes should inherit from this class."""
 
-    def __init__(self, base) -> None:
+    def __init__(self, inputs:dict, outputs:dict, func:object, timed = False, **kwargs) -> None:
         """
         constructs an arbitrary node using the provided parameters. Designed to be called from the __init__ method of a child class using super().__init__(), after the required arguments have been set up.
+        Arguments:
+            inputs: dictionary using strings as keys, and node datatype classes as values. Each key-value-pair corresponds to the name and data type of an input port the node will have.
+
+            outputs: dictionary using strings as keys, and node datatype classes as values. Each key-value-pair corresponds to the name and data type of an input port the node will have.
+
+            func: callable performing the function of the node. Its arguments match the keys in the input dictionary, and it must return a dictionary with the same keys as the output dictionary,
+            and values that can be converted to the respective node data type.
+
+            timed: boolean flag indicating whether the node output is time-dependent even with constant input. Setting this flag will cause the node to be evaluated in every frame, instead of only when one of its inputs changes.
+
+            **kwargs: keyword arguments passed to the Kivy constructors
         """
+
+
         self.inputs = dict()
         self.outputs = dict()
-        for i in base.inputs.keys():
-            self.inputs[i] = PackedConnector(self, base.inputs[i])
-        for i in base.outputs.keys():
-            self.outputs[i] = PackedConnector(self, base.outputs[i])
-        self.func = getsource(base.func)
-        self.timed = base.timed
-        self.static = base.static
+        for i in inputs.keys():
+            self.inputs[i] = ConnectorBase(False, self, inputs[i])
+        for i in outputs.keys():
+            self.outputs[i] = ConnectorBase(True, self, outputs[i])
+        self.func = func
+        self.timed = timed
+        self.static = not self.timed
         self.isUpdated = False
         self.isUpdating = False
-    
+
+    @staticmethod
+    def name() -> list:
+        """returns the name of the node and its position in the available node browser, akin to a file path and name.
+        Designed to be overwritten by classes inheriting from this class."""
+
+        return ["",]
+
     def calculate(self) -> None:
         """evaluates the node, and recursively prompts evaluation of all nodes connected to its inputs, if required"""
 
-        if isinstance(self.func, str):
-            eval(self.func)
-            self.func = locals()["func"]
         inputs = dict()
         for i in self.inputs.keys():
             inputs[i] = self.inputs[i].get()
@@ -57,11 +74,28 @@ class PackedNode():
             self.outputs[i].set(result[i])
         self.isUpdated = True
 
+    def checkStatic(self):
+        """checks whether the node needs to be evaluated every frame, or can be considered static, returning a constant value"""
 
-class PackedConnector():
-    """Packed Connector object, used for transferring node data between processes"""
+        #TODO: add recursion
+        self.static = not self.timed
+        for i in self.inputs.keys():
+            if self.inputs[i].attachedTo != None:
+                if self.inputs[i].attachedTo.node.static == False:
+                    self.static = False
+                    break
+        if self.static:
+            self.calculate()
 
-    def __init__(self, node:PackedNode, base) -> None:
+    def reset(self):
+        """resets time-dependent components of the node when evaluation jumps to a different point of the track. Designed to be overloaded by inheriting classes."""
+
+        pass
+
+class ConnectorBase():
+    """Connector used for processing in- or output for a node. Always instantiated as child of a node."""
+
+    def __init__(self, out:bool, node:NodeBase, type:str, value:object, name:str) -> None:
         """
         Constructor function.
         
@@ -76,10 +110,10 @@ class PackedConnector():
         """
 
 
-        self.out = base.out
-        self.name = base.name
-        self._value = base._value
-        self.convert = getsource(base.dtype.convert)
+        self.out = out
+        self.converter = getConverter(type)
+        self.name = name
+        self._value = value
         if self.out:
             self.attachedTo = []
         else:
@@ -104,13 +138,10 @@ class PackedConnector():
             return self.attachedTo.get()
     
     def set(self, value):
-        """sets the value of the connector, using the conversion function of its node data type class, and performs error handling."""
+        """sets the value of the connector, both internally and visually, using the conversion function of its node data type class, and performs error handling."""
 
-        if isinstance(self.convert, str):
-            eval(self.convert)
-            self.convert = locals()["convert"]
         try:
-            value = self.convert(value)
+            value = self.converter(value)
         except:
             raise NodeTypeMismatchError(self.node)
         else:
