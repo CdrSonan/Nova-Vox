@@ -135,7 +135,7 @@ class NodeEditor(ScrollView):
             return False
         
         if "draggedConnFrom" in touch.ud:
-            if touch.ud["draggedConnFrom"].out:
+            if touch.ud["draggedConnFrom"].base.out:
                 for node in self.children[0].children[:-1]:
                     for conn in node.inputs.values():
                         if processConnector(conn, touch):

@@ -47,9 +47,9 @@ class NodeBase():
         self.inputs = dict()
         self.outputs = dict()
         for i in inputs.keys():
-            self.inputs[i] = ConnectorBase(False, self, inputs[i])
+            self.inputs[i] = ConnectorBase(False, self, inputs[i], None, i)
         for i in outputs.keys():
-            self.outputs[i] = ConnectorBase(True, self, outputs[i])
+            self.outputs[i] = ConnectorBase(True, self, outputs[i], None, i)
         self.func = func
         self.timed = timed
         self.static = not self.timed
@@ -112,6 +112,7 @@ class ConnectorBase():
 
         self.out = out
         self.converter = getConverter(type)
+        self._type = type
         self.name = name
         self._value = value
         if self.out:

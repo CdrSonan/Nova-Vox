@@ -11,7 +11,6 @@ import torch
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Util import ensureTensorLength, noteToPitch
-from API.Node import PackedNode
 
 class Nodegraph():
     def __init__(self) -> None:
@@ -27,11 +26,17 @@ class Nodegraph():
     def pack(self):
         packedNodes = []
         for i in self.nodes:
-            packedNodes.append(PackedNode(i))
-        for idx, i in enumerate(self.nodes):
+            packedNodes.append(dict())
+            packedNodes[-1]["type"] = i.base.__class__.__name__
+            packedNodes[-1]["inputs"] = dict()
             for j in i.inputs.keys():
-                if i.inputs[j].attachedTo is not None:
-                    packedNodes[idx].inputs[j].attachedTo = packedNodes[self.nodes.index(i.inputs[j].attachedTo.node)].outputs[i.inputs[j].attachedTo.name]
+                if i.inputs[j].base.attachedTo is None:
+                    packedNodes[-1]["inputs"][j] = (False, i.inputs[j].base._value)
+                else:
+                    packedNodes[-1]["inputs"][j] = (True, i.inputs[j].base._value, self.nodes.index(i.inputs[j].base.attachedTo.node), i.inputs[j].base.attachedTo.name)
+            packedNodes[-1]["outputs"] = dict()
+            for j in i.outputs.keys():
+                packedNodes[-1]["outputs"][j] = i.outputs[j].base._value
         return packedNodes, self.params
 
 class Parameter():

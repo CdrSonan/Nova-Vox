@@ -16,7 +16,7 @@ from kivy.properties import ObjectProperty
 
 import h5py
 
-from Backend.Node import NodeLib
+from Backend.Node import NodeLib, Node
 from Backend.DataHandler.HDF5 import MetadataStorage
 from MiddleLayer.IniParser import readSettings
 from UI.editor.Util import ManagedPopup
@@ -34,7 +34,7 @@ class TreeViewButton(ButtonBehavior, TreeViewLabel):
     editor = ObjectProperty(None)
 
     def on_press(self):
-        self.editor.addNode(self.node(), True)
+        self.editor.addNode(Node.Node(self.node()), True)
         return super().on_press()
 
 class SingerSettingsPanel(Popup):

@@ -18,7 +18,7 @@ from Backend.Node.Types import getType
 class Node(DragBehavior, BoxLayout):
     """base class of an audio processing node. All node classes should inherit from this class."""
 
-    def __init__(self, inputs:dict, outputs:dict, func:object, timed = False, **kwargs) -> None:
+    def __init__(self, base:NodeBase, **kwargs) -> None:
         """
         constructs an arbitrary node using the provided parameters. Designed to be called from the __init__ method of a child class using super().__init__(), after the required arguments have been set up.
         Arguments:
@@ -36,7 +36,7 @@ class Node(DragBehavior, BoxLayout):
 
 
         super().__init__(**kwargs)
-        self.base = NodeBase(inputs, outputs, func, timed)
+        self.base = base
         self.rectangle = ObjectProperty()
         with self.canvas:
             Color(0.322, 0.259, 0.463, 1.)
@@ -44,21 +44,14 @@ class Node(DragBehavior, BoxLayout):
         self.inputs = dict()
         self.outputs = dict()
         self.add_widget(Label(text = self.name()[-1]))
-        for i in inputs.keys():
-            conn = Connector(False, self, inputs[i], i)
+        for i in self.base.inputs.keys():
+            conn = Connector(self.base.inputs[i], self, self.base.inputs[i]._type)
             self.add_widget(conn)
-            self.inputs[i] = ObjectProperty()
-            self.inputs[i] = self.children[0]
-        for i in outputs.keys():
-            conn = Connector(True, self, outputs[i], i)
+            self.inputs[i] = conn
+        for i in self.base.outputs.keys():
+            conn = Connector(self.base.outputs[i], self, self.base.outputs[i]._type)
             self.add_widget(conn)
-            self.outputs[i] = ObjectProperty()
-            self.outputs[i] = self.children[0]
-        self.func = func
-        self.timed = timed
-        self.static = not self.timed
-        self.isUpdated = False
-        self.isUpdating = False
+            self.outputs[i] = conn
 
     def recalculateSize(self):
         """recalculates the visual size of the node based on the current zoom level of the node editor"""
@@ -92,11 +85,11 @@ class Node(DragBehavior, BoxLayout):
         
         def processConnector(conn:Connector, touch):
             if conn.ellipse.pos[0] - 5 < x < conn.ellipse.pos[0] + 15 and conn.ellipse.pos[1] - 5 < y < conn.ellipse.pos[1] + 15:
-                if conn.attachedTo == None or conn.out:
+                if conn.base.attachedTo == None or conn.base.out:
                     touch.ud["draggedConnFrom"] = conn
                     conn.drawCurve(touch)
                 else:
-                    touch.ud["draggedConnFrom"] = conn.attachedTo
+                    touch.ud["draggedConnFrom"] = conn.base.attachedTo
                     conn.detach()
                     touch.ud["draggedConnFrom"].drawCurve(touch)
                 return True
@@ -157,26 +150,12 @@ class Node(DragBehavior, BoxLayout):
     def calculate(self) -> None:
         """evaluates the node, and recursively prompts evaluation of all nodes connected to its inputs, if required"""
 
-        inputs = dict()
-        for i in self.inputs.keys():
-            inputs[i] = self.inputs[i].get()
-        result = self.func(**inputs)
-        for i in result.keys():
-            self.outputs[i].set(result[i])
-        self.isUpdated = True
+        self.base.calculate()
 
     def checkStatic(self):
         """checks whether the node needs to be evaluated every frame, or can be considered static, returning a constant value"""
 
-        #TODO: add recursion
-        self.static = not self.timed
-        for i in self.inputs.keys():
-            if self.inputs[i].attachedTo != None:
-                if self.inputs[i].attachedTo.node.static == False:
-                    self.static = False
-                    break
-        if self.static:
-            self.calculate()
+        self.base.checkStatic()
 
     def reset(self):
         """resets time-dependent components of the node when evaluation jumps to a different point of the track. Designed to be overloaded by inheriting classes."""
@@ -202,13 +181,14 @@ class Connector(BoxLayout):
 
 
         super().__init__(**kwargs)
-        self.dtype, value = getType(dtype)
+        self.dtype = getType(dtype)()
         self.base = base
+        self.base._value = self.dtype.defaultValue
         self.multiline = False
         self.node = node
         self.orientation = "horizontal"
-        self.add_widget(Label(text = self.name))
-        if not self.out and self.dtype.hasWidget:
+        self.add_widget(Label(text = self.base.name))
+        if not self.base.out and self.dtype.hasWidget:
             self.dtype.make_widget(self, self.widget_setter)
         with self.canvas:
             self.curve = InstructionGroup()
@@ -218,7 +198,7 @@ class Connector(BoxLayout):
     def update(self):
         """updates the visual position of the connector and curve, if attached."""
 
-        if self.out:
+        if self.base.out:
             self.ellipse.pos = (self.x + self.width + 5, self.y + self.height / 2 - 5)
         else:
             self.ellipse.pos = (self.x - 15, self.y + self.height / 2 - 5)
@@ -259,11 +239,11 @@ class Connector(BoxLayout):
     def attach(self, target:object) -> None:
         """attaches two connectors to each other, and performs the nexessary checks and callbacks."""
 
-        if self.out == target.out:
+        if self.base.out == target.base.out:
             raise NodeAttachError()
-        if self.out:
-            self.attachedTo.append(target)
-            target.attachedTo = self
+        if self.base.out:
+            self.base.attachedTo.append(target.base)
+            target.base.attachedTo = self.base
             self.node.checkStatic()
             target.node.checkStatic()
             self.curve.clear()
@@ -272,8 +252,8 @@ class Connector(BoxLayout):
                 target.remove_widget(toRemove)
                 del toRemove
         else:
-            self.attachedTo = target
-            target.attachedTo.append(self)
+            self.base.attachedTo = target.base
+            target.base.attachedTo.append(self.base)
             target.node.checkStatic()
             self.node.checkStatic()
             self.is_focusable = False
@@ -286,11 +266,11 @@ class Connector(BoxLayout):
     def detach(self) -> None:
         """detaches two connected connectors, and performs the nexessary checks and callbacks."""
 
-        if self.out:
+        if self.base.out:
             return
         tmpNode = self.attachedTo.node
-        self.attachedTo.attachedTo.remove(self)
-        self.attachedTo = None
+        self.base.attachedTo.attachedTo.remove(self.base)
+        self.base.attachedTo = None
         self.curve.clear()
         tmpNode.checkStatic()
         self.node.checkStatic()
@@ -305,7 +285,7 @@ class Connector(BoxLayout):
             x, y = self.parent.parent.parent.to_local(*touch.pos)
             self.curve.clear()
             self.curve.add(Color(1., 1., 1.))
-            if self.out:
+            if self.base.out:
                 self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5,
                                                 self.ellipse.pos[0] + 105, self.ellipse.pos[1] + 5,
                                                 x, y]))
@@ -319,10 +299,10 @@ class Connector(BoxLayout):
     def drawCurveAttached(self):
         """updates the visual of the curve of the connector when it is attached"""
         
-        if self.attachedTo is None:
+        if self.base.attachedTo is None:
             return
-        if self.out:
-            for i in self.attachedTo:
+        if self.base.out:
+            for i in self.base.attachedTo:
                 i.drawCurveAttached()
             return
         self.curve.clear()

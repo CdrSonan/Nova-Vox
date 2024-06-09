@@ -8,12 +8,12 @@
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
 
-from API.Node import *
+from Backend.Node.NodeBase import NodeBase
 
-class addFloatNode(Node):
+class addFloatNode(NodeBase):
     def __init__(self, **kwargs) -> None:
-        inputs = {"A": Float, "B": Float}
-        outputs = {"Result": Float}
+        inputs = {"A": "Float", "B": "Float"}
+        outputs = {"Result": "Float"}
         def func(A, B):
             return {"Result": A + B}
         super().__init__(inputs, outputs, func, False, **kwargs)
