@@ -100,13 +100,12 @@ def unpackNodes(nodeList:list, paramList:list) -> list:
     
     nodes = []
     for nodeInfo in nodeList:
-        print(nodeInfo)
         nodes.append(getNodeCls(nodeInfo["type"])())
-    for nodeInfo in nodeList:
-        for i in nodeInfo["inputs"]:
-            i._value = i[1]
+    for node, nodeInfo in zip(nodes, nodeList):
+        for key, i in nodeInfo["inputs"].items():
+            node.inputs[key]._value = i[1]
             if i[0]:
-                i.attachedTo = nodes[i[2]].outputs[i[3]]
-        for i in nodeInfo["outputs"]:
-            i._value = i[1]
+                node.inputs[key].attachedTo = nodes[i[2]].outputs[i[3]]
+        for key, i in nodeInfo["outputs"].items():
+            node.outputs[key]._value = i
     return nodes, paramList

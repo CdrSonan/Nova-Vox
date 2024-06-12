@@ -89,7 +89,7 @@ class Node(DragBehavior, BoxLayout):
                     touch.ud["draggedConnFrom"] = conn
                     conn.drawCurve(touch)
                 else:
-                    touch.ud["draggedConnFrom"] = conn.base.attachedTo
+                    touch.ud["draggedConnFrom"] = conn.attachedTo
                     conn.detach()
                     touch.ud["draggedConnFrom"].drawCurve(touch)
                 return True
@@ -187,6 +187,7 @@ class Connector(BoxLayout):
         self.multiline = False
         self.node = node
         self.orientation = "horizontal"
+        self.attachedTo = [] if self.base.out else None
         self.add_widget(Label(text = self.base.name))
         if not self.base.out and self.dtype.hasWidget:
             self.dtype.make_widget(self, self.widget_setter)
@@ -200,9 +201,12 @@ class Connector(BoxLayout):
 
         if self.base.out:
             self.ellipse.pos = (self.x + self.width + 5, self.y + self.height / 2 - 5)
+            for i in self.attachedTo:
+                i.drawCurveAttached()
         else:
             self.ellipse.pos = (self.x - 15, self.y + self.height / 2 - 5)
-        self.drawCurveAttached()
+            if self.base.attachedTo is not None:
+                self.drawCurveAttached()
         
     def on_parent(self, instance, parent):
         """calls update() when the connector is initially created"""
@@ -234,7 +238,7 @@ class Connector(BoxLayout):
         """sets the value of the connector, both internally and visually, using the conversion function of its node data type class, and performs error handling."""
 
         self.base.set(value)
-        self.children[0].text = repr(self._value)
+        self.children[0].text = repr(self.base._value)
 
     def attach(self, target:object) -> None:
         """attaches two connectors to each other, and performs the nexessary checks and callbacks."""
@@ -244,6 +248,8 @@ class Connector(BoxLayout):
         if self.base.out:
             self.base.attachedTo.append(target.base)
             target.base.attachedTo = self.base
+            self.attachedTo.append(target)
+            target.attachedTo = self
             self.node.checkStatic()
             target.node.checkStatic()
             self.curve.clear()
@@ -251,9 +257,12 @@ class Connector(BoxLayout):
                 toRemove = target.children[0]
                 target.remove_widget(toRemove)
                 del toRemove
+            target.drawCurveAttached()
         else:
             self.base.attachedTo = target.base
             target.base.attachedTo.append(self.base)
+            self.attachedTo = target
+            target.attachedTo.append(self)
             target.node.checkStatic()
             self.node.checkStatic()
             self.is_focusable = False
@@ -261,16 +270,19 @@ class Connector(BoxLayout):
                 toRemove = self.children[0]
                 self.remove_widget(toRemove)
                 del toRemove
-        self.drawCurveAttached()
+            self.drawCurveAttached()
         
     def detach(self) -> None:
         """detaches two connected connectors, and performs the nexessary checks and callbacks."""
 
         if self.base.out:
             return
-        tmpNode = self.attachedTo.node
+        tmpNode = self.base.attachedTo.node
         self.base.attachedTo.attachedTo.remove(self.base)
         self.base.attachedTo = None
+        tmpNode = self.attachedTo.node
+        self.attachedTo.attachedTo.remove(self)
+        self.attachedTo = None
         self.curve.clear()
         tmpNode.checkStatic()
         self.node.checkStatic()
@@ -301,9 +313,7 @@ class Connector(BoxLayout):
         
         if self.base.attachedTo is None:
             return
-        if self.base.out:
-            for i in self.base.attachedTo:
-                i.drawCurveAttached()
+        if isinstance(self.base.attachedTo, list) and len(self.base.attachedTo) == 0:
             return
         self.curve.clear()
         self.curve.add(Color(1., 1., 1.))

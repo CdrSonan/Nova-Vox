@@ -21,6 +21,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
     from Backend.NV_Multiprocessing.Caching import DenseCache, SparseCache
     from Backend.NV_Multiprocessing.Update import trimSequence, posToSegment, unpackNodes
+    from Backend.Node import NodeLib
     from Util import ensureTensorLength
     from MiddleLayer.IniParser import readSettings
     from Backend.Resampler.CubicSplineInter import interp
@@ -214,6 +215,29 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
         return torch.cat((newHarmonics, phases, inputSpectrum), 0), previousShift
     
+    def processNodegraph(audio, internalInputs, j, nodeInputs, nodeOutput):
+        if nodeOutput == None:
+            return audio
+        output = torch.zeros_like(audio)
+        length = audio.size()[0]
+        for k in range(length):
+            for input in nodeInputs:
+                input.audio = audio[k]
+                input.phoneme = internalInputs.phonemes[j]#TODO: add phoneme to input
+                input.pitch = internalInputs.pitch[j]
+                input.transition = internalInputs.transition[j]#TODO: add transition to input
+                input.breathiness = internalInputs.breathiness[j]
+                input.steadiness = internalInputs.steadiness[j]
+                input.AIBalance = internalInputs.aiBalance[j]
+                input.loopOffset = internalInputs.loopOffset[j]
+                input.loopOverlap = internalInputs.loopOverlap[j]
+                input.vibratoStrength = internalInputs.vibratoStrength[j]
+                input.vibratoSpeed = internalInputs.vibratoSpeed[j]
+            nodeOutput.calculate()
+            output[k] = nodeOutput.audio
+        return output
+            
+    
     def finalRender(specharm:torch.Tensor, excitation:torch.Tensor, pitch:torch.Tensor, length:int, device:torch.device) -> torch.Tensor:
         renderTarget = torch.zeros([length * global_consts.batchSize,], device = device)
         specharm = specharm.contiguous()
@@ -266,6 +290,13 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 voicebank = voicebankList[i]
                 voicebank.ai.device = device_ai
                 nodeGraph = nodeGraphList[i]
+                nodeInputs = []
+                nodeOutput = None
+                for node in nodeGraph[0]:
+                    if isinstance(node, NodeLib.InputNode):
+                        nodeInputs.append(node)
+                    elif isinstance(node, NodeLib.OutputNode):
+                        nodeOutput = node
 
                 length = internalInputs.pitch.size()[0]
 
@@ -355,7 +386,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             #execute AI code
                             processedSpectrum.write(spectrum.read(internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3]), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
                             if (j == len(internalStatusControl.ai) or internalInputs.phonemes[j] in ("pau", "_autopause")):
-                                processedSpectrum.write(spectrum.read(internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5]), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
+                                processedSpectrum.write(processNodegraph(spectrum.read(internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5]), internalInputs, j, nodeInputs, nodeOutput), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
                             internalStatusControl.ai[j - 1] = 1
                         remoteConnection.put(StatusChange(i, j - 1, 4))
 

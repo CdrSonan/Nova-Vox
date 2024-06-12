@@ -69,7 +69,7 @@ class NodeBase():
         inputs = dict()
         for i in self.inputs.keys():
             inputs[i] = self.inputs[i].get()
-        result = self.func(**inputs)
+        result = self.func(self, **inputs)
         for i in result.keys():
             self.outputs[i].set(result[i])
         self.isUpdated = True
@@ -78,6 +78,7 @@ class NodeBase():
         """checks whether the node needs to be evaluated every frame, or can be considered static, returning a constant value"""
 
         #TODO: add recursion
+        print("static check")
         self.static = not self.timed
         for i in self.inputs.keys():
             if self.inputs[i].attachedTo != None:

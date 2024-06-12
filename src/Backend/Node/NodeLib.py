@@ -5,16 +5,77 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+import torch
+
+import global_consts
+
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
 
 from Backend.Node.NodeBase import NodeBase
 
+class InputNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {}
+        outputs = {"Audio": "ESPERAudio",
+                   "Phoneme": "Phoneme",
+                   "Pitch": "Float",
+                   "Transition": "Float",
+                   "Breathiness": "Float",
+                   "Steadiness": "Float",
+                   "AI_Balance": "Float",
+                   "Loop_Offset": "Float",
+                   "Loop_Overlap": "Float",
+                   "Vibrato_Strengh": "Float",
+                   "Vibrato_Speed": "Float",}
+        def func(self):
+            return {"Audio": self.audio,
+                   "Phoneme": self.phoneme,
+                   "Pitch": self.pitch,
+                   "Transition": self.transition,
+                   "Breathiness": self.breathiness,
+                   "AI_Balance": self.AIBalance,
+                   "Steadiness": self.steadiness,
+                   "Loop_Offset": self.loopOffset,
+                   "Loop_Overlap": self.loopOverlap,
+                   "Vibrato_Strengh": self.vibratoStrengh,
+                   "Vibrato_Speed": self.vibratoSpeed,}
+        super().__init__(inputs, outputs, func, True, **kwargs)
+        self.audio = torch.empty([0, global_consts.frameSize])
+        self.phoneme = ("_0", "_0", 0.5)
+        self.pitch = 100.
+        self.transition = 0.
+        self.breathiness = 0.
+        self.steadiness = 0.
+        self.AIBalance = 0.
+        self.loopOffset = 0.
+        self.loopOverlap = 0.5
+        self.vibratoStrengh = 0.
+        self.vibratoSpeed = 0.
+
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Input"
+        else:
+            name = "Input"
+        return [loc["n_io"], name]
+
+class OutputNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio",}
+        outputs = {}
+        def func(self, Audio):
+            self.audio = Audio
+            return {}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        self.audio = torch.empty([0, global_consts.frameSize])
+
 class addFloatNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"A": "Float", "B": "Float"}
         outputs = {"Result": "Float"}
-        def func(A, B):
+        def func(self, A, B):
             return {"Result": A + B}
         super().__init__(inputs, outputs, func, False, **kwargs)
 
@@ -24,6 +85,56 @@ class addFloatNode(NodeBase):
             name = "Add"
         else:
             name = "Add"
+        return [loc["n_math"], name]
+
+class subtractFloatNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"A": "Float", "B": "Float"}
+        outputs = {"Result": "Float"}
+        def func(self, A, B):
+            return {"Result": A - B}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Subtract"
+        else:
+            name = "Subtract"
+        return [loc["n_math"], name]
+
+class multiplyFloatNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"A": "Float", "B": "Float"}
+        outputs = {"Result": "Float"}
+        def func(self, A, B):
+            return {"Result": A * B}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Multiply"
+        else:
+            name = "Multiply"
+        return [loc["n_math"], name]
+
+class divideFloatNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"A": "Float", "B": "Float", "_0": "Float"}
+        outputs = {"Result": "Float"}
+        def func(self, A, B, _0):
+            if B == 0:
+                return {"Result": _0}
+            return {"Result": A / B}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Divide"
+        else:
+            name = "Divide"
         return [loc["n_math"], name]
 
 additionalNodes = []

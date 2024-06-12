@@ -25,6 +25,7 @@ class Nodegraph():
 
     def pack(self):
         packedNodes = []
+        bases = [k.base for k in self.nodes]
         for i in self.nodes:
             packedNodes.append(dict())
             packedNodes[-1]["type"] = i.base.__class__.__name__
@@ -33,7 +34,7 @@ class Nodegraph():
                 if i.inputs[j].base.attachedTo is None:
                     packedNodes[-1]["inputs"][j] = (False, i.inputs[j].base._value)
                 else:
-                    packedNodes[-1]["inputs"][j] = (True, i.inputs[j].base._value, self.nodes.index(i.inputs[j].base.attachedTo.node), i.inputs[j].base.attachedTo.name)
+                    packedNodes[-1]["inputs"][j] = (True, i.inputs[j].base._value, bases.index(i.inputs[j].base.attachedTo.node), i.inputs[j].base.attachedTo.name)
             packedNodes[-1]["outputs"] = dict()
             for j in i.outputs.keys():
                 packedNodes[-1]["outputs"][j] = i.outputs[j].base._value
