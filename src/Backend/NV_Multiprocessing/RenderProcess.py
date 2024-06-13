@@ -215,24 +215,40 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
         return torch.cat((newHarmonics, phases, inputSpectrum), 0), previousShift
     
-    def processNodegraph(audio, internalInputs, j, nodeInputs, nodeOutput):
+    def processNodegraph(earlyBorders, spectrum, internalInputs, j, nodeInputs, nodeOutput):
+        if earlyBorders:
+            start = internalInputs.borders[3 * j]
+            end = internalInputs.borders[3 * j + 3]
+        else:
+            start = internalInputs.borders[3 * j + 3]
+            end = internalInputs.borders[3 * j + 5]
+        audio = spectrum.read(start, end)
         if nodeOutput == None:
             return audio
         output = torch.zeros_like(audio)
         length = audio.size()[0]
         for k in range(length):
+            if earlyBorders and j > 0:
+                if k < internalInputs.borders[3 * j + 1] - start:
+                    fadeIn = 0.5 * k / (internalInputs.borders[3 * j + 1] - start)
+                elif k < end - start:
+                    fadeIn = 0.5 + 0.5 * (k - internalInputs.borders[3 * j + 1] + start) / (end - internalInputs.borders[3 * j + 1])
+                else:
+                    fadeIn = 1.
+            else:
+                fadeIn = None
             for input in nodeInputs:
                 input.audio = audio[k]
-                input.phoneme = internalInputs.phonemes[j]#TODO: add phoneme to input
-                input.pitch = internalInputs.pitch[j]
-                input.transition = internalInputs.transition[j]#TODO: add transition to input
-                input.breathiness = internalInputs.breathiness[j]
-                input.steadiness = internalInputs.steadiness[j]
-                input.AIBalance = internalInputs.aiBalance[j]
-                input.loopOffset = internalInputs.loopOffset[j]
-                input.loopOverlap = internalInputs.loopOverlap[j]
-                input.vibratoStrength = internalInputs.vibratoStrength[j]
-                input.vibratoSpeed = internalInputs.vibratoSpeed[j]
+                input.phoneme = (internalInputs.phonemes[j - 1], internalInputs.phonemes[j], fadeIn) if fadeIn != None else (internalInputs.phonemes[j], internalInputs.phonemes[j], 0.5) 
+                input.pitch = internalInputs.pitch[start + k]
+                input.transition = fadeIn
+                input.breathiness = internalInputs.breathiness[start + k]
+                input.steadiness = internalInputs.steadiness[start + k]
+                input.AIBalance = internalInputs.aiBalance[start + k]
+                input.loopOffset = internalInputs.loopOffset[j - 1] * (1. - fadeIn) + internalInputs.loopOffset[j] * fadeIn if fadeIn != None else internalInputs.loopOffset[j]
+                input.loopOverlap = internalInputs.loopOverlap[j - 1] * (1. - fadeIn) + internalInputs.loopOverlap[j] * fadeIn if fadeIn != None else internalInputs.loopOverlap[j]
+                input.vibratoStrength = internalInputs.vibratoStrength[start + k]
+                input.vibratoSpeed = internalInputs.vibratoSpeed[start + k]
             nodeOutput.calculate()
             output[k] = nodeOutput.audio
         return output
@@ -384,9 +400,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         if aiActive:
                             logging.info("applying AI params to spectrum of sample " + str(j - 1) + ", sequence " + str(i))
                             #execute AI code
-                            processedSpectrum.write(spectrum.read(internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3]), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
+                            processedSpectrum.write(processNodegraph(True, spectrum, internalInputs, j - 1, nodeInputs, nodeOutput), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
                             if (j == len(internalStatusControl.ai) or internalInputs.phonemes[j] in ("pau", "_autopause")):
-                                processedSpectrum.write(processNodegraph(spectrum.read(internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5]), internalInputs, j, nodeInputs, nodeOutput), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
+                                processedSpectrum.write(processNodegraph(False, spectrum, internalInputs, j - 1, nodeInputs, nodeOutput), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
                             internalStatusControl.ai[j - 1] = 1
                         remoteConnection.put(StatusChange(i, j - 1, 4))
 

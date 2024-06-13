@@ -70,6 +70,14 @@ class OutputNode(NodeBase):
             return {}
         super().__init__(inputs, outputs, func, False, **kwargs)
         self.audio = torch.empty([0, global_consts.frameSize])
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Output"
+        else:
+            name = "Output"
+        return [loc["n_io"], name]
 
 class addFloatNode(NodeBase):
     def __init__(self, **kwargs) -> None:
