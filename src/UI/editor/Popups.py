@@ -35,10 +35,10 @@ class TreeViewButton(ButtonBehavior, TreeViewLabel):
     editor = ObjectProperty(None)
 
     def on_press(self):
-        if self.node.get() == None:
+        if self.node == None:
             self.editor.addNode(Node.Node(self.nodeBase()), True)
         else:
-            self.editor.addNode(self.node.get()(self.nodeBase()), True)
+            self.editor.addNode(self.node(self.nodeBase()), True)
         return super().on_press()
 
 class SingerSettingsPanel(Popup):

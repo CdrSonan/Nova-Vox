@@ -159,14 +159,17 @@ if __name__ == '__main__':
     
     sys.path.append(path.join(settings["datadir"], "Addons"))
     from importlib import import_module
-    for i in settings["enabledaddons"].split(","):
-        try:
-            app.ui.middleLayer.addonModules.append(import_module(i))
-        except ModuleNotFoundError:
-            logging.warning("could not find module or submodule of " + i + ".")
-        except Exception as e:
-            logging.error("could not load module " + i + ".")
-            print_exc()
+    if settings["enabledaddons"] != "":
+        for i in settings["enabledaddons"].split(","):
+            try:
+                app.ui.middleLayer.addonModules.append(import_module(i))
+            except ModuleNotFoundError:
+                logging.warning("could not find module or submodule of " + i + ".")
+            except Exception as e:
+                logging.error("could not load module " + i + ".")
+                print_exc()
+    else:
+        logging.info("No addons enabled. Skipping addon loading.")
     
     if pyi_splash.is_alive():
         pyi_splash.close()

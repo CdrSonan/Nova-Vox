@@ -30,6 +30,8 @@ def convertBool(*args):
 def convertESPERAudio(*args):
     """converts a value to a Torch tensor following the ESPER audio format"""
 
+    if isinstance(args[0], torch.Tensor):
+        return args[0]
     return torch.tensor(*args) #TODO: add assertion for ESPER audio format
 
 def convertPhoneme(*args):

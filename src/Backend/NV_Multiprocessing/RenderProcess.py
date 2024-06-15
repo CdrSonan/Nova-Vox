@@ -241,12 +241,12 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 input.audio = audio[k]
                 input.phoneme = (internalInputs.phonemes[j - 1], internalInputs.phonemes[j], fadeIn) if fadeIn != None else (internalInputs.phonemes[j], internalInputs.phonemes[j], 0.5) 
                 input.pitch = internalInputs.pitch[start + k]
-                input.transition = fadeIn
+                input.transition = 0. if fadeIn == None else fadeIn
                 input.breathiness = internalInputs.breathiness[start + k]
                 input.steadiness = internalInputs.steadiness[start + k]
                 input.AIBalance = internalInputs.aiBalance[start + k]
-                input.loopOffset = internalInputs.loopOffset[j - 1] * (1. - fadeIn) + internalInputs.loopOffset[j] * fadeIn if fadeIn != None else internalInputs.loopOffset[j]
-                input.loopOverlap = internalInputs.loopOverlap[j - 1] * (1. - fadeIn) + internalInputs.loopOverlap[j] * fadeIn if fadeIn != None else internalInputs.loopOverlap[j]
+                input.loopOffset = internalInputs.offsets[j - 1] * (1. - fadeIn) + internalInputs.offsets[j] * fadeIn if fadeIn != None else internalInputs.offsets[j]
+                input.loopOverlap = internalInputs.repetititionSpacing[j - 1] * (1. - fadeIn) + internalInputs.repetititionSpacing[j] * fadeIn if fadeIn != None else internalInputs.repetititionSpacing[j]
                 input.vibratoStrength = internalInputs.vibratoStrength[start + k]
                 input.vibratoSpeed = internalInputs.vibratoSpeed[start + k]
             for param in nodeParams:
