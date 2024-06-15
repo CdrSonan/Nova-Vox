@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -7,17 +7,18 @@
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
 from kivy.uix.behaviors.drag import DragBehavior
 from kivy.properties import ObjectProperty
 from kivy.graphics import Color, Ellipse, RoundedRectangle, Bezier, InstructionGroup
 from kivy.clock import Clock
-from torch import Tensor
+
+from Backend.Node.NodeBase import NodeBase, ConnectorBase, NodeAttachError, NodeLoopError, NodeTypeMismatchError
+from Backend.Node.Types import getType
 
 class Node(DragBehavior, BoxLayout):
     """base class of an audio processing node. All node classes should inherit from this class."""
 
-    def __init__(self, inputs:dict, outputs:dict, func:object, timed = False, **kwargs) -> None:
+    def __init__(self, base:NodeBase, **kwargs) -> None:
         """
         constructs an arbitrary node using the provided parameters. Designed to be called from the __init__ method of a child class using super().__init__(), after the required arguments have been set up.
         Arguments:
@@ -35,6 +36,7 @@ class Node(DragBehavior, BoxLayout):
 
 
         super().__init__(**kwargs)
+        self.base = base
         self.rectangle = ObjectProperty()
         with self.canvas:
             Color(0.322, 0.259, 0.463, 1.)
@@ -42,22 +44,14 @@ class Node(DragBehavior, BoxLayout):
         self.inputs = dict()
         self.outputs = dict()
         self.add_widget(Label(text = self.name()[-1]))
-        for i in inputs.keys():
-            conn = Connector(False, self, inputs[i], i)
+        for i in self.base.inputs.keys():
+            conn = Connector(self.base.inputs[i], self, self.base.inputs[i]._type)
             self.add_widget(conn)
-            self.inputs[i] = ObjectProperty()
-            self.inputs[i] = self.children[0]
-        for i in outputs.keys():
-            conn = Connector(True, self, outputs[i], i)
+            self.inputs[i] = conn
+        for i in self.base.outputs.keys():
+            conn = Connector(self.base.outputs[i], self, self.base.outputs[i]._type)
             self.add_widget(conn)
-            self.outputs[i] = ObjectProperty()
-            self.outputs[i] = self.children[0]
-        self.func = func
-        self.timed = timed
-        self.static = not self.timed
-        self.isUpdated = False
-        self.isUpdating = False
-        self.isPacked = True
+            self.outputs[i] = conn
 
     def recalculateSize(self):
         """recalculates the visual size of the node based on the current zoom level of the node editor"""
@@ -83,14 +77,15 @@ class Node(DragBehavior, BoxLayout):
     def on_parent(self, instance, parent):
         """call of recalculateSize() during initial widget creation"""
 
-        self.recalculateSize()
+        if parent is not None:
+            self.recalculateSize()
 
     def on_touch_down(self, touch):
         """processes initial Kivy touch input, and triggers scrolling or dragging accordingly"""
         
         def processConnector(conn:Connector, touch):
             if conn.ellipse.pos[0] - 5 < x < conn.ellipse.pos[0] + 15 and conn.ellipse.pos[1] - 5 < y < conn.ellipse.pos[1] + 15:
-                if conn.attachedTo == None or conn.out:
+                if conn.base.attachedTo == None or conn.base.out:
                     touch.ud["draggedConnFrom"] = conn
                     conn.drawCurve(touch)
                 else:
@@ -155,50 +150,22 @@ class Node(DragBehavior, BoxLayout):
     def calculate(self) -> None:
         """evaluates the node, and recursively prompts evaluation of all nodes connected to its inputs, if required"""
 
-        if self.isPacked:
-            self.unpack()
-            self.isPacked = False
-        inputs = dict()
-        for i in self.inputs.keys():
-            inputs[i] = self.inputs[i].get()
-        result = self.func(**inputs)
-        for i in result.keys():
-            self.outputs[i].set(result[i])
-        self.isUpdated = True
+        self.base.calculate()
 
     def checkStatic(self):
         """checks whether the node needs to be evaluated every frame, or can be considered static, returning a constant value"""
 
-        #TODO: add recursion
-        self.static = not self.timed
-        for i in self.inputs.keys():
-            if self.inputs[i].attachedTo != None:
-                if self.inputs[i].attachedTo.node.static == False:
-                    self.static = False
-                    break
-        if self.static:
-            self.calculate()
+        self.base.checkStatic()
 
     def reset(self):
         """resets time-dependent components of the node when evaluation jumps to a different point of the track. Designed to be overloaded by inheriting classes."""
 
         pass
 
-    def pack(self):
-        """packs the node, lowering its memory footprint and simplifying its transfer between processes. Designed to be overloaded by inheriting classes."""
-
-        pass
-
-    def unpack(self):
-        """unpacks the node, restoring its full functionality. Designed to be overloaded by inheriting classes."""
-
-        pass
-
-
 class Connector(BoxLayout):
     """Connector used for processing in- or output for a node. Always instantiated as child of a node."""
 
-    def __init__(self, out:bool, node:Node, dtype:object, name:str, **kwargs) -> None:
+    def __init__(self, base:ConnectorBase, node:Node, dtype:str, **kwargs) -> None:
         """
         Constructor function.
         
@@ -214,33 +181,33 @@ class Connector(BoxLayout):
 
 
         super().__init__(**kwargs)
+        self.dtype = getType(dtype)()
+        self.base = base
+        self.base._value = self.dtype.defaultValue
         self.multiline = False
-        self.out = out
-        self.dtype = dtype()
-        self.name = name
-        self._value = self.dtype.defaultValue
-        if self.out:
-            self.attachedTo = []
-        else:
-            self.attachedTo = None
         self.node = node
         self.orientation = "horizontal"
-        self.add_widget(Label(text = self.name))
-        self.add_widget(TextInput(multiline = False, is_focusable = not self.out))
-        self.children[0].bind(focus = self.on_focus)
+        self.attachedTo = [] if self.base.out else None
+        self.add_widget(Label(text = self.base.name))
+        if not self.base.out and self.dtype.hasWidget:
+            self.dtype.make_widget(self, self.widget_setter)
         with self.canvas:
             self.curve = InstructionGroup()
+            print(self.dtype.UIColor)
             Color(self.dtype.UIColor)
             self.ellipse = Ellipse(segments = 16, pos = (self.x, self.y + self.height / 2), size = (10, 10))
 
     def update(self):
         """updates the visual position of the connector and curve, if attached."""
 
-        if self.out:
+        if self.base.out:
             self.ellipse.pos = (self.x + self.width + 5, self.y + self.height / 2 - 5)
+            for i in self.attachedTo:
+                i.drawCurveAttached()
         else:
             self.ellipse.pos = (self.x - 15, self.y + self.height / 2 - 5)
-        self.drawCurveAttached()
+            if self.base.attachedTo is not None:
+                self.drawCurveAttached()
         
     def on_parent(self, instance, parent):
         """calls update() when the connector is initially created"""
@@ -257,64 +224,63 @@ class Connector(BoxLayout):
 
         self.update()
 
-    def on_focus(self, instance, focus):
+    def widget_setter(self, instance, value):
         """applies input changes when the widget is defocused, which indicates the user wants to confirm a text input"""
 
-        if not focus:
-            self.set(self.children[0].text)
+        self.set(value)
     
     def get(self):
         """getter function for the value of a connector. If the connector is an input, it gets its value through the connection.
         If it is an output, it instead causes its own node to be evaluated if necessary, and catches loops in the node graph."""
 
-        if self.out:
-            if self.node.isUpdating:
-                raise NodeLoopError(self.node)
-            if self.node.isUpdated == False and self.node.static == False:
-                self.isUpdating = True
-                self.node.calculate()
-                self.isUpdating = False
-            return self._value
-        else:
-            if self.attachedTo is None:
-                return self._value
-            return self.attachedTo.get()
+        return self.base.get()
     
     def set(self, value):
         """sets the value of the connector, both internally and visually, using the conversion function of its node data type class, and performs error handling."""
 
-        try:
-            value = self.dtype.convert(value)
-        except:
-            raise NodeTypeMismatchError(self.node)
-        else:
-            self._value = value
-            self.children[0].text = repr(self._value)
+        self.base.set(value)
+        self.children[0].text = repr(self.base._value)
 
     def attach(self, target:object) -> None:
         """attaches two connectors to each other, and performs the nexessary checks and callbacks."""
 
-        if self.out == target.out:
+        if self.base.out == target.base.out:
             raise NodeAttachError()
-        if self.out:
+        if self.base.out:
+            self.base.attachedTo.append(target.base)
+            target.base.attachedTo = self.base
             self.attachedTo.append(target)
             target.attachedTo = self
             self.node.checkStatic()
             target.node.checkStatic()
             self.curve.clear()
+            if target.dtype.hasWidget:
+                toRemove = target.children[0]
+                target.remove_widget(toRemove)
+                del toRemove
+            target.drawCurveAttached()
         else:
+            self.base.attachedTo = target.base
+            target.base.attachedTo.append(self.base)
             self.attachedTo = target
             target.attachedTo.append(self)
             target.node.checkStatic()
             self.node.checkStatic()
             self.is_focusable = False
-        self.drawCurveAttached()
+            if self.dtype.hasWidget:
+                toRemove = self.children[0]
+                self.remove_widget(toRemove)
+                del toRemove
+            self.drawCurveAttached()
         
     def detach(self) -> None:
         """detaches two connected connectors, and performs the nexessary checks and callbacks."""
 
-        if self.out:
+        if self.base.out:
             return
+        tmpNode = self.base.attachedTo.node
+        self.base.attachedTo.attachedTo.remove(self.base)
+        self.base.attachedTo = None
         tmpNode = self.attachedTo.node
         self.attachedTo.attachedTo.remove(self)
         self.attachedTo = None
@@ -322,6 +288,8 @@ class Connector(BoxLayout):
         tmpNode.checkStatic()
         self.node.checkStatic()
         self.is_focusable = True
+        if self.dtype.hasWidget:
+            self.dtype.make_widget(self, self.widget_setter)
 
     def drawCurve(self, touch):
         """updates the visual of the curve attached to the connector during dragging"""
@@ -330,7 +298,7 @@ class Connector(BoxLayout):
             x, y = self.parent.parent.parent.to_local(*touch.pos)
             self.curve.clear()
             self.curve.add(Color(1., 1., 1.))
-            if self.out:
+            if self.base.out:
                 self.curve.add(Bezier(points = [self.ellipse.pos[0] + 5, self.ellipse.pos[1] + 5,
                                                 self.ellipse.pos[0] + 105, self.ellipse.pos[1] + 5,
                                                 x, y]))
@@ -344,11 +312,9 @@ class Connector(BoxLayout):
     def drawCurveAttached(self):
         """updates the visual of the curve of the connector when it is attached"""
         
-        if self.attachedTo is None:
+        if self.base.attachedTo is None:
             return
-        if self.out:
-            for i in self.attachedTo:
-                i.drawCurveAttached()
+        if isinstance(self.base.attachedTo, list) and len(self.base.attachedTo) == 0:
             return
         self.curve.clear()
         self.curve.add(Color(1., 1., 1.))
@@ -356,109 +322,3 @@ class Connector(BoxLayout):
                                         self.ellipse.pos[0] - 95, self.ellipse.pos[1] + 5,
                                         self.attachedTo.ellipse.pos[0] + 105, self.attachedTo.ellipse.pos[1] + 5,
                                         self.attachedTo.ellipse.pos[0] + 5, self.attachedTo.ellipse.pos[1] + 5]))
-
-
-class NodeTypeMismatchError(Exception):
-    def __init__(self, connection, *args: object) -> None:
-        super().__init__(*args)
-        self.connection = connection
-
-
-class NodeLoopError(Exception):
-    def __init__(self, connection, *args: object) -> None:
-        super().__init__(*args)
-        self.connection = connection
-
-
-class NodeAttachError(Exception):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
-
-
-class ClampedFloat():
-    """node data type class for a Float confined within the [-1, 1] interval"""
-
-    def __init__(self) -> None:
-        self.UIColor = (1., 0.1, 0.1)
-        self.defaultValue = 0.5
-
-    @staticmethod
-    def convert(*args):
-        result = float(*args)
-        result = max(-1., result)
-        result = min(1., result)
-        return result
-
-
-class Float():
-    """node data type class for a standard Float"""
-
-    def __init__(self) -> None:
-        self.UIColor = (1., 0.7, 0.7)
-        self.defaultValue = 0.5
-
-    @staticmethod
-    def convert(*args):
-        return float(*args)
-
-
-class Int():
-    """node data type class for a standard integer"""
-
-    def __init__(self) -> None:
-        self.UIColor = (0.1, 1., 0.1)
-        self.defaultValue = 1
-
-    @staticmethod
-    def convert(*args):
-        return int(*args)
-
-
-class Bool():
-    """node data type class for a standard boolean"""
-
-    def __init__(self) -> None:
-        self.UIColor = (0.5, 0.5, 0.5)
-        self.defaultValue = False
-
-    @staticmethod
-    def convert(*args):
-        return bool(*args)
-
-
-class ESPERAudio():
-    """node data type class for a PyTorch tensor representing a "Specharm", a point in an audio signal encoded using ESPER."""
-
-    #TODO: finish this class
-    def __init__(self) -> None:
-        self.UIColor = (1., 1., 1.)
-        self.defaultValue = 0.5
-
-    @staticmethod
-    def convert(*args):
-        return Tensor(*args)
-
-
-class Phoneme():
-    """node data type class for a "phoneme state" of a track. Consists of one or two phonemes, and a value between 0 and 1 representing their relative strength in the case of two phonemes"""
-
-    #TODO: finish this class
-    def __init__(self) -> None:
-        self.UIColor = (0.1, 0.1, 1.)
-        self.defaultValue = 0.5
-
-    @staticmethod
-    def convert(*args):
-        return None
-
-#basic unit test
-def testfunc(**kwargs) -> dict:
-    return {"testoutput" : 2.}
-def testfunc2(testinput, **kwargs) -> dict:
-    print(testinput)
-    return dict()
-
-nodeA = Node({"testinput":Float}, dict(), testfunc2)
-nodeB = Node(dict(), {"testoutput":Float}, testfunc)
-nodeA.inputs["testinput"].attach(nodeB.outputs["testoutput"])
-print(nodeA.inputs["testinput"].get())

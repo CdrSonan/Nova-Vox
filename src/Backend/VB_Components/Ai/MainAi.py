@@ -17,6 +17,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, IterableDataset
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
+from Backend.VB_Components.Ai.Util import SReLU
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.DataHandler.AudioSample import LiteSampleCollection
@@ -336,9 +337,50 @@ class PseudoSSM(nn.Module):
         x = self.recurrent(x, self.initialState.unsqueeze(0))[0]
         x = self.howb(x)
         return x + skip
+    
+class PseudoSSMChain(nn.Module):
+    """Chain of two PseudoSSMs, for use in an Inception-style block."""
+    
+    def __init__(self, srcDim:int, tgtDim:int, stateDim:int, timeStep:int, specnorm:bool = False, device:torch.device = torch.device("cpu")) -> None:
+        super().__init__()
+        self.timeStep = timeStep
+        intermediateDim = ceil((srcDim + tgtDim) / 2.)
+        self.pool = nn.AvgPool1d(timeStep, timeStep, ceil_mode = True)
+        self.ssm1 = PseudoSSM(srcDim, intermediateDim, stateDim, device = device, specnorm = specnorm)
+        self.nla = nn.GELU()
+        self.nla2 = nn.Tanh()
+        self.ssm2 = PseudoSSM(intermediateDim, tgtDim, stateDim, device = device, specnorm = specnorm)
+        
+    def forward(self, input:torch.Tensor) -> torch.Tensor:
+        x = self.pool(input.transpose(-1, -2)).transpose(-1, -2)
+        x = self.ssm1(x)
+        x = self.nla(x)
+        x = self.ssm2(x)
+        x = self.nla2(x)
+        x = torch.tile(x, (self.timeStep, 1))[:input.size()[-2], :]
+        return x
+
+class PseudoSSMInception(nn.Module):
+    """Inception-style block consisting of multiple PseudoSSMs with different time steps, akin to the different convolutional kernel sizes in a traditional Inception block."""
+    
+    def __init__(self, dim:int, tgtDims:int, stateDims:tuple, timeSteps:tuple, specnorm:bool = False, device:torch.device = torch.device("cpu")) -> None:
+        super().__init__()
+        self.device = device
+        if len(tgtDims) != len(timeSteps) or len(stateDims) != len(timeSteps):
+            raise ValueError("Number of target dimensions, state dimensions and time steps must match")
+        if sum(tgtDims) != dim:
+            raise ValueError("Sum of target dimensions must equal input dimension")
+        self.ssms = nn.ModuleList([PseudoSSMChain(dim, tgtDim, stateDim, timeStep, specnorm = specnorm, device = device) for timeStep, tgtDim, stateDim in zip(timeSteps, tgtDims, stateDims)])
+        self.norm = nn.LayerNorm(dim, device = device)
+    
+    def forward(self, input:torch.Tensor) -> torch.Tensor:
+        output = torch.cat([ssm(input) for ssm in self.ssms], -1)
+        output = self.norm(output)
+        output += input
+        return output
 
 class EncoderBlock(nn.Module):
-    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, specnorm:bool = False) -> None:
+    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, dropout:float = 0., specnorm:bool = False) -> None:
         super().__init__()
         self.srcDim = srcDim
         self.tgtDim = tgtDim
@@ -350,6 +392,7 @@ class EncoderBlock(nn.Module):
         self.norm = nn.LayerNorm(tgtDim, device = device)
         self.nl1 = nn.GLU()
         self.nl2 = nn.GLU()
+        self.dropout = nn.Dropout(dropout)
         nn.init.orthogonal_(self.projection.weight)
         nn.init.zeros_(self.projection.bias)
         if specnorm:
@@ -360,10 +403,11 @@ class EncoderBlock(nn.Module):
         x = self.ssm(x)
         x = self.nl2(x)
         x = self.norm(x)
+        x = self.dropout(x)
         return x, input.size()[-2]
 
 class DecoderBlock(nn.Module):
-    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, specnorm:bool = False) -> None:
+    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, dropout:float = 0., specnorm:bool = False) -> None:
         super().__init__()
         self.srcDim = srcDim
         self.tgtDim = tgtDim
@@ -375,6 +419,7 @@ class DecoderBlock(nn.Module):
         self.norm = nn.LayerNorm(tgtDim, device = device)
         self.nl1 = nn.GLU()
         self.nl2 = nn.GLU()
+        self.dropout = nn.Dropout(dropout)
         nn.init.orthogonal_(self.projection.weight)
         nn.init.zeros_(self.projection.bias)
         if specnorm:
@@ -385,6 +430,7 @@ class DecoderBlock(nn.Module):
         x = self.ssm(x)
         x = self.nl2(x)
         x = self.norm(x)
+        x = self.dropout(x)
         return x[3:targetLength + 3]
 
 class MainAi(nn.Module):
@@ -394,14 +440,15 @@ class MainAi(nn.Module):
             nn.Linear(input_dim + embedDim, dim, device = device),
             nn.Tanh(),
         )
-        self.encoderA = EncoderBlock(dim, blockA[1], blockA[0], device = device)
-        self.encoderB = EncoderBlock(blockA[1], blockB[1], blockB[0], device = device)
-        self.encoderC = EncoderBlock(blockB[1], blockC[1], blockC[0], device = device)
-        self.decoderC = DecoderBlock(blockC[1], blockB[1], blockC[0], device = device)
-        self.decoderB = DecoderBlock(blockB[1], blockA[1], blockB[0], device = device)
-        self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device)
+        self.encoderA = EncoderBlock(dim, blockA[1], blockA[0], device = device, dropout = dropout)
+        self.encoderB = EncoderBlock(blockA[1], blockB[1], blockB[0], device = device, dropout = dropout)
+        self.encoderC = EncoderBlock(blockB[1], blockC[1], blockC[0], device = device, dropout = dropout)
+        self.decoderC = DecoderBlock(blockC[1], blockB[1], blockC[0], device = device, dropout = dropout)
+        self.decoderB = DecoderBlock(blockB[1], blockA[1], blockB[0], device = device, dropout = dropout)
+        self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device, dropout = dropout)
         self.postNet = nn.Sequential(
             nn.Linear(dim, input_dim, device = device),
+            #nn.Tanh(),
             nn.Softplus(),
         )
         self.device = device
@@ -425,7 +472,7 @@ class MainAi(nn.Module):
         y = self.decoderB(y + b, lengthB)
         y = self.decoderA(y + a, lengthA)
         x = self.postNet(x + y)
-        return x
+        return input * (1. + 0.9 * x)
     def resetState(self) -> None:
         pass
     def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
@@ -442,12 +489,12 @@ class MainCritic(nn.Module):
             nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim + embedDim, dim, device = device)),
             nn.Tanh(),
         )
-        self.encoderA = EncoderBlock(dim, blockA[1], blockA[0], device = device, specnorm = True)
-        self.encoderB = EncoderBlock(blockA[1], blockB[1], blockB[0], device = device, specnorm = True)
-        self.encoderC = EncoderBlock(blockB[1], blockC[1], blockC[0], device = device, specnorm = True)
-        self.decoderC = DecoderBlock(blockC[1], blockB[1], blockC[0], device = device, specnorm = True)
-        self.decoderB = DecoderBlock(blockB[1], blockA[1], blockB[0], device = device, specnorm = True)
-        self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device, specnorm = True)
+        self.encoderA = EncoderBlock(dim, blockA[1], blockA[0], device = device, dropout = dropout, specnorm = True)
+        self.encoderB = EncoderBlock(blockA[1], blockB[1], blockB[0], device = device, dropout = dropout, specnorm = True)
+        self.encoderC = EncoderBlock(blockB[1], blockC[1], blockC[0], device = device, dropout = dropout, specnorm = True)
+        self.decoderC = DecoderBlock(blockC[1], blockB[1], blockC[0], device = device, dropout = dropout, specnorm = True)
+        self.decoderB = DecoderBlock(blockB[1], blockA[1], blockB[0], device = device, dropout = dropout, specnorm = True)
+        self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device, dropout = dropout, specnorm = True)
         self.postNet = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, device = device))
         self.device = device
         self.learningRate = learningRate
@@ -470,6 +517,78 @@ class MainCritic(nn.Module):
         y = self.decoderA(y + a, lengthA)
         x = self.postNet(x + y)
         return self.outputWeight * x[-1] + (1 - self.outputWeight) * torch.mean(x)
+    def resetState(self) -> None:
+        pass
+    def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
+        instance = super().__new__(cls)
+        if compile:
+            instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
+        return instance
+
+class MainAiAlt(nn.Module):
+    def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
+        super().__init__()
+        self.preNet = nn.Sequential(
+            nn.Linear(input_dim + embedDim, dim, device = device),
+            nn.Tanh(),
+        )
+        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), False, device) for _ in range(8)])
+        self.postNet = nn.Sequential(
+            nn.Linear(dim, input_dim, device = device),
+            nn.Softplus(),
+        )
+        self.device = device
+        self.learningRate = learningRate
+        self.dim = dim
+        self.blockAHParams = blockA
+        self.blockBHParams = blockB
+        self.blockCHParams = blockC
+        self.regularization = regularization
+        self.epoch = 0
+        self.sampleCount = 0
+    def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
+        if level == 0:
+            return input
+        latent = torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1)
+        x = self.preNet(latent)
+        x = self.mainNet(x)
+        x = self.postNet(x)
+        return x#(1. + 0.5 * x) * input
+    def resetState(self) -> None:
+        pass
+    def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
+        instance = super().__new__(cls)
+        if compile:
+            instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
+        return instance
+
+class MainCriticAlt(nn.Module):
+    
+    def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
+        super().__init__()
+        self.preNet = nn.Sequential(
+            nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim + embedDim, dim, device = device)),
+            nn.Tanh(),
+        )
+        self.mainNet = nn.Sequential(*[PseudoSSMInception(dim, (dim//4, dim//4, dim//4, dim//4), (dim//2, dim//2, dim//2, dim//2), (1, 4, 16, 64), True, device) for _ in range(8)])
+        self.postNet = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, device = device))
+        self.device = device
+        self.learningRate = learningRate
+        self.dim = dim
+        self.blockAHParams = blockA
+        self.blockBHParams = blockB
+        self.blockCHParams = blockC
+        self.regularization = regularization
+        self.outputWeight = outputWeight
+        self.epoch = 0
+        self.sampleCount = 0
+    def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
+        latent = torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1)
+        x = self.preNet(latent)
+        x = self.mainNet(x)
+        x = self.postNet(x)
+        x = self.outputWeight * x[-1] + (1 - self.outputWeight) * torch.mean(x)
+        return x
     def resetState(self) -> None:
         pass
     def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):

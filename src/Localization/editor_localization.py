@@ -36,7 +36,18 @@ def getLanguage():
         locale["vibrato_speed"] = "vibrato speed"
         locale["vibrato_strength"] = "vibrato strength"
         #node categories
+        locale["n_io"] = "I/O"
+        locale["n_audio"] = "General Audio"
+        locale["n_volume"] = "Volume/Level"
+        locale["n_eq"] = "Equalizers/Filtering"
+        locale["n_fx"] = "Effects"
+        locale["n_metering"] = "Metering/Feature extraction"
+        locale["n_generators"] = "Signal/Wave Generators"
+        locale["n_phonetics"] = "Phoneme functions"
         locale["n_math"] = "Math"
+        locale["n_math_trig"] = "Trigonometric functions"
+        locale["n_logic"] = "Boolean/Logic functions"
+        locale["n_misc"] = "Miscellaneous"
         #main UI
         locale["tempo"] = "tempo"
         locale["quant_off"] = "Q: off"

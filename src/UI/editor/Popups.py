@@ -16,7 +16,7 @@ from kivy.properties import ObjectProperty
 
 import h5py
 
-from Backend import NodeLib
+from Backend.Node import NodeBaseLib, NodeLib, Node
 from Backend.DataHandler.HDF5 import MetadataStorage
 from MiddleLayer.IniParser import readSettings
 from UI.editor.Util import ManagedPopup
@@ -30,11 +30,15 @@ loc = getLanguage()
 
 class TreeViewButton(ButtonBehavior, TreeViewLabel):
     """basic class implementing a tree view node with button behavior"""
+    nodeBase = ObjectProperty(None)
     node = ObjectProperty(None)
     editor = ObjectProperty(None)
 
     def on_press(self):
-        self.editor.add_widget(self.node())
+        if self.node.get() == None:
+            self.editor.addNode(Node.Node(self.nodeBase()), True)
+        else:
+            self.editor.addNode(self.node.get()(self.nodeBase()), True)
         return super().on_press()
 
 class SingerSettingsPanel(Popup):
@@ -88,10 +92,10 @@ class SingerSettingsPanel(Popup):
         """builds the hierarchical view of all available nodes by searching the appropriate 1st-party and Addon Python modules"""
 
         
-        NodeClasses = classesinmodule(NodeLib)
-        if len(NodeLib.additionalNodes) > 0:
-            NodeClasses.append(*NodeLib.additionalNodes)
-        for i in NodeClasses:
+        NodeBaseClasses = classesinmodule(NodeBaseLib)
+        if len(NodeBaseLib.additionalNodes) > 0:
+            NodeBaseClasses.append(*NodeBaseLib.additionalNodes)
+        for i in NodeBaseClasses:
             branch = i.name()
             parent = self.children[0].children[0].children[0].children[0].children[1].children[0].root
             while len(branch) > 1:
@@ -104,13 +108,26 @@ class SingerSettingsPanel(Popup):
                     self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(widget, parent)
                     parent = widget
                 branch = branch[1:]
-            self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(TreeViewButton(text = branch[0], node = i, always_release = True, editor = self.children[0].children[0].children[0].children[1].children[0]), parent)
+            nodeUI = NodeLib.getNodeCls(i.__name__)
+            if nodeUI == None:
+                self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(TreeViewButton(text = branch[0],
+                                                                                                                     nodeBase = i,
+                                                                                                                     always_release = True,
+                                                                                                                     editor = self.children[0].children[0].children[0].children[1]),parent)
+            else:
+                self.children[0].children[0].children[0].children[0].children[1].children[0].add_node(TreeViewButton(text = branch[0],
+                                                                                                                     nodeBase = i,
+                                                                                                                     node = nodeUI,
+                                                                                                                     always_release = True,
+                                                                                                                     editor = self.children[0].children[0].children[0].children[1]), parent)
+        
 
     def on_pre_dismiss(self) -> None:
         """applies all changed settings before closing the popup"""
 
         global middleLayer
         from UI.editor.Main import middleLayer
+        self.children[0].children[0].children[0].children[1].prepareClose()
         if self.children[0].children[0].children[0].children[0].children[2].children[2].text == "None":
             middleLayer.trackList[self.index].mixinVB = None
         else:
@@ -121,6 +138,7 @@ class SingerSettingsPanel(Popup):
         if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]:
             middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
             API.Ops.ChangeVoicebank(self.index, middleLayer.trackList[self.index].vbPath)()
+        middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.index].nodegraph)
 
 class LicensePanel(Popup):
     """panel displaying the Nova-Vox license, contributors and other info"""

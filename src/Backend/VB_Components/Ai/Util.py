@@ -90,3 +90,54 @@ def newEmbedding(currentEmbeddings:int, dim:int, device:torch.device) -> torch.T
     power = 1. / (floor(currentEmbeddings / dim) + 1)
     embedding[currentEmbeddings % dim] = power
     return embedding
+
+class SReLUFunc(torch.autograd.Function):
+    """custom autograd function for a stabilized ReLU activation function."""
+    
+    @staticmethod
+    def forward(ctx, input:torch.Tensor) -> torch.Tensor:
+        """calculates stabilized ReLU activation function.
+        
+        Arguments:
+            input: input Tensor
+        
+        Returns:
+            stabilized ReLU activation function as Tensor"""
+        
+        ctx.save_for_backward(input)
+        return torch.max(input, torch.tensor([0,], device = input.device))
+    
+    @staticmethod
+    def backward(ctx, grad_output:torch.Tensor) -> torch.Tensor:
+        """calculates gradient of stabilized ReLU activation function.
+        
+        Arguments:
+            grad_output: gradient of output Tensor
+        
+        Returns:
+            gradient of stabilized ReLU activation function as Tensor"""
+        
+        input, = ctx.saved_tensors
+        grad_input = grad_output.clone()
+        grad_input[input < 0] *= torch.exp(input[input < 0])
+        return grad_input
+
+class SReLU(nn.Module):
+    """custom module for a stabilized ReLU activation function."""
+    
+    def __init__(self):
+        """basic class constructor."""
+        
+        super().__init__()
+        self.func = SReLUFunc()
+    
+    def forward(self, input:torch.Tensor) -> torch.Tensor:
+        """calculates stabilized ReLU activation function.
+        
+        Arguments:
+            input: input Tensor
+        
+        Returns:
+            stabilized ReLU activation function as Tensor"""
+        
+        return self.func.apply(input)

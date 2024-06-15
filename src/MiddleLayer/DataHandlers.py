@@ -15,16 +15,30 @@ from Util import ensureTensorLength, noteToPitch
 class Nodegraph():
     def __init__(self) -> None:
         self.nodes = []
-        #self.nodes[1].connect()#TODO:finish
         self.params = dict()
+    
+    def addNode(self, node):
+        self.nodes.append(node)
+    
+    def removeNode(self, node):
+        self.nodes.remove(node)
 
     def pack(self):
+        packedNodes = []
+        bases = [k.base for k in self.nodes]
         for i in self.nodes:
-            i.pack()
-
-    def unpack(self):
-        for i in self.nodes:
-            i.unpack()
+            packedNodes.append(dict())
+            packedNodes[-1]["type"] = i.base.__class__.__name__
+            packedNodes[-1]["inputs"] = dict()
+            for j in i.inputs.keys():
+                if i.inputs[j].base.attachedTo is None:
+                    packedNodes[-1]["inputs"][j] = (False, i.inputs[j].base._value)
+                else:
+                    packedNodes[-1]["inputs"][j] = (True, i.inputs[j].base._value, bases.index(i.inputs[j].base.attachedTo.node), i.inputs[j].base.attachedTo.name)
+            packedNodes[-1]["outputs"] = dict()
+            for j in i.outputs.keys():
+                packedNodes[-1]["outputs"][j] = i.outputs[j].base._value
+        return packedNodes, self.params
 
 class Parameter():
     """class for holding and managing a parameter curve as seen by the main process. Exact layout will change with node tree implementation."""
@@ -147,8 +161,7 @@ class Track():
         for i in self.borders:
             borders.append(int(i))
         sequence = VocalSequence(self.length, borders, self.phonemes(), self.loopOffset(), self.loopOverlap(), pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
-        return self.vbPath, None, sequence#None object is placeholder for wrapped NodeGraph
-        #TODO: add node wrapping
+        return self.vbPath, self.nodegraph.pack(), sequence
 
 class NoteContext():
     

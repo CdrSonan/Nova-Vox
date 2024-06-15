@@ -19,11 +19,12 @@ from kivy.core.image import Image as CoreImage
 
 from UI.editor.Main import middleLayer
 from MiddleLayer.IniParser import readSettings
-from MiddleLayer.DataHandlers import Note, Track
+from MiddleLayer.DataHandlers import Note, Track, Nodegraph
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
 
 from Backend.VB_Components.Voicebank import LiteVoicebank
 from Backend.DataHandler.HDF5 import MetadataStorage
+import Backend.Node.NodeBaseLib
 
 from Util import noteToPitch, convertFormat
 
@@ -328,7 +329,9 @@ class AddParam(UnifiedAction):
     def __init__(self, param, name, *args, **kwargs):
         @override
         def action(param, name):
-            pass
+            middleLayer.trackList[self.activeTrack].nodegraph.addParam(param, name)
+            #TODO: handle UI update
+            middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.activeTrack].nodegraph)
         super().__init__(action, param, name, *args, **kwargs)
 
     def inverseAction(self):
@@ -338,13 +341,13 @@ class RemoveParam(UnifiedAction):
     def __init__(self, name, *args, **kwargs):
         @override
         def action(name):
-            middleLayer.trackList[self.activeTrack].nodegraph.delete(name)
+            middleLayer.trackList[self.activeTrack].nodegraph.deleteParam(name)
             if name == self.activeParam:
                 middleLayer.changeParam(self.activeParam - 1)
             for i in middleLayer.ids["paramList"].children:
                 if i.name == name:
                     i.parent.remove_widget(i)
-        middleLayer.submitNodegraphUpdate
+        middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.activeTrack].nodegraph)
         super().__init__(action, name, *args, **kwargs)
         self.name = name
 
@@ -483,7 +486,7 @@ class ChangeParam(UnifiedAction):
                     middleLayer.trackList[middleLayer.activeTrack].vibratoStrength[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                     middleLayer.submitNamedParamChange(True, "vibratoStrength", start, torch.tensor(data, dtype = torch.half))
                 for i in range(*middleLayer.posToNote(start, start + len(data))):
-                    middleLayer.recalculateBasePitch(i, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos + middleLayer.trackList[middleLayer.activeTrack].notes[i].length)
+                    middleLayer.recalculateBasePitch(i)
                 middleLayer.ids["pianoRoll"].redrawPitch()
                 middleLayer.submitFinalize()
             else:
@@ -834,6 +837,22 @@ class ChangeVolume(UnifiedAction):
             return self
         return None
 
+def deserialize_nodegraph(group):
+    nodegraph = Nodegraph()
+    for node_group in group["nodes"].values():
+        nodegraph.addNode(Backend.Node.NodeBaseLib.getNodeCls(node_group.attrs["type"])())
+        nodegraph.nodes[-1].pos = node_group.attrs["pos"].split(" ")
+        nodegraph.nodes[-1].size = node_group.attrs["size"].split(" ")
+    for i, node_group in enumerate(group["nodes"].values()):
+        for input in node_group["inputs"].attrs.items():
+            if input[1].startswith("attachedTo"):
+                target_idx, target_output = input[1].split(" ")[1:]
+                nodegraph.nodes[i].inputs[input[0]].attach(nodegraph.nodes[int(target_idx)].outputs[target_output])
+            else:
+                nodegraph.nodes[i].inputs[input[0]].set(input[1])
+            
+    return nodegraph
+
 class LoadNVX(UnifiedAction):
     def __init__(self, path, *args, **kwargs):
         @override
@@ -879,7 +898,7 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].useAIBalance = bool(group.attrs["useAIBalance"])
                 middleLayer.trackList[-1].useVibratoSpeed = bool(group.attrs["useVibratoSpeed"])
                 middleLayer.trackList[-1].useVibratoStrength = bool(group.attrs["useVibratoStrength"])
-                #middleLayer.trackList[-1].nodegraph = group["nodegraph"]
+                middleLayer.trackList[-1].nodegraph = deserialize_nodegraph(group["nodegraph"])
                 middleLayer.trackList[-1].length = int(group.attrs["length"])
                 if group.attrs["mixinVB"] == "":
                     middleLayer.trackList[-1].mixinVB = None
