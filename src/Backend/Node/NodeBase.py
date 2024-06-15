@@ -51,6 +51,7 @@ class NodeBase():
         for i in outputs.keys():
             self.outputs[i] = ConnectorBase(True, self, outputs[i], None, i)
         self.func = func
+        self.auxData = dict()
         self.timed = timed
         self.static = not self.timed
         self.isUpdated = False

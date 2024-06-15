@@ -12,7 +12,7 @@ from bisect import bisect_left, bisect_right
 from os import path
 from kivy.lang import Builder
 from MiddleLayer.IniParser import readSettings
-import Backend.Node.NodeLib
+import Backend.Node.NodeBaseLib
 
 global overrides, UIExtensions
 overrides = dict()
@@ -93,4 +93,4 @@ def registerUIElement(instance:Any, location:str, priority:int = 0, addon:str = 
     UIExtensions[location].insert(index, extension)
 
 def registerNode(nodeClass:Any):
-    Backend.Node.NodeLib.additionalNodes.append(nodeClass)
+    Backend.Node.NodeBaseLib.additionalNodes.append(nodeClass)

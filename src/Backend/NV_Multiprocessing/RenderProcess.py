@@ -21,7 +21,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     from Backend.NV_Multiprocessing.Interface import SequenceStatusControl, StatusChange
     from Backend.NV_Multiprocessing.Caching import DenseCache, SparseCache
     from Backend.NV_Multiprocessing.Update import trimSequence, posToSegment, unpackNodes
-    from Backend.Node import NodeLib
+    from Backend.Node import NodeBaseLib
     from Util import ensureTensorLength
     from MiddleLayer.IniParser import readSettings
     from Backend.Resampler.CubicSplineInter import interp
@@ -129,7 +129,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].useAIBalance = True
                 statusControl[change.data[0]].rs *= 0
             else:
-                nodeGraphList[change.data[0]].enableParam(change.data[1])
+                nodeGraphList[change.data[0]][1][change.data[1]].enabled = True
             statusControl[change.data[0]].ai *= 0
         elif change.type == "disableParam":
             if change.data[1] == "breathiness":
@@ -148,7 +148,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 inputList[change.data[0]].useAIBalance = False
                 statusControl[change.data[0]].rs *= 0
             else:
-                nodeGraphList[change.data[0]].disableParam(change.data[1])
+                nodeGraphList[change.data[0]][1][change.data[1]].enabled = True
             statusControl[change.data[0]].ai *= 0
         elif change.type == "changeInput":
             if change.data[1] in ["phonemes", "offsets", "repetititionSpacing"]:
@@ -173,7 +173,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
             else:
                 positions = posToSegment(change.data[0], change.data[2], change.data[2] + len(change.data[3]), inputList)
-                inputList[change.data[0]].customCurves[change.data[1]][change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
+                nodeGraphList[change.data[0]][1][change.data[1]]._value[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 statusControl[change.data[0]].ai[positions[0]:positions[1]] *= 0
         elif change.type == "offset":
             inputList, statusControl = trimSequence(change.data[0], change.data[1], change.data[2], inputList, statusControl)
@@ -186,8 +186,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             inputList[change.data[0]].aiBalance = ensureTensorLength(inputList[change.data[0]].aiBalance, change.data[1], 0.)
             inputList[change.data[0]].vibratoSpeed = ensureTensorLength(inputList[change.data[0]].vibratoSpeed, change.data[1], 0.)
             inputList[change.data[0]].vibratoStrength = ensureTensorLength(inputList[change.data[0]].vibratoStrength, change.data[1], 0.)
-            for i in range(len(inputList[change.data[0]].customCurves)):
-                inputList[change.data[0]].customCurves[i] = ensureTensorLength(inputList[change.data[0]].customCurves[i], change.data[1], 0.)
+            for key in nodeGraphList[change.data[0]][1].keys():
+                inputList[change.data[0]][1][key]._value = ensureTensorLength(inputList[change.data[0]][1][key]._value, change.data[1], 0.)
         elif change.type == "changeNodegraph":
             nodeGraphList[change.data[0]] = unpackNodes(*change.data[1])
             statusControl[change.data[0]].ai *= 0
@@ -215,7 +215,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
         return torch.cat((newHarmonics, phases, inputSpectrum), 0), previousShift
     
-    def processNodegraph(earlyBorders, spectrum, internalInputs, j, nodeInputs, nodeOutput):
+    def processNodegraph(earlyBorders, spectrum, internalInputs, j, nodeInputs, nodeParams, nodeParamData, nodeOutput):
         if earlyBorders:
             start = internalInputs.borders[3 * j]
             end = internalInputs.borders[3 * j + 3]
@@ -249,6 +249,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 input.loopOverlap = internalInputs.loopOverlap[j - 1] * (1. - fadeIn) + internalInputs.loopOverlap[j] * fadeIn if fadeIn != None else internalInputs.loopOverlap[j]
                 input.vibratoStrength = internalInputs.vibratoStrength[start + k]
                 input.vibratoSpeed = internalInputs.vibratoSpeed[start + k]
+            for param in nodeParams:
+                param.curve = nodeParamData[param.auxData["name"]]._value[start + k]
             nodeOutput.calculate()
             output[k] = nodeOutput.audio
         return output
@@ -307,11 +309,15 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 voicebank.ai.device = device_ai
                 nodeGraph = nodeGraphList[i]
                 nodeInputs = []
+                nodeParamData = nodeGraph[1]
+                nodeParams = []
                 nodeOutput = None
                 for node in nodeGraph[0]:
-                    if isinstance(node, NodeLib.InputNode):
+                    if isinstance(node, NodeBaseLib.InputNode):
                         nodeInputs.append(node)
-                    elif isinstance(node, NodeLib.OutputNode):
+                    if isinstance(node, NodeBaseLib.CurveInputNode):
+                        nodeParams.append(node)
+                    elif isinstance(node, NodeBaseLib.OutputNode):
                         nodeOutput = node
 
                 length = internalInputs.pitch.size()[0]
@@ -400,9 +406,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         if aiActive:
                             logging.info("applying AI params to spectrum of sample " + str(j - 1) + ", sequence " + str(i))
                             #execute AI code
-                            processedSpectrum.write(processNodegraph(True, spectrum, internalInputs, j - 1, nodeInputs, nodeOutput), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
+                            processedSpectrum.write(processNodegraph(True, spectrum, internalInputs, j - 1, nodeInputs, nodeParams, nodeParamData, nodeOutput), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
                             if (j == len(internalStatusControl.ai) or internalInputs.phonemes[j] in ("pau", "_autopause")):
-                                processedSpectrum.write(processNodegraph(False, spectrum, internalInputs, j - 1, nodeInputs, nodeOutput), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
+                                processedSpectrum.write(processNodegraph(False, spectrum, internalInputs, j - 1, nodeInputs, nodeParams, nodeParamData, nodeOutput), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
                             internalStatusControl.ai[j - 1] = 1
                         remoteConnection.put(StatusChange(i, j - 1, 4))
 
