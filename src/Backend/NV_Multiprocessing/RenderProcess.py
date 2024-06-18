@@ -215,7 +215,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
         return torch.cat((newHarmonics, phases, inputSpectrum), 0), previousShift
     
-    def processNodegraph(earlyBorders, spectrum, internalInputs, j, nodeInputs, nodeParams, nodeParamData, nodeOutput):
+    def processNodegraph(earlyBorders, spectrum, internalInputs, j, nodeGraph, nodeInputs, nodeParams, nodeParamData, nodeOutput):
         if earlyBorders:
             start = internalInputs.borders[3 * j]
             end = internalInputs.borders[3 * j + 3]
@@ -253,6 +253,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 param.curve = nodeParamData[param.auxData["name"]]._value[start + k]
             nodeOutput.calculate()
             output[k] = nodeOutput.audio
+            for node in nodeGraph[0]:
+                node.isUpdated = False
         return output
             
     
@@ -406,9 +408,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         if aiActive:
                             logging.info("applying AI params to spectrum of sample " + str(j - 1) + ", sequence " + str(i))
                             #execute AI code
-                            processedSpectrum.write(processNodegraph(True, spectrum, internalInputs, j - 1, nodeInputs, nodeParams, nodeParamData, nodeOutput), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
+                            processedSpectrum.write(processNodegraph(True, spectrum, internalInputs, j - 1, nodeGraph, nodeInputs, nodeParams, nodeParamData, nodeOutput), internalInputs.borders[3 * (j - 1)], internalInputs.borders[3 * (j - 1) + 3])
                             if (j == len(internalStatusControl.ai) or internalInputs.phonemes[j] in ("pau", "_autopause")):
-                                processedSpectrum.write(processNodegraph(False, spectrum, internalInputs, j - 1, nodeInputs, nodeParams, nodeParamData, nodeOutput), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
+                                processedSpectrum.write(processNodegraph(False, spectrum, internalInputs, j - 1, nodeGraph, nodeInputs, nodeParams, nodeParamData, nodeOutput), internalInputs.borders[3 * (j - 1) + 3], internalInputs.borders[3 * (j - 1) + 5])
                             internalStatusControl.ai[j - 1] = 1
                         remoteConnection.put(StatusChange(i, j - 1, 4))
 

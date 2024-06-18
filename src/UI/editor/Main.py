@@ -115,8 +115,8 @@ class NovaVoxUI(Widget):
             self.ids["paramList"].add_widget(ParamPanel(name = "AI balance", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useAIBalance, visualName = loc["ai_balance"]))
             self.ids["adaptiveSpace"].add_widget(ParamCurve())
             counter = 0
-            for i in middleLayer.trackList[middleLayer.activeTrack].nodegraph.params:
-                self.ids["paramList"].add_widget(ParamPanel(name = i.name, index = counter))
+            for i in middleLayer.trackList[middleLayer.activeTrack].nodegraph.params.keys():
+                self.ids["paramList"].add_widget(ParamPanel(name = i, switchable = True, sortable = True, deletable = True, index = counter, switchState = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[i][1], visualName = i))
                 counter += 1
             API.Ops.SwitchParam("steadiness")()
         if middleLayer.mode == "timing":

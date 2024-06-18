@@ -21,8 +21,18 @@ class NodeEditor(ScrollView):
         self.scale = 2.
         self.scroll_x = 0.5
         self.scroll_y = 0.5
+        self.track = None
+        self.setTrack()
         self.generateGrid()
         self.generateNodes()
+    
+    @mainthread
+    def setTrack(self):
+        """sets the track object to be edited by the node editor"""
+
+        global middleLayer
+        from UI.editor.Main import middleLayer
+        self.track = middleLayer.trackList[self.parent.parent.parent.parent.index]
 
     @mainthread
     def generateGrid(self):
@@ -36,7 +46,7 @@ class NodeEditor(ScrollView):
 
         global middleLayer
         from UI.editor.Main import middleLayer
-        for node in middleLayer.trackList[self.parent.parent.parent.parent.index].nodegraph.nodes:
+        for node in self.track.nodegraph.nodes:
             self.addNode(node)
         self.updateNodes()
     
@@ -80,7 +90,7 @@ class NodeEditor(ScrollView):
         from UI.editor.Main import middleLayer
         if new:
             node.pos = (self.scroll_x * (self.children[0].width - self.width) + self.width / 2, self.scroll_y * (self.children[0].height - self.height) + self.height / 2)
-            middleLayer.trackList[self.parent.parent.parent.parent.index].nodegraph.addNode(node)
+            self.track.nodegraph.addNode(node)
         self.children[0].add_widget(node)
     
     def removeNode(self, node):
@@ -88,7 +98,7 @@ class NodeEditor(ScrollView):
 
         global middleLayer
         from UI.editor.Main import middleLayer
-        middleLayer.trackList[self.parent.parent.parent.parent.index].nodegraph.removeNode(node)
+        self.track.nodegraph.removeNode(node)
         self.children[0].remove_widget(node)
         del node
     

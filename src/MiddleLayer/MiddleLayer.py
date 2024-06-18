@@ -285,6 +285,8 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].vibratoSpeed = ensureTensorLength(self.trackList[self.activeTrack].vibratoSpeed, length, 0)
         self.trackList[self.activeTrack].vibratoStrength = ensureTensorLength(self.trackList[self.activeTrack].vibratoStrength, length, 0)
         self.audioBuffer[self.activeTrack] = ensureTensorLength(self.audioBuffer[self.activeTrack], length * global_consts.batchSize, 0)
+        for key in self.trackList[self.activeTrack].nodeGraph.params.keys():
+            self.trackList[self.activeTrack].nodeGraph.params[key] = (ensureTensorLength(self.trackList[self.activeTrack].nodeGraph.params[key][0], length, 0), self.trackList[self.activeTrack].nodeGraph.params[key][1])
         self.ids["adaptiveSpace"].applyLength(length)
         self.submitChangeLength(True, length)
 

@@ -113,4 +113,6 @@ def unpackNodes(nodeList:list, paramList:list) -> list:
                 node.inputs[key].attachedTo = nodes[i[2]].outputs[i[3]]
         for key, i in nodeInfo["outputs"].items():
             node.outputs[key]._value = i
+        for key, i in nodeInfo["auxData"].items():
+            node.auxData[key] = i
     return nodes, {key: NodeParam(*value) for key, value in paramList.items()}

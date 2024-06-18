@@ -193,8 +193,7 @@ class Connector(BoxLayout):
             self.dtype.make_widget(self, self.widget_setter)
         with self.canvas:
             self.curve = InstructionGroup()
-            print(self.dtype.UIColor)
-            Color(self.dtype.UIColor)
+            Color(*self.dtype.UIColor)
             self.ellipse = Ellipse(segments = 16, pos = (self.x, self.y + self.height / 2), size = (10, 10))
 
     def update(self):

@@ -29,6 +29,7 @@ class Nodegraph():
         for i in self.nodes:
             packedNodes.append(dict())
             packedNodes[-1]["type"] = i.base.__class__.__name__
+            packedNodes[-1]["auxData"] = i.base.auxData
             packedNodes[-1]["inputs"] = dict()
             for j in i.inputs.keys():
                 if i.inputs[j].base.attachedTo is None:
@@ -39,13 +40,6 @@ class Nodegraph():
             for j in i.outputs.keys():
                 packedNodes[-1]["outputs"][j] = i.outputs[j].base._value
         return packedNodes, self.params
-
-class Parameter():
-    """class for holding and managing a parameter curve as seen by the main process. Exact layout will change with node tree implementation."""
-
-    def __init__(self, path:str) -> None:
-        self.curve = torch.full([5000], 0)
-        self.enabled = True
 
 class Track():
     """class for holding and managing a vocal track as seen by the main process. Contains all settings required for processing on the main process.

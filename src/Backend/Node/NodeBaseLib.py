@@ -70,6 +70,14 @@ class CurveInputNode(NodeBase):
         super().__init__(inputs, outputs, func, True, **kwargs)
         self.curve = 0.
         self.auxData = {"name": "custom curve"}
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Curve Input"
+        else:
+            name = "Curve Input"
+        return [loc["n_io"], name]
 
 class OutputNode(NodeBase):
     def __init__(self, **kwargs) -> None:

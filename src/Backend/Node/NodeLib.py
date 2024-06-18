@@ -5,9 +5,33 @@
 # Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
+import torch
+
+from kivy.uix.textinput import TextInput
+
 from Backend.Node.Node import Node
+from Backend.Node.NodeBase import NodeBase
 
 additionalNodes = []
+
+class CurveInputNode(Node):
+    def __init__(self, base: NodeBase, **kwargs) -> None:
+        super().__init__(base, **kwargs)
+        self.add_widget(TextInput(text="0", multiline=False, size_hint=(1, 1), on_text_validate=self.onTextValidate))
+    
+    def setCurveName(self, name:str):
+        if name in self.parent.parent.track.nodegraph.params.keys():
+            name = name + "_new"
+        if self.base.auxData["name"] in self.parent.parent.track.nodegraph.params.keys():
+            self.parent.parent.track.nodegraph.params[name] = self.parent.parent.track.nodegraph.params.pop(self.base.auxData["name"])
+        else:
+            self.parent.parent.track.nodegraph.params[name] = (torch.full((self.parent.parent.track.length,), 0, dtype = torch.half), True)
+        self.base.auxData["name"] = name
+        return name
+    
+    def onTextValidate(self, instance:TextInput):
+        name = self.setCurveName(instance.text)
+        return name
 
 def getNodeCls(name:str) -> type:
     md = globals()
