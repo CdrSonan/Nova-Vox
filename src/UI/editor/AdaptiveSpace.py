@@ -127,7 +127,7 @@ class ParamCurve(ScrollView):
         elif middleLayer.activeParam == "AI balance":
             data = middleLayer.trackList[middleLayer.activeTrack].aiBalance
         else:
-            data = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam][0]
+            data = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam].curve
         start = floor(self.seqLength * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width * 0.9)
         end = min(ceil(self.seqLength * (self.scroll_x * (self.children[0].width - self.width) + self.width) / self.children[0].width / 0.9), self.seqLength)
         points = ((data[start:end] + 1) * self.height / 2).to(torch.int)

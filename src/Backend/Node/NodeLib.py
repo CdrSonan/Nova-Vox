@@ -9,7 +9,7 @@ import torch
 
 from kivy.uix.textinput import TextInput
 
-from Backend.Node.Node import Node
+from Backend.Node.Node import Node, Param
 from Backend.Node.NodeBase import NodeBase
 
 additionalNodes = []
@@ -25,7 +25,7 @@ class CurveInputNode(Node):
         if self.base.auxData["name"] in self.parent.parent.track.nodegraph.params.keys():
             self.parent.parent.track.nodegraph.params[name] = self.parent.parent.track.nodegraph.params.pop(self.base.auxData["name"])
         else:
-            self.parent.parent.track.nodegraph.params[name] = (torch.full((self.parent.parent.track.length,), 0, dtype = torch.half), True)
+            self.parent.parent.track.nodegraph.params[name] = Param(torch.full((self.parent.parent.track.length,), 0, dtype = torch.half), True)
         self.base.auxData["name"] = name
         return name
     

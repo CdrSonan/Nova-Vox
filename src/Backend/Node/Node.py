@@ -321,3 +321,8 @@ class Connector(BoxLayout):
                                         self.ellipse.pos[0] - 95, self.ellipse.pos[1] + 5,
                                         self.attachedTo.ellipse.pos[0] + 105, self.attachedTo.ellipse.pos[1] + 5,
                                         self.attachedTo.ellipse.pos[0] + 5, self.attachedTo.ellipse.pos[1] + 5]))
+
+class Param():
+    def __init__(self, curve, enabled = True) -> None:
+        self.curve = curve
+        self.enabled = enabled

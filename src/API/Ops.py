@@ -419,8 +419,7 @@ class MoveParam(UnifiedAction):
                     param = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[i.name]
                     i.parent.remove_widget(i)
                     break
-            middleLayer.ids["paramList"].add_widget(ParamPanel(name = param.name, switchable = param.switchable, sortable = param.sortable, deletable = param.deletable, index = index), index = index + delta, switchState = param.switchState)
-            middleLayer.changeParam(index + delta)
+            middleLayer.ids["paramList"].add_widget(ParamPanel(name = i.name, switchable = True, sortable = True, deletable = True, index = index), index = index + delta, switchState = param.enabled)
         super().__init__(action, index, delta, *args, **kwargs)
         self.index = index
         self.delta = delta
