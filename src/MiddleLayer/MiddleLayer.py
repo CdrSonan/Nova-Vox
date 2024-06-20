@@ -1,4 +1,4 @@
-#Copyright 2022-2024 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -45,6 +45,7 @@ class MiddleLayer(Widget):
         from Backend.NV_Multiprocessing.Manager import RenderManager
         self.manager = RenderManager(self.trackList)
         self.unsavedChanges = False
+        self.activePanel = None
         self.activeTrack = None
         self.activeParam = "steadiness"
         self.mode = OptionProperty("notes", options = ["notes", "timing", "pitch"])
@@ -423,6 +424,11 @@ class MiddleLayer(Widget):
             buffer = torch.zeros([global_consts.audioBufferSize, 2], dtype = torch.float32).expand(-1, 2).numpy()
             self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
         outdata[:] = buffer.copy()
+    
+    def delete(self):
+        """broadcasts a deletion event to all relevant UI elements"""
+        
+        self.activePanel.processDelete()
 
     def posToNote(self, pos1:int, pos2:int) -> tuple:
         pos1Out = 0

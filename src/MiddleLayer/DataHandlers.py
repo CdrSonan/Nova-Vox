@@ -39,7 +39,7 @@ class Nodegraph():
             packedNodes[-1]["outputs"] = dict()
             for j in i.outputs.keys():
                 packedNodes[-1]["outputs"][j] = i.outputs[j].base._value
-        return packedNodes, self.params
+        return packedNodes, {i: (j.curve, j.enabled) for i, j in self.params.items()}
 
 class Track():
     """class for holding and managing a vocal track as seen by the main process. Contains all settings required for processing on the main process.

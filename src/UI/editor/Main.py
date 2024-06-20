@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -116,7 +116,7 @@ class NovaVoxUI(Widget):
             self.ids["adaptiveSpace"].add_widget(ParamCurve())
             counter = 0
             for i in middleLayer.trackList[middleLayer.activeTrack].nodegraph.params.keys():
-                self.ids["paramList"].add_widget(ParamPanel(name = i, switchable = True, sortable = True, deletable = True, index = counter, switchState = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[i].enabled, visualName = i))
+                self.ids["paramList"].add_widget(ParamPanel(name = i, switchable = True, sortable = True, deletable = False, index = counter, switchState = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[i].enabled, visualName = i))
                 counter += 1
             API.Ops.SwitchParam("steadiness")()
         if middleLayer.mode == "timing":
@@ -191,6 +191,8 @@ class NovaVoxUI(Widget):
             middleLayer.alt = True
         elif keycode[0] == 32:
             middleLayer.play()
+        elif keycode[0] in (8, 127):
+            middleLayer.delete()
         else:
             print("keycode pressed:", keycode[0])
         return True

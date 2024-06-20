@@ -66,6 +66,7 @@ class SingerSettingsPanel(Popup):
         self.children[0].children[0].children[0].children[0].children[2].children[2].values = self.modVoicebanks
         self.children[0].children[0].children[0].children[0].children[2].children[0].text = str(self.pauseThreshold)
         self.makeNodeTree()
+        middleLayer.activePanel = self
 
     def listVoicebanks(self) -> None:
         """creates a list of installed Voicebanks for switching the main or mix-in Voicebank used by the track"""
@@ -122,6 +123,15 @@ class SingerSettingsPanel(Popup):
                                                                                                                      editor = self.children[0].children[0].children[0].children[1]), parent)
         
 
+    def processDelete(self):
+        """deletes the currently selected node(s) from the nodegraph"""
+        
+        print("deleting nodes")
+        for node in self.children[0].children[0].children[0].children[1].children[0].children:
+            if isinstance(node, Node.Node) and node.selected:
+                node.remove()
+                
+
     def on_pre_dismiss(self) -> None:
         """applies all changed settings before closing the popup"""
 
@@ -139,6 +149,8 @@ class SingerSettingsPanel(Popup):
             middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
             API.Ops.ChangeVoicebank(self.index, middleLayer.trackList[self.index].vbPath)()
         middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.index].nodegraph)
+        middleLayer.ui.updateParamPanel()
+        middleLayer.activePanel = None
 
 class LicensePanel(Popup):
     """panel displaying the Nova-Vox license, contributors and other info"""

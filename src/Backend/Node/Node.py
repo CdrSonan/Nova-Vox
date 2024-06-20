@@ -39,7 +39,7 @@ class Node(DragBehavior, BoxLayout):
         self.base = base
         self.rectangle = ObjectProperty()
         with self.canvas:
-            Color(0.322, 0.259, 0.463, 1.)
+            self.color = Color(0.2, 0.2, 0.2, 1.)
             self.rectangle = RoundedRectangle(pos = self.pos, size = self.size)
         self.inputs = dict()
         self.outputs = dict()
@@ -52,6 +52,7 @@ class Node(DragBehavior, BoxLayout):
             conn = Connector(self.base.outputs[i], self, self.base.outputs[i]._type)
             self.add_widget(conn)
             self.outputs[i] = conn
+        self.selected = False
 
     def recalculateSize(self):
         """recalculates the visual size of the node based on the current zoom level of the node editor"""
@@ -124,6 +125,14 @@ class Node(DragBehavior, BoxLayout):
             'dy': 0}
         Clock.schedule_once(self._change_touch_mode,
                             self.drag_timeout / 1000.)
+        for node in self.parent.children:
+            if isinstance(node, Node) and node.selected:
+                node.selected = False
+                with node.canvas:
+                    node.color.rgba = (0.2, 0.2, 0.2, 1.)
+        self.selected = True
+        with self.canvas:
+            self.color.rgba = (0.322, 0.259, 0.463, 1.2)
         return True
 
     def on_touch_move(self, touch):
@@ -139,6 +148,19 @@ class Node(DragBehavior, BoxLayout):
         self.recalculateRectangle()
         self.recalculateConnections()
         return super().on_touch_up(touch)
+    
+    def remove(self):
+        """removes the node from the parent widget, and detaches all connectors"""
+
+        for i in self.inputs.values():
+            if i.base.attachedTo is not None:
+                i.detach()
+        for i in self.outputs.values():
+            if i.base.attachedTo is not None:
+                i.detach()
+        self.parent.parent.track.nodegraph.nodes.remove(self)
+        self.parent.remove_widget(self)
+        del self
 
     @staticmethod
     def name() -> list:
