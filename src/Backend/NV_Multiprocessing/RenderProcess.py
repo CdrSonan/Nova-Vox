@@ -552,11 +552,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             
                             #istft of voiced excitation + pitch shift
 
-                            #write remaining spectral data to cache
-                            #import matplotlib.pyplot as plt
-                            #plt.imshow(spectrum.read(0, 1000).detach()) #TODO: remove gradient tracking in cache
-                            #plt.show()
-
                             remoteConnection.put(StatusChange(i, j, 2))
 
                             #apply pitch shift to spectrum

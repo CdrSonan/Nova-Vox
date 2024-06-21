@@ -7,6 +7,8 @@
 
 import torch
 
+import global_consts
+
 def convertClampedFloat(*args):
     """converts a value to a float, clamping it to the range between -1 and 1"""
 
@@ -31,8 +33,11 @@ def convertESPERAudio(*args):
     """converts a value to a Torch tensor following the ESPER audio format"""
 
     if isinstance(args[0], torch.Tensor):
-        return args[0]
-    return torch.tensor(*args) #TODO: add assertion for ESPER audio format
+        out = args[0].flatten()
+    else:
+        out = torch.tensor(*args)
+    assert out.shape[0] == global_consts.frameSize, "Invalid ESPER audio tensor shape"
+    return out
 
 def convertPhoneme(*args):
     """converts input(s) to a tuple describing a phoneme, or the transition between several phonemes"""

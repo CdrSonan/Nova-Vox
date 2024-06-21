@@ -268,6 +268,10 @@ class Connector(BoxLayout):
         if self.base.out == target.base.out:
             raise NodeAttachError()
         if self.base.out:
+            try:
+                target.base.converter(self.get())
+            except:
+                raise NodeTypeMismatchError()
             self.base.attachedTo.append(target.base)
             target.base.attachedTo = self.base
             self.attachedTo.append(target)
@@ -281,6 +285,10 @@ class Connector(BoxLayout):
                 del toRemove
             target.drawCurveAttached()
         else:
+            try:
+                self.base.converter(target.get())
+            except:
+                raise NodeTypeMismatchError()
             self.base.attachedTo = target.base
             target.base.attachedTo.append(self.base)
             self.attachedTo = target

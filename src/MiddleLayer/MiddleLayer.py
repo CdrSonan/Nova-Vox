@@ -82,7 +82,8 @@ class MiddleLayer(Widget):
         self.ids = ui.ids
 
     def addParam(self, param, name) -> None:
-        pass #TODO: implement
+        self.trackList[self.activeTrack].nodegraph.addParam(param, name)
+        self.submitNodegraphUpdate(self.trackList[self.activeTrack].nodegraph)
 
     @override
     def updatePianoRoll(self) -> None:

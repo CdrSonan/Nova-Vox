@@ -78,11 +78,13 @@ class NodeBase():
     def checkStatic(self):
         """checks whether the node needs to be evaluated every frame, or can be considered static, returning a constant value"""
 
-        #TODO: add recursion
-        print("static check")
-        self.static = not self.timed
+        if self.timed:
+            self.static = False
+            return
+        self.static = True
         for i in self.inputs.keys():
             if self.inputs[i].attachedTo != None:
+                self.inputs[i].attachedTo.node.checkStatic()
                 if self.inputs[i].attachedTo.node.static == False:
                     self.static = False
                     break
@@ -131,9 +133,9 @@ class ConnectorBase():
             if self.node.isUpdating:
                 raise NodeLoopError(self.node)
             if self.node.isUpdated == False and self.node.static == False:
-                self.isUpdating = True
+                self.node.isUpdating = True
                 self.node.calculate()
-                self.isUpdating = False
+                self.node.isUpdating = False
             return self._value
         else:
             if self.attachedTo is None:

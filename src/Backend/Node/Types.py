@@ -18,13 +18,6 @@ class ClampedFloat():
         self.UIColor = (1., 0.1, 0.1)
         self.defaultValue = 0.
         self.hasWidget = True
-
-    @staticmethod
-    def convert(*args):
-        result = float(*args)
-        result = max(-1., result)
-        result = min(1., result)
-        return result
     
     def make_widget(self, parent, setter = None):
         widget = Slider(min = -1., max = 1., value = self.defaultValue)
@@ -39,10 +32,6 @@ class Float():
         self.UIColor = (1., 0.7, 0.7)
         self.defaultValue = 0.5
         self.hasWidget = True
-
-    @staticmethod
-    def convert(*args):
-        return float(*args)
     
     def make_widget(self, parent, setter = None):
         widget = FloatInput(text = str(self.defaultValue))
@@ -57,10 +46,6 @@ class Int():
         self.UIColor = (0.1, 1., 0.1)
         self.defaultValue = 1
         self.hasWidget = True
-
-    @staticmethod
-    def convert(*args):
-        return int(*args)
     
     def make_widget(self, parent, setter = None):
         widget = IntInput(text = str(self.defaultValue))
@@ -75,10 +60,6 @@ class Bool():
         self.UIColor = (0.5, 0.5, 0.5)
         self.defaultValue = False
         self.hasWidget = True
-
-    @staticmethod
-    def convert(*args):
-        return bool(*args)
     
     def make_widget(self, parent, setter = None):
         widget = CheckBox(active = self.defaultValue)
@@ -89,29 +70,20 @@ class Bool():
 class ESPERAudio():
     """node data type class for a PyTorch tensor representing a "Specharm", a point in an audio signal encoded using ESPER."""
 
-    #TODO: finish this class
     def __init__(self) -> None:
         self.UIColor = (1., 1., 1.)
         self.defaultValue = 0.5
         self.hasWidget = False
 
-    @staticmethod
-    def convert(*args):
-        return Tensor(*args)
-
 
 class Phoneme():
     """node data type class for a "phoneme state" of a track. Consists of one or two phonemes, and a value between 0 and 1 representing their relative strength in the case of two phonemes"""
 
-    #TODO: finish this class
     def __init__(self) -> None:
         self.UIColor = (0.1, 0.1, 1.)
         self.defaultValue = 0.5
         self.hasWidget = False
 
-    @staticmethod
-    def convert(*args):
-        return None
 
 types = [ClampedFloat, Float, Int, Bool, ESPERAudio, Phoneme] #list of all available node data types, can be extended through addons
 

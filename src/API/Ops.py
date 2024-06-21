@@ -330,7 +330,6 @@ class AddParam(UnifiedAction):
         @override
         def action(param, name):
             middleLayer.trackList[self.activeTrack].nodegraph.addParam(param, name)
-            #TODO: handle UI update
             middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.activeTrack].nodegraph)
         super().__init__(action, param, name, *args, **kwargs)
 
@@ -347,7 +346,7 @@ class RemoveParam(UnifiedAction):
             for i in middleLayer.ids["paramList"].children:
                 if i.name == name:
                     i.parent.remove_widget(i)
-        middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.activeTrack].nodegraph)
+            middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.activeTrack].nodegraph)
         super().__init__(action, name, *args, **kwargs)
         self.name = name
 

@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -6,9 +6,7 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import math
-import ctypes
 import torch
-from tqdm.auto import tqdm
 from torchaudio.functional import detect_pitch_frequency
 import C_Bridge
 from Backend.DataHandler.AudioSample import AudioSample
@@ -74,7 +72,7 @@ def calculatePitchFallback_legacy(audioSample:AudioSample) -> None:
     batchSize = math.floor((1. + audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
     lowerSearchLimit = math.floor((1. - audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
     batchStart = 0
-    while batchStart + batchSize <= audioSample.waveform.size()[0] - batchSize:#TODO: check for end batchSize compensation possibly being doubled
+    while batchStart + batchSize <= audioSample.waveform.size()[0] - batchSize:
         sample = torch.index_select(audioSample.waveform, 0, torch.linspace(batchStart, batchStart + batchSize, batchSize, dtype = int))
         zeroTransitions = torch.tensor([], dtype = int)
         for i in range(lowerSearchLimit, batchSize):
@@ -93,7 +91,7 @@ def calculatePitchFallback_legacy(audioSample:AudioSample) -> None:
         batchStart += delta
     audioSample.pitch = torch.mean(audioSample.pitchDeltas.float()).int()
 
-    #map sequence of pitchDeltas to sampling interval TODO: check for error causing double wavelength to be locked on
+    #map sequence of pitchDeltas to sampling interval
     cursor = 0
     cursor2 = 0
     pitchDeltas = torch.empty(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize))
@@ -126,7 +124,6 @@ def calculatePhases(audioSample:AudioSample) -> None:
         limit = math.floor(global_consts.batchSize / audioSample.pitchDeltas[i])
         func = audioSample.waveform[i * global_consts.batchSize:i * global_consts.batchSize + limit * audioSample.pitchDeltas[i].to(torch.int64)]
         funcspace = torch.linspace(0, (limit * audioSample.pitchDeltas[i] - 1) * 2 * math.pi / audioSample.pitchDeltas[i], limit * audioSample.pitchDeltas[i])
-        #TODO: Test new func and funcspace
         func = audioSample.waveform[i * global_consts.batchSize:(i + 1) * global_consts.batchSize]
         funcspace = torch.linspace(0, global_consts.batchSize * 2 * math.pi / audioSample.pitchDeltas[i], global_consts.batchSize)
 

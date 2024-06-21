@@ -342,7 +342,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             amplitudes = harmFunction.abs()
             amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
             amplitudes = torch.mean(amplitudes, dim = 1)
-            phases = torch.mean(harmFunction.angle(), dim = 1)#TODO: vector-based phase mean
+            phases = torch.mean(harmFunction.angle(), dim = 1)
             harmFunction = torch.polar(amplitudes, phases)
             if audioSample.isVoiced == False:
                 harmFunction *= 0.
@@ -353,7 +353,7 @@ def separateVoicedUnvoiced(audioSample:AudioSample) -> AudioSample:
             amplitudes = harmFunction.abs()
             #amplitudes = calculateAmplitudeContinuity(amplitudes, audioSample.specharm[counter, global_consts.nHarmonics + 2:], audioSample.pitchDeltas[counter])
             amplitudes = torch.mean(amplitudes, dim = 1)
-            phases = torch.mean(harmFunction.angle(), dim = 1)#TODO: vector-based phase mean
+            phases = torch.mean(harmFunction.angle(), dim = 1)
             harmFunction = torch.polar(amplitudes, phases)
             globalHarmFunction[i] = harmFunction
             counter += 1

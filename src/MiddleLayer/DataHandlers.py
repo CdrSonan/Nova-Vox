@@ -412,7 +412,7 @@ class BorderProxy():
             while (self.track.phonemeIndices[noteIndex] == self.track.phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
                 noteIndex -= 1
             if noteIndex > 0:
-                return self.track.notes[noteIndex].borders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3 - 1]#TODO: Index out of range error occurs here
+                return self.track.notes[noteIndex].borders[brdIndex - self.track.phonemeIndices[noteIndex - 1] * 3 - 1]
             return self.track.notes[noteIndex].borders[brdIndex - 1]
     
     def __setitem__(self, val, newVal):

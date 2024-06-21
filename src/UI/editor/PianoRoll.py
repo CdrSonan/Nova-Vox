@@ -54,7 +54,7 @@ class PhonemeSelector(Bubble):
         self.options = options
         self.index = index
         self.word = word
-        for i in range(len(self.options)):#TODO: check if Kivy version upgrade affected widget addition syntax
+        for i in range(len(self.options)):
             self.content.add_widget(ReferencingButton(text = self.options[i], reference = self, on_press = lambda a : API.Ops.ChangeLyrics(self.index, self.word, i)()))
         Window.bind(mouse_pos=self.on_mouseover)
 
@@ -451,7 +451,7 @@ class PianoRoll(ScrollView):
         """changes the position of the playback head"""
 
         with self.ids["playbackHead"].canvas:
-            points = self.ids["playbackHead"].canvas.children[-1].points#TODO: Fix reference system!!!
+            points = self.ids["playbackHead"].canvas.children[-1].points
             points[0] = playbackPos * self.xScale
             points[2] = playbackPos * self.xScale
             del self.ids["playbackHead"].canvas.children[-1]
@@ -797,9 +797,6 @@ class PianoRoll(ScrollView):
                 del self.timingMarkers[border]
                 self.timingMarkers.insert(border, self.timingMarkerGroup(newPos))
                 self.children[0].canvas.insert(index, self.timingMarkers[border])
-                
-                #TODO: fix color mismatch
-                
                 zone = floor(border / 3)
                 index = self.children[0].canvas.indexof(self.timingZones[zone])
                 self.children[0].canvas.remove(self.timingZones[zone])
