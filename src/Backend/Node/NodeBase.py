@@ -147,7 +147,8 @@ class ConnectorBase():
 
         try:
             value = self.converter(value)
-        except:
+        except Exception as e:
+            print(e)
             raise NodeTypeMismatchError(self.node)
         else:
             self._value = value

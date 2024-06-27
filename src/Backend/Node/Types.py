@@ -81,7 +81,7 @@ class Phoneme():
 
     def __init__(self) -> None:
         self.UIColor = (0.1, 0.1, 1.)
-        self.defaultValue = 0.5
+        self.defaultValue = ("_0", "_0", 0.)
         self.hasWidget = False
 
 
