@@ -11,7 +11,7 @@ from random import random
 import torch
 
 import global_consts
-
+from Util import freqToFreqBin, freqBinToHarmonic, harmonicToFreqBin
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
 
@@ -573,11 +573,14 @@ class FloatDelayNode(NodeBase):
 
 class RNGNode(NodeBase):
     def __init__(self, **kwargs) -> None:
-        inputs = {}
+        inputs = {"Trigger": "Bool"}
         outputs = {"Result": "ClampedFloat"}
-        def func(self):
-            return {"Result": random() * 2. - 1.}
+        def func(self, Trigger):
+            if Trigger:
+                self.stored = random() * 2. - 1.
+            return {"Result": self.stored}
         super().__init__(inputs, outputs, func, False, **kwargs)
+        self.stored = random() * 2. - 1.
     
     @staticmethod
     def name() -> str:
@@ -1312,18 +1315,198 @@ class PulseLFONode(NodeBase):
         else:
             name = "Pulse LFO"
         return [loc["n_LFO"], name]
+
+class HighpassNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Cutoff": "Float", "Slope": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Cutoff):
+            centerBin = freqToFreqBin(Cutoff)
+            slope = 0.5 * self.slope + 0.5
+            slopeRange = min(centerBin, global_consts.halfTripleBatchSize - centerBin)
+            lowBin = max(0, centerBin - slopeRange * slope)
+            highBin = min(global_consts.halfTripleBatchSize, centerBin + slopeRange * slope)
+            result = Audio.clone()
+            for i in range(lowBin):
+                result[global_consts.nHarmonics + 2 + i] = 0.
+            for i in range(lowBin, highBin):
+                result[global_consts.nHarmonics + 2 + i] *= (i - lowBin) / (highBin - lowBin)
+            for i in range(global_consts.halfHarms):
+                if harmonicToFreqBin(i) < lowBin:
+                    result[i] = 0.
+                elif harmonicToFreqBin(i) < highBin:
+                    result[i] *= (harmonicToFreqBin(i) - lowBin) / (highBin - lowBin)
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Highpass Filter"
+        else:
+            name = "Highpass Filter"
+        return [loc["n_eq"], name]
+
+class LowpassNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Cutoff": "Float", "Slope": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Cutoff):
+            centerBin = freqToFreqBin(Cutoff)
+            slope = 0.5 * self.slope + 0.5
+            slopeRange = min(centerBin, global_consts.halfTripleBatchSize - centerBin)
+            lowBin = max(0, centerBin - slopeRange * slope)
+            highBin = min(global_consts.halfTripleBatchSize, centerBin + slopeRange * slope)
+            result = Audio.clone()
+            for i in range(lowBin, highBin):
+                result[global_consts.nHarmonics + 2 + i] *= 1. - ((i - lowBin) / (highBin - lowBin))
+            for i in range(highBin, global_consts.halfTripleBatchSize):
+                result[global_consts.nHarmonics + 2 + i] = 0.
+            for i in range(global_consts.halfHarms):
+                if harmonicToFreqBin(i) > highBin:
+                    result[i] = 0.
+                elif harmonicToFreqBin(i)  > lowBin:
+                    result[i] *= 1. - ((harmonicToFreqBin(i) - lowBin) / (highBin - lowBin))
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Lowpass Filter"
+        else:
+            name = "Lowpass Filter"
+        return [loc["n_eq"], name]
+
+class BandpassNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Cutoff": "Float", "Width": "Float", "Slope": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Cutoff, Width):
+            centerBin = freqToFreqBin(Cutoff)
+            widthBins = freqToFreqBin(Width)
+            slope = 0.5 * self.slope + 0.5
+            slopeRange = min(centerBin - widthBins / 2., global_consts.halfTripleBatchSize - centerBin - widthBins / 2., widthBins / 2.)
+            outerLowBin = max(0, centerBin - widthBins / 2. - slopeRange * slope)
+            innerLowBin = max(0, centerBin - widthBins / 2. + slopeRange * slope)
+            innerHighBin = min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. - slopeRange * slope)
+            outerHighBin = min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. + slopeRange * slope)
+            result = Audio.clone()
+            for i in range(outerLowBin):
+                result[global_consts.nHarmonics + 2 + i] = 0.
+            for i in range(outerLowBin, innerLowBin):
+                result[global_consts.nHarmonics + 2 + i] *= (i - outerLowBin) / (innerLowBin - outerLowBin)
+            for i in range(innerHighBin, outerHighBin):
+                result[global_consts.nHarmonics + 2 + i] *= 1. - ((i - innerHighBin) / (outerHighBin - innerHighBin))
+            for i in range(outerHighBin, global_consts.halfTripleBatchSize):
+                result[global_consts.nHarmonics + 2 + i] = 0.
+            for i in range(global_consts.halfHarms):
+                if harmonicToFreqBin(i) < outerLowBin or harmonicToFreqBin(i) > outerHighBin:
+                    result[i] = 0.
+                elif harmonicToFreqBin(i) < innerLowBin:
+                    result[i] *= (harmonicToFreqBin(i) - outerLowBin) / (innerLowBin - outerLowBin)
+                elif harmonicToFreqBin(i) > innerHighBin:
+                    result[i] *= 1. - ((harmonicToFreqBin(i) - innerHighBin) / (outerHighBin - innerHighBin))
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Bandpass Filter"
+        else:
+            name = "Bandpass Filter"
+        return [loc["n_eq"], name]
+
+class BandrejectNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Cutoff": "Float", "Width": "Float", "Slope": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Cutoff, Width):
+            centerBin = freqToFreqBin(Cutoff)
+            widthBins = freqToFreqBin(Width)
+            slope = 0.5 * self.slope + 0.5
+            slopeRange = min(centerBin - widthBins / 2., global_consts.halfTripleBatchSize - centerBin - widthBins / 2., widthBins / 2.)
+            innerLowBin = max(0, centerBin - widthBins / 2. - slopeRange * slope)
+            outerLowBin = max(0, centerBin - widthBins / 2. + slopeRange * slope)
+            outerHighBin = min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. - slopeRange * slope)
+            innerHighBin = min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. + slopeRange * slope)
+            result = Audio.clone()
+            for i in range(outerLowBin, innerLowBin):
+                result[global_consts.nHarmonics + 2 + i] *= 1. - ((i - innerLowBin) / (outerLowBin - innerLowBin))
+            for i in range(innerLowBin, innerHighBin):
+                result[global_consts.nHarmonics + 2 + i] *= 0.
+            for i in range(innerHighBin, outerHighBin):
+                result[global_consts.nHarmonics + 2 + i] *= (i - innerHighBin) / (outerHighBin - innerHighBin)
+            for i in range(global_consts.halfHarms):
+                if harmonicToFreqBin(i) < outerLowBin:
+                    continue
+                elif harmonicToFreqBin(i) < innerLowBin:
+                    result[i] *= 1. - ((harmonicToFreqBin(i) - innerLowBin) / (outerLowBin - innerLowBin))
+                elif harmonicToFreqBin(i) < innerHighBin:
+                    result[i] = 0.
+                elif harmonicToFreqBin(i) < outerHighBin:
+                    result[i] *= (harmonicToFreqBin(i) - innerHighBin) / (outerHighBin - innerHighBin)
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Bandreject Filter"
+        else:
+            name = "Bandreject Filter"
+        return [loc["n_eq"], name]
+
+class ThreeBandEQNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio",
+                  "Low_Gain": "ClampedFloat", "Low_Freq": "Float", "Low_Width": "Float",
+                  "Mid_Gain": "ClampedFloat", "Mid_Freq": "Float", "Mid_Width": "Float",
+                  "High_Gain": "ClampedFloat", "High_Freq": "Float", "High_Width": "Float"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Low_Gain, Low_Freq, Low_Width, Mid_Gain, Mid_Freq, Mid_Width, High_Gain, High_Freq, High_Width):
+            lowFreq = freqToFreqBin(Low_Freq)
+            lowWidth = freqToFreqBin(Low_Width)
+            midFreq = freqToFreqBin(Mid_Freq)
+            midWidth = freqToFreqBin(Mid_Width)
+            highFreq = freqToFreqBin(High_Freq)
+            highWidth = freqToFreqBin(High_Width)
+            result = Audio.clone()
+            for i in range(global_consts.halfTripleBatchSize + 1):
+                result[global_consts.nHarmonics + 2 + i] *= 1. + self.normalDistribution(lowFreq, lowWidth, i) * Low_Gain
+                result[global_consts.nHarmonics + 2 + i] *= 1. + self.normalDistribution(midFreq, midWidth, i) * Mid_Gain
+                result[global_consts.nHarmonics + 2 + i] *= 1. + self.normalDistribution(highFreq, highWidth, i) * High_Gain
+            for i in range(global_consts.halfHarms):
+                result[i] *= 1. + self.normalDistribution(lowFreq, lowWidth, harmonicToFreqBin(i)) * Low_Gain
+                result[i] *= 1. + self.normalDistribution(midFreq, midWidth, harmonicToFreqBin(i)) * Mid_Gain
+                result[i] *= 1. + self.normalDistribution(highFreq, highWidth, harmonicToFreqBin(i)) * High_Gain
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def normalDistribution(mean:float, std:float, x:float) -> float:
+        return math.exp(-0.5 * ((x - mean) / std) ** 2) / (std * math.sqrt(2. * math.pi))
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "3-Band EQ"
+        else:
+            name = "3-Band EQ"
+        return [loc["n_eq"], name]
     
 
 # TODO: Implement the following nodes
-# - EQs, lowpass, highpass, bandpass, bandreject etc.
+# - EQ, lowpass, highpass, bandpass, bandreject etc.
 # - compressor, limiter, expander, gate
-# - reverb, chorus, phaser, flanger, distortion etc. (effects)
+# - reverb, chorus, phaser, flanger
 # - noise generator
 # - VST3 host
+# - multiband compressor and/or dynamic EQ
 # - V-synth params: formant shift, growl, brightness, strength
-# - quantization
-# - ADSR envelope
-# - impulse response convolution
+# - distortion, quantization, maybe bitcrusher?
+# - impulse response reverb/convolution
 
 additionalNodes = []
 

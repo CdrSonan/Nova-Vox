@@ -1,4 +1,4 @@
-#Copyright 2023 Contributors to the Nova-Vox project
+#Copyright 2023, 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -6,7 +6,6 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 from math import floor
-import importlib
 from numpy import ndarray, array as np_array
 import torch
 import global_consts
@@ -26,6 +25,25 @@ def noteToPitch(data:torch.Tensor) -> torch.Tensor:
 
     #return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
     return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 12)) / torch.full_like(data, 12)) * 440)
+
+def freqBinToHarmonic(freqBin:torch.Tensor, pitch:float) -> torch.Tensor:
+    """Utility function for converting a frequency bin to a harmonic number, given the pitch of the note."""
+
+    #xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
+    #harmScale = torch.linspace(0, global_consts.nHarmonics / 2 * global_consts.sampleRate / pitch, int(global_consts.nHarmonics / 2) + 1)
+    #freqBinStep = global_consts.sampleRate / global_consts.tripleBatchSize
+    #harmStep = global_consts.sampleRate / pitch
+    return freqBin * global_consts.tripleBatchSize / pitch
+
+def harmonicToFreqBin(harmonic:torch.Tensor, pitch:float) -> torch.Tensor:
+    """Utility function for converting a harmonic number to a frequency bin, given the pitch of the note."""
+
+    return harmonic * pitch / global_consts.tripleBatchSize
+
+def freqToFreqBin(freq:torch.Tensor) -> torch.Tensor:
+    """Utility function for converting a frequency to a frequency bin."""
+
+    return freq * global_consts.tripleBatchSize / global_consts.sampleRate
 
 def binarySearch(array, expression, length) -> int:
     """performs a binary search across array, returning the index of the first element where expression evaluates to True.
