@@ -37,7 +37,7 @@ def convertESPERAudio(*args):
     else:
         out = torch.tensor(*args)
     print(out.shape)
-    assert out.shape[0] == global_consts.frameSize and out.ndim == 1, "Invalid ESPER audio tensor shape"
+    assert out.shape[0] == global_consts.frameSize + global_consts.halfTripleBatchSize + 2 and out.ndim == 1, "Invalid ESPER audio tensor shape"
     return out
 
 def convertPhoneme(*args):

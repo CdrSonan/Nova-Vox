@@ -7,8 +7,9 @@
 
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.slider import Slider
-from torch import Tensor
+import torch
 
+import global_consts
 from UI.editor.Util import FloatInput, IntInput
 
 class ClampedFloat():
@@ -72,7 +73,7 @@ class ESPERAudio():
 
     def __init__(self) -> None:
         self.UIColor = (1., 1., 1.)
-        self.defaultValue = 0.5
+        self.defaultValue = torch.zeros([global_consts.frameSize + global_consts.halfTripleBatchSize + 2,])
         self.hasWidget = False
 
 
