@@ -231,7 +231,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         specPart = spectrum.read(start, end)
         excitationPart = excitation.read(start, end)
         pitchPart = pitch.read(start, end)
-        audio = torch.cat((specPart, excitationPart, pitchPart), 1)
+        audio = torch.cat((specPart, excitationPart, pitchPart.unsqueeze(0)), 1)
         if nodeOutput == None:
             return audio[:global_consts.frameSize], audio[global_consts.frameSize:global_consts.frameSize + global_consts.halfTripleBatchSize + 1], audio[-1]
         output = torch.zeros_like(audio)

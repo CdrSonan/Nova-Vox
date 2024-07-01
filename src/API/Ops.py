@@ -843,6 +843,8 @@ def deserialize_nodegraph(group):
         nodegraph.nodes[-1].size = node_group.attrs["size"].split(" ")
     for i, node_group in enumerate(group["nodes"].values()):
         for input in node_group["inputs"].attrs.items():
+            if input[0] not in nodegraph.nodes[i].inputs:
+                continue
             if input[1].startswith("attachedTo"):
                 target_idx, target_output = input[1].split(" ")[1:]
                 nodegraph.nodes[i].inputs[input[0]].attach(nodegraph.nodes[int(target_idx)].outputs[target_output])

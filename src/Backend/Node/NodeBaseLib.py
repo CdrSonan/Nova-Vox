@@ -11,7 +11,7 @@ from random import random
 import torch
 
 import global_consts
-from Util import freqToFreqBin, freqBinToHarmonic, harmonicToFreqBin
+from Util import freqToFreqBin, freqBinToHarmonic, harmonicToFreqBin, amplitudeToDecibels, decibelsToAmplitude
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
 
@@ -44,7 +44,7 @@ class InputNode(NodeBase):
                    "Vibrato_Strengh": self.vibratoStrengh,
                    "Vibrato_Speed": self.vibratoSpeed,}
         super().__init__(inputs, outputs, func, True, **kwargs)
-        self.audio = torch.empty([global_consts.frameSize,])
+        self.audio = torch.zeros([global_consts.frameSize + global_consts.halfTripleBatchSize + 2,])
         self.phoneme = ("_0", "_0", 0.5)
         self.pitch = 100.
         self.transition = 0.
@@ -995,7 +995,7 @@ class AudioVolumeNode(NodeBase):
         outputs = {"Result": "Float"}
         def func(self, Audio):
             voicedVolume = torch.mean(torch.sqrt(Audio[:global_consts.halfHarms]))
-            unvoicedVolume = torch.mean(torch.sqrt(Audio[global_consts.nHarmonics + 2:global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3]))
+            unvoicedVolume = torch.mean(torch.sqrt(Audio[global_consts.nHarmonics + 2:global_consts.frameSize]))
             return {"Result": (voicedVolume + unvoicedVolume).item()}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1029,7 +1029,10 @@ class AddAudioNode(NodeBase):
         outputs = {"Result": "ESPERAudio"}
         def func(self, A, B):
             #TODO: implement SLERP for phase portion of ESPERAudio
-            return {"Result": A + B}
+            result = A + B
+            result[global_consts.halfHarms:global_consts.nHarmonics + 2] = A[global_consts.halfHarms:global_consts.nHarmonics + 2]
+            result[global_consts.frameSize:] = A[global_consts.frameSize:]
+            return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
     @staticmethod
@@ -1065,6 +1068,7 @@ class SubtractAudioNode(NodeBase):
         def func(self, A, B):
             result = torch.max(A - B, torch.zeros_like(A))
             result[global_consts.halfHarms:global_consts.nHarmonics + 2] = A[global_consts.halfHarms:global_consts.nHarmonics + 2]
+            result[global_consts.frameSize:] = A[global_consts.frameSize:]
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1081,7 +1085,9 @@ class AdjustVolumeNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Volume": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Volume):
-            return {"Result": Audio * (1. + Volume)}
+            result = Audio.clone()
+            result[:global_consts.frameSize] *= (1. + Volume)
+            return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
     @staticmethod
@@ -1100,7 +1106,8 @@ class SeparateVoicedUnvoicedNode(NodeBase):
             voiced = torch.zeros_like(Audio)
             unvoiced = torch.zeros_like(Audio)
             voiced[:global_consts.nHarmonics + 2] = Audio[:global_consts.nHarmonics + 2]
-            unvoiced[global_consts.nHarmonics + 2:global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3] = Audio[global_consts.nHarmonics + 2:global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3]
+            voiced[-1] = Audio[-1]
+            unvoiced[global_consts.nHarmonics + 2:] = Audio[global_consts.nHarmonics + 2:]
             return {"Voiced": voiced, "Unvoiced": unvoiced}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1332,10 +1339,10 @@ class HighpassNode(NodeBase):
             for i in range(lowBin, highBin):
                 result[global_consts.nHarmonics + 2 + i] *= (i - lowBin) / (highBin - lowBin)
             for i in range(global_consts.halfHarms):
-                if harmonicToFreqBin(i) < lowBin:
+                if harmonicToFreqBin(i, result[-1]) < lowBin:
                     result[i] = 0.
-                elif harmonicToFreqBin(i) < highBin:
-                    result[i] *= (harmonicToFreqBin(i) - lowBin) / (highBin - lowBin)
+                elif harmonicToFreqBin(i, result[-1]) < highBin:
+                    result[i] *= (harmonicToFreqBin(i, result[-1]) - lowBin) / (highBin - lowBin)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1363,10 +1370,10 @@ class LowpassNode(NodeBase):
             for i in range(highBin, global_consts.halfTripleBatchSize):
                 result[global_consts.nHarmonics + 2 + i] = 0.
             for i in range(global_consts.halfHarms):
-                if harmonicToFreqBin(i) > highBin:
+                if harmonicToFreqBin(i, result[-1]) > highBin:
                     result[i] = 0.
-                elif harmonicToFreqBin(i)  > lowBin:
-                    result[i] *= 1. - ((harmonicToFreqBin(i) - lowBin) / (highBin - lowBin))
+                elif harmonicToFreqBin(i, result[-1])  > lowBin:
+                    result[i] *= 1. - ((harmonicToFreqBin(i, result[-1]) - lowBin) / (highBin - lowBin))
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1401,12 +1408,12 @@ class BandpassNode(NodeBase):
             for i in range(outerHighBin, global_consts.halfTripleBatchSize):
                 result[global_consts.nHarmonics + 2 + i] = 0.
             for i in range(global_consts.halfHarms):
-                if harmonicToFreqBin(i) < outerLowBin or harmonicToFreqBin(i) > outerHighBin:
+                if harmonicToFreqBin(i, result[-1]) < outerLowBin or harmonicToFreqBin(i, result[-1]) > outerHighBin:
                     result[i] = 0.
-                elif harmonicToFreqBin(i) < innerLowBin:
-                    result[i] *= (harmonicToFreqBin(i) - outerLowBin) / (innerLowBin - outerLowBin)
-                elif harmonicToFreqBin(i) > innerHighBin:
-                    result[i] *= 1. - ((harmonicToFreqBin(i) - innerHighBin) / (outerHighBin - innerHighBin))
+                elif harmonicToFreqBin(i, result[-1]) < innerLowBin:
+                    result[i] *= (harmonicToFreqBin(i, result[-1]) - outerLowBin) / (innerLowBin - outerLowBin)
+                elif harmonicToFreqBin(i, result[-1]) > innerHighBin:
+                    result[i] *= 1. - ((harmonicToFreqBin(i, result[-1]) - innerHighBin) / (outerHighBin - innerHighBin))
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1439,14 +1446,14 @@ class BandrejectNode(NodeBase):
             for i in range(innerHighBin, outerHighBin):
                 result[global_consts.nHarmonics + 2 + i] *= (i - innerHighBin) / (outerHighBin - innerHighBin)
             for i in range(global_consts.halfHarms):
-                if harmonicToFreqBin(i) < outerLowBin:
+                if harmonicToFreqBin(i, result[-1]) < outerLowBin:
                     continue
-                elif harmonicToFreqBin(i) < innerLowBin:
-                    result[i] *= 1. - ((harmonicToFreqBin(i) - innerLowBin) / (outerLowBin - innerLowBin))
-                elif harmonicToFreqBin(i) < innerHighBin:
+                elif harmonicToFreqBin(i, result[-1]) < innerLowBin:
+                    result[i] *= 1. - ((harmonicToFreqBin(i, result[-1]) - innerLowBin) / (outerLowBin - innerLowBin))
+                elif harmonicToFreqBin(i, result[-1]) < innerHighBin:
                     result[i] = 0.
-                elif harmonicToFreqBin(i) < outerHighBin:
-                    result[i] *= (harmonicToFreqBin(i) - innerHighBin) / (outerHighBin - innerHighBin)
+                elif harmonicToFreqBin(i, result[-1]) < outerHighBin:
+                    result[i] *= (harmonicToFreqBin(i, result[-1]) - innerHighBin) / (outerHighBin - innerHighBin)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
         
@@ -1478,9 +1485,9 @@ class ThreeBandEQNode(NodeBase):
                 result[global_consts.nHarmonics + 2 + i] *= 1. + self.normalDistribution(midFreq, midWidth, i) * Mid_Gain
                 result[global_consts.nHarmonics + 2 + i] *= 1. + self.normalDistribution(highFreq, highWidth, i) * High_Gain
             for i in range(global_consts.halfHarms):
-                result[i] *= 1. + self.normalDistribution(lowFreq, lowWidth, harmonicToFreqBin(i)) * Low_Gain
-                result[i] *= 1. + self.normalDistribution(midFreq, midWidth, harmonicToFreqBin(i)) * Mid_Gain
-                result[i] *= 1. + self.normalDistribution(highFreq, highWidth, harmonicToFreqBin(i)) * High_Gain
+                result[i] *= 1. + self.normalDistribution(lowFreq, lowWidth, harmonicToFreqBin(i, result[-1])) * Low_Gain
+                result[i] *= 1. + self.normalDistribution(midFreq, midWidth, harmonicToFreqBin(i, result[-1])) * Mid_Gain
+                result[i] *= 1. + self.normalDistribution(highFreq, highWidth, harmonicToFreqBin(i, result[-1])) * High_Gain
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1495,11 +1502,161 @@ class ThreeBandEQNode(NodeBase):
         else:
             name = "3-Band EQ"
         return [loc["n_eq"], name]
+
+class CompressorNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Threshold": "Float", "Ratio": "ClampedFloat", "Attack": "Float", "Release": "Float"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Threshold, Ratio, Attack, Release):
+            threshold = decibelsToAmplitude(Threshold)
+            ratio = -0.5 * Ratio + 0.5
+            amplitude = (torch.sum(Audio[:global_consts.halfHarms]) + torch.sum(Audio[global_consts.nHarmonics + 2:global_consts.frameSize])) / 2.
+            result = Audio.clone()
+            if amplitude > threshold and not self.active:
+                self.active = True
+                self.target = (threshold + (amplitude - threshold) * ratio) / amplitude
+                self.stepsLeft = int(250. * Attack)
+            elif amplitude < threshold and self.active:
+                self.active = False
+                self.target = 1.
+                self.stepsLeft = int(250. * Release)
+            if self.active and amplitude > self.target:
+                self.target = amplitude
+            if self.stepsLeft > 0:
+                self.current += (self.target - self.current) / self.stepsLeft
+                self.stepsLeft -= 1
+            result[:global_consts.halfHarms] *= self.current
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        self.active = False
+        self.current = 1.
+        self.target = 1.
+        self.stepsLeft = 0
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Compressor"
+        else:
+            name = "Compressor"
+        return [loc["n_eq"], name]
+
+class LimiterNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Threshold": "Float", "Attack": "Float", "Release": "Float"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Threshold, Attack, Release):
+            threshold = decibelsToAmplitude(Threshold)
+            amplitude = (torch.sum(Audio[:global_consts.halfHarms]) + torch.sum(Audio[global_consts.nHarmonics + 2:global_consts.frameSize])) / 2.
+            result = Audio.clone()
+            if amplitude > threshold and not self.active:
+                self.active = True
+                self.target = threshold / amplitude
+                self.stepsLeft = int(250. * Attack)
+            elif amplitude < threshold and self.active:
+                self.active = False
+                self.target = 1.
+                self.stepsLeft = int(250. * Release)
+            if self.active and amplitude > self.target:
+                self.target = amplitude
+            if self.stepsLeft > 0:
+                self.current += (self.target - self.current) / self.stepsLeft
+                self.stepsLeft -= 1
+            result[:global_consts.halfHarms] *= self.current
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        self.active = False
+        self.current = 1.
+        self.target = 1.
+        self.stepsLeft = 0
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Limiter"
+        else:
+            name = "Limiter"
+        return [loc["n_eq"], name]
+
+class ExpanderNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Threshold": "Float", "Ratio": "ClampedFloat", "Attack": "Float", "Release": "Float"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Threshold, Ratio, Attack, Release):
+            threshold = decibelsToAmplitude(Threshold)
+            ratio = Ratio + 1.
+            amplitude = (torch.sum(Audio[:global_consts.halfHarms]) + torch.sum(Audio[global_consts.nHarmonics + 2:global_consts.frameSize])) / 2.
+            result = Audio.clone()
+            if amplitude < threshold and not self.active:
+                self.active = True
+                self.target = (threshold + (amplitude - threshold) * ratio) / amplitude
+                self.stepsLeft = int(250. * Attack)
+            elif amplitude > threshold and self.active:
+                self.active = False
+                self.target = 1.
+                self.stepsLeft = int(250. * Release)
+            if self.active and amplitude < self.target:
+                self.target = amplitude
+            if self.stepsLeft > 0:
+                self.current += (self.target - self.current) / self.stepsLeft
+                self.stepsLeft -= 1
+            result[:global_consts.halfHarms] *= self.current
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        self.active = False
+        self.current = 1.
+        self.target = 1.
+        self.stepsLeft = 0
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Expander"
+        else:
+            name = "Expander"
+        return [loc["n_eq"], name]
+
+class GateNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Threshold": "Float", "Attack": "Float", "Release": "Float"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Threshold, Attack, Release):
+            threshold = decibelsToAmplitude(Threshold)
+            amplitude = (torch.sum(Audio[:global_consts.halfHarms]) + torch.sum(Audio[global_consts.nHarmonics + 2:global_consts.frameSize])) / 2.
+            result = Audio.clone()
+            if amplitude < threshold and not self.active:
+                self.active = True
+                self.target = 0.
+                self.stepsLeft = int(250. * Attack)
+            elif amplitude > threshold and self.active:
+                self.active = False
+                self.target = 1.
+                self.stepsLeft = int(250. * Release)
+            if self.stepsLeft > 0:
+                self.current += (self.target - self.current) / self.stepsLeft
+                self.stepsLeft -= 1
+            result[:global_consts.halfHarms] *= self.current
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        self.active = False
+        self.current = 1.
+        self.target = 1.
+        self.stepsLeft = 0
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Gate"
+        else:
+            name = "Gate"
+        return [loc["n_eq"], name]
     
 
 # TODO: Implement the following nodes
-# - EQ, lowpass, highpass, bandpass, bandreject etc.
-# - compressor, limiter, expander, gate
 # - reverb, chorus, phaser, flanger
 # - noise generator
 # - VST3 host

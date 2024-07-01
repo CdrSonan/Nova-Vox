@@ -45,6 +45,16 @@ def freqToFreqBin(freq:torch.Tensor) -> torch.Tensor:
 
     return freq * global_consts.tripleBatchSize / global_consts.sampleRate
 
+def amplitudeToDecibels(amplitude:torch.Tensor) -> torch.Tensor:
+    """Utility function for converting an amplitude to decibels."""
+
+    return 20 * torch.log10(amplitude)
+
+def decibelsToAmplitude(decibels:torch.Tensor) -> torch.Tensor:
+    """Utility function for converting decibels to an amplitude."""
+
+    return 10 ** (decibels / 20)
+
 def binarySearch(array, expression, length) -> int:
     """performs a binary search across array, returning the index of the first element where expression evaluates to True.
     length is the highest index that will be checked, exclusive."""

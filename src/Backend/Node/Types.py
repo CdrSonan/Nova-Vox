@@ -16,7 +16,7 @@ class ClampedFloat():
     """node data type class for a Float confined within the [-1, 1] interval"""
 
     def __init__(self) -> None:
-        self.UIColor = (1., 0.1, 0.1)
+        self.UIColor = (1., 0.1, 1.)
         self.defaultValue = 0.
         self.hasWidget = True
     
@@ -30,7 +30,7 @@ class Float():
     """node data type class for a standard Float"""
 
     def __init__(self) -> None:
-        self.UIColor = (1., 0.7, 0.7)
+        self.UIColor = (0.1, 0.1, 1.)
         self.defaultValue = 0.5
         self.hasWidget = True
     
@@ -44,7 +44,7 @@ class Int():
     """node data type class for a standard integer"""
 
     def __init__(self) -> None:
-        self.UIColor = (0.1, 1., 0.1)
+        self.UIColor = (0.1, 1., 1.)
         self.defaultValue = 1
         self.hasWidget = True
     
@@ -58,7 +58,7 @@ class Bool():
     """node data type class for a standard boolean"""
 
     def __init__(self) -> None:
-        self.UIColor = (0.5, 0.5, 0.5)
+        self.UIColor = (1., 0.1, 0.1)
         self.defaultValue = False
         self.hasWidget = True
     
@@ -81,7 +81,7 @@ class Phoneme():
     """node data type class for a "phoneme state" of a track. Consists of one or two phonemes, and a value between 0 and 1 representing their relative strength in the case of two phonemes"""
 
     def __init__(self) -> None:
-        self.UIColor = (0.1, 0.1, 1.)
+        self.UIColor = (0.1, 1., 0.1)
         self.defaultValue = ("_0", "_0", 0.)
         self.hasWidget = False
 
