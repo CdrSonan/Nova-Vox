@@ -55,6 +55,15 @@ def decibelsToAmplitude(decibels:torch.Tensor) -> torch.Tensor:
 
     return 10 ** (decibels / 20)
 
+def rebaseHarmonics(harmonics:torch.Tensor, pitchFactor:float) -> torch.Tensor:
+    """Utility function for rebasing harmonics to a different pitch."""
+
+    srcSpace = torch.linspace(0, global_consts.halfHarms, global_consts.halfHarms + 1)
+    tgtSpace = torch.linspace(0, global_consts.halfHarms * pitchFactor, global_consts.halfHarms + 1)
+    input = torch.polar(harmonics[:global_consts.halfHarms], harmonics[global_consts.halfHarms:])
+    output = torch.sum(input.unsqueeze(-1) * torch.sinc(srcSpace.unsqueeze(0) - tgtSpace.unsqueeze(1)), 0) #check if this is correct
+    return torch.cat((output.real, output.imag), 0)
+
 def binarySearch(array, expression, length) -> int:
     """performs a binary search across array, returning the index of the first element where expression evaluates to True.
     length is the highest index that will be checked, exclusive."""

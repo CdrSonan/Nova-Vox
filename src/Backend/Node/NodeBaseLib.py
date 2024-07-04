@@ -9,9 +9,10 @@ import math
 from random import random
 
 import torch
+import torchaudio
 
 import global_consts
-from Util import freqToFreqBin, freqBinToHarmonic, harmonicToFreqBin, amplitudeToDecibels, decibelsToAmplitude
+from Util import freqToFreqBin, freqBinToHarmonic, harmonicToFreqBin, amplitudeToDecibels, decibelsToAmplitude, rebaseHarmonics
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
 
@@ -1654,6 +1655,116 @@ class GateNode(NodeBase):
         else:
             name = "Gate"
         return [loc["n_eq"], name]
+
+class IRConvolutionNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio):
+            result = torch.zeros_like(Audio)
+            self.buffer = self.buffer.roll(0, 1)
+            self.buffer[0] = Audio
+            for i in range(self.buffer.size()[0]):
+                result[global_consts.nHarmonics + 2:global_consts.frameSize] += self.buffer[i] * self.ir[i].abs()
+                for j in range(global_consts.halfHarms):
+                    bin = harmonicToFreqBin(j, Audio[-1])
+                    bin = min(bin, global_consts.halfTripleBatchSize)
+                    ir_interp = self.ir[i][bin] + (self.ir[i][bin + 1] - self.ir[i][bin]) * (bin - int(bin))
+                    component = torch.polar(self.buffer[i][j], self.buffer[i][j + global_consts.halfHarms]) * ir_interp
+                    result[j] = torch.abs(component)
+                    result[j + global_consts.halfHarms] = torch.angle(component)
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        self.ir = torch.zeros((1, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
+        self.buffer = torch.zeros((1, global_consts.halfTripleBatchSize + 1))
+    
+    def updateIRFromFile(self, path:str) -> None:
+        loadedData = torchaudio.load(path)
+        sampleRate = loadedData[1]
+        transform = torchaudio.transforms.Resample(sampleRate, global_consts.sampleRate)
+        waveform = transform(loadedData[0][0])
+        if waveform.size(0) < global_consts.tripleBatchSize:
+            waveform = torch.cat((waveform, torch.zeros(global_consts.tripleBatchSize - waveform.size(0))), 0)
+        self.ir = torch.stft(waveform, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, window=torch.hann_window(global_consts.tripleBatchSize), return_complex=True).transpose(0, 1)
+        self.buffer = torch.zeros_like(self.ir)
+
+class IRReverbNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Pre_Delay": "Float"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Wetness, Pre_Delay):
+            result = torch.zeros_like(Audio)
+            if self.buffer.size()[0] > self.ir.size()[0] + int(Pre_Delay * 250.):
+                self.buffer = self.buffer[:self.ir.size()[0] + int(Pre_Delay * 250.)]
+            elif self.buffer.size()[0] < self.ir.size()[0] + int(Pre_Delay * 250.):
+                self.buffer = torch.cat((self.buffer, torch.zeros(self.ir.size()[0] + int(Pre_Delay * 250.) - self.buffer.size()[0])), 0)
+            self.buffer = self.buffer.roll(0, 1)
+            self.buffer[0] = Audio
+            for i in range(int(Pre_Delay * 250.), self.buffer.size()[0]):
+                result[global_consts.nHarmonics + 2:global_consts.frameSize] += self.buffer[i][global_consts.nHarmonics + 2:global_consts.frameSize] * self.ir[i - int(Pre_Delay * 250.)].abs()
+                for j in range(global_consts.halfHarms):
+                    bin = harmonicToFreqBin(j, Audio[-1])
+                    bin = min(bin, global_consts.halfTripleBatchSize)
+                    ir_interp = self.ir[i - int(Pre_Delay * 250.)][bin] + (self.ir[i - int(Pre_Delay * 250.)][bin + 1] - self.ir[i - int(Pre_Delay * 250.)][bin]) * (bin - int(bin))
+                    component = torch.polar(self.buffer[i][j], self.buffer[i][j + global_consts.halfHarms]) * ir_interp
+                    result[j] = torch.abs(component)
+                    result[j + global_consts.halfHarms] = torch.angle(component)
+            result = result * (0.5 * Wetness + 0.5) + Audio * (0.5 - 0.5 * Wetness)
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        self.ir = torch.zeros((1, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
+        self.buffer = torch.zeros((1, global_consts.halfTripleBatchSize + 1))
+        self.predelay = 0
+    
+    def updateIRFromFile(self, path:str) -> None:
+        loadedData = torchaudio.load(path)
+        sampleRate = loadedData[1]
+        transform = torchaudio.transforms.Resample(sampleRate, global_consts.sampleRate)
+        waveform = transform(loadedData[0][0])
+        if waveform.size(0) < global_consts.tripleBatchSize:
+            waveform = torch.cat((waveform, torch.zeros(global_consts.tripleBatchSize - waveform.size(0))), 0)
+        self.ir = torch.stft(waveform, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, window=torch.hann_window(global_consts.tripleBatchSize), return_complex=True).transpose(0, 1)
+        self.buffer = torch.zeros_like(self.ir)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "IR Convolution"
+        else:
+            name = "IR Convolution"
+        return [loc["n_fx"], name]
+
+class ChorusNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Voices": "Int", "Depth": "ClampedFloat", "Rate": "Float"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Wetness, Voices, Depth, Rate):
+            result = Audio.clone()
+            for i in range(Voices):
+                lfo = math.sin(self.phase + 2. * math.pi * i / Voices)
+                voice = self.buffer.clone()
+                voice[:global_consts.nHarmonics + 2] = rebaseHarmonics(Audio[:global_consts.nHarmonics + 2], 1. + lfo * (0.5 + Depth * 0.4))
+                voice[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], int(10. * lfo * Depth), 0)
+                voice[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(self.buffer[global_consts.nHarmonics + 2:global_consts.frameSize], int(-10. * lfo * Depth), 0)
+                result += voice
+            result *= (0.5 * Wetness + 0.5) / Voices
+            self.phase += 2. * math.pi * Rate / 250.
+            if self.phase >= 2. * math.pi:
+                self.phase -= 2. * math.pi
+            self.buffer = Audio.clone()
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        self.phase = 0.
+        self.buffer = torch.zeros((global_consts.frameSize,))
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Chorus"
+        else:
+            name = "Chorus"
+        return [loc["n_fx"], name]
+    
     
 
 # TODO: Implement the following nodes
