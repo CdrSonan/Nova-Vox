@@ -73,7 +73,7 @@ class ESPERAudio():
 
     def __init__(self) -> None:
         self.UIColor = (1., 1., 1.)
-        self.defaultValue = torch.zeros([global_consts.frameSize + global_consts.halfTripleBatchSize + 2,])
+        self.defaultValue = torch.zeros([global_consts.frameSize + global_consts.tripleBatchSize + 3,])
         self.hasWidget = False
 
 

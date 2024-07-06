@@ -21,6 +21,10 @@ class Nodegraph():
         self.nodes.append(node)
     
     def removeNode(self, node):
+        for i in node.inputs.values():
+            i.detach()
+        for i in node.outputs.values():
+            i.detach()
         self.nodes.remove(node)
 
     def pack(self):

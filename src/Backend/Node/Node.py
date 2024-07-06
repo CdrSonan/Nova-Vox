@@ -306,8 +306,16 @@ class Connector(BoxLayout):
         """detaches two connected connectors, and performs the nexessary checks and callbacks."""
 
         if self.base.out:
+            for i in self.base.attachedTo:
+                tmpNode = i.node
+                i.attachedTo = None
+            for i in self.attachedTo:
+                i.attachedTo = None
+                i.node.checkStatic()
+            self.base.attachedTo = []
+            self.attachedTo = []
+            self.node.checkStatic()
             return
-        tmpNode = self.base.attachedTo.node
         self.base.attachedTo.attachedTo.remove(self.base)
         self.base.attachedTo = None
         tmpNode = self.attachedTo.node

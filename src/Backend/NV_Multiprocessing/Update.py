@@ -6,7 +6,7 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import torch
-from Backend.Node.NodeBaseLib import getNodeCls
+from Backend.Node.NodeBaseLib import getNodeCls, OutputNode
 
 def trimSequence(index:int, position:int, delta:int, inputList:list, statusControl:list) -> tuple([list, list]):
     """Function used for adding to or removing phonemes from a VocalSequence. Automatically updates control structures and schedules updates as required
@@ -115,4 +115,7 @@ def unpackNodes(nodeList:list, paramList:list) -> list:
             node.outputs[key]._value = i
         for key, i in nodeInfo["auxData"].items():
             node.auxData[key] = i
+    for node in nodes:
+        if isinstance(node, OutputNode):
+            node.checkStatic()
     return nodes, {key: NodeParam(*value) for key, value in paramList.items()}

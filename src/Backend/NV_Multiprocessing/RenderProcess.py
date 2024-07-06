@@ -231,9 +231,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         specPart = spectrum.read(start, end)
         excitationPart = excitation.read(start, end)
         pitchPart = pitch.read(start, end)
-        audio = torch.cat((specPart, excitationPart, pitchPart.unsqueeze(0)), 1)
         if nodeOutput == None:
-            return audio[:global_consts.frameSize], audio[global_consts.frameSize:global_consts.frameSize + global_consts.halfTripleBatchSize + 1], audio[-1]
+            return specPart, excitationPart, pitchPart
+        audio = torch.cat((specPart, excitationPart.real, excitationPart.imag, pitchPart.unsqueeze(1)), 1)
         output = torch.zeros_like(audio)
         length = audio.size()[0]
         for k in range(length):
@@ -265,7 +265,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             output[k][-1] -= pitchPart[k]
             for node in nodeGraph[0]:
                 node.isUpdated = False
-        return output[:global_consts.frameSize], output[global_consts.frameSize:global_consts.frameSize + global_consts.halfTripleBatchSize + 1], output[-1]
+        excitation = torch.polar(output[:, global_consts.frameSize:global_consts.frameSize + global_consts.halfTripleBatchSize + 1],
+                                 output[:, global_consts.frameSize + global_consts.halfTripleBatchSize + 1:global_consts.frameSize + global_consts.tripleBatchSize + 2])
+        return output[:, :global_consts.frameSize], excitation, output[:, -1]
             
     
     def finalRender(specharm:torch.Tensor, excitation:torch.Tensor, pitch:torch.Tensor, length:int, device:torch.device) -> torch.Tensor:
@@ -331,7 +333,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 for node in nodeGraph[0]:
                     if isinstance(node, NodeBaseLib.InputNode):
                         nodeInputs.append(node)
-                    if isinstance(node, NodeBaseLib.CurveInputNode):
+                    elif isinstance(node, NodeBaseLib.CurveInputNode):
                         nodeParams.append(node)
                     elif isinstance(node, NodeBaseLib.OutputNode):
                         nodeOutput = node

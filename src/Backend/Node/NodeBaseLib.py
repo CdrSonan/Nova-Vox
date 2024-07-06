@@ -45,7 +45,7 @@ class InputNode(NodeBase):
                    "Vibrato_Strengh": self.vibratoStrengh,
                    "Vibrato_Speed": self.vibratoSpeed,}
         super().__init__(inputs, outputs, func, True, **kwargs)
-        self.audio = torch.zeros([global_consts.frameSize + global_consts.halfTripleBatchSize + 2,])
+        self.audio = torch.zeros([global_consts.frameSize + global_consts.tripleBatchSize + 3,])
         self.phoneme = ("_0", "_0", 0.5)
         self.pitch = 100.
         self.transition = 0.
@@ -477,7 +477,7 @@ class DerivativeNode(NodeBase):
         outputs = {"Result": "Float"}
         def func(self, Input):
             return {"Result": Input - self.prevInput}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.prevInput = 0.
     
     @staticmethod
@@ -499,7 +499,7 @@ class IntegralNode(NodeBase):
                 self.integral += Input
                 self.integral *= 0.5 * Decay + 0.5
             return {"Result": self.integral}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.integral = 0.
     
     @staticmethod
@@ -518,7 +518,7 @@ class FloatSmoothingNode(NodeBase):
             effExponent = 0.5 * Exponent + 0.5
             self.smoothed = self.smoothed * effExponent + Input * (1. - effExponent)
             return {"Result": self.smoothed}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.smoothed = 0.
 
     @staticmethod
@@ -561,7 +561,7 @@ class FloatDelayNode(NodeBase):
                 self.delayBuffer = self.delayBuffer[:Delay]
             self.delayBuffer.append(Input)
             return {"Result": self.delayBuffer.pop(0)}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.delayBuffer = []
     
     @staticmethod
@@ -580,7 +580,7 @@ class RNGNode(NodeBase):
             if Trigger:
                 self.stored = random() * 2. - 1.
             return {"Result": self.stored}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.stored = random() * 2. - 1.
     
     @staticmethod
@@ -773,7 +773,7 @@ class PosFlankNode(NodeBase):
         outputs = {"Result": "Bool"}
         def func(self, Input):
             return {"Result": Input and not self.prevInput}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.prevInput = False
     
     @staticmethod
@@ -790,7 +790,7 @@ class NegFlankNode(NodeBase):
         outputs = {"Result": "Bool"}
         def func(self, Input):
             return {"Result": not Input and self.prevInput}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.prevInput = False
     
     @staticmethod
@@ -808,7 +808,7 @@ class FlipflopNode(NodeBase):
         def func(self, Input):
             self.state = not self.state if Input else self.state
             return {"Result": self.state}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.state = False
     
     @staticmethod
@@ -832,7 +832,7 @@ class BoolDelayNode(NodeBase):
                 self.delayBuffer = self.delayBuffer[:Delay]
             self.delayBuffer.append(Input)
             return {"Result": self.delayBuffer.pop(0)}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.delayBuffer = []
     
     @staticmethod
@@ -936,7 +936,7 @@ class PhonemeDelayNode(NodeBase):
                 self.delayBuffer = self.delayBuffer[:Delay]
             self.delayBuffer.append(Phoneme)
             return {"Result": self.delayBuffer.pop(0)}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.delayBuffer = []
     
     @staticmethod
@@ -955,7 +955,7 @@ class AudioSmoothingNode(NodeBase):
             effExponent = 0.5 * Exponent + 0.5
             self.smoothed = self.smoothed * effExponent + Audio * (1. - effExponent)
             return {"Result": self.smoothed}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.smoothed = torch.zeros([global_consts.frameSize,])
     
     @staticmethod
@@ -979,7 +979,7 @@ class AudioDelayNode(NodeBase):
                 self.delayBuffer = self.delayBuffer[:Delay]
             self.delayBuffer.append(Audio)
             return {"Result": self.delayBuffer.pop(0)}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.delayBuffer = []
     
     @staticmethod
@@ -1087,7 +1087,8 @@ class AdjustVolumeNode(NodeBase):
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Volume):
             result = Audio.clone()
-            result[:global_consts.frameSize] *= (1. + Volume)
+            result[:global_consts.halfHarms] *= (1. + Volume)
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= (1. + Volume)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1144,7 +1145,7 @@ class SamplerNode(NodeBase):
                 self.playing = False
                 result = torch.zeros_like(Audio)
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.recording = False
         self.recorded = []
         self.playing = False
@@ -1174,7 +1175,7 @@ class ADSREnvelopeNode(NodeBase):
             elif self.state == 3:
                 self.state += Release
             return {"Result": self.state}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
     
     @staticmethod
     def name() -> str:
@@ -1191,11 +1192,11 @@ class SineLFONode(NodeBase):
         def func(self, Frequency, Phase, Trigger):
             if Trigger:
                 self.phase = Phase
-            self.phase += 2. * global_consts.tickRate / Frequency
+            self.phase += 2. * Frequency / global_consts.tickRate
             if self.phase >= 1.:
                 self.phase -= 2.
             return {"Result": math.sin(math.pi + math.pi * self.phase)}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.phase = -1.
     
     @staticmethod
@@ -1213,11 +1214,11 @@ class SquareLFONode(NodeBase):
         def func(self, Frequency, Phase, Trigger):
             if Trigger:
                 self.phase = Phase
-            self.phase += 2. * global_consts.tickRate / Frequency
+            self.phase += 2. * Frequency / global_consts.tickRate
             if self.phase >= 1.:
                 self.phase -= 2.
             return {"Result": 1. if self.phase > 0. else -1.}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.phase = -1.
     
     @staticmethod
@@ -1235,11 +1236,11 @@ class SawLFONode(NodeBase):
         def func(self, Frequency, Phase, Trigger):
             if Trigger:
                 self.phase = Phase
-            self.phase += 2. * global_consts.tickRate / Frequency
+            self.phase += 2. * Frequency / global_consts.tickRate
             if self.phase >= 1.:
                 self.phase -= 2.
             return {"Result": self.phase}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.phase = -1.
     
     @staticmethod
@@ -1257,11 +1258,11 @@ class InvSawLFONode(NodeBase):
         def func(self, Frequency, Phase, Trigger):
             if Trigger:
                 self.phase = Phase
-            self.phase += 2. * global_consts.tickRate / Frequency
+            self.phase += 2. * Frequency / global_consts.tickRate
             if self.phase >= 1.:
                 self.phase -= 2.
             return {"Result": -self.phase}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.phase = -1.
     
     @staticmethod
@@ -1279,7 +1280,7 @@ class TriangleLFONode(NodeBase):
         def func(self, Frequency, Phase, Trigger):
             if Trigger:
                 self.phase = Phase
-            self.phase += 2. * global_consts.tickRate / Frequency
+            self.phase += 2. * Frequency / global_consts.tickRate
             if self.phase >= 1.:
                 self.phase -= 2.
             if self.phase < -0.5:
@@ -1289,7 +1290,7 @@ class TriangleLFONode(NodeBase):
             else:
                 result = 2. * self.phase - 2.
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.phase = -1.
     
     @staticmethod
@@ -1307,14 +1308,14 @@ class PulseLFONode(NodeBase):
         def func(self, Frequency, Phase, Trigger):
             if Trigger:
                 self.phase = Phase
-            self.phase += 2. * global_consts.tickRate / Frequency
+            self.phase += 2. * Frequency / global_consts.tickRate
             if self.phase >= 1.:
                 self.phase -= 2.
                 result = True
             else:
                 result = False
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
     
     @staticmethod
     def name() -> str:
@@ -1529,7 +1530,7 @@ class CompressorNode(NodeBase):
             result[:global_consts.halfHarms] *= self.current
             result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.active = False
         self.current = 1.
         self.target = 1.
@@ -1567,7 +1568,7 @@ class LimiterNode(NodeBase):
             result[:global_consts.halfHarms] *= self.current
             result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.active = False
         self.current = 1.
         self.target = 1.
@@ -1606,7 +1607,7 @@ class ExpanderNode(NodeBase):
             result[:global_consts.halfHarms] *= self.current
             result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.active = False
         self.current = 1.
         self.target = 1.
@@ -1642,7 +1643,7 @@ class GateNode(NodeBase):
             result[:global_consts.halfHarms] *= self.current
             result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.active = False
         self.current = 1.
         self.target = 1.
@@ -1674,7 +1675,7 @@ class IRConvolutionNode(NodeBase):
                     result[j] = torch.abs(component)
                     result[j + global_consts.halfHarms] = torch.angle(component)
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.ir = torch.zeros((1, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
         self.buffer = torch.zeros((1, global_consts.halfTripleBatchSize + 1))
     
@@ -1711,7 +1712,7 @@ class IRReverbNode(NodeBase):
                     result[j + global_consts.halfHarms] = torch.angle(component)
             result = result * (0.5 * Wetness + 0.5) + Audio * (0.5 - 0.5 * Wetness)
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.ir = torch.zeros((1, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64)
         self.buffer = torch.zeros((1, global_consts.halfTripleBatchSize + 1))
         self.predelay = 0
@@ -1753,7 +1754,7 @@ class ChorusNode(NodeBase):
                 self.phase -= 2. * math.pi
             self.buffer = Audio.clone()
             return {"Result": result}
-        super().__init__(inputs, outputs, func, False, **kwargs)
+        super().__init__(inputs, outputs, func, True, **kwargs)
         self.phase = 0.
         self.buffer = torch.zeros((global_consts.frameSize,))
     

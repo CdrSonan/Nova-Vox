@@ -138,7 +138,6 @@ class NodeEditor(ScrollView):
         
         def processConnector(conn, touch):
             x, y = self.to_local(*touch.pos)
-            print(conn.ellipse.pos, x, y)
             if conn.ellipse.pos[0] - 5 < x < conn.ellipse.pos[0] + 15 and conn.ellipse.pos[1] - 5 < y < conn.ellipse.pos[1] + 15:
                 touch.ud["draggedConnFrom"].attach(conn)
                 return True
