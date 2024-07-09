@@ -8,15 +8,17 @@
 from Backend.Node.TypeConverters import getConverter
 
 class NodeTypeMismatchError(Exception):
-    def __init__(self, connection, *args: object) -> None:
+    def __init__(self, exception, *args: object) -> None:
         super().__init__(*args)
-        self.connection = connection
+        print("Node type mismatch error. Caused by: " + str(exception))
+        self.exception = exception
 
 
 class NodeLoopError(Exception):
-    def __init__(self, connection, *args: object) -> None:
+    def __init__(self, node, *args: object) -> None:
         super().__init__(*args)
-        self.connection = connection
+        print("Node loop error. Caused by: " + str(node))
+        self.node = node
 
 
 class NodeAttachError(Exception):

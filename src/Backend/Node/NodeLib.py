@@ -8,6 +8,7 @@
 import torch
 
 from kivy.uix.textinput import TextInput
+from kivy.clock import mainthread
 
 from Backend.Node.Node import Node, Param
 from Backend.Node.NodeBase import NodeBase
@@ -24,6 +25,7 @@ class CurveInputNode(Node):
         del self.parent.parent.track.nodegraph.params[self.base.auxData["name"]]
         return super().remove()
     
+    @mainthread
     def setCurveName(self, name:str):
         if name in self.parent.parent.track.nodegraph.params.keys():
             name = name + "_new"

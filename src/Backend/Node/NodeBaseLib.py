@@ -91,7 +91,7 @@ class OutputNode(NodeBase):
             self.audio = Audio
             return {}
         super().__init__(inputs, outputs, func, False, **kwargs)
-        self.audio = torch.empty([0, global_consts.frameSize])
+        self.audio = torch.empty([global_consts.frameSize + global_consts.tripleBatchSize + 3])
     
     @staticmethod
     def name() -> str:
@@ -956,7 +956,7 @@ class AudioSmoothingNode(NodeBase):
             self.smoothed = self.smoothed * effExponent + Audio * (1. - effExponent)
             return {"Result": self.smoothed}
         super().__init__(inputs, outputs, func, True, **kwargs)
-        self.smoothed = torch.zeros([global_consts.frameSize,])
+        self.smoothed = torch.zeros([global_consts.frameSize + global_consts.tripleBatchSize + 3,])
     
     @staticmethod
     def name() -> str:
@@ -1688,6 +1688,14 @@ class IRConvolutionNode(NodeBase):
             waveform = torch.cat((waveform, torch.zeros(global_consts.tripleBatchSize - waveform.size(0))), 0)
         self.ir = torch.stft(waveform, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, window=torch.hann_window(global_consts.tripleBatchSize), return_complex=True).transpose(0, 1)
         self.buffer = torch.zeros_like(self.ir)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "IR Convolution"
+        else:
+            name = "IR Convolution"
+        return [loc["n_fx"], name]
 
 class IRReverbNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1730,9 +1738,47 @@ class IRReverbNode(NodeBase):
     @staticmethod
     def name() -> str:
         if loc["lang"] == "en":
-            name = "IR Convolution"
+            name = "IR Reverb"
         else:
-            name = "IR Convolution"
+            name = "IR Reverb"
+        return [loc["n_fx"], name]
+
+class ReverbNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Pre_Delay": "Float", "Room_Size": "ClampedFloat", "Damping": "ClampedFloat", "Stereo_Width": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Wetness, Pre_Delay, Room_Size, Damping, Stereo_Width):
+            result = torch.zeros_like(Audio)
+            if self.buffer.size()[0] > int(Pre_Delay * 250.):
+                self.buffer = self.buffer[:int(Pre_Delay * 250.)]
+            elif self.buffer.size()[0] < int(Pre_Delay * 250.):
+                self.buffer = torch.cat((self.buffer, torch.zeros(int(Pre_Delay * 250.) - self.buffer.size()[0])), 0)
+            self.buffer = self.buffer.roll(0, 1)
+            self.buffer[0] = Audio
+            for i in range(int(Pre_Delay * 250.)):
+                result[global_consts.nHarmonics + 2:global_consts.frameSize] += self.buffer[i][global_consts.nHarmonics + 2:global_consts.frameSize] * (1. - i / (int(Pre_Delay * 250.))) * Room_Size
+                for j in range(global_consts.halfHarms):
+                    bin = harmonicToFreqBin(j, Audio[-1])
+                    bin = min(bin, global_consts.halfTripleBatchSize)
+                    ir_interp = self.normalDistribution(bin, 0.5, i / (int(Pre_Delay * 250.)) * global_consts.halfTripleBatchSize) * Room_Size
+                    component = torch.polar(self.buffer[i][j], self.buffer[i][j + global_consts.halfHarms]) * ir_interp
+                    result[j] = torch.abs(component)
+                    result[j + global_consts.halfHarms] = torch.angle(component)
+            result = result * (0.5 * Wetness + 0.5) + Audio * (0.5 - 0.5 * Wetness)
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, True, **kwargs)
+        self.buffer = torch.zeros((1, global_consts.halfTripleBatchSize + 1))
+    
+    @staticmethod
+    def normalDistribution(mean:float, std:float, x:float) -> float:
+        return math.exp(-0.5 * ((x - mean) / std) ** 2) / (std * math.sqrt(2. * math.pi))
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Reverb"
+        else:
+            name = "Reverb"
         return [loc["n_fx"], name]
 
 class ChorusNode(NodeBase):
@@ -1740,7 +1786,7 @@ class ChorusNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Voices": "Int", "Depth": "ClampedFloat", "Rate": "Float"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Wetness, Voices, Depth, Rate):
-            result = Audio.clone()
+            result = Audio[:global_consts.frameSize].clone()
             for i in range(Voices):
                 lfo = math.sin(self.phase + 2. * math.pi * i / Voices)
                 voice = self.buffer.clone()
@@ -1752,7 +1798,8 @@ class ChorusNode(NodeBase):
             self.phase += 2. * math.pi * Rate / 250.
             if self.phase >= 2. * math.pi:
                 self.phase -= 2. * math.pi
-            self.buffer = Audio.clone()
+            self.buffer = Audio[:global_consts.frameSize].clone()
+            result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
         self.phase = 0.

@@ -43,7 +43,7 @@ class Node(DragBehavior, BoxLayout):
             self.rectangle = RoundedRectangle(pos = self.pos, size = self.size)
         self.inputs = dict()
         self.outputs = dict()
-        self.add_widget(Label(text = self.name()[-1]))
+        self.add_widget(Label(text = self.base.name()[-1]))
         for i in self.base.inputs.keys():
             conn = Connector(self.base.inputs[i], self, self.base.inputs[i]._type)
             self.add_widget(conn)
@@ -162,13 +162,6 @@ class Node(DragBehavior, BoxLayout):
         self.parent.remove_widget(self)
         del self
 
-    @staticmethod
-    def name() -> list:
-        """returns the name of the node and its position in the available node browser, akin to a file path and name.
-        Designed to be overwritten by classes inheriting from this class."""
-
-        return ["",]
-
     def calculate(self) -> None:
         """evaluates the node, and recursively prompts evaluation of all nodes connected to its inputs, if required"""
 
@@ -270,8 +263,8 @@ class Connector(BoxLayout):
         if self.base.out:
             try:
                 target.base.converter(self.get())
-            except:
-                raise NodeTypeMismatchError()
+            except Exception as e:
+                raise NodeTypeMismatchError(e)
             self.base.attachedTo.append(target.base)
             target.base.attachedTo = self.base
             self.attachedTo.append(target)
