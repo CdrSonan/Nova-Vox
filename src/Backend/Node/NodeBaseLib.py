@@ -1812,11 +1812,50 @@ class ChorusNode(NodeBase):
         else:
             name = "Chorus"
         return [loc["n_fx"], name]
+
+class FlangerNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Shift": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Wetness, Shift):
+            result = Audio[:global_consts.frameSize].clone()
+            result[:global_consts.nHarmonics + 2] = rebaseHarmonics(Audio[:global_consts.nHarmonics + 2], 1.1 + Shift)
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], int(10. * Shift), 0)
+            result *= (0.5 * Wetness + 0.5)
+            result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, True, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Flanger"
+        else:
+            name = "Flanger"
+        return [loc["n_fx"], name]
+
+class PhaserNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Shift": "ClampedFloat", "Scaling": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Shift, Scaling):
+            result = Audio[:global_consts.frameSize].clone()
+            result[global_consts.halfHarms + 1:global_consts.nHarmonics + 2] += torch.linspace(Shift, Shift + (global_consts.halfHarms - 2) * (0.5 * Scaling + 0.5), global_consts.halfHarms - 1)
+            result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, True, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Phaser"
+        else:
+            name = "Phaser"
+        return [loc["n_fx"], name]
     
     
 
 # TODO: Implement the following nodes
-# - phaser, flanger
 # - noise generator
 # - VST3 host
 # - multiband compressor and/or dynamic EQ
