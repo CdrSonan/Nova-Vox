@@ -1816,13 +1816,12 @@ class ChorusNode(NodeBase):
     
 
 # TODO: Implement the following nodes
-# - reverb, chorus, phaser, flanger
+# - phaser, flanger
 # - noise generator
 # - VST3 host
 # - multiband compressor and/or dynamic EQ
 # - V-synth params: formant shift, growl, brightness, strength
 # - distortion, quantization, maybe bitcrusher?
-# - impulse response reverb/convolution
 
 additionalNodes = []
 

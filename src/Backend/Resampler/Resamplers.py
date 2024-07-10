@@ -96,7 +96,6 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     for i in range(vocalSegment.pitch.size()[0]):
         avgSpecharm += (ratio[i] * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][upperPitchIndices[i]].avgSpecharm + (1 - ratio[i]) * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][lowerPitchIndices[i]].avgSpecharm).to(device)
     avgSpecharm /= vocalSegment.pitch.size()[0]
-    #avgSpecharm = phoneme.avgSpecharm
     C_Bridge.esper.resampleSpecharm(ctypes.cast(avgSpecharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                ctypes.cast(phoneme.specharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.specharm.size()[0]),
@@ -107,7 +106,6 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
                                ctypes.cast(output.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                timings,
                                global_consts.config)
-    output[:, global_consts.halfHarms:global_consts.nHarmonics + 2] *= 0.
     return output
     
 def getSpecharm_legacy(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
