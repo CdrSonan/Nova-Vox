@@ -1745,29 +1745,23 @@ class IRReverbNode(NodeBase):
 
 class ReverbNode(NodeBase):
     def __init__(self, **kwargs) -> None:
-        inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Pre_Delay": "Float", "Room_Size": "ClampedFloat", "Damping": "ClampedFloat", "Stereo_Width": "ClampedFloat"}
+        inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Pre_Delay": "Float", "Room_Size": "ClampedFloat", "Damping": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
-        def func(self, Audio, Wetness, Pre_Delay, Room_Size, Damping, Stereo_Width):
-            result = torch.zeros_like(Audio)
+        def func(self, Audio, Wetness, Pre_Delay, Room_Size, Damping):
             if self.buffer.size()[0] > int(Pre_Delay * 250.):
                 self.buffer = self.buffer[:int(Pre_Delay * 250.)]
             elif self.buffer.size()[0] < int(Pre_Delay * 250.):
                 self.buffer = torch.cat((self.buffer, torch.zeros(int(Pre_Delay * 250.) - self.buffer.size()[0])), 0)
             self.buffer = self.buffer.roll(0, 1)
             self.buffer[0] = Audio
-            for i in range(int(Pre_Delay * 250.)):
-                result[global_consts.nHarmonics + 2:global_consts.frameSize] += self.buffer[i][global_consts.nHarmonics + 2:global_consts.frameSize] * (1. - i / (int(Pre_Delay * 250.))) * Room_Size
-                for j in range(global_consts.halfHarms):
-                    bin = harmonicToFreqBin(j, Audio[-1])
-                    bin = min(bin, global_consts.halfTripleBatchSize)
-                    ir_interp = self.normalDistribution(bin, 0.5, i / (int(Pre_Delay * 250.)) * global_consts.halfTripleBatchSize) * Room_Size
-                    component = torch.polar(self.buffer[i][j], self.buffer[i][j + global_consts.halfHarms]) * ir_interp
-                    result[j] = torch.abs(component)
-                    result[j + global_consts.halfHarms] = torch.angle(component)
-            result = result * (0.5 * Wetness + 0.5) + Audio * (0.5 - 0.5 * Wetness)
+            self.activeBuffer *= (0.48 * Room_Size + 0.48)
+            self.activeBuffer += self.buffer[-1] * (0.52 - 0.48 * Room_Size)
+            self.activeBuffer *= (0.5 - Damping * 0.5)
+            result = self.activeBuffer * (0.5 * Wetness + 0.5) + Audio * (0.5 - 0.5 * Wetness)
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
         self.buffer = torch.zeros((1, global_consts.halfTripleBatchSize + 1))
+        self.activeBuffer = torch.zeros((global_consts.halfTripleBatchSize + 1,))
     
     @staticmethod
     def normalDistribution(mean:float, std:float, x:float) -> float:
@@ -1791,8 +1785,9 @@ class ChorusNode(NodeBase):
                 lfo = math.sin(self.phase + 2. * math.pi * i / Voices)
                 voice = self.buffer.clone()
                 voice[:global_consts.nHarmonics + 2] = rebaseHarmonics(Audio[:global_consts.nHarmonics + 2], 1. + lfo * (0.5 + Depth * 0.4))
-                voice[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], int(10. * lfo * Depth), 0)
-                voice[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(self.buffer[global_consts.nHarmonics + 2:global_consts.frameSize], int(-10. * lfo * Depth), 0)
+                for _ in range(int(10. * lfo * Depth)):
+                    voice[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], 1, 0)
+                    voice[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], -1, 0)
                 result += voice
             result *= (0.5 * Wetness + 0.5) / Voices
             self.phase += 2. * math.pi * Rate / 250.
@@ -1820,7 +1815,9 @@ class FlangerNode(NodeBase):
         def func(self, Audio, Wetness, Shift):
             result = Audio[:global_consts.frameSize].clone()
             result[:global_consts.nHarmonics + 2] = rebaseHarmonics(Audio[:global_consts.nHarmonics + 2], 1.1 + Shift)
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], int(10. * Shift), 0)
+            for _ in range(int(10. * Shift)):
+                result[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], 1, 0)
+                result[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], -1, 0)
             result *= (0.5 * Wetness + 0.5)
             result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
@@ -1852,15 +1849,159 @@ class PhaserNode(NodeBase):
         else:
             name = "Phaser"
         return [loc["n_fx"], name]
-    
-    
 
-# TODO: Implement the following nodes
-# - noise generator
-# - VST3 host
-# - multiband compressor and/or dynamic EQ
-# - V-synth params: formant shift, growl, brightness, strength
-# - distortion, quantization, maybe bitcrusher?
+class DistortionNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Gain": "ClampedFloat", "Width": "Int", "Shape": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Gain, Width, Shape):
+            result = Audio.clone()
+            for i in range(Width):
+                factor = (0.5 * Gain + 0.5) * (1 - i * (0.5 * Shape + 0.5) / Width)
+                addition = torch.roll(Audio[:global_consts.halfHarms], i, 0) * factor
+                addition[-i:] = 0.
+                result[:global_consts.halfHarms] += addition
+                addition = torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], i, 0) * factor
+                addition[-i:] = 0.
+                result[global_consts.nHarmonics + 2:global_consts.frameSize] += addition
+            result[:global_consts.halfHarms] *= Gain
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= Gain
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Distortion"
+        else:
+            name = "Distortion"
+        return [loc["n_fx"], name]
+
+class QuantizationNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Bits": "Int"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Bits):
+            result = Audio.clone()
+            result[:global_consts.halfHarms] = torch.round(result[:global_consts.halfHarms] * (2. ** Bits - 1.)) / (2. ** Bits - 1.)
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] = torch.round(result[global_consts.nHarmonics + 2:global_consts.frameSize] * (2. ** Bits - 1.)) / (2. ** Bits - 1.)
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Quantization"
+        else:
+            name = "Quantization"
+        return [loc["n_fx"], name]
+
+class FormantShiftNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Shift": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Shift):
+            result = Audio.clone() * (1. - abs(Shift))
+            addition = torch.roll(Audio[:global_consts.halfHarms], int(math.ceil(Shift)), 0) * abs(Shift)
+            addition[-int(math.ceil(Shift)):] = 0.
+            result[:global_consts.halfHarms] += addition
+            factor = harmonicToFreqBin(1, result[-1])
+            addition = torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], int(math.ceil(factor * Shift)), 0) * abs(Shift)
+            addition[-int(math.ceil(factor * Shift)):] = 0.
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] += addition
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Formant Shift"
+        else:
+            name = "Formant Shift"
+        return [loc["n_v_synth"], name]
+
+class GrowlNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Depth": "ClampedFloat", "Strength": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Depth, Strength):
+            result = Audio.clone()
+            phaseAdvance = 2. * math.pi / 250. * (40. - 30. * Depth)
+            self.phase = (self.phase + phaseAdvance) % (2. * math.pi)
+            lfo = math.pow(math.sin(self.phase), 3) * Strength
+            result *= 1. + lfo 
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+        self.phase = 0.
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Growl"
+        else:
+            name = "Growl"
+        return [loc["n_v_synth"], name]
+
+class BrightnessNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Brightness": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Brightness):
+            result = Audio.clone()
+            voicedMax = torch.max(result[:global_consts.halfHarms])
+            unvoicedMax = torch.max(result[global_consts.nHarmonics + 2:global_consts.frameSize])
+            result[:global_consts.halfHarms] /= voicedMax
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] /= unvoicedMax
+            result[:global_consts.halfHarms] *= torch.pow(voicedMax, Brightness + 1.)
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= torch.pow(unvoicedMax, Brightness + 1.)
+            result[:global_consts.halfHarms] *= voicedMax
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= unvoicedMax
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Brightness"
+        else:
+            name = "Brightness"
+        return [loc["n_v_synth"], name]
+
+class StrengthNode(NodeBase):
+    # This node is a placeholder pending further analysis of what exactly "Strength" should mean
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Strength": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Strength):
+            result = Audio.clone()
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Strength"
+        else:
+            name = "Strength"
+        return [loc["n_v_synth"], name]
+
+class VST3HostNode(NodeBase):
+    # This node is a placeholder until the PyVST3 package is ready
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Plugin):
+            result = Audio.clone()
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "VST3 Host"
+        else:
+            name = "VST3 Host"
+        return [name,]
 
 additionalNodes = []
 
