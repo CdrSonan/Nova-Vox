@@ -1745,23 +1745,22 @@ class IRReverbNode(NodeBase):
 
 class ReverbNode(NodeBase):
     def __init__(self, **kwargs) -> None:
-        inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Pre_Delay": "Float", "Room_Size": "ClampedFloat", "Damping": "ClampedFloat"}
+        inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Pre_Delay": "Float", "Length": "Float", "Damping": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
-        def func(self, Audio, Wetness, Pre_Delay, Room_Size, Damping):
-            if self.buffer.size()[0] > int(Pre_Delay * 250.):
-                self.buffer = self.buffer[:int(Pre_Delay * 250.)]
-            elif self.buffer.size()[0] < int(Pre_Delay * 250.):
-                self.buffer = torch.cat((self.buffer, torch.zeros(int(Pre_Delay * 250.) - self.buffer.size()[0])), 0)
-            self.buffer = self.buffer.roll(0, 1)
-            self.buffer[0] = Audio
-            self.activeBuffer *= (0.48 * Room_Size + 0.48)
-            self.activeBuffer += self.buffer[-1] * (0.52 - 0.48 * Room_Size)
-            self.activeBuffer *= (0.5 - Damping * 0.5)
-            result = self.activeBuffer * (0.5 * Wetness + 0.5) + Audio * (0.5 - 0.5 * Wetness)
+        def func(self, Audio, Wetness, Pre_Delay, Length, Damping):
+            result = Audio[:global_consts.frameSize].clone()
+            if self.buffer.size()[0] > int((Pre_Delay + Length) * 250.):
+                self.buffer = self.buffer[:int((Pre_Delay + Length) * 250.)]
+            elif self.buffer.size()[0] < int((Pre_Delay + Length) * 250.):
+                self.buffer = torch.cat((self.buffer, torch.zeros((int((Pre_Delay + Length) * 250.) - self.buffer.size()[0], global_consts.frameSize))), 0)
+            self.buffer = self.buffer.roll(1, 0)
+            self.buffer[0] = Audio[:global_consts.frameSize]
+            envelope = torch.pow(torch.linspace(1., 0., int(Length * 250.)), (0.5 * Damping + 0.5)) * 2. / Length
+            result += self.buffer[-int(Length * 250.):] * envelope[:, None]
+            result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
-        self.buffer = torch.zeros((1, global_consts.halfTripleBatchSize + 1))
-        self.activeBuffer = torch.zeros((global_consts.halfTripleBatchSize + 1,))
+        self.buffer = torch.zeros((1, global_consts.frameSize))
     
     @staticmethod
     def normalDistribution(mean:float, std:float, x:float) -> float:
@@ -1926,7 +1925,7 @@ class GrowlNode(NodeBase):
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Depth, Strength):
             result = Audio.clone()
-            phaseAdvance = 2. * math.pi / 250. * (40. - 30. * Depth)
+            phaseAdvance = 2. * math.pi / 250. * (70. - 30. * Depth)
             self.phase = (self.phase + phaseAdvance) % (2. * math.pi)
             lfo = math.pow(math.sin(self.phase), 3) * Strength
             result *= 1. + lfo 
