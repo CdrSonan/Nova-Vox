@@ -274,23 +274,14 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         renderTarget = torch.zeros([length * global_consts.batchSize,], device = device)
         specharm = specharm.contiguous()
         specharm_ptr = ctypes.cast(specharm.data_ptr(), ctypes.POINTER(ctypes.c_float))
-        #excitation = torch.cat((torch.real(excitation), torch.imag(excitation)), 0)
+        excitation = torch.cat((torch.real(excitation), torch.imag(excitation)), 0)
         excitation = excitation.contiguous()
         excitation_ptr = ctypes.cast(excitation.data_ptr(), ctypes.POINTER(ctypes.c_float))
         pitch = pitch.contiguous()
         pitch_ptr = ctypes.cast(pitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
         renderTarget = renderTarget.contiguous()
         renderTarget_ptr = ctypes.cast(renderTarget.data_ptr(), ctypes.POINTER(ctypes.c_float))
-        print("pointers: ", specharm_ptr, excitation_ptr, pitch_ptr, renderTarget_ptr)
-        print("sizes: ", specharm.size(), excitation.size(), pitch.size(), renderTarget.size())
-        esper.render(specharm_ptr, excitation_ptr, pitch_ptr, renderTarget_ptr, length, global_consts.config)
-        renderTarget += torch.istft(excitation.transpose(0, 1),
-                                    n_fft = global_consts.tripleBatchSize,
-                                    hop_length = global_consts.batchSize,
-                                    win_length = global_consts.tripleBatchSize,
-                                    window = window,
-                                    center = True,
-                                    length = renderTarget.size()[0]) * global_consts.batchSize
+        esper.render(specharm_ptr, excitation_ptr, pitch_ptr, 1, renderTarget_ptr, length, global_consts.config)
         return renderTarget
 
     #setting up caching and other required data that is independent of each individual rendering iteration

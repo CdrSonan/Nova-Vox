@@ -26,34 +26,41 @@ def getClosestSample(samples:list, pitch:float):
     return closestSample
 
 def getExcitation(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
-    """resampler function for aquiring the unvoiced excitation of a VocalSegment according to the settings stored in it. Also requires a device argument specifying where the calculations are to be performed."""
-
-    if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
-        premul = 1
-    else:
-        phoneme = getClosestSample(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey], torch.mean(vocalSegment.pitch))
-        premul = phoneme.excitation.size()[0] / (vocalSegment.end3 - vocalSegment.start1 + 1)
     if vocalSegment.startCap:
         windowStart = 0
-        length = -vocalSegment.start1
     else:
-        windowStart = math.floor((vocalSegment.start2 - vocalSegment.start1) * premul)
-        length = -vocalSegment.start2
+        windowStart = vocalSegment.start2 - vocalSegment.start1
     if vocalSegment.endCap:
-        windowEnd = math.ceil((vocalSegment.end3 - vocalSegment.start1) * premul)
-        length += vocalSegment.end3
+        windowEnd = vocalSegment.end3 - vocalSegment.start1
     else:
-        windowEnd = math.ceil((vocalSegment.end2 - vocalSegment.start1) * premul)
-        length += vocalSegment.end2
+        windowEnd = vocalSegment.end2 - vocalSegment.start1
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
         return torch.zeros([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1], dtype = torch.complex64, device = device)
+    phoneme = getClosestSample(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey], torch.mean(vocalSegment.pitch))
     excitation = phoneme.excitation.to(device = device)[windowStart:windowEnd]
-    excitation = torch.transpose(excitation, 0, 1)
-    transform = torchaudio.transforms.TimeStretch(hop_length = global_consts.batchSize,
-                                                  n_freq = global_consts.halfTripleBatchSize + 1, 
-                                                  fixed_rate = premul).to(device = device)
-    excitation = transform(excitation)[:, 0:length]
-    return excitation.transpose(0, 1)
+    length = int(excitation.size()[0])
+    excitation = torch.cat([excitation.real, excitation.imag], 1).flatten()
+    excitation = excitation.contiguous()
+    output = torch.zeros([(windowEnd - windowStart) * (global_consts.halfTripleBatchSize + 1) * 2], dtype = torch.float32, device = device)
+    timings = C_Bridge.segmentTiming(start1 = vocalSegment.start1,
+                                     start2 = vocalSegment.start2,
+                                     start3 = vocalSegment.start3,
+                                     end1 = vocalSegment.end1,
+                                     end2 = vocalSegment.end2,
+                                     end3 = vocalSegment.end3,
+                                     windowStart = windowStart,
+                                     windowEnd = windowEnd,
+                                     offset = 0)
+    C_Bridge.esper.resampleExcitation(ctypes.cast(excitation.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+                                      length, 
+                                      int(vocalSegment.startCap),
+                                      int(vocalSegment.endCap),
+                                      ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+                                      timings,
+                                      global_consts.config)
+    output = torch.polar(output[:(windowEnd - windowStart) * (global_consts.halfTripleBatchSize + 1)], output[(windowEnd - windowStart) * (global_consts.halfTripleBatchSize + 1):])
+    output = output.reshape([windowEnd - windowStart, global_consts.halfTripleBatchSize + 1])
+    return output
 
 def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     if vocalSegment.phonemeKey == "_autopause" or vocalSegment.phonemeKey == "pau":
