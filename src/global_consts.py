@@ -108,4 +108,5 @@ config = engineCfg(sampleRate = sampleRate,
                    frameSize = frameSize,
                    ampContThreshold = ampContThreshold,
                    spectralRolloff1 = spectralRolloff1,
-                   spectralRolloff2 = spectralRolloff2)
+                   spectralRolloff2 = spectralRolloff2,
+                   breCompPremul = breCompPremul,)

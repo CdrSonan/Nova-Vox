@@ -281,7 +281,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         pitch_ptr = ctypes.cast(pitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
         renderTarget = renderTarget.contiguous()
         renderTarget_ptr = ctypes.cast(renderTarget.data_ptr(), ctypes.POINTER(ctypes.c_float))
-        esper.render(specharm_ptr, excitation_ptr, pitch_ptr, 1, renderTarget_ptr, length, global_consts.config)
+        phase = torch.tensor([0.], device = device)
+        phase_ptr = ctypes.cast(phase.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        esper.render(specharm_ptr, excitation_ptr, pitch_ptr, 1, phase_ptr, renderTarget_ptr, length, global_consts.config)
         return renderTarget
 
     #setting up caching and other required data that is independent of each individual rendering iteration

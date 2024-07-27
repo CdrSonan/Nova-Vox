@@ -28,7 +28,8 @@ class engineCfg(ctypes.Structure):
                 ("frameSize", ctypes.c_uint),
                 ("ampContThreshold", ctypes.c_uint),
                 ("spectralRolloff1", ctypes.c_uint),
-                ("spectralRolloff2", ctypes.c_uint)]
+                ("spectralRolloff2", ctypes.c_uint),
+                ("breCompPremul", ctypes.c_float),]
 
 class cSampleCfg(ctypes.Structure):
     _fields_ = [("length", ctypes.c_uint),

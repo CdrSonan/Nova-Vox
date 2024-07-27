@@ -1925,7 +1925,7 @@ class GrowlNode(NodeBase):
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Depth, Strength):
             result = Audio.clone()
-            phaseAdvance = 2. * math.pi / 250. * (70. - 30. * Depth)
+            phaseAdvance = 2. * math.pi / global_consts.tickRate * (70. - 30. * Depth)
             self.phase = (self.phase + phaseAdvance) % (2. * math.pi)
             lfo = math.pow(math.sin(self.phase), 3) * Strength
             result *= 1. + lfo 
@@ -1966,7 +1966,7 @@ class BrightnessNode(NodeBase):
             name = "Brightness"
         return [loc["n_v_synth"], name]
 
-class StrengthNode(NodeBase):
+class DynamicsNode(NodeBase):
     # This node is a placeholder pending further analysis of what exactly "Strength" should mean
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Strength": "ClampedFloat"}
@@ -1979,9 +1979,9 @@ class StrengthNode(NodeBase):
     @staticmethod
     def name() -> str:
         if loc["lang"] == "en":
-            name = "Strength"
+            name = "Dynamics"
         else:
-            name = "Strength"
+            name = "Dynamics"
         return [loc["n_v_synth"], name]
 
 class VST3HostNode(NodeBase):
