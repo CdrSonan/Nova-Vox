@@ -65,7 +65,7 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
     signal-to-noise ratio."""
     
     
-    cSample = C_Bridge.makeCSample(audioSample, False)
+    cSample = C_Bridge.makeCSample(audioSample, False, True)
     C_Bridge.esper.pitchCalcFallback(cSample, global_consts.config)
 
 def calculatePitchFallback_legacy(audioSample:AudioSample) -> None:
