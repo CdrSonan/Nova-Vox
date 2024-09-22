@@ -50,7 +50,7 @@ def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
         pitchDeltas = interp(torch.linspace(0., 1., pitchDeltas.size()[0], device = audioSample.pitchDeltas.device), pitchDeltas, torch.linspace(0., 1., length, device = audioSample.pitchDeltas.device))
     audioSample.pitchDeltas = pitchDeltas.to(torch.int)
 
-def calculatePitchFallback(audioSample:AudioSample) -> None:
+def calculatePitch(audioSample:AudioSample) -> None:
     """Fallback method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.
     
     Arguments:
@@ -64,9 +64,14 @@ def calculatePitchFallback(audioSample:AudioSample) -> None:
     The function fills the pitchDeltas and pitch properties. Compared to the non-legacy version, it can be applied to smaller search ranges without the risk of failure, but suffers from a worse
     signal-to-noise ratio."""
     
-    
-    cSample = C_Bridge.makeCSample(audioSample, False, True)
+    batches = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
+    audioSample.pitchDeltas = torch.zeros([batches,], dtype = torch.int)
+    audioSample.pitchMarkers = torch.zeros([audioSample.waveform.size()[0],], dtype = torch.int)
+    audioSample.excitation = torch.zeros([2 * batches * (global_consts.halfTripleBatchSize + 1)], dtype = torch.float)
+    cSample = C_Bridge.makeCSample(audioSample, False, False)
     C_Bridge.esper.pitchCalcFallback(cSample, global_consts.config)
+    audioSample.pitchDeltas = audioSample.pitchDeltas.nonzero()
+    audioSample.pitchMarkers = audioSample.pitchMarkers.nonzero()
 
 def calculatePitchFallback_legacy(audioSample:AudioSample) -> None:
     batchSize = math.floor((1. + audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)

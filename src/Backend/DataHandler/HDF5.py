@@ -32,6 +32,10 @@ class SampleStorage:
             self.group.create_dataset("pitchDeltas", (0,), maxshape=(None,), dtype="int32", compression="gzip")
         if "pitchDeltasIdxs" not in self.group:
             self.group.create_dataset("pitchDeltasIdxs", (0,), maxshape=(None,), dtype="int64")
+        if "pitchMarkers" not in self.group:
+            self.group.create_dataset("pitchMarkers", (0,), maxshape=(None,), dtype="int32", compression="gzip")
+        if "pitchMarkersIdxs" not in self.group:
+            self.group.create_dataset("pitchMarkersIdxs", (0,), maxshape=(None,), dtype="int64")
         if "pitch" not in self.group:
             self.group.create_dataset("pitch", (0,), maxshape=(None,), dtype="int32")
         if "specharm" not in self.group:
@@ -83,11 +87,13 @@ class SampleStorage:
         if idx == 0:
             sample.waveform = torch.tensor(self.group["audio"][:self.group["audioIdxs"][idx]], dtype=torch.float32)
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
+            sample.pitchMarkers = torch.tensor(self.group["pitchMarkers"][:self.group["pitchMarkersIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][:self.group["specharmIdxs"][idx]], dtype=torch.float32)
             sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][:self.group["specharmIdxs"][idx]], dtype=torch.float32))
         else:
             sample.waveform = torch.tensor(self.group["audio"][self.group["audioIdxs"][idx - 1]:self.group["audioIdxs"][idx]], dtype=torch.float32)
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][self.group["pitchDeltasIdxs"][idx - 1]:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
+            sample.pitchMarkers = torch.tensor(self.group["pitchMarkers"][self.group["pitchMarkersIdxs"][idx - 1]:self.group["pitchMarkersIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32)
             sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32))
         sample.pitch = self.group["pitch"][idx].item()
@@ -184,6 +190,13 @@ class SampleStorage:
             self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltas"].shape[0]
         else:
             self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltasIdxs"][-2] + sample.pitchDeltas.shape[0]
+        self.group["pitchMarkers"].resize(self.group["pitchMarkers"].shape[0] + sample.pitchMarkers.shape[0], axis=0)
+        self.group["pitchMarkers"][-sample.pitchMarkers.shape[0]:] = sample.pitchMarkers
+        self.group["pitchMarkersIdxs"].resize(self.group["pitchMarkersIdxs"].shape[0] + 1, axis=0)
+        if self.group["pitchMarkersIdxs"].shape[0] == 1:
+            self.group["pitchMarkersIdxs"][-1] = self.group["pitchMarkers"].shape[0]
+        else:
+            self.group["pitchMarkersIdxs"][-1] = self.group["pitchMarkersIdxs"][-2] + sample.pitchMarkers.shape[0]
         self.group["pitch"].resize(self.group["pitch"].shape[0] + 1, axis=0)
         self.group["pitch"][-1] = sample.pitch
         self.group["specharm"].resize(self.group["specharm"].shape[0] + sample.specharm.shape[0], axis=0)
@@ -225,6 +238,8 @@ class SampleStorage:
             self.group["audioIdxs"] = torch.cat((self.group["audioIdxs"][:i], self.group["audioIdxs"][i + 1:]), dim=0)
             self.group["pitchDeltas"] = torch.cat((self.group["pitchDeltas"][:self.group["pitchDeltasIdxs"][i]], self.group["pitchDeltas"][self.group["pitchDeltasIdxs"][i + 1]:]), dim=0)
             self.group["pitchDeltasIdxs"] = torch.cat((self.group["pitchDeltasIdxs"][:i], self.group["pitchDeltasIdxs"][i + 1:]), dim=0)
+            self.group["pitchMarkers"] = torch.cat((self.group["pitchMarkers"][:self.group["pitchMarkersIdxs"][i]], self.group["pitchMarkers"][self.group["pitchMarkersIdxs"][i + 1]:]), dim=0)
+            self.group["pitchMarkersIdxs"] = torch.cat((self.group["pitchMarkersIdxs"][:i], self.group["pitchMarkersIdxs"][i + 1:]), dim=0)
             self.group["pitch"] = torch.cat((self.group["pitch"][:i], self.group["pitch"][i + 1:]), dim=0)
             self.group["specharm"] = torch.cat((self.group["specharm"][:self.group["specharmIdxs"][i]], self.group["specharm"][self.group["specharmIdxs"][i + 1]:]), dim=0)
             self.group["specharmIdxs"] = torch.cat((self.group["specharmIdxs"][:i], self.group["specharmIdxs"][i + 1:]), dim=0)

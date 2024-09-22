@@ -347,6 +347,7 @@ class UtauImportUi(Frame):
             endpoint = timesize - sample.blank
         else:
             endpoint = sample.offset - sample.blank
+        waveform = waveform[::10]
         xScale = torch.linspace(0, timesize, waveform.size()[0])
         self.diagram.ax.plot(xScale, waveform, label = loc["waveform"], color = (0., 0.5, 1.), alpha = 0.75, solid_joinstyle = "bevel", markevery=100)
         self.diagram.ax.axvspan(0, sample.offset, ymin = 0.5, facecolor=(0.75, 0.75, 1.), alpha=1., label = loc["offset/blank"])

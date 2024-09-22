@@ -6,7 +6,10 @@
 # You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import ctypes
+from math import floor
 import torch
+
+import global_consts
 
 esper = ctypes.PyDLL("bin/esper.dll")
 
@@ -35,6 +38,7 @@ class cSampleCfg(ctypes.Structure):
     _fields_ = [("length", ctypes.c_uint),
                 ("batches", ctypes.c_uint),
                 ("pitchLength", ctypes.c_uint),
+                ("markerLength", ctypes.c_uint),
                 ("pitch", ctypes.c_uint),
                 ("isVoiced", ctypes.c_int),
                 ("isPlosive", ctypes.c_int),
@@ -50,6 +54,7 @@ class cSampleCfg(ctypes.Structure):
 class cSample(ctypes.Structure):
     _fields_ = [("waveform", ctypes.POINTER(ctypes.c_float)),
                 ("pitchDeltas", ctypes.POINTER(ctypes.c_int)),
+                ("pitchMarkers", ctypes.POINTER(ctypes.c_int)),
                 ("specharm", ctypes.POINTER(ctypes.c_float)),
                 ("avgSpecharm", ctypes.POINTER(ctypes.c_float)),
                 ("excitation", ctypes.POINTER(ctypes.c_float)),
@@ -68,8 +73,9 @@ class segmentTiming(ctypes.Structure):
 
 def makeCSample(sample, useVariance:bool, allow_oop:bool = False) -> cSample:
     config = cSampleCfg(length = sample.waveform.size()[0],
-                        batches = 0,
+                        batches = floor(sample.waveform.size()[0] / global_consts.batchSize) + 1,
                         pitchLength = sample.pitchDeltas.size()[0],
+                        markerLength = sample.pitchMarkers.size()[0],
                         pitch = sample.pitch,
                         isVoiced = int(sample.isVoiced),
                         isPlosive = int(sample.isPlosive),
@@ -84,17 +90,20 @@ def makeCSample(sample, useVariance:bool, allow_oop:bool = False) -> cSample:
     if allow_oop:
         sample.waveform = sample.waveform.to(torch.float).contiguous()
         sample.pitchDeltas = sample.pitchDeltas.to(torch.int).contiguous()
+        sample.pitchMarkers = sample.pitchMarkers.to(torch.int).contiguous()
         sample.specharm = sample.specharm.to(torch.float).contiguous()
         sample.avgSpecharm = sample.avgSpecharm.to(torch.float).contiguous()
         sample.excitation = sample.excitation.to(torch.float).contiguous()
     else:
         assert sample.waveform.is_contiguous() & (sample.waveform.dtype == torch.float)
         assert sample.pitchDeltas.is_contiguous() & (sample.pitchDeltas.dtype == torch.int)
+        assert sample.pitchMarkers.is_contiguous() & (sample.pitchMarkers.dtype == torch.int)
         assert sample.specharm.is_contiguous() & (sample.specharm.dtype == torch.float)
         assert sample.avgSpecharm.is_contiguous() & (sample.avgSpecharm.dtype == torch.float)
         assert sample.excitation.is_contiguous() & (sample.excitation.dtype == torch.float)
     return cSample(waveform = ctypes.cast(sample.waveform.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                    pitchDeltas = ctypes.cast(sample.pitchDeltas.data_ptr(), ctypes.POINTER(ctypes.c_int)),
+                   pitchMarkers = ctypes.cast(sample.pitchMarkers.data_ptr(), ctypes.POINTER(ctypes.c_int)),
                    specharm = ctypes.cast(sample.specharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                    avgSpecharm = ctypes.cast(sample.avgSpecharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                    excitation = ctypes.cast(sample.excitation.data_ptr(), ctypes.POINTER(ctypes.c_float)),

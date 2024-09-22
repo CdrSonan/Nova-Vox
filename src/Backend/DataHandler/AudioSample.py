@@ -72,6 +72,7 @@ class AudioSample():
             self.filepath = ""
             self.waveform = torch.tensor([], dtype = torch.float)
         self.pitchDeltas = torch.tensor([], dtype = torch.int)
+        self.pitchMarkers = torch.tensor([], dtype = torch.int)
         self.pitch = torch.tensor([global_consts.defaultExpectedPitch,], dtype = torch.int)
         self.specharm = torch.empty((0, global_consts.frameSize), dtype = torch.float)
         self.avgSpecharm = torch.empty((0, global_consts.reducedFrameSize), dtype = torch.float)
@@ -335,7 +336,7 @@ class AISampleCollection(torch_data.Dataset):
         self.iterIdx = 0
         return self
     
-    def __next__(self) -> LiteAudioSample:
+    def __next__(self) -> AISample:
         if self.iterIdx >= self.length:
             raise StopIteration
         sample = self.__getitem__(self.iterIdx)
@@ -402,6 +403,8 @@ class AudioSampleCollection(torch_data.Dataset):
             self.audioIdxs = torch.empty([0,], dtype = torch.int64)
             self.pitchDeltas = torch.empty([0,], dtype = torch.int)
             self.pitchDeltaIdxs = torch.empty([0,], dtype = torch.int64)
+            self.pitchMarkers = torch.empty([0,], dtype = torch.int)
+            self.pitchMarkersIdxs = torch.empty([0,], dtype = torch.int64)
             self.pitch = torch.empty([0,], dtype = torch.int)
             self.specharm = torch.empty([0, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3], dtype = torch.float)
             self.specharmIdxs = torch.empty([0,], dtype = torch.int64)
@@ -423,6 +426,9 @@ class AudioSampleCollection(torch_data.Dataset):
             self.pitchDeltas = torch.cat([i.pitchDeltas for i in source], 0)
             self.pitchDeltaIdxs = torch.tensor([i.pitchDeltas.size()[0] for i in source], dtype = torch.int64)
             self.pitchDeltaIdxs = torch.cumsum(self.pitchDeltaIdxs, 0)
+            self.pitchMarkers = torch.cat([i.pitchMarkers for i in source], 0)
+            self.pitchMarkersIdxs = torch.tensor([i.pitchMarkers.size()[0] for i in source], dtype = torch.int64)
+            self.pitchMarkersIdxs = torch.cumsum(self.pitchMarkersIdxs, 0)
             self.pitch = torch.cat([i.pitch for i in source], 0)
             self.specharm = torch.cat([i.specharm for i in source], 0)
             self.specharmIdxs = torch.tensor([i.specharm.size()[0] for i in source], dtype = torch.int64)
@@ -460,6 +466,10 @@ class AudioSampleCollection(torch_data.Dataset):
             sample.pitchDeltas = self.pitchDeltas.narrow(0, 0, self.pitchDeltaIdxs[idx])
         else:
             sample.pitchDeltas = self.pitchDeltas.narrow(0, self.pitchDeltaIdxs[idx - 1], self.pitchDeltaIdxs[idx] - self.pitchDeltaIdxs[idx - 1])
+        if idx == 0:
+            sample.pitchMarkers = self.pitchMarkers.narrow(0, 0, self.pitchMarkersIdxs[idx])
+        else:
+            sample.pitchMarkers = self.pitchMarkers.narrow(0, self.pitchMarkersIdxs[idx - 1], self.pitchMarkersIdxs[idx] - self.pitchMarkersIdxs[idx - 1])
         sample.pitch = self.pitch.select(0, idx)
         if idx == 0:
             sample.specharm = self.specharm.narrow(0, 0, self.specharmIdxs[idx])
@@ -506,6 +516,8 @@ class AudioSampleCollection(torch_data.Dataset):
         self.audioIdxs = addIdx(self.audioIdxs, sample.waveform.size()[0], self.length)
         self.pitchDeltas = addElementWithIdxs(self.pitchDeltas, sample.pitchDeltas, self.pitchDeltaIdxs, self.length)
         self.pitchDeltaIdxs = addIdx(self.pitchDeltaIdxs, sample.pitchDeltas.size()[0], self.length)
+        self.pitchMarkers = addElementWithIdxs(self.pitchMarkers, sample.pitchMarkers, self.pitchMarkersIdxs, self.length)
+        self.pitchMarkersIdxs = addIdx(self.pitchMarkersIdxs, sample.pitchMarkers.size()[0], self.length)
         self.pitch = addElement(self.pitch, sample.pitch, self.length)
         self.specharm = addElementWithIdxs(self.specharm, sample.specharm, self.specharmIdxs, self.length)
         self.specharmIdxs = addIdx(self.specharmIdxs, sample.specharm.size()[0], self.length)
@@ -539,6 +551,8 @@ class AudioSampleCollection(torch_data.Dataset):
             self.audioIdxs = torch.cat([self.audioIdxs[i] for i in idxs], 0)
             self.pitchDeltas = torch.cat([self.pitchDeltas[:self.pitchDeltaIdxs[i]] if i == 0 else self.pitchDeltas[self.pitchDeltaIdxs[i - 1]:self.pitchDeltaIdxs[i]] for i in idxs], 0)
             self.pitchDeltaIdxs = torch.cat([self.pitchDeltaIdxs[i] for i in idxs], 0)
+            self.pitchMarkers = torch.cat([self.pitchMarkers[:self.pitchMarkersIdxs[i]] if i == 0 else self.pitchMarkers[self.pitchMarkersIdxs[i - 1]:self.pitchMarkersIdxs[i]] for i in idxs], 0)
+            self.pitchMarkersIdxs = torch.cat([self.pitchMarkersIdxs[i] for i in idxs], 0)
             self.pitch = torch.cat([self.pitch[i] for i in idxs], 0)
             self.specharm = torch.cat([self.specharm[:self.specharmIdxs[i]] if i == 0 else self.specharm[self.specharmIdxs[i - 1]:self.specharmIdxs[i]] for i in idxs], 0)
             self.specharmIdxs = torch.cat([self.specharmIdxs[i] for i in idxs], 0)
@@ -559,6 +573,8 @@ class AudioSampleCollection(torch_data.Dataset):
                 self.audioIdxs = torch.cat([self.audioIdxs[:i], self.audioIdxs[i + 1:]], 0)
                 self.pitchDeltas = self.pitchDeltas[self.pitchDeltaIdxs[i]:] if i == 0 else torch.cat([self.pitchDeltas[:self.pitchDeltaIdxs[i - 1]], self.pitchDeltas[self.pitchDeltaIdxs[i]:]], 0)
                 self.pitchDeltaIdxs = torch.cat([self.pitchDeltaIdxs[:i], self.pitchDeltaIdxs[i + 1:]], 0)
+                self.pitchMarkers = self.pitchMarkers[self.pitchMarkersIdxs[i]:] if i == 0 else torch.cat([self.pitchMarkers[:self.pitchMarkersIdxs[i - 1]], self.pitchMarkers[self.pitchMarkersIdxs[i]:]], 0)
+                self.pitchMarkersIdxs = torch.cat([self.pitchMarkersIdxs[:i], self.pitchMarkersIdxs[i + 1:]], 0)
                 self.pitch = torch.cat([self.pitch[:i], self.pitch[i + 1:]], 0)
                 self.specharm = self.specharm[self.specharmIdxs[i]:] if i == 0 else torch.cat([self.specharm[:self.specharmIdxs[i - 1]], self.specharm[self.specharmIdxs[i]:]], 0)
                 self.specharmIdxs = torch.cat([self.specharmIdxs[:i], self.specharmIdxs[i + 1:]], 0)
