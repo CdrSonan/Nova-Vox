@@ -541,7 +541,7 @@ class PhonemedictUi(Frame):
             if (loadedVB.phonemeDict[key][sample].expectedPitch != self.sideBar.expPitch.variable.get()) or (loadedVB.phonemeDict[key][sample].searchRange != self.sideBar.pSearchRange.variable.get()):
                 loadedVB.phonemeDict[key][sample].expectedPitch = self.sideBar.expPitch.variable.get()
                 loadedVB.phonemeDict[key][sample].searchRange = self.sideBar.pSearchRange.variable.get()
-                calculatePitch(loadedVB.phonemeDict[key][sample], True)
+                calculatePitch(loadedVB.phonemeDict[key][sample])
                 calculateSpectra(loadedVB.phonemeDict[key][sample], True)
 
     def onEmbeddingUpdateTrigger(self, event) -> None:
@@ -632,7 +632,7 @@ class PhonemedictUi(Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc[".wav_desc"], ".wav"), (loc["all_files_desc"], "*")))
         if filepath != "":
             loadedVB.changePhonemeFile(key, filepath)
-            calculatePitch(loadedVB.phonemeDict[key][sample], True)
+            calculatePitch(loadedVB.phonemeDict[key][sample])
             calculateSpectra(loadedVB.phonemeDict[key][sample], True)
             self.sampleList.list.lb.delete(index)
             self.sampleList.list.lb.insert(index, filepath)

@@ -59,21 +59,21 @@ def calculateSpectra_legacy(audioSample:AudioSample, useVariance:bool = True) ->
     audioSample = separateVoicedUnvoiced(audioSample)
     audioSample = averageSpectra(audioSample, useVariance)
 
-def processWorker(input, output, limiter, useVariance, allow_oop):
+def processWorker(input, output, useVariance, allow_oop):
     while True:
         sample = input.get()
         if sample is None:
             break
-        calculatePitch(sample, limiter)
+        calculatePitch(sample)
         calculateSpectra(sample, useVariance, allow_oop)
         output.put(sample)
 
-def asyncProcess(limiter, useVariance, allow_oop):
+def asyncProcess(useVariance, allow_oop):
     inputQueue = torch.multiprocessing.Queue()
     outputQueue = torch.multiprocessing.Queue()
     processes = []
     for _ in range(torch.multiprocessing.cpu_count()):
-        p = torch.multiprocessing.Process(target = processWorker, args = (inputQueue, outputQueue, limiter, useVariance, allow_oop))
+        p = torch.multiprocessing.Process(target = processWorker, args = (inputQueue, outputQueue, useVariance, allow_oop))
         p.start()
         processes.append(p)
     return inputQueue, outputQueue, processes

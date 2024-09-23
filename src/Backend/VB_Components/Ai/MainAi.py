@@ -68,7 +68,7 @@ class DataGenerator(IterableDataset):
                 storage = SampleStorage(f, [], False)
                 data = storage.toCollection("AI")
             dataset = LiteSampleCollection(None, False)
-            inputQueue, outputQueue, processes = asyncProcess(False, False, True)
+            inputQueue, outputQueue, processes = asyncProcess(False, True)
             expectedSamples = 0
             for i in tqdm(range(len(data)), desc = "preprocessing", unit = "samples"):
                 samples = data[i].convert(True)

@@ -329,7 +329,7 @@ class Voicebank():
         sampleCount = len(self.stagedTrTrainSamples)
         trTrainSamples = LiteSampleCollection(isTransition = True)
         
-        inputQueue, outputQueue, processes = asyncProcess(True, False, True)
+        inputQueue, outputQueue, processes = asyncProcess(False, True)
         expectedSamples = 0
         for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
             sample = self.stagedTrTrainSamples[i].convert(False)
@@ -363,7 +363,7 @@ class Voicebank():
         sampleCount = len(self.stagedMainTrainSamples)
         mainTrainSamples = LiteSampleCollection()
         
-        inputQueue, outputQueue, processes = asyncProcess(False, False, True)
+        inputQueue, outputQueue, processes = asyncProcess(False, True)
         expectedSamples = 0
         for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
             samples = self.stagedMainTrainSamples[i].convert(True)
