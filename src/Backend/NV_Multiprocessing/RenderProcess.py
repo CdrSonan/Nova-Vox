@@ -134,6 +134,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             elif change.data[1] == "AI balance":
                 inputList[change.data[0]].useAIBalance = True
                 statusControl[change.data[0]].rs *= 0
+            elif change.data[1] == "gender factor":
+                inputList[change.data[0]].useGenderFactor = True
+                statusControl[change.data[0]].rs *= 0
             else:
                 nodeGraphList[change.data[0]][1][change.data[1]].enabled = True
             statusControl[change.data[0]].ai *= 0
@@ -152,6 +155,9 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 statusControl[change.data[0]].rs *= 0
             elif change.data[1] == "AI balance":
                 inputList[change.data[0]].useAIBalance = False
+                statusControl[change.data[0]].rs *= 0
+            elif change.data[1] == "gender factor":
+                inputList[change.data[0]].useGenderFactor = False
                 statusControl[change.data[0]].rs *= 0
             else:
                 nodeGraphList[change.data[0]][1][change.data[1]].enabled = True
@@ -172,7 +178,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 end = math.floor((change.data[2] + len(change.data[3]) - 1) / 3) + 1
                 statusControl[change.data[0]].rs[start:end] *= 0
                 statusControl[change.data[0]].ai[start:end] *= 0
-            elif change.data[1] in ["pitch", "steadiness", "breathiness", "aiBalance", "vibratoSpeed", "vibratoStrength"]:
+            elif change.data[1] in ["pitch", "steadiness", "breathiness", "aiBalance", "genderFactor", "vibratoSpeed", "vibratoStrength"]:
                 eval("inputList[change.data[0]]." + change.data[1])[change.data[2]:change.data[2] + len(change.data[3])] = change.data[3]
                 positions = posToSegment(change.data[0], change.data[2], change.data[2] + len(change.data[3]), inputList)
                 statusControl[change.data[0]].rs[positions[0]:positions[1]] *= 0
@@ -190,6 +196,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             inputList[change.data[0]].steadiness = ensureTensorLength(inputList[change.data[0]].steadiness, change.data[1], 0.)
             inputList[change.data[0]].breathiness = ensureTensorLength(inputList[change.data[0]].breathiness, change.data[1], 0.)
             inputList[change.data[0]].aiBalance = ensureTensorLength(inputList[change.data[0]].aiBalance, change.data[1], 0.)
+            inputList[change.data[0]].genderFactor = ensureTensorLength(inputList[change.data[0]].genderFactor, change.data[1], 0.)
             inputList[change.data[0]].vibratoSpeed = ensureTensorLength(inputList[change.data[0]].vibratoSpeed, change.data[1], 0.)
             inputList[change.data[0]].vibratoStrength = ensureTensorLength(inputList[change.data[0]].vibratoStrength, change.data[1], 0.)
             for key in nodeGraphList[change.data[0]][1].keys():
@@ -220,6 +227,23 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         newHarmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device), inputSpectrum, targetSpace)
         phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
         return torch.cat((newHarmonics, phases, inputSpectrum), 0), previousShift
+    
+    def pitchAdjust(specharm, j, start, end, internalInputs, voicebank, pitchOffset):
+        specharm_cpy = specharm.clone()
+        if internalInputs.phonemes[j] in ("_autopause", "pau"):
+            return specharm_cpy
+        steadiness = torch.pow(1. - internalInputs.steadiness[start:end], 2)
+        srcPitch = global_consts.tripleBatchSize / (voicebank.phonemeDict.fetch(internalInputs.phonemes[j], True)[0].pitch + pitchOffset * steadiness)
+        tgtPitch = global_consts.tripleBatchSize / (internalInputs.pitch[start:end] + pitchOffset * steadiness)
+        formantShift = internalInputs.genderFactor[start:end] * 0.5 + 0.5
+        breathiness = internalInputs.breathiness[start:end]
+        specharm_ptr = ctypes.cast(specharm_cpy.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        srcPitch_ptr = ctypes.cast(srcPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        tgtPitch_ptr = ctypes.cast(tgtPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        formantShift_ptr = ctypes.cast(formantShift.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        breathiness_ptr = ctypes.cast(breathiness.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        esper.pitchShift(specharm_ptr, srcPitch_ptr, tgtPitch_ptr, formantShift_ptr, breathiness_ptr, end - start, global_consts.config)
+        return specharm_cpy
     
     def processNodegraph(earlyBorders, spectrum, excitation, pitch, internalInputs, j, nodeGraph, nodeInputs, nodeParams, nodeParamData, nodeOutput):
         if earlyBorders:
@@ -254,6 +278,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 input.breathiness = internalInputs.breathiness[start + k]
                 input.steadiness = internalInputs.steadiness[start + k]
                 input.AIBalance = internalInputs.aiBalance[start + k]
+                input.genderFactor = internalInputs.genderFactor[start + k]
                 input.loopOffset = internalInputs.offsets[j - 1] * (1. - fadeIn) + internalInputs.offsets[j] * fadeIn if fadeIn != None else internalInputs.offsets[j]
                 input.loopOverlap = internalInputs.repetititionSpacing[j - 1] * (1. - fadeIn) + internalInputs.repetititionSpacing[j] * fadeIn if fadeIn != None else internalInputs.repetititionSpacing[j]
                 input.vibratoStrength = internalInputs.vibratoStrength[start + k]

@@ -284,6 +284,7 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].breathiness = ensureTensorLength(self.trackList[self.activeTrack].breathiness, length, 0)
         self.trackList[self.activeTrack].steadiness = ensureTensorLength(self.trackList[self.activeTrack].steadiness, length, 0)
         self.trackList[self.activeTrack].aiBalance = ensureTensorLength(self.trackList[self.activeTrack].aiBalance, length, 0)
+        self.trackList[self.activeTrack].genderFactor = ensureTensorLength(self.trackList[self.activeTrack].genderFactor, length, 0)
         self.trackList[self.activeTrack].vibratoSpeed = ensureTensorLength(self.trackList[self.activeTrack].vibratoSpeed, length, 0)
         self.trackList[self.activeTrack].vibratoStrength = ensureTensorLength(self.trackList[self.activeTrack].vibratoStrength, length, 0)
         self.audioBuffer[self.activeTrack] = ensureTensorLength(self.audioBuffer[self.activeTrack], length * global_consts.batchSize, 0)

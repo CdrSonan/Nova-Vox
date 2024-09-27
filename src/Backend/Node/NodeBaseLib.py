@@ -30,6 +30,7 @@ class InputNode(NodeBase):
                    "Breathiness": "ClampedFloat",
                    "Steadiness": "ClampedFloat",
                    "AI_Balance": "ClampedFloat",
+                   "Gender_Factor": "ClampedFloat",
                    "Loop_Offset": "ClampedFloat",
                    "Loop_Overlap": "ClampedFloat",
                    "Vibrato_Strengh": "ClampedFloat",
@@ -41,6 +42,7 @@ class InputNode(NodeBase):
                    "Transition": self.transition,
                    "Breathiness": self.breathiness,
                    "AI_Balance": self.AIBalance,
+                   "Gender_Factor": self.genderFactor,
                    "Steadiness": self.steadiness,
                    "Loop_Offset": self.loopOffset,
                    "Loop_Overlap": self.loopOverlap,
@@ -54,6 +56,7 @@ class InputNode(NodeBase):
         self.breathiness = 0.
         self.steadiness = 0.
         self.AIBalance = 0.
+        self.genderFactor = 0.
         self.loopOffset = 0.
         self.loopOverlap = 0.5
         self.vibratoStrengh = 0.

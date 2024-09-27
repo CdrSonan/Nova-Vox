@@ -55,6 +55,7 @@ def saveNVX(path:str, middleLayer) -> None:
             group.create_dataset("breathiness", data = track.breathiness, dtype = "float32")
             group.create_dataset("steadiness", data = track.steadiness, dtype = "float32")
             group.create_dataset("aiBalance", data = track.aiBalance, dtype = "float32")
+            group.create_dataset("genderFactor", data = track.genderFactor, dtype = "float32")
             group.create_dataset("vibratoSpeed", data = track.vibratoSpeed, dtype = "float32")
             group.create_dataset("vibratoStrength", data = track.vibratoStrength, dtype = "float32")
             group.create_dataset("borders", data = track.borders[:], dtype = "int64")
@@ -66,6 +67,7 @@ def saveNVX(path:str, middleLayer) -> None:
             group.attrs["useBreathiness"] = track.useBreathiness
             group.attrs["useSteadiness"] = track.useSteadiness
             group.attrs["useAIBalance"] = track.useAIBalance
+            group.attrs["useGenderFactor"] = track.useGenderFactor
             group.attrs["useVibratoSpeed"] = track.useVibratoSpeed
             group.attrs["useVibratoStrength"] = track.useVibratoStrength
             group.attrs["pauseThreshold"] = track.pauseThreshold

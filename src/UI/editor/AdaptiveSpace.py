@@ -126,6 +126,8 @@ class ParamCurve(ScrollView):
             data = middleLayer.trackList[middleLayer.activeTrack].breathiness
         elif middleLayer.activeParam == "AI balance":
             data = middleLayer.trackList[middleLayer.activeTrack].aiBalance
+        elif middleLayer.activeParam == "gender factor":
+            data = middleLayer.trackList[middleLayer.activeTrack].genderFactor
         else:
             data = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[middleLayer.activeParam].curve
         start = floor(self.seqLength * self.scroll_x * (self.children[0].width - self.width) / self.children[0].width * 0.9)

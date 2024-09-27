@@ -31,6 +31,7 @@ def getLanguage():
         locale["steadiness"] = "steadiness"
         locale["breathiness"] = "breathiness"
         locale["ai_balance"] = "AI balance"
+        locale["gender_factor"] = "gender factor"
         locale["loop_overlap"] = "loop overlap"
         locale["loop_offset"] = "loop offset"
         locale["vibrato_speed"] = "vibrato speed"

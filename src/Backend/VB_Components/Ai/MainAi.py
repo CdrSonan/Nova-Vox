@@ -103,11 +103,13 @@ class DataGenerator(IterableDataset):
                                                             torch.tensor(group["steadiness"]),
                                                             torch.tensor(group["breathiness"]),
                                                             torch.tensor(group["aiBalance"]),
+                                                            torch.tensor(group["genderFactor"]),
                                                             torch.tensor(group["vibratoSpeed"]),
                                                             torch.tensor(group["vibratoStrength"]),
                                                             bool(group.attrs["useBreathiness"]),
                                                             bool(group.attrs["useSteadiness"]),
                                                             bool(group.attrs["useAIBalance"]),
+                                                            bool(group.attrs["useGenderFactor"]),
                                                             bool(group.attrs["useVibratoSpeed"]),
                                                             bool(group.attrs["useVibratoStrength"]),
                                                             [],
@@ -150,11 +152,13 @@ class DataGenerator(IterableDataset):
                                  sequence.steadiness[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
                                  sequence.breathiness[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
                                  sequence.aiBalance[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
+                                 sequence.genderFactor[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
                                  sequence.vibratoSpeed[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
                                  sequence.vibratoStrength[sequence.borders[3 * start]:sequence.borders[3 * end + 2]],
                                  sequence.useBreathiness,
                                  sequence.useSteadiness,
                                  sequence.useAIBalance,
+                                 sequence.useGenderFactor,
                                  sequence.useVibratoSpeed,
                                  sequence.useVibratoStrength,
                                  sequence.customCurves,
@@ -210,6 +214,7 @@ class DataGenerator(IterableDataset):
                                  torch.full((borderLength,), random.uniform(-1, 1) * noise[2], device = torch.device("cpu")),#steadiness
                                  torch.full((borderLength,), random.uniform(-1, 1) * noise[3], device = torch.device("cpu")),#breathiness
                                  torch.zeros((borderLength,), device = torch.device("cpu")),#AI balance
+                                 torch.zeros((borderLength,), device = torch.device("cpu")),#gender factor
                                  torch.zeros((borderLength,), device = torch.device("cpu")),#vibrato speed
                                  torch.full((borderLength,), -1, device = torch.device("cpu")),#vibrato strength
                                  True,

@@ -72,6 +72,7 @@ class Track():
         self.breathiness = torch.full((5000,), 0, dtype = torch.half)
         self.steadiness = torch.full((5000,), 0, dtype = torch.half)
         self.aiBalance = torch.full((5000,), 0, dtype = torch.half)
+        self.genderFactor = torch.full((5000,), 0, dtype = torch.half)
         self.loopOverlap = LoopProxy(self, "overlap")
         self.loopOffset = LoopProxy(self, "offset")
         self.vibratoSpeed = torch.full((5000,), 0, dtype = torch.half)
@@ -80,6 +81,7 @@ class Track():
         self.useBreathiness = True
         self.useSteadiness = True
         self.useAIBalance = True
+        self.useGenderFactor = True
         self.useVibratoSpeed = True
         self.useVibratoStrength = True
         self.pauseThreshold = 100
@@ -109,6 +111,7 @@ class Track():
             self.breathiness.size()[0],
             self.steadiness.size()[0],
             self.aiBalance.size()[0],
+            self.genderFactor.size()[0],
             self.vibratoSpeed.size()[0],
             self.vibratoStrength.size()[0]
         )
@@ -120,6 +123,7 @@ class Track():
         self.breathiness = ensureTensorLength(self.breathiness, self.length, 0)
         self.steadiness = ensureTensorLength(self.steadiness, self.length, 0)
         self.aiBalance = ensureTensorLength(self.aiBalance, self.length, 0)
+        self.genderFactor = ensureTensorLength(self.genderFactor, self.length, 0)
         self.vibratoSpeed = ensureTensorLength(self.vibratoSpeed, self.length, 0)
         self.vibratoStrength = ensureTensorLength(self.vibratoStrength, self.length, 0)
         for i in range(1, len(self.borders)):
@@ -158,7 +162,7 @@ class Track():
         borders = []
         for i in self.borders:
             borders.append(int(i))
-        sequence = VocalSequence(self.length, borders, self.phonemes(), self.loopOffset(), self.loopOverlap(), pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
+        sequence = VocalSequence(self.length, borders, self.phonemes(), self.loopOffset(), self.loopOverlap(), pitch, self.steadiness, self.breathiness, self.aiBalance, self.genderFactor, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useGenderFactor, self.useVibratoSpeed, self.useVibratoStrength, [], None)
         return self.vbPath, self.nodegraph.pack(), sequence
 
 class NoteContext():

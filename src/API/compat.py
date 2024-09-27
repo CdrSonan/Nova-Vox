@@ -68,6 +68,7 @@ def getPerNoteData(arrayFormat:str = "list", useNominalTimings:bool = False) -> 
                           "breathiness": convertFormat(track.breathiness[start:end], arrayFormat),
                           "steadiness": convertFormat(track.steadiness[start:end], arrayFormat),
                           "aiBalance": convertFormat(track.aiBalance[start:end], arrayFormat),
+                          "genderFactor": convertFormat(track.genderFactor[start:end], arrayFormat),
                           "loopOverlap": convertFormat(track.loopOverlap[start_p:end_p], arrayFormat),
                           "loopOffset": convertFormat(track.loopOffset[start_p:end_p], arrayFormat),
                           "vibratoSpeed": convertFormat(track.vibratoSpeed[start:end], arrayFormat),
@@ -115,6 +116,7 @@ def importFromPerNoteData(tracks:list, wipe:bool = False, useNominalTimings:bool
             interpolation(convertFormat(note["breathiness"], "torch"), middleLayer.trackList[-1].breathiness[start:end])
             interpolation(convertFormat(note["steadiness"], "torch"), middleLayer.trackList[-1].steadiness[start:end])
             interpolation(convertFormat(note["aiBalance"], "torch"), middleLayer.trackList[-1].aiBalance[start:end])
+            interpolation(convertFormat(note["genderFactor"], "torch"), middleLayer.trackList[-1].genderFactor[start:end])
             interpolation(convertFormat(note["vibratoSpeed"], "torch"), middleLayer.trackList[-1].vibratoSpeed[start:end])
             interpolation(convertFormat(note["vibratoStrength"], "torch"), middleLayer.trackList[-1].vibratoStrength[start:end])
     middleLayer.validate()

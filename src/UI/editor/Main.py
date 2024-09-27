@@ -113,6 +113,7 @@ class NovaVoxUI(Widget):
             self.ids["paramList"].add_widget(ParamPanel(name = "steadiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useSteadiness, visualName = loc["steadiness"], state = "down"))
             self.ids["paramList"].add_widget(ParamPanel(name = "breathiness", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useBreathiness, visualName = loc["breathiness"]))
             self.ids["paramList"].add_widget(ParamPanel(name = "AI balance", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useAIBalance, visualName = loc["ai_balance"]))
+            self.ids["paramList"].add_widget(ParamPanel(name = "gender factor", switchable = True, sortable = False, deletable = False, index = -1, switchState = middleLayer.trackList[middleLayer.activeTrack].useGenderFactor, visualName = loc["gender_factor"]))
             self.ids["adaptiveSpace"].add_widget(ParamCurve())
             counter = 0
             for i in middleLayer.trackList[middleLayer.activeTrack].nodegraph.params.keys():

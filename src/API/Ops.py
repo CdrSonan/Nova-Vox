@@ -239,6 +239,7 @@ class CopyTrack(UnifiedAction):
             middleLayer.trackList[-1].breathiness = reference.breathiness.clone()
             middleLayer.trackList[-1].steadiness = reference.steadiness.clone()
             middleLayer.trackList[-1].aiBalance = reference.aiBalance.clone()
+            middleLayer.trackList[-1].genderFactor = reference.genderFactor.clone()
             middleLayer.trackList[-1].loopOverlap = reference.loopOverlap.clone()
             middleLayer.trackList[-1].loopOffset = reference.loopOffset.clone()
             middleLayer.trackList[-1].vibratoSpeed = reference.vibratoSpeed.clone()
@@ -247,6 +248,7 @@ class CopyTrack(UnifiedAction):
             middleLayer.trackList[-1].useBreathiness = copy(reference.useBreathiness)
             middleLayer.trackList[-1].useSteadiness = copy(reference.useSteadiness)
             middleLayer.trackList[-1].useAIBalance = copy(reference.useAIBalance)
+            middleLayer.trackList[-1].useGenderFactor = copy(reference.useGenderFactor)
             middleLayer.trackList[-1].useVibratoSpeed = copy(reference.useVibratoSpeed)
             middleLayer.trackList[-1].useVibratoStrength = copy(reference.useVibratoStrength)
             middleLayer.trackList[-1].nodegraph = copy(reference.nodegraph)
@@ -363,6 +365,8 @@ class EnableParam(UnifiedAction):
                 middleLayer.trackList[middleLayer.activeTrack].useBreathiness = True
             elif name == "AI balance":
                 middleLayer.trackList[middleLayer.activeTrack].useAIBalance = True
+            elif name == "gender factor":
+                middleLayer.trackList[middleLayer.activeTrack].useGenderFactor = True
             elif name == "vibrato speed":
                 middleLayer.trackList[middleLayer.activeTrack].useVibratoSpeed = True
             elif name == "vibrato strength":
@@ -391,6 +395,8 @@ class DisableParam(UnifiedAction):
                 middleLayer.trackList[middleLayer.activeTrack].useBreathiness = False
             elif name == "AI balance":
                 middleLayer.trackList[middleLayer.activeTrack].useAIBalance = False
+            elif name == "gender factor":
+                middleLayer.trackList[middleLayer.activeTrack].useGenderFactor = False
             elif name == "vibrato speed":
                 middleLayer.trackList[middleLayer.activeTrack].useVibratoSpeed = False
             elif name == "vibrato strength":
@@ -469,6 +475,9 @@ class ChangeParam(UnifiedAction):
             elif middleLayer.activeParam == "AI balance":
                 middleLayer.trackList[middleLayer.activeTrack].aiBalance[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                 middleLayer.submitNamedParamChange(True, "aiBalance", start, torch.tensor(data, dtype = torch.half))
+            elif middleLayer.activeParam == "gender factor":
+                middleLayer.trackList[middleLayer.activeTrack].genderFactor[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+                middleLayer.submitNamedParamChange(True, "genderFactor", start, torch.tensor(data, dtype = torch.half))
             elif middleLayer.activeParam == "loop":
                 if section:
                     middleLayer.trackList[middleLayer.activeTrack].loopOverlap[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
@@ -502,6 +511,8 @@ class ChangeParam(UnifiedAction):
             oldData = middleLayer.trackList[middleLayer.activeTrack].breathiness[self.start:self.start + self.length]
         elif middleLayer.activeParam == "AI balance":
             oldData = middleLayer.trackList[middleLayer.activeTrack].aiBalance[self.start:self.start + self.length]
+        elif middleLayer.activeParam == "gender factor":
+            oldData = middleLayer.trackList[middleLayer.activeTrack].genderFactor[self.start:self.start + self.length]
         elif middleLayer.activeParam == "loop":
             if self.section:
                 oldData = middleLayer.trackList[middleLayer.activeTrack].loopOverlap[self.start:self.start + self.length]
@@ -890,12 +901,14 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].breathiness = torch.tensor(group["breathiness"][:])
                 middleLayer.trackList[-1].steadiness = torch.tensor(group["steadiness"][:])
                 middleLayer.trackList[-1].aiBalance = torch.tensor(group["aiBalance"][:])
+                middleLayer.trackList[-1].genderFactor = torch.tensor(group["genderFactor"][:])
                 middleLayer.trackList[-1].vibratoSpeed = torch.tensor(group["vibratoSpeed"][:])
                 middleLayer.trackList[-1].vibratoStrength = torch.tensor(group["vibratoStrength"][:])
                 middleLayer.trackList[-1].usePitch = bool(group.attrs["usePitch"])
                 middleLayer.trackList[-1].useBreathiness = bool(group.attrs["useBreathiness"])
                 middleLayer.trackList[-1].useSteadiness = bool(group.attrs["useSteadiness"])
                 middleLayer.trackList[-1].useAIBalance = bool(group.attrs["useAIBalance"])
+                middleLayer.trackList[-1].useGenderFactor = bool(group.attrs["useGenderFactor"])
                 middleLayer.trackList[-1].useVibratoSpeed = bool(group.attrs["useVibratoSpeed"])
                 middleLayer.trackList[-1].useVibratoStrength = bool(group.attrs["useVibratoStrength"])
                 middleLayer.trackList[-1].nodegraph = deserialize_nodegraph(group["nodegraph"])
@@ -934,6 +947,7 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].breathiness = track["breathiness"]
                 middleLayer.trackList[-1].steadiness = track["steadiness"]
                 middleLayer.trackList[-1].aiBalance = track["aiBalance"]
+                middleLayer.trackList[-1].genderFactor = track["genderFactor"]
                 middleLayer.trackList[-1].loopOverlap = track["loopOverlap"]
                 middleLayer.trackList[-1].loopOffset = track["loopOffset"]
                 middleLayer.trackList[-1].vibratoSpeed = track["vibratoSpeed"]
@@ -942,6 +956,7 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].useBreathiness = track["useBreathiness"]
                 middleLayer.trackList[-1].useSteadiness = track["useSteadiness"]
                 middleLayer.trackList[-1].useAIBalance = track["useAIBalance"]
+                middleLayer.trackList[-1].useGenderFactor = track["useGenderFactor"]
                 middleLayer.trackList[-1].useVibratoSpeed = track["useVibratoSpeed"]
                 middleLayer.trackList[-1].useVibratoStrength = track["useVibratoStrength"]
                 middleLayer.trackList[-1].nodegraph = track["nodegraph"]
