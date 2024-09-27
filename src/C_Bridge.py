@@ -9,8 +9,6 @@ import ctypes
 from math import floor
 import torch
 
-import global_consts
-
 esper = ctypes.PyDLL("bin/esper.dll")
 
 class engineCfg(ctypes.Structure):
@@ -72,6 +70,7 @@ class segmentTiming(ctypes.Structure):
                 ("offset", ctypes.c_uint)]
 
 def makeCSample(sample, useVariance:bool, allow_oop:bool = False) -> cSample:
+    import global_consts
     config = cSampleCfg(length = sample.waveform.size()[0],
                         batches = floor(sample.waveform.size()[0] / global_consts.batchSize) + 1,
                         pitchLength = sample.pitchDeltas.size()[0],

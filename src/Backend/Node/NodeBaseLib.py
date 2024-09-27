@@ -6,12 +6,14 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import math
+import ctypes
 from random import random
 
 import torch
 import torchaudio
 
 import global_consts
+import C_Bridge
 from Util import freqToFreqBin, freqBinToHarmonic, harmonicToFreqBin, amplitudeToDecibels, decibelsToAmplitude, rebaseHarmonics
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
@@ -1947,14 +1949,10 @@ class BrightnessNode(NodeBase):
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Brightness):
             result = Audio.clone()
-            voicedMax = torch.max(result[:global_consts.halfHarms])
-            unvoicedMax = torch.max(result[global_consts.nHarmonics + 2:global_consts.frameSize])
-            result[:global_consts.halfHarms] /= voicedMax
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] /= unvoicedMax
-            result[:global_consts.halfHarms] *= torch.pow(voicedMax, Brightness + 1.)
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= torch.pow(unvoicedMax, Brightness + 1.)
-            result[:global_consts.halfHarms] *= voicedMax
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= unvoicedMax
+            specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            brightness_ptr = ctypes.cast(Brightness.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            length = ctypes.cast(1, ctypes.c_int)
+            C_Bridge.esper.applyBrightness(specharm_ptr, brightness_ptr, length, global_consts.config)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1966,13 +1964,38 @@ class BrightnessNode(NodeBase):
             name = "Brightness"
         return [loc["n_v_synth"], name]
 
+class RoughnessNode(NodeBase):
+    def __init__(self, **kwargs) -> None:
+        inputs = {"Audio": "ESPERAudio", "Roughness": "ClampedFloat"}
+        outputs = {"Result": "ESPERAudio"}
+        def func(self, Audio, Roughness):
+            result = Audio.clone()
+            specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            roughness_ptr = ctypes.cast(Roughness.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            length = ctypes.cast(1, ctypes.c_int)
+            C_Bridge.esper.applyRoughness(specharm_ptr, roughness_ptr, length, global_consts.config)
+            return {"Result": result}
+        super().__init__(inputs, outputs, func, False, **kwargs)
+    
+    @staticmethod
+    def name() -> str:
+        if loc["lang"] == "en":
+            name = "Roughness"
+        else:
+            name = "Roughness"
+        return [loc["n_v_synth"], name]
+
 class DynamicsNode(NodeBase):
-    # This node is a placeholder pending further analysis of what exactly "Strength" should mean
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Strength": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Strength):
             result = Audio.clone()
+            specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            strength_ptr = ctypes.cast(Strength.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            pitch_ptr = ctypes.cast(result[-1].data_ptr(), ctypes.POINTER(ctypes.c_float))
+            length = ctypes.cast(1, ctypes.c_int)
+            C_Bridge.esper.applyDynamics(specharm_ptr, strength_ptr, pitch_ptr, length, global_consts.config)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
