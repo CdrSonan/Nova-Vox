@@ -28,7 +28,7 @@
             GridLayout:
                 size_hint: (1, None)
                 height: self.minimum_height
-                rows: 3
+                rows: 4
                 orientation: "lr-tb"
                 padding: 10
                 spacing: 10
@@ -47,9 +47,17 @@
                     size_hint_y: None
                     height: 30 * app.root.uiScale
                 ManagedSpinner:
-                    #Mix-in VOicebank selector
+                    #Mix-in Voicebank selector
                     sync_height: True
                     text_autoupdate: True
+                    size_hint_y: None
+                    height: 30 * app.root.uiScale
+                Label:
+                    text: app.root.loc["unvoiced_shift"]
+                    size_hint_y: None
+                    height: 30 * app.root.uiScale
+                FloatInput:
+                    #unvoiced shift input
                     size_hint_y: None
                     height: 30 * app.root.uiScale
                 Label:

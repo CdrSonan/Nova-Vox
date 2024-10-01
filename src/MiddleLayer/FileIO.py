@@ -71,6 +71,7 @@ def saveNVX(path:str, middleLayer) -> None:
             group.attrs["useVibratoSpeed"] = track.useVibratoSpeed
             group.attrs["useVibratoStrength"] = track.useVibratoStrength
             group.attrs["pauseThreshold"] = track.pauseThreshold
+            group.attrs["unvoicedShift"] = track.unvoicedShift
             if track.mixinVB is None:
                 group.attrs["mixinVB"] = ""
             else:

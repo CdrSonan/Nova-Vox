@@ -1334,19 +1334,19 @@ class HighpassNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Cutoff": "Float", "Slope": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
-        def func(self, Audio, Cutoff):
+        def func(self, Audio, Cutoff, Slope):
             centerBin = freqToFreqBin(Cutoff)
-            slope = 0.5 * self.slope + 0.5
+            slope = 0.5 * Slope + 0.5
             slopeRange = min(centerBin, global_consts.halfTripleBatchSize - centerBin)
-            lowBin = max(0, centerBin - slopeRange * slope)
-            highBin = min(global_consts.halfTripleBatchSize, centerBin + slopeRange * slope)
+            lowBin = int(max(0, centerBin - slopeRange * slope))
+            highBin = int(min(global_consts.halfTripleBatchSize, centerBin + slopeRange * slope))
             result = Audio.clone()
             for i in range(lowBin):
                 result[global_consts.nHarmonics + 2 + i] = 0.
             for i in range(lowBin, highBin):
                 result[global_consts.nHarmonics + 2 + i] *= (i - lowBin) / (highBin - lowBin)
             for i in range(global_consts.halfHarms):
-                if harmonicToFreqBin(i, result[-1]) < lowBin:
+                if harmonicToFreqBin(i, result[-1]) <= lowBin:
                     result[i] = 0.
                 elif harmonicToFreqBin(i, result[-1]) < highBin:
                     result[i] *= (harmonicToFreqBin(i, result[-1]) - lowBin) / (highBin - lowBin)
@@ -1365,19 +1365,19 @@ class LowpassNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Cutoff": "Float", "Slope": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
-        def func(self, Audio, Cutoff):
+        def func(self, Audio, Cutoff, Slope):
             centerBin = freqToFreqBin(Cutoff)
-            slope = 0.5 * self.slope + 0.5
+            slope = 0.5 * Slope + 0.5
             slopeRange = min(centerBin, global_consts.halfTripleBatchSize - centerBin)
-            lowBin = max(0, centerBin - slopeRange * slope)
-            highBin = min(global_consts.halfTripleBatchSize, centerBin + slopeRange * slope)
+            lowBin = int(max(0, centerBin - slopeRange * slope))
+            highBin = int(min(global_consts.halfTripleBatchSize, centerBin + slopeRange * slope))
             result = Audio.clone()
             for i in range(lowBin, highBin):
                 result[global_consts.nHarmonics + 2 + i] *= 1. - ((i - lowBin) / (highBin - lowBin))
             for i in range(highBin, global_consts.halfTripleBatchSize):
                 result[global_consts.nHarmonics + 2 + i] = 0.
             for i in range(global_consts.halfHarms):
-                if harmonicToFreqBin(i, result[-1]) > highBin:
+                if harmonicToFreqBin(i, result[-1]) >= highBin:
                     result[i] = 0.
                 elif harmonicToFreqBin(i, result[-1])  > lowBin:
                     result[i] *= 1. - ((harmonicToFreqBin(i, result[-1]) - lowBin) / (highBin - lowBin))
@@ -1396,15 +1396,15 @@ class BandpassNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Cutoff": "Float", "Width": "Float", "Slope": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
-        def func(self, Audio, Cutoff, Width):
+        def func(self, Audio, Cutoff, Width, Slope):
             centerBin = freqToFreqBin(Cutoff)
             widthBins = freqToFreqBin(Width)
-            slope = 0.5 * self.slope + 0.5
+            slope = 0.5 * Slope + 0.5
             slopeRange = min(centerBin - widthBins / 2., global_consts.halfTripleBatchSize - centerBin - widthBins / 2., widthBins / 2.)
-            outerLowBin = max(0, centerBin - widthBins / 2. - slopeRange * slope)
-            innerLowBin = max(0, centerBin - widthBins / 2. + slopeRange * slope)
-            innerHighBin = min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. - slopeRange * slope)
-            outerHighBin = min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. + slopeRange * slope)
+            outerLowBin = int(max(0, centerBin - widthBins / 2. - slopeRange * slope))
+            innerLowBin = int(max(0, centerBin - widthBins / 2. + slopeRange * slope))
+            innerHighBin = int(min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. - slopeRange * slope))
+            outerHighBin = int(min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. + slopeRange * slope))
             result = Audio.clone()
             for i in range(outerLowBin):
                 result[global_consts.nHarmonics + 2 + i] = 0.
@@ -1415,7 +1415,7 @@ class BandpassNode(NodeBase):
             for i in range(outerHighBin, global_consts.halfTripleBatchSize):
                 result[global_consts.nHarmonics + 2 + i] = 0.
             for i in range(global_consts.halfHarms):
-                if harmonicToFreqBin(i, result[-1]) < outerLowBin or harmonicToFreqBin(i, result[-1]) > outerHighBin:
+                if harmonicToFreqBin(i, result[-1]) <= outerLowBin or harmonicToFreqBin(i, result[-1]) >= outerHighBin:
                     result[i] = 0.
                 elif harmonicToFreqBin(i, result[-1]) < innerLowBin:
                     result[i] *= (harmonicToFreqBin(i, result[-1]) - outerLowBin) / (innerLowBin - outerLowBin)
@@ -1436,15 +1436,15 @@ class BandrejectNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Cutoff": "Float", "Width": "Float", "Slope": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
-        def func(self, Audio, Cutoff, Width):
+        def func(self, Audio, Cutoff, Width, Slope):
             centerBin = freqToFreqBin(Cutoff)
             widthBins = freqToFreqBin(Width)
-            slope = 0.5 * self.slope + 0.5
+            slope = 0.5 * Slope + 0.5
             slopeRange = min(centerBin - widthBins / 2., global_consts.halfTripleBatchSize - centerBin - widthBins / 2., widthBins / 2.)
-            innerLowBin = max(0, centerBin - widthBins / 2. - slopeRange * slope)
-            outerLowBin = max(0, centerBin - widthBins / 2. + slopeRange * slope)
-            outerHighBin = min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. - slopeRange * slope)
-            innerHighBin = min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. + slopeRange * slope)
+            innerLowBin = int(max(0, centerBin - widthBins / 2. - slopeRange * slope))
+            outerLowBin = int(max(0, centerBin - widthBins / 2. + slopeRange * slope))
+            outerHighBin = int(min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. - slopeRange * slope))
+            innerHighBin = int(min(global_consts.halfTripleBatchSize, centerBin + widthBins / 2. + slopeRange * slope))
             result = Audio.clone()
             for i in range(outerLowBin, innerLowBin):
                 result[global_consts.nHarmonics + 2 + i] *= 1. - ((i - innerLowBin) / (outerLowBin - innerLowBin))
@@ -1662,7 +1662,7 @@ class GateNode(NodeBase):
             name = "Gate"
         return [loc["n_eq"], name]
 
-class IRConvolutionNode(NodeBase):
+"""class IRConvolutionNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio"}
         outputs = {"Result": "ESPERAudio"}
@@ -1700,9 +1700,9 @@ class IRConvolutionNode(NodeBase):
             name = "IR Convolution"
         else:
             name = "IR Convolution"
-        return [loc["n_fx"], name]
+        return [loc["n_fx"], name]"""
 
-class IRReverbNode(NodeBase):
+"""class IRReverbNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Pre_Delay": "Float"}
         outputs = {"Result": "ESPERAudio"}
@@ -1746,7 +1746,7 @@ class IRReverbNode(NodeBase):
             name = "IR Reverb"
         else:
             name = "IR Reverb"
-        return [loc["n_fx"], name]
+        return [loc["n_fx"], name]"""
 
 class ReverbNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1761,7 +1761,7 @@ class ReverbNode(NodeBase):
             self.buffer = self.buffer.roll(1, 0)
             self.buffer[0] = Audio[:global_consts.frameSize]
             envelope = torch.pow(torch.linspace(1., 0., int(Length * 250.)), (0.5 * Damping + 0.5)) * 2. / Length
-            result += self.buffer[-int(Length * 250.):] * envelope[:, None]
+            result += torch.sum(self.buffer[-int(Length * 250.):] * envelope[:, None], dim = 0) / int(Length * 250.) * 2. * Wetness
             result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
@@ -1779,7 +1779,7 @@ class ReverbNode(NodeBase):
             name = "Reverb"
         return [loc["n_fx"], name]
 
-class ChorusNode(NodeBase):
+"""class ChorusNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Voices": "Int", "Depth": "ClampedFloat", "Rate": "Float"}
         outputs = {"Result": "ESPERAudio"}
@@ -1810,7 +1810,7 @@ class ChorusNode(NodeBase):
             name = "Chorus"
         else:
             name = "Chorus"
-        return [loc["n_fx"], name]
+        return [loc["n_fx"], name]"""
 
 class FlangerNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -2010,7 +2010,7 @@ class DynamicsNode(NodeBase):
             name = "Dynamics"
         return [loc["n_v_synth"], name]
 
-class VST3HostNode(NodeBase):
+"""class VST3HostNode(NodeBase):
     # This node is a placeholder until the PyVST3 package is ready
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio"}
@@ -2026,7 +2026,7 @@ class VST3HostNode(NodeBase):
             name = "VST3 Host"
         else:
             name = "VST3 Host"
-        return [name,]
+        return [name,]"""
 
 additionalNodes = []
 

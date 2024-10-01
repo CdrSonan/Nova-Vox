@@ -55,15 +55,17 @@ class SingerSettingsPanel(Popup):
         self.filepaths = []
         self.listVoicebanks()
         self.pauseThreshold = middleLayer.trackList[self.index].pauseThreshold
+        self.unvoicedShift = middleLayer.trackList[self.index].unvoicedShift
         if middleLayer.trackList[index].mixinVB == None:
             self.mixinVB = "None"
         else:
             self.mixinVB = self.voicebanks[self.filepaths.index(middleLayer.trackList[self.index].mixinVB)]
         self.mainVB = self.voicebanks[self.filepaths.index(middleLayer.trackList[self.index].vbPath)]
-        self.children[0].children[0].children[0].children[0].children[2].children[4].text = self.mainVB
-        self.children[0].children[0].children[0].children[0].children[2].children[4].values = self.voicebanks
-        self.children[0].children[0].children[0].children[0].children[2].children[2].text = self.mixinVB
-        self.children[0].children[0].children[0].children[0].children[2].children[2].values = self.modVoicebanks
+        self.children[0].children[0].children[0].children[0].children[2].children[6].text = self.mainVB
+        self.children[0].children[0].children[0].children[0].children[2].children[6].values = self.voicebanks
+        self.children[0].children[0].children[0].children[0].children[2].children[4].text = self.mixinVB
+        self.children[0].children[0].children[0].children[0].children[2].children[4].values = self.modVoicebanks
+        self.children[0].children[0].children[0].children[0].children[2].children[2].text = str(self.unvoicedShift)
         self.children[0].children[0].children[0].children[0].children[2].children[0].text = str(self.pauseThreshold)
         self.makeNodeTree()
         middleLayer.activePanel = self
@@ -138,15 +140,22 @@ class SingerSettingsPanel(Popup):
         global middleLayer
         from UI.editor.Main import middleLayer
         self.children[0].children[0].children[0].children[1].prepareClose()
-        if self.children[0].children[0].children[0].children[0].children[2].children[2].text == "None":
-            middleLayer.trackList[self.index].mixinVB = None
+        if self.children[0].children[0].children[0].children[0].children[2].children[4].text == "None":
+            effMixinVB = None
         else:
-            middleLayer.trackList[self.index].mixinVB = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[2].text)]
+            effMixinVB = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
+        if middleLayer.trackList[self.index].mixinVB != effMixinVB:
+            middleLayer.trackList[self.index].mixinVB = effMixinVB
+            API.Ops.ChangeTrackSettings(self.index, "mixinVB", effMixinVB)()
         if middleLayer.trackList[self.index].pauseThreshold != int(self.children[0].children[0].children[0].children[0].children[2].children[0].text):
             middleLayer.trackList[self.index].pauseThreshold = int(self.children[0].children[0].children[0].children[0].children[2].children[0].text)
             middleLayer.recalculatePauses(self.index)
-        if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]:
-            middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[4].text)]
+        effUnvoicedShift = min(max(float(self.children[0].children[0].children[0].children[0].children[2].children[2].text), 0), 1)
+        if middleLayer.trackList[self.index].unvoicedShift != effUnvoicedShift:
+            middleLayer.trackList[self.index].unvoicedShift = effUnvoicedShift
+            API.Ops.ChangeTrackSettings(self.index, "unvoicedShift", effUnvoicedShift)()
+        if middleLayer.trackList[self.index].vbPath != self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[6].text)]:
+            middleLayer.trackList[self.index].vbPath = self.filepaths[self.voicebanks.index(self.children[0].children[0].children[0].children[0].children[2].children[6].text)]
             API.Ops.ChangeVoicebank(self.index, middleLayer.trackList[self.index].vbPath)()
         middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.index].nodegraph)
         middleLayer.ui.updateParamPanel()

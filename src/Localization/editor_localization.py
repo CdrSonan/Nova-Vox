@@ -56,6 +56,7 @@ def getLanguage():
         locale["main_voice"] = "main voice:"
         locale["mixin_voice"] = "mix-in voice:"
         locale["pause_thrh"] = "pause threshold:"
+        locale["unvoiced_shift"] = "unvoiced shift:"
         #file side panel
         locale["save"] = "save"
         locale["load"] = "load"

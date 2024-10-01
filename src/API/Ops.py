@@ -255,6 +255,7 @@ class CopyTrack(UnifiedAction):
             middleLayer.trackList[-1].length = copy(reference.length)
             middleLayer.trackList[-1].mixinVB = copy(reference.mixinVB)
             middleLayer.trackList[-1].pauseThreshold = copy(reference.pauseThreshold)
+            middleLayer.trackList[-1].unvoicedShift = copy(reference.unvoicedShift)
             middleLayer.trackList[-1].borders.wrappingBorders = deepcopy(reference.borders.wrappingBorders)
             middleLayer.trackList[-1].buildPhonemeIndices()
             middleLayer.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(middleLayer.trackList) - 1))
@@ -823,6 +824,27 @@ class ChangeVoicebank(UnifiedAction):
                 i.image = im.texture
                 break
 
+class ChangeTrackSettings(UnifiedAction):
+    def __init__(self, index, key, value, *args, **kwargs):
+        @override
+        def action(index, key, value):
+            if key == "unvoicedShift":
+                middleLayer.trackList[index].unvoicedShift = min(max(value, 0), 1)
+            elif key == "mixinVB":
+                middleLayer.trackList[index].mixinVB = value
+            else:
+                raise ValueError("Invalid track settings key")
+            middleLayer.submitTrackSettingsChange(True, index, key, value)
+        super().__init__(action, index, key, value, *args, **kwargs)
+        self.index = index
+        self.key = key
+    
+    def inverseAction(self):
+        if self.key == "unvoicedShift":
+            return ChangeTrackSettings(self.index, self.key, middleLayer.trackList[self.index].unvoicedShift)
+        else:
+            raise ValueError("Invalid track settings key")
+
 class ChangeVolume(UnifiedAction):
     def __init__(self, index, volume, *args, **kwargs):
         @override
@@ -830,7 +852,6 @@ class ChangeVolume(UnifiedAction):
             middleLayer.trackList[index].volume = volume
         super().__init__(action, index, volume, *args, **kwargs)
         self.index = index
-        self.volume = volume
     
     def inverseAction(self):
         return ChangeVolume(self.index, middleLayer.trackList[middleLayer.activeTrack].volume)
@@ -918,6 +939,7 @@ class LoadNVX(UnifiedAction):
                 else:
                     middleLayer.trackList[-1].mixinVB = group.attrs["mixinVB"]
                 middleLayer.trackList[-1].pauseThreshold = int(group.attrs["pauseThreshold"])
+                middleLayer.trackList[-1].unvoicedShift = float(group.attrs["unvoicedShift"])
                 middleLayer.trackList[-1].buildPhonemeIndices()
                 for i in range(len(middleLayer.trackList[-1].borders)):
                     middleLayer.trackList[-1].borders[i] = int(group["borders"][i])
@@ -964,4 +986,5 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].length = track["length"]
                 middleLayer.trackList[-1].mixinVB = track["mixinVB"]
                 middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
+                middleLayer.trackList[-1].unvoicedShift = track["unvoicedShift"]
         return UnifiedAction(restoreTrackList, middleLayer.trackList)

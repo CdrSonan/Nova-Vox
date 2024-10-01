@@ -491,7 +491,7 @@ class PhonemedictUi(Frame):
                     if (j.expectedPitch != pitch) or (j.searchRange != pitchRange):
                         j.expectedPitch = pitch
                         j.searchRange = pitchRange
-                        calculatePitch(j, True)
+                        calculatePitch(j)
                         calculateSpectra(j, True)
 
     def onSpecBrdcPress(self) -> None:

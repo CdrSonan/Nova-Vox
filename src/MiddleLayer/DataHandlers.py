@@ -85,6 +85,7 @@ class Track():
         self.useVibratoSpeed = True
         self.useVibratoStrength = True
         self.pauseThreshold = 100
+        self.unvoicedShift = 0
         self.mixinVB = None
         self.nodegraph = Nodegraph()
         self.borders = BorderProxy(self)
@@ -118,6 +119,7 @@ class Track():
         self.volume = max(self.volume, 0.)
         self.volume = min(self.volume, 1.2)
         self.pauseThreshold = max(self.pauseThreshold, 0)
+        self.unvoicedShift = min(max(self.unvoicedShift, 0), 1)
         self.pitch = ensureTensorLength(self.pitch, self.length, -1)
         self.basePitch = ensureTensorLength(self.basePitch, self.length, -1)
         self.breathiness = ensureTensorLength(self.breathiness, self.length, 0)
@@ -162,7 +164,27 @@ class Track():
         borders = []
         for i in self.borders:
             borders.append(int(i))
-        sequence = VocalSequence(self.length, borders, self.phonemes(), self.loopOffset(), self.loopOverlap(), pitch, self.steadiness, self.breathiness, self.aiBalance, self.genderFactor, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useGenderFactor, self.useVibratoSpeed, self.useVibratoStrength, [], None)
+        sequence = VocalSequence(self.length,
+                                 borders,
+                                 self.phonemes(),
+                                 self.loopOffset(),
+                                 self.loopOverlap(),
+                                 pitch,
+                                 self.steadiness,
+                                 self.breathiness,
+                                 self.aiBalance,
+                                 self.genderFactor,
+                                 self.vibratoSpeed,
+                                 self.vibratoStrength,
+                                 self.useBreathiness,
+                                 self.useSteadiness,
+                                 self.useAIBalance,
+                                 self.useGenderFactor,
+                                 self.useVibratoSpeed,
+                                 self.useVibratoStrength, 
+                                 self.unvoicedShift,
+                                 [],
+                                 None)
         return self.vbPath, self.nodegraph.pack(), sequence
 
 class NoteContext():

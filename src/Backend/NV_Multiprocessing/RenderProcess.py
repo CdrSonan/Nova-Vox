@@ -118,6 +118,12 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             voicebankManager.clean()
             statusControl[change.data[0]].rs *= 0
             statusControl[change.data[0]].ai *= 0
+        elif change.type == "changeTrackSettings":
+            if change.data[1] == "unvoicedShift":
+                inputList[change.data[0]].unvoicedShift = change.data[2]
+                statusControl[change.data[0]].rs *= 0
+            else:
+                print("unknown track setting change: " + change.data[1])
         elif change.type == "enableParam":
             if change.data[1] == "breathiness":
                 inputList[change.data[0]].useBreathiness = True
@@ -213,7 +219,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             except:
                 return False
 
-    def pitchAdjust(spectrumInput, j, k, internalInputs, voicebank, previousShift, pitchOffset, device):
+    def pitchAdjust_legacy(spectrumInput, j, k, internalInputs, voicebank, previousShift, pitchOffset, device):
         if internalInputs.phonemes[j] in ("_autopause", "pau"):
             return spectrumInput, 0.
         steadiness = torch.pow(1. - internalInputs.steadiness[k], 2)
@@ -233,10 +239,12 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         if internalInputs.phonemes[j] in ("_autopause", "pau"):
             return specharm_cpy
         steadiness = torch.pow(1. - internalInputs.steadiness[start:end], 2)
-        srcPitch = global_consts.tripleBatchSize / (voicebank.phonemeDict.fetch(internalInputs.phonemes[j], True)[0].pitch + pitchOffset * steadiness)
-        tgtPitch = global_consts.tripleBatchSize / (internalInputs.pitch[start:end] + pitchOffset * steadiness)
-        formantShift = internalInputs.genderFactor[start:end] * 0.5 + 0.5
+        srcPitch = voicebank.phonemeDict.fetch(internalInputs.phonemes[j], True)[0].pitch + pitchOffset * steadiness
+        tgtPitch = internalInputs.pitch[start:end] + pitchOffset * steadiness
+        genderFactor = internalInputs.genderFactor[start:end]
+        tgtPitch = torch.where(genderFactor > 0., tgtPitch * (1. + genderFactor), tgtPitch / (1. - genderFactor))
         breathiness = internalInputs.breathiness[start:end]
+        formantShift = torch.tensor([internalInputs.unvoicedShift,])
         specharm_ptr = ctypes.cast(specharm_cpy.data_ptr(), ctypes.POINTER(ctypes.c_float))
         srcPitch_ptr = ctypes.cast(srcPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
         tgtPitch_ptr = ctypes.cast(tgtPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
@@ -436,7 +444,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                         break
 
                 voicebank.ai.reset()
-                previousShift = 0.
                 #TODO: reset recurrent AI Tensors
                 #iterate through segments in VocalSequence
                 for j in range(len(internalStatusControl.ai) + 1):
@@ -541,9 +548,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]].unsqueeze(1).to(device = device_rs)
                                 aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0].to(device = device_rs) + (0.5 + 0.5 * aiBalance) * aiSpec[1].to(device = device_rs)
                                 pitchOffset = previousPitch[internalInputs.borders[3 * j] - internalInputs.borders[3 * j + 2]:] + currentPitch[:internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]]
-                                for k in range(internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2]):
-                                    aiSpecOut, previousShift = pitchAdjust(aiSpec[k - internalInputs.borders[3 * j]], j, k, internalInputs, voicebank, previousShift, pitchOffset[k - internalInputs.borders[3 * j]], device_rs)
-                                    spectrum.write(aiSpecOut.to(device_rs), k)
+                                aiSpecOut = pitchAdjust(aiSpec, j, internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2], internalInputs, voicebank, pitchOffset)
+                                spectrum.write(aiSpecOut.to(device_rs), internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2])
                                 pitch.write(pitchOffset.to(device_rs), internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2])
                             if j + 1 == len(internalStatusControl.ai) or internalInputs.phonemes[j + 1] in ("pau", "_autopause"):
                                 windowEnd = internalInputs.borders[3 * j + 5]
@@ -558,9 +564,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             aiBalance = internalInputs.aiBalance[windowStart:windowEnd].unsqueeze(1).to(device = device_rs)
                             aiSpec = (0.5 - 0.5 * aiBalance) * currentSpectrum + (0.5 + 0.5 * aiBalance) * aiSpec
                             pitchOffset = currentPitch[windowStart - internalInputs.borders[3 * j]:windowEnd - internalInputs.borders[3 * j]]
-                            for k in range(currentSpectrum.size()[0]):
-                                aiSpecOut, previousShift = pitchAdjust(aiSpec[k], j,  windowStart + k, internalInputs, voicebank, previousShift, pitchOffset[k], device_rs)
-                                spectrum.write(aiSpecOut.to(device_rs), windowStart + k)
+                            aiSpecOut = pitchAdjust(aiSpec, j, windowStart, windowEnd, internalInputs, voicebank, pitchOffset)
+                            spectrum.write(aiSpecOut.to(device_rs), windowStart, windowEnd)
                             pitch.write(pitchOffset.to(device_rs), windowStart, windowEnd)
                             excitation.write(currentExcitation.to(device_rs), windowStartEx, windowEndEx)
 
@@ -589,9 +594,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]].unsqueeze(1).to(device = device_rs)
                                 aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0].to(device = device_rs) + (0.5 + 0.5 * aiBalance) * aiSpec[1].to(device = device_rs)
                                 pitchOffset = currentPitch[internalInputs.borders[3 * j + 3] - internalInputs.borders[3 * j + 5]:] + nextPitch[:internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]]
-                                for k in range(internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5]):
-                                    aiSpecOut, previousShift = pitchAdjust(aiSpec[k - internalInputs.borders[3 * j + 3]], j, k, internalInputs, voicebank, previousShift, pitchOffset[k - internalInputs.borders[3 * j + 3]], device_rs)
-                                    spectrum.write(aiSpecOut.to(device_rs), k)
+                                aiSpecOut = pitchAdjust(aiSpec, j, internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5], internalInputs, voicebank, pitchOffset)
+                                spectrum.write(aiSpecOut.to(device_rs), internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5])
                                 pitch.write(pitchOffset.to(device_rs), internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5])
                             
                             #TODO: implement crfai skipping if transition was already calculated in the previous frame
@@ -603,7 +607,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             #apply pitch shift to spectrum
                             logging.info("applying partial pitch shift to spectrum of sample " + str(j) + ", sequence " + str(i))
                             if internalInputs.phonemes[j] not in ("_autopause", "pau"):
-                                previousShift = 0.
                                 internalStatusControl.ai[j] = 0
                             internalStatusControl.rs[j] = 1
                             remoteConnection.put(StatusChange(i, j, 3))

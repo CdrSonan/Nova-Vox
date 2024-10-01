@@ -111,6 +111,7 @@ class DataGenerator(IterableDataset):
                                                             bool(group.attrs["useAIBalance"]),
                                                             bool(group.attrs["useGenderFactor"]),
                                                             bool(group.attrs["useVibratoSpeed"]),
+                                                            float(group.attrs["unvoicedShift"]),
                                                             bool(group.attrs["useVibratoStrength"]),
                                                             [],
                                                             None))   
@@ -161,6 +162,7 @@ class DataGenerator(IterableDataset):
                                  sequence.useGenderFactor,
                                  sequence.useVibratoSpeed,
                                  sequence.useVibratoStrength,
+                                 sequence.unvoicedShift,
                                  sequence.customCurves,
                                  sequence.nodeGraphFunction)
             idx = [random.randint(0, len(self.voicebank.phonemeDict[i]) - 1) for i in sequence.phonemes]
@@ -174,6 +176,7 @@ class DataGenerator(IterableDataset):
             if len(phoneme) == 1:
                 return phoneme[0]
             return "_".join(phoneme[:-1])
+        
         phonemeSequence = [stripPhoneme(phoneme) + "_" + expression if stripPhoneme(phoneme) + "_" + expression in self.voicebank.phonemeDict else (stripPhoneme(phoneme) if stripPhoneme(phoneme) in self.voicebank.phonemeDict else phoneme) for phoneme in phonemeSequence]
         idx = [random.randint(0, len(self.voicebank.phonemeDict[i]) - 1) for i in phonemeSequence]
         embeddings = [self.voicebank.phonemeDict[phoneme][idx[i]].embedding for i, phoneme in enumerate(phonemeSequence)]
@@ -222,6 +225,7 @@ class DataGenerator(IterableDataset):
                                  False,
                                  False,
                                  True,
+                                 0.,
                                  [],
                                  None
         )

@@ -341,6 +341,9 @@ class MiddleLayer(Widget):
     def submitParamChange(self, final:bool, param, index:int, data) -> None:
         self.manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     
+    def submitTrackSettingsChange(self, final:bool, index:int, key:str, value) -> None:
+        self.manager.sendChange("changeTrackSettings", final, index, key, value)
+    
     def submitOffset(self, final:bool, index:int, offset:int) -> None:
         self.manager.sendChange("offset", final, self.activeTrack, index, offset)
 

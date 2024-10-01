@@ -11,7 +11,28 @@ from torch import Tensor
 class VocalSequence():
     """Class holding information about a vocal track as required by the rendering process"""
     
-    def __init__(self, length:int, borders:list, phonemes:list, offsets:Tensor, repetititionSpacing:Tensor, pitch:Tensor, steadiness:Tensor, breathiness:Tensor, aiBalance:Tensor, genderFactor:Tensor, vibratoSpeed:Tensor, vibratoStrength:Tensor, useBreathiness:bool, useSteadiness:bool, useAIBalance:bool, useGenderFactor:bool, useVibratoSpeed:bool, useVibratoStrength:bool, customCurves:list, nodeGraphFunction) -> None:
+    def __init__(self,
+                 length:int,
+                 borders:list,
+                 phonemes:list,
+                 offsets:Tensor,
+                 repetititionSpacing:Tensor,
+                 pitch:Tensor,
+                 steadiness:Tensor,
+                 breathiness:Tensor,
+                 aiBalance:Tensor,
+                 genderFactor:Tensor,
+                 vibratoSpeed:Tensor,
+                 vibratoStrength:Tensor,
+                 useBreathiness:bool,
+                 useSteadiness:bool,
+                 useAIBalance:bool,
+                 useGenderFactor:bool,
+                 useVibratoSpeed:bool,
+                 useVibratoStrength:bool,
+                 unvoicedShift:float,
+                 customCurves:list,
+                 nodeGraphFunction) -> None:
         self.length = length
         self.phonemeLength = len(phonemes)
         self.borders = borders
@@ -31,6 +52,7 @@ class VocalSequence():
         self.useGenderFactor = useGenderFactor
         self.useVibratoSpeed = useVibratoSpeed
         self.useVibratoStrength = useVibratoStrength
+        self.unvoicedShift = unvoicedShift
         self.customCurves = customCurves
         self.nodeGraphFunction = nodeGraphFunction
         
@@ -53,5 +75,6 @@ class VocalSequence():
                              copy(self.useGenderFactor),
                              copy(self.useVibratoSpeed),
                              copy(self.useVibratoStrength),
+                             copy(self.unvoicedShift),
                              deepcopy(self.customCurves),
                              copy(self.nodeGraphFunction))

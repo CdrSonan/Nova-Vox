@@ -40,6 +40,26 @@ class CurveInputNode(Node):
         name = self.setCurveName(instance.text)
         return name
 
+class PhonemeInListNode(Node):
+    def __init__(self, base: NodeBase, **kwargs) -> None:
+        super().__init__(base, **kwargs)
+        self.add_widget(TextInput(text = self.base.auxData["list"], multiline = False, size_hint = (1, 1), on_text_validate = self.onTextValidate))
+    
+    def onTextValidate(self, instance:TextInput):
+        text = instance.text.strip().split(",")
+        self.base.auxData["list"] = text
+        return instance.text
+
+class SoftPhonemeInListNode(Node):
+    def __init__(self, base: NodeBase, **kwargs) -> None:
+        super().__init__(base, **kwargs)
+        self.add_widget(TextInput(text = self.base.auxData["list"], multiline = False, size_hint = (1, 1), on_text_validate = self.onTextValidate))
+    
+    def onTextValidate(self, instance:TextInput):
+        text = instance.text.strip().split(",")
+        self.base.auxData["list"] = text
+        return instance.text
+
 def getNodeCls(name:str) -> type:
     md = globals()
     NodeClasses = [

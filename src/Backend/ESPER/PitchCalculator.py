@@ -72,6 +72,7 @@ def calculatePitch(audioSample:AudioSample) -> None:
     C_Bridge.esper.pitchCalcFallback(cSample, global_consts.config)
     audioSample.pitchDeltas = audioSample.pitchDeltas[audioSample.pitchDeltas.nonzero()].flatten()
     audioSample.pitchMarkers = audioSample.pitchMarkers[audioSample.pitchMarkers.nonzero()].flatten()
+    audioSample.pitch = torch.median(audioSample.pitchDeltas)
 
 def calculatePitchFallback_legacy(audioSample:AudioSample) -> None:
     batchSize = math.floor((1. + audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
