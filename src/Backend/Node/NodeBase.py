@@ -89,7 +89,6 @@ class NodeBase():
                 self.inputs[i].attachedTo.node.checkStatic()
                 if self.inputs[i].attachedTo.node.static == False:
                     self.static = False
-                    break
         if self.static:
             self.calculate()
 

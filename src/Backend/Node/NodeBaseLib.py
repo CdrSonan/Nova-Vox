@@ -854,10 +854,11 @@ class PhonemeInListNode(NodeBase):
         outputs = {"Result": "Bool"}
         def func(self, Phoneme):
             if Phoneme[2] > 0.5:
-                phoneme = Phoneme[1]
+                result = Phoneme[1] in self.auxData["list"]
             else:
-                phoneme = Phoneme[0]
-            return {"Result": phoneme in self.auxData["list"]}
+                result = Phoneme[0] in self.auxData["list"]
+            print(Phoneme, result)
+            return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
         self.auxData = {"list": []}
     

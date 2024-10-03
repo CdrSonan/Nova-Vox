@@ -9,45 +9,45 @@ import torch
 
 import global_consts
 
-def convertClampedFloat(*args):
+def convertClampedFloat(arg):
     """converts a value to a float, clamping it to the range between -1 and 1"""
 
-    return max(-1, min(1, float(*args)))
+    return max(-1, min(1, float(arg)))
 
-def convertFloat(*args):
+def convertFloat(arg):
     """converts a value to a float"""
 
-    return float(*args)
+    return float(arg)
 
-def convertInt(*args):
+def convertInt(arg):
     """converts a value to an int"""
 
-    return int(*args)
+    return int(arg)
 
-def convertBool(*args):
+def convertBool(arg):
     """converts a value to a boolean"""
 
-    return bool(*args)
+    return bool(arg)
 
-def convertESPERAudio(*args):
+def convertESPERAudio(arg):
     """converts a value to a Torch tensor following the ESPER audio format"""
 
-    if isinstance(args[0], torch.Tensor):
-        out = args[0]
+    if isinstance(arg, torch.Tensor):
+        out = arg
     else:
-        out = torch.tensor(*args)
+        out = torch.tensor(arg)
     assert out.shape[0] == global_consts.frameSize + global_consts.tripleBatchSize + 3 and out.ndim == 1, "Invalid ESPER audio tensor shape"
     return out
 
-def convertPhoneme(*args):
+def convertPhoneme(arg):
     """converts input(s) to a tuple describing a phoneme, or the transition between several phonemes"""
     
-    if len(args) == 1:
-        return (str(args[0]), str(args[0]), 0.)
-    elif len(args) == 2:
-        return (str(args[0]), str(args[1]), 0.5)
-    elif len(args) == 3:
-        return (str(args[0]), str(args[1]), float(args[2]))
+    if len(arg) == 1:
+        return (str(arg[0]), str(arg[0]), 0.)
+    elif len(arg) == 2:
+        return (str(arg[0]), str(arg[1]), 0.5)
+    elif len(arg) == 3:
+        return (str(arg[0]), str(arg[1]), float(arg[2]))
     raise TypeError("Invalid number of arguments for phoneme conversion")
 
 converters = [convertClampedFloat, convertFloat, convertInt, convertBool, convertESPERAudio, convertPhoneme] #list of all available converters, can be extended through addons

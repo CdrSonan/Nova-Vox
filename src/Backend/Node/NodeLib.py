@@ -43,7 +43,7 @@ class CurveInputNode(Node):
 class PhonemeInListNode(Node):
     def __init__(self, base: NodeBase, **kwargs) -> None:
         super().__init__(base, **kwargs)
-        self.add_widget(TextInput(text = self.base.auxData["list"], multiline = False, size_hint = (1, 1), on_text_validate = self.onTextValidate))
+        self.add_widget(TextInput(text = ", ".join(self.base.auxData["list"]), multiline = False, size_hint = (1, 1), on_text_validate = self.onTextValidate))
     
     def onTextValidate(self, instance:TextInput):
         text = instance.text.strip().split(",")
@@ -53,7 +53,7 @@ class PhonemeInListNode(Node):
 class SoftPhonemeInListNode(Node):
     def __init__(self, base: NodeBase, **kwargs) -> None:
         super().__init__(base, **kwargs)
-        self.add_widget(TextInput(text = self.base.auxData["list"], multiline = False, size_hint = (1, 1), on_text_validate = self.onTextValidate))
+        self.add_widget(TextInput(text = ", ".join(self.base.auxData["list"]), multiline = False, size_hint = (1, 1), on_text_validate = self.onTextValidate))
     
     def onTextValidate(self, instance:TextInput):
         text = instance.text.strip().split(",")

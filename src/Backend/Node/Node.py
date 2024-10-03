@@ -269,8 +269,8 @@ class Connector(BoxLayout):
             target.base.attachedTo = self.base
             self.attachedTo.append(target)
             target.attachedTo = self
-            self.node.checkStatic()
-            target.node.checkStatic()
+            #self.node.checkStatic()
+            #target.node.checkStatic()
             self.curve.clear()
             if target.dtype.hasWidget:
                 toRemove = target.children[0]
@@ -286,8 +286,8 @@ class Connector(BoxLayout):
             target.base.attachedTo.append(self.base)
             self.attachedTo = target
             target.attachedTo.append(self)
-            target.node.checkStatic()
-            self.node.checkStatic()
+            #target.node.checkStatic()
+            #self.node.checkStatic()
             self.is_focusable = False
             if self.dtype.hasWidget:
                 toRemove = self.children[0]
@@ -304,10 +304,10 @@ class Connector(BoxLayout):
                 i.attachedTo = None
             for i in self.attachedTo:
                 i.attachedTo = None
-                i.node.checkStatic()
+                #i.node.checkStatic()
             self.base.attachedTo = []
             self.attachedTo = []
-            self.node.checkStatic()
+            #self.node.checkStatic()
             return
         self.base.attachedTo.attachedTo.remove(self.base)
         self.base.attachedTo = None
@@ -315,8 +315,8 @@ class Connector(BoxLayout):
         self.attachedTo.attachedTo.remove(self)
         self.attachedTo = None
         self.curve.clear()
-        tmpNode.checkStatic()
-        self.node.checkStatic()
+        #tmpNode.checkStatic()
+        #self.node.checkStatic()
         self.is_focusable = True
         if self.dtype.hasWidget:
             self.dtype.make_widget(self, self.widget_setter)
