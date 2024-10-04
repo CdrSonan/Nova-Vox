@@ -637,9 +637,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             
                             specharm = processedSpectrum.read(startPoint, endPoint)
                             specharm[:, :global_consts.halfHarms] *= breathinessVoiced.unsqueeze(1)
-                            import matplotlib.pyplot as plt
-                            plt.imshow(specharm.detach())
-                            plt.show()
                             output = finalRender(specharm, excitationSignal, pitchOffset, endPoint - startPoint, device_rs)
                             
                             remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, output, "updateAudio"))

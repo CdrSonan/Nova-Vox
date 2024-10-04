@@ -38,7 +38,8 @@ def freqBinToHarmonic(freqBin:torch.Tensor, pitch:float) -> torch.Tensor:
 def harmonicToFreqBin(harmonic:torch.Tensor, pitch:float) -> torch.Tensor:
     """Utility function for converting a harmonic number to a frequency bin, given the pitch of the note."""
 
-    return harmonic * pitch / global_consts.tripleBatchSize
+    #freq = harmonic * sampleRate / pitch
+    return harmonic * global_consts.tripleBatchSize / pitch
 
 def freqToFreqBin(freq:torch.Tensor) -> torch.Tensor:
     """Utility function for converting a frequency to a frequency bin."""

@@ -481,7 +481,9 @@ class DerivativeNode(NodeBase):
         inputs = {"Input": "Float"}
         outputs = {"Result": "Float"}
         def func(self, Input):
-            return {"Result": Input - self.prevInput}
+            result = Input - self.prevInput
+            self.prevInput = Input
+            return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
         self.prevInput = 0.
     
@@ -777,7 +779,9 @@ class PosFlankNode(NodeBase):
         inputs = {"Input": "Bool"}
         outputs = {"Result": "Bool"}
         def func(self, Input):
-            return {"Result": Input and not self.prevInput}
+            result = Input and not self.prevInput
+            self.prevInput = Input
+            return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
         self.prevInput = False
     
@@ -794,7 +798,9 @@ class NegFlankNode(NodeBase):
         inputs = {"Input": "Bool"}
         outputs = {"Result": "Bool"}
         def func(self, Input):
-            return {"Result": not Input and self.prevInput}
+            result = not Input and self.prevInput
+            self.prevInput = Input
+            return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
         self.prevInput = False
     
@@ -901,18 +907,20 @@ class SplitPhonemeNode(NodeBase):
             combB = Phoneme[1]
             transition = Phoneme[2]
             if combA.startswith("_"):
-                phonA = combA
-                exprA = ""
+                phonA = ""
+                exprA = combA
             elif "_" in combA:
                 phonA, exprA = combA.split("_", 1)
+                exprA = "_" + exprA
             else:
                 phonA = combA
                 exprA = ""
             if combB.startswith("_"):
-                phonB = combB
-                exprB = ""
+                phonB = ""
+                exprB = combB
             elif "_" in combB:
                 phonB, exprB = combB.split("_", 1)
+                exprB = "_" + exprB
             else:
                 phonB = combB
                 exprB = ""
@@ -1038,7 +1046,6 @@ class AddAudioNode(NodeBase):
             #TODO: implement SLERP for phase portion of ESPERAudio
             result = A + B
             result[global_consts.halfHarms:global_consts.nHarmonics + 2] = A[global_consts.halfHarms:global_consts.nHarmonics + 2]
-            result[global_consts.frameSize:] = A[global_consts.frameSize:]
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1057,7 +1064,9 @@ class MixAudioNode(NodeBase):
         def func(self, A, B, Mix):
             mix = 0.5 * Mix + 0.5
             #TODO: implement SLERP for phase portion of ESPERAudio
-            return {"Result": A * (1. - mix) + B * mix}
+            result = A * (1. - mix) + B * mix
+            result[global_consts.halfHarms:global_consts.nHarmonics + 2] = A[global_consts.halfHarms:global_consts.nHarmonics + 2]
+            return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
     @staticmethod
@@ -1075,7 +1084,6 @@ class SubtractAudioNode(NodeBase):
         def func(self, A, B):
             result = torch.max(A - B, torch.zeros_like(A))
             result[global_consts.halfHarms:global_consts.nHarmonics + 2] = A[global_consts.halfHarms:global_consts.nHarmonics + 2]
-            result[global_consts.frameSize:] = A[global_consts.frameSize:]
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1127,7 +1135,7 @@ class SeparateVoicedUnvoicedNode(NodeBase):
             name = "Separate Voiced/Unvoiced"
         return [loc["n_audio"], name]
 
-class SamplerNode(NodeBase):
+"""class SamplerNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Record": "Bool", "Play": "Bool"}
         outputs = {"Result": "ESPERAudio"}
@@ -1163,25 +1171,47 @@ class SamplerNode(NodeBase):
             name = "Sampler"
         else:
             name = "Sampler"
-        return [loc["n_audio_adv"], name]
+        return [loc["n_audio_adv"], name]"""
 
 class ADSREnvelopeNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Trigger": "Bool", "Attack": "Float", "Decay": "Float", "Sustain": "ClampedFloat", "Release": "Float"}
         outputs = {"Result": "ClampedFloat"}
         def func(self, Trigger, Attack, Decay, Sustain, Release):
+            effSustain = 0.5 * Sustain + 0.5
             if Trigger:
-                self.state = 0
-            if self.state == 0:
-                self.state += Attack
-            elif self.state == 1:
-                self.state += Decay
-            elif self.state == 2:
-                self.state = Sustain
-            elif self.state == 3:
-                self.state += Release
-            return {"Result": self.state}
+                if self.state == "release":
+                    self.state = "attack"
+                if self.state == "attack":
+                    if Attack == 0.:
+                        self.output = 1.
+                        self.state = "decay"
+                    else:
+                        self.output += 1. / Attack / global_consts.tickRate
+                        if self.output >= 1.:
+                            self.output = 1.
+                            self.state = "decay"
+                if self.state == "decay":
+                    if Decay == 0.: 
+                        self.output = effSustain
+                        self.state = "sustain"
+                    else:
+                        self.output -= (1. - effSustain) / Decay / global_consts.tickRate
+                        if self.output <= effSustain:
+                            self.output = effSustain
+                            self.state = "sustain"
+            else:
+                self.state = "release"
+                if Release == 0.: 
+                    self.output = 0.
+                else:
+                    self.output -= effSustain / Release / global_consts.tickRate
+                    if self.output <= 0.:
+                        self.output = 0.
+            return {"Result": self.output}
         super().__init__(inputs, outputs, func, True, **kwargs)
+        self.output = 0.
+        self.state = "release"
     
     @staticmethod
     def name() -> str:
@@ -1322,6 +1352,7 @@ class PulseLFONode(NodeBase):
                 result = False
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
+        self.phase = -1.
     
     @staticmethod
     def name() -> str:
@@ -1749,7 +1780,7 @@ class GateNode(NodeBase):
             name = "IR Reverb"
         return [loc["n_fx"], name]"""
 
-class ReverbNode(NodeBase):
+"""class ReverbNode(NodeBase):
     def __init__(self, **kwargs) -> None:
         inputs = {"Audio": "ESPERAudio", "Wetness": "ClampedFloat", "Pre_Delay": "Float", "Length": "Float", "Damping": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
@@ -1778,7 +1809,7 @@ class ReverbNode(NodeBase):
             name = "Reverb"
         else:
             name = "Reverb"
-        return [loc["n_fx"], name]
+        return [loc["n_fx"], name]"""
 
 """class ChorusNode(NodeBase):
     def __init__(self, **kwargs) -> None:
