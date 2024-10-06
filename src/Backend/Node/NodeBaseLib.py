@@ -1547,31 +1547,28 @@ class CompressorNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Threshold": "Float", "Ratio": "ClampedFloat", "Attack": "Float", "Release": "Float"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Threshold, Ratio, Attack, Release):
-            threshold = decibelsToAmplitude(Threshold)
             ratio = -0.5 * Ratio + 0.5
             amplitude = (torch.sum(Audio[:global_consts.halfHarms]) + torch.sum(Audio[global_consts.nHarmonics + 2:global_consts.frameSize])) / 2.
             result = Audio.clone()
-            if amplitude > threshold and not self.active:
-                self.active = True
-                self.target = (threshold + (amplitude - threshold) * ratio) / amplitude
-                self.stepsLeft = int(250. * Attack)
-            elif amplitude < threshold and self.active:
-                self.active = False
-                self.target = 1.
-                self.stepsLeft = int(250. * Release)
-            if self.active and amplitude > self.target:
-                self.target = amplitude
-            if self.stepsLeft > 0:
-                self.current += (self.target - self.current) / self.stepsLeft
-                self.stepsLeft -= 1
-            result[:global_consts.halfHarms] *= self.current
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
+            if amplitude >= Threshold:
+                limiter = (Threshold + (amplitude - Threshold) * ratio) / amplitude - 1.
+            else:
+                limiter = 0.
+            if amplitude >= Threshold:
+                self.activation += 1. / (250. * Attack)
+                if self.activation >= 1.:
+                    self.activation = 1.
+            else:
+                self.activation -= 1. / (250. * Release)
+                if self.activation <= 0.:
+                    self.activation = 0.
+            multiplier = 1. + limiter * self.activation
+            print(amplitude, Threshold, limiter, self.activation, multiplier)
+            result[:global_consts.halfHarms] *= multiplier
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= multiplier
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
-        self.active = False
-        self.current = 1.
-        self.target = 1.
-        self.stepsLeft = 0
+        self.activation = 0.
     
     @staticmethod
     def name() -> str:
@@ -1586,30 +1583,27 @@ class LimiterNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Threshold": "Float", "Attack": "Float", "Release": "Float"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Threshold, Attack, Release):
-            threshold = decibelsToAmplitude(Threshold)
             amplitude = (torch.sum(Audio[:global_consts.halfHarms]) + torch.sum(Audio[global_consts.nHarmonics + 2:global_consts.frameSize])) / 2.
             result = Audio.clone()
-            if amplitude > threshold and not self.active:
-                self.active = True
-                self.target = threshold / amplitude
-                self.stepsLeft = int(250. * Attack)
-            elif amplitude < threshold and self.active:
-                self.active = False
-                self.target = 1.
-                self.stepsLeft = int(250. * Release)
-            if self.active and amplitude > self.target:
-                self.target = amplitude
-            if self.stepsLeft > 0:
-                self.current += (self.target - self.current) / self.stepsLeft
-                self.stepsLeft -= 1
-            result[:global_consts.halfHarms] *= self.current
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
+            if amplitude >= Threshold:
+                limiter = amplitude / Threshold - 1.
+            else:
+                limiter = 0.
+            if amplitude >= Threshold:
+                self.activation += 1. / (250. * Attack)
+                if self.activation >= 1.:
+                    self.activation = 1.
+            else:
+                self.activation -= 1. / (250. * Release)
+                if self.activation <= 0.:
+                    self.activation = 0.
+            multiplier = 1. + limiter * self.activation
+            print(amplitude, Threshold, limiter, self.activation, multiplier)
+            result[:global_consts.halfHarms] *= multiplier
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= multiplier
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
-        self.active = False
-        self.current = 1.
-        self.target = 1.
-        self.stepsLeft = 0
+        self.activation = 0.
     
     @staticmethod
     def name() -> str:
@@ -1624,31 +1618,28 @@ class ExpanderNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Threshold": "Float", "Ratio": "ClampedFloat", "Attack": "Float", "Release": "Float"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Threshold, Ratio, Attack, Release):
-            threshold = decibelsToAmplitude(Threshold)
-            ratio = Ratio + 1.
+            ratio = -0.5 * Ratio + 0.5
             amplitude = (torch.sum(Audio[:global_consts.halfHarms]) + torch.sum(Audio[global_consts.nHarmonics + 2:global_consts.frameSize])) / 2.
             result = Audio.clone()
-            if amplitude < threshold and not self.active:
-                self.active = True
-                self.target = (threshold + (amplitude - threshold) * ratio) / amplitude
-                self.stepsLeft = int(250. * Attack)
-            elif amplitude > threshold and self.active:
-                self.active = False
-                self.target = 1.
-                self.stepsLeft = int(250. * Release)
-            if self.active and amplitude < self.target:
-                self.target = amplitude
-            if self.stepsLeft > 0:
-                self.current += (self.target - self.current) / self.stepsLeft
-                self.stepsLeft -= 1
-            result[:global_consts.halfHarms] *= self.current
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
+            if amplitude <= Threshold:
+                limiter = ratio * (Threshold - amplitude) / Threshold
+            else:
+                limiter = 0.
+            if amplitude <= Threshold:
+                self.activation += 1. / (250. * Attack)
+                if self.activation >= 1.:
+                    self.activation = 1.
+            else:
+                self.activation -= 1. / (250. * Release)
+                if self.activation <= 0.:
+                    self.activation = 0.
+            multiplier = 1. + limiter * self.activation
+            print(amplitude, Threshold, limiter, self.activation, multiplier)
+            result[:global_consts.halfHarms] *= multiplier
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= multiplier
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
-        self.active = False
-        self.current = 1.
-        self.target = 1.
-        self.stepsLeft = 0
+        self.activation = 0.
     
     @staticmethod
     def name() -> str:
@@ -1663,28 +1654,27 @@ class GateNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Threshold": "Float", "Attack": "Float", "Release": "Float"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Threshold, Attack, Release):
-            threshold = decibelsToAmplitude(Threshold)
             amplitude = (torch.sum(Audio[:global_consts.halfHarms]) + torch.sum(Audio[global_consts.nHarmonics + 2:global_consts.frameSize])) / 2.
             result = Audio.clone()
-            if amplitude < threshold and not self.active:
-                self.active = True
-                self.target = 0.
-                self.stepsLeft = int(250. * Attack)
-            elif amplitude > threshold and self.active:
-                self.active = False
-                self.target = 1.
-                self.stepsLeft = int(250. * Release)
-            if self.stepsLeft > 0:
-                self.current += (self.target - self.current) / self.stepsLeft
-                self.stepsLeft -= 1
-            result[:global_consts.halfHarms] *= self.current
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= self.current
+            if amplitude <= Threshold:
+                limiter = 1.
+            else:
+                limiter = 0.
+            if amplitude <= Threshold:
+                self.activation += 1. / (250. * Attack)
+                if self.activation >= 1.:
+                    self.activation = 1.
+            else:
+                self.activation -= 1. / (250. * Release)
+                if self.activation <= 0.:
+                    self.activation = 0.
+            multiplier = 1. + limiter * self.activation
+            print(amplitude, Threshold, limiter, self.activation, multiplier)
+            result[:global_consts.halfHarms] *= multiplier
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= multiplier
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
-        self.active = False
-        self.current = 1.
-        self.target = 1.
-        self.stepsLeft = 0
+        self.activation = 0
     
     @staticmethod
     def name() -> str:
@@ -1818,17 +1808,25 @@ class GateNode(NodeBase):
         def func(self, Audio, Wetness, Voices, Depth, Rate):
             result = Audio[:global_consts.frameSize].clone()
             for i in range(Voices):
-                lfo = math.sin(self.phase + 2. * math.pi * i / Voices)
+                lfo = math.sin((self.phase + i / Voices) * 2. * math.pi)
                 voice = self.buffer.clone()
-                voice[:global_consts.nHarmonics + 2] = rebaseHarmonics(Audio[:global_consts.nHarmonics + 2], 1. + lfo * (0.5 + Depth * 0.4))
-                for _ in range(int(10. * lfo * Depth)):
+                voice[:global_consts.nHarmonics + 2] = rebaseHarmonics(Audio[:global_consts.nHarmonics + 2], 1. + lfo * (0.5 + Depth * 0.5))
+                for _ in range(int(10. * lfo * (0.5 + Depth * 0.5))):
                     voice[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], 1, 0)
                     voice[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], -1, 0)
-                result += voice
+                    
+                voice[global_consts.halfHarms + 1:global_consts.nHarmonics + 2] += torch.linspace(lfo * (0.5 + Depth * 0.5), lfo * (0.5 + Depth * 0.5) + (global_consts.halfHarms - 2) * (0.5 * Depth + 0.5), global_consts.halfHarms - 1)
+                oldPhases = Audio[global_consts.halfHarms:global_consts.nHarmonics + 2]
+                newPhases = voice[global_consts.halfHarms:global_consts.nHarmonics + 2]
+                multipliers = torch.cos(newPhases - oldPhases)
+                voice[:global_consts.halfHarms] *= multipliers
+                    
+                result += voice / Voices
             result *= (0.5 * Wetness + 0.5) / Voices
-            self.phase += 2. * math.pi * Rate / 250.
-            if self.phase >= 2. * math.pi:
-                self.phase -= 2. * math.pi
+            result += Audio[:global_consts.frameSize] * (0.5 - 0.5 * Wetness)
+            self.phase += Rate / 250. / Voices
+            if self.phase >= 1.:
+                self.phase -= 1.
             self.buffer = Audio[:global_consts.frameSize].clone()
             result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
@@ -1850,11 +1848,12 @@ class FlangerNode(NodeBase):
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Wetness, Shift):
             result = Audio[:global_consts.frameSize].clone()
-            result[:global_consts.nHarmonics + 2] = rebaseHarmonics(Audio[:global_consts.nHarmonics + 2], 1.1 + Shift)
+            result[:global_consts.nHarmonics + 2] = rebaseHarmonics(Audio[:global_consts.nHarmonics + 2], 1 + Shift)
             for _ in range(int(10. * Shift)):
                 result[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], 1, 0)
                 result[global_consts.nHarmonics + 2:global_consts.frameSize] += torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], -1, 0)
             result *= (0.5 * Wetness + 0.5)
+            result += Audio[:global_consts.frameSize] * (0.5 - 0.5 * Wetness)
             result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
@@ -1874,6 +1873,10 @@ class PhaserNode(NodeBase):
         def func(self, Audio, Shift, Scaling):
             result = Audio[:global_consts.frameSize].clone()
             result[global_consts.halfHarms + 1:global_consts.nHarmonics + 2] += torch.linspace(Shift, Shift + (global_consts.halfHarms - 2) * (0.5 * Scaling + 0.5), global_consts.halfHarms - 1)
+            oldPhases = Audio[global_consts.halfHarms:global_consts.nHarmonics + 2]
+            newPhases = result[global_consts.halfHarms:global_consts.nHarmonics + 2]
+            multipliers = torch.cos(newPhases - oldPhases)
+            result[:global_consts.halfHarms] *= multipliers
             result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
         super().__init__(inputs, outputs, func, True, **kwargs)
@@ -1892,16 +1895,17 @@ class DistortionNode(NodeBase):
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Gain, Width, Shape):
             result = Audio.clone()
+            gain = 1. + Gain
             for i in range(Width):
-                factor = (0.5 * Gain + 0.5) * (1 - i * (0.5 * Shape + 0.5) / Width)
+                factor = (0.5 * Gain + 0.5) / Width * (1 - i * (0.5 * Shape + 0.5))
                 addition = torch.roll(Audio[:global_consts.halfHarms], i, 0) * factor
                 addition[-i:] = 0.
                 result[:global_consts.halfHarms] += addition
                 addition = torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], i, 0) * factor
                 addition[-i:] = 0.
                 result[global_consts.nHarmonics + 2:global_consts.frameSize] += addition
-            result[:global_consts.halfHarms] *= Gain
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= Gain
+            result[:global_consts.halfHarms] *= gain
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= gain
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1937,14 +1941,16 @@ class FormantShiftNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Shift": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Shift):
-            result = Audio.clone() * (1. - abs(Shift))
+            result = Audio[:global_consts.frameSize].clone()
+            factor = harmonicToFreqBin(1, Audio[-1])
+            result *= (1. - abs(Shift))
             addition = torch.roll(Audio[:global_consts.halfHarms], int(math.ceil(Shift)), 0) * abs(Shift)
             addition[-int(math.ceil(Shift)):] = 0.
             result[:global_consts.halfHarms] += addition
-            factor = harmonicToFreqBin(1, result[-1])
             addition = torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], int(math.ceil(factor * Shift)), 0) * abs(Shift)
             addition[-int(math.ceil(factor * Shift)):] = 0.
             result[global_consts.nHarmonics + 2:global_consts.frameSize] += addition
+            result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1958,14 +1964,16 @@ class FormantShiftNode(NodeBase):
 
 class GrowlNode(NodeBase):
     def __init__(self, **kwargs) -> None:
-        inputs = {"Audio": "ESPERAudio", "Depth": "ClampedFloat", "Strength": "ClampedFloat"}
+        inputs = {"Audio": "ESPERAudio", "Rate": "ClampedFloat", "Strength": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
-        def func(self, Audio, Depth, Strength):
+        def func(self, Audio, Rate, Strength):
             result = Audio.clone()
-            phaseAdvance = 2. * math.pi / global_consts.tickRate * (70. - 30. * Depth)
+            phaseAdvance = 2. * math.pi / global_consts.tickRate * (15. - 10. * Rate)
             self.phase = (self.phase + phaseAdvance) % (2. * math.pi)
-            lfo = math.pow(math.sin(self.phase), 3) * Strength
-            result *= 1. + lfo 
+            exponent = 2. + random() * 4.
+            lfo = math.pow(abs(math.sin(self.phase)), exponent) * (0.5 * Strength + 0.5)
+            result[:global_consts.halfHarms] *= 1. + lfo
+            result[global_consts.nHarmonics + 2:global_consts.frameSize] *= 1. + lfo
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
         self.phase = 0.
@@ -1984,9 +1992,11 @@ class BrightnessNode(NodeBase):
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Brightness):
             result = Audio.clone()
+            #TODO: extract specharm from Audio tensor, then recombine after ESPER call
             specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
-            brightness_ptr = ctypes.cast(Brightness.data_ptr(), ctypes.POINTER(ctypes.c_float))
-            length = ctypes.cast(1, ctypes.c_int)
+            brightness = torch.tensor([Brightness], dtype = torch.float32)
+            brightness_ptr = ctypes.cast(brightness.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            length = ctypes.c_int(1)
             C_Bridge.esper.applyBrightness(specharm_ptr, brightness_ptr, length, global_consts.config)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
@@ -2006,8 +2016,9 @@ class RoughnessNode(NodeBase):
         def func(self, Audio, Roughness):
             result = Audio.clone()
             specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
-            roughness_ptr = ctypes.cast(Roughness.data_ptr(), ctypes.POINTER(ctypes.c_float))
-            length = ctypes.cast(1, ctypes.c_int)
+            roughness = torch.tensor([Roughness], dtype = torch.float32)
+            roughness_ptr = ctypes.cast(roughness.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            length = ctypes.c_int(1)
             C_Bridge.esper.applyRoughness(specharm_ptr, roughness_ptr, length, global_consts.config)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
@@ -2027,9 +2038,10 @@ class DynamicsNode(NodeBase):
         def func(self, Audio, Strength):
             result = Audio.clone()
             specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
-            strength_ptr = ctypes.cast(Strength.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            strength = torch.tensor([Strength], dtype = torch.float32)
+            strength_ptr = ctypes.cast(strength.data_ptr(), ctypes.POINTER(ctypes.c_float))
             pitch_ptr = ctypes.cast(result[-1].data_ptr(), ctypes.POINTER(ctypes.c_float))
-            length = ctypes.cast(1, ctypes.c_int)
+            length = ctypes.c_int(1)
             C_Bridge.esper.applyDynamics(specharm_ptr, strength_ptr, pitch_ptr, length, global_consts.config)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)

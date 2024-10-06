@@ -59,8 +59,8 @@ def decibelsToAmplitude(decibels:torch.Tensor) -> torch.Tensor:
 def rebaseHarmonics(harmonics:torch.Tensor, pitchFactor:float) -> torch.Tensor:
     """Utility function for rebasing harmonics to a different pitch."""
 
-    srcSpace = torch.linspace(0, global_consts.halfHarms - 1, global_consts.halfHarms )
-    tgtSpace = torch.linspace(0, (global_consts.halfHarms - 1) * pitchFactor, global_consts.halfHarms )
+    srcSpace = torch.linspace(0, global_consts.halfHarms - 1, global_consts.halfHarms)
+    tgtSpace = torch.linspace(0, (global_consts.halfHarms - 1) * pitchFactor, global_consts.halfHarms)
     input = torch.polar(harmonics[:global_consts.halfHarms], harmonics[global_consts.halfHarms:])
     output = torch.sum(input.unsqueeze(-1) * torch.sinc(srcSpace.unsqueeze(0) - tgtSpace.unsqueeze(1)), 0) #check if this is correct
     return torch.cat((output.real, output.imag), 0)

@@ -206,7 +206,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             inputList[change.data[0]].vibratoSpeed = ensureTensorLength(inputList[change.data[0]].vibratoSpeed, change.data[1], 0.)
             inputList[change.data[0]].vibratoStrength = ensureTensorLength(inputList[change.data[0]].vibratoStrength, change.data[1], 0.)
             for key in nodeGraphList[change.data[0]][1].keys():
-                inputList[change.data[0]][1][key]._value = ensureTensorLength(inputList[change.data[0]][1][key]._value, change.data[1], 0.)
+                nodeGraphList[change.data[0]][1][key]._value = ensureTensorLength(inputList[change.data[0]][1][key]._value, change.data[1], 0.)
         elif change.type == "changeNodegraph":
             nodeGraphList[change.data[0]] = unpackNodes(*change.data[1])
             statusControl[change.data[0]].ai *= 0
@@ -265,7 +265,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         pitchPart = pitch.read(start, end)
         if nodeOutput == None:
             return specPart, excitationPart, pitchPart
-        audio = torch.cat((specPart, excitationPart.real, excitationPart.imag, pitchPart.unsqueeze(1)), 1)
+        audio = torch.cat((specPart, excitationPart.real, excitationPart.imag, internalInputs.pitch[start:end].unsqueeze(1) + pitchPart.unsqueeze(1)), 1)
         output = torch.zeros_like(audio)
         length = audio.size()[0]
         for k in range(length):
@@ -295,7 +295,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 param.curve = nodeParamData[param.auxData["name"]]._value[start + k]
             nodeOutput.calculate()
             output[k] = nodeOutput.audio
-            output[k][-1] -= pitchPart[k]
+            output[k][-1] -= internalInputs.pitch[start + k]
             for node in nodeGraph[0]:
                 node.isUpdated = False
         excitation = torch.polar(output[:, global_consts.frameSize:global_consts.frameSize + global_consts.halfTripleBatchSize + 1],
