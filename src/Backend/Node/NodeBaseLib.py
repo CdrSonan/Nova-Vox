@@ -494,6 +494,9 @@ class DerivativeNode(NodeBase):
         else:
             name = "Derivative"
         return [loc["n_math"], name]
+    
+    def reset(self):
+        self.prevInput = 0.
 
 class IntegralNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -516,6 +519,9 @@ class IntegralNode(NodeBase):
         else:
             name = "Integral"
         return [loc["n_math"], name]
+    
+    def reset(self):
+        self.integral = 0.
 
 class FloatSmoothingNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -535,6 +541,9 @@ class FloatSmoothingNode(NodeBase):
         else:
             name = "Smoothing"
         return [loc["n_math"], name]
+    
+    def reset(self):
+        self.smoothed = 0.
 
 class RangeMapNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -578,6 +587,9 @@ class FloatDelayNode(NodeBase):
         else:
             name = "Delay"
         return [loc["n_math"], name]
+    
+    def reset(self):
+        self.delayBuffer = []
 
 class RNGNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -597,6 +609,9 @@ class RNGNode(NodeBase):
         else:
             name = "random number generator"
         return [loc["n_math"], name]
+    
+    def reset(self):
+        self.stored = random() * 2. - 1.
 
 class SwitchBoolNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -792,6 +807,9 @@ class PosFlankNode(NodeBase):
         else:
             name = "Positive Flank"
         return [loc["n_logic"], name]
+    
+    def reset(self):
+        self.prevInput = False
 
 class NegFlankNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -811,6 +829,9 @@ class NegFlankNode(NodeBase):
         else:
             name = "Negative Flank"
         return [loc["n_logic"], name]
+    
+    def reset(self):
+        self.prevInput = False
 
 class FlipflopNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -829,6 +850,9 @@ class FlipflopNode(NodeBase):
         else:
             name = "Flip-Flop"
         return [loc["n_logic"], name]
+    
+    def reset(self):
+        self.state = False
 
 class BoolDelayNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -853,6 +877,9 @@ class BoolDelayNode(NodeBase):
         else:
             name = "Delay"
         return [loc["n_logic"], name]
+    
+    def reset(self):
+        self.delayBuffer = []
 
 class PhonemeInListNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -960,6 +987,9 @@ class PhonemeDelayNode(NodeBase):
         else:
             name = "Phoneme Delay"
         return [loc["n_phonetics"], name]
+    
+    def reset(self):
+        self.delayBuffer = []
 
 class AudioSmoothingNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -979,6 +1009,9 @@ class AudioSmoothingNode(NodeBase):
         else:
             name = "Smoothing"
         return [loc["n_audio"], name]
+    
+    def reset(self):
+        self.smoothed = torch.zeros([global_consts.frameSize + global_consts.tripleBatchSize + 3,])
 
 class AudioDelayNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1220,6 +1253,10 @@ class ADSREnvelopeNode(NodeBase):
         else:
             name = "ADSR Envelope"
         return [loc["n_audio_adv"], name]
+    
+    def reset(self):
+        self.output = 0.
+        self.state = "release"
 
 class SineLFONode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1242,6 +1279,9 @@ class SineLFONode(NodeBase):
         else:
             name = "Sine LFO"
         return [loc["n_LFO"], name]
+    
+    def reset(self):
+        self.phase = -1.
 
 class SquareLFONode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1264,6 +1304,9 @@ class SquareLFONode(NodeBase):
         else:
             name = "Square LFO"
         return [loc["n_LFO"], name]
+    
+    def reset(self):
+        self.phase = -1.
 
 class SawLFONode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1286,6 +1329,9 @@ class SawLFONode(NodeBase):
         else:
             name = "Saw LFO"
         return [loc["n_LFO"], name]
+    
+    def reset(self):
+        self.phase = -1.
 
 class InvSawLFONode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1308,6 +1354,9 @@ class InvSawLFONode(NodeBase):
         else:
             name = "Inverted Saw LFO"
         return [loc["n_LFO"], name]
+    
+    def reset(self):
+        self.phase = -1.
 
 class TriangleLFONode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1336,6 +1385,9 @@ class TriangleLFONode(NodeBase):
         else:
             name = "Triangle LFO"
         return [loc["n_LFO"], name]
+    
+    def reset(self):
+        self.phase = -1.
 
 class PulseLFONode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1361,6 +1413,9 @@ class PulseLFONode(NodeBase):
         else:
             name = "Pulse LFO"
         return [loc["n_LFO"], name]
+    
+    def reset(self):
+        self.phase = -1.
 
 class HighpassNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1577,6 +1632,9 @@ class CompressorNode(NodeBase):
         else:
             name = "Compressor"
         return [loc["n_eq"], name]
+    
+    def reset(self):
+        self.activation = 0.
 
 class LimiterNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1612,6 +1670,9 @@ class LimiterNode(NodeBase):
         else:
             name = "Limiter"
         return [loc["n_eq"], name]
+    
+    def reset(self):
+        self.activation = 0.
 
 class ExpanderNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1648,6 +1709,9 @@ class ExpanderNode(NodeBase):
         else:
             name = "Expander"
         return [loc["n_eq"], name]
+    
+    def reset(self):
+        self.activation = 0.
 
 class GateNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1683,6 +1747,9 @@ class GateNode(NodeBase):
         else:
             name = "Gate"
         return [loc["n_eq"], name]
+    
+    def reset(self):
+        self.activation = 0
 
 """class IRConvolutionNode(NodeBase):
     def __init__(self, **kwargs) -> None:
@@ -1856,7 +1923,7 @@ class FlangerNode(NodeBase):
             result += Audio[:global_consts.frameSize] * (0.5 - 0.5 * Wetness)
             result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
-        super().__init__(inputs, outputs, func, True, **kwargs)
+        super().__init__(inputs, outputs, func, False, **kwargs)
     
     @staticmethod
     def name() -> str:
@@ -1879,7 +1946,7 @@ class PhaserNode(NodeBase):
             result[:global_consts.halfHarms] *= multipliers
             result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
-        super().__init__(inputs, outputs, func, True, **kwargs)
+        super().__init__(inputs, outputs, func, False, **kwargs)
     
     @staticmethod
     def name() -> str:
@@ -1991,13 +2058,15 @@ class BrightnessNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Brightness": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Brightness):
-            result = Audio.clone()
+            result = Audio[:global_consts.frameSize].clone()
             #TODO: extract specharm from Audio tensor, then recombine after ESPER call
             specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
             brightness = torch.tensor([Brightness], dtype = torch.float32)
             brightness_ptr = ctypes.cast(brightness.data_ptr(), ctypes.POINTER(ctypes.c_float))
             length = ctypes.c_int(1)
             C_Bridge.esper.applyBrightness(specharm_ptr, brightness_ptr, length, global_consts.config)
+            result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
+            print(result.isnan().any())
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -2014,12 +2083,13 @@ class RoughnessNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Roughness": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Roughness):
-            result = Audio.clone()
+            result = Audio[:global_consts.frameSize].clone()
             specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
             roughness = torch.tensor([Roughness], dtype = torch.float32)
             roughness_ptr = ctypes.cast(roughness.data_ptr(), ctypes.POINTER(ctypes.c_float))
             length = ctypes.c_int(1)
             C_Bridge.esper.applyRoughness(specharm_ptr, roughness_ptr, length, global_consts.config)
+            result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -2036,13 +2106,14 @@ class DynamicsNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Strength": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Strength):
-            result = Audio.clone()
+            result = Audio[:global_consts.frameSize].clone()
             specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
             strength = torch.tensor([Strength], dtype = torch.float32)
             strength_ptr = ctypes.cast(strength.data_ptr(), ctypes.POINTER(ctypes.c_float))
             pitch_ptr = ctypes.cast(result[-1].data_ptr(), ctypes.POINTER(ctypes.c_float))
             length = ctypes.c_int(1)
             C_Bridge.esper.applyDynamics(specharm_ptr, strength_ptr, pitch_ptr, length, global_consts.config)
+            result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
