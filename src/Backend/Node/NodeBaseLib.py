@@ -2008,15 +2008,22 @@ class FormantShiftNode(NodeBase):
         inputs = {"Audio": "ESPERAudio", "Shift": "ClampedFloat"}
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Shift):
+            if Shift == 0.:
+                return {"Result": Audio.clone()}
             result = Audio[:global_consts.frameSize].clone()
-            factor = harmonicToFreqBin(1, Audio[-1])
-            result *= (1. - abs(Shift))
-            addition = torch.roll(Audio[:global_consts.halfHarms], int(math.ceil(Shift)), 0) * abs(Shift)
-            addition[-int(math.ceil(Shift)):] = 0.
-            result[:global_consts.halfHarms] += addition
-            addition = torch.roll(Audio[global_consts.nHarmonics + 2:global_consts.frameSize], int(math.ceil(factor * Shift)), 0) * abs(Shift)
-            addition[-int(math.ceil(factor * Shift)):] = 0.
-            result[global_consts.nHarmonics + 2:global_consts.frameSize] += addition
+            srcPitch = torch.tensor([Audio[-1]], dtype = torch.float32)
+            if Shift > 0.:
+                tgtPitch = torch.tensor([Audio[-1] * (1. + Shift)], dtype = torch.float32)
+            else:
+                tgtPitch = torch.tensor([Audio[-1] * (1. + 0.5 * Shift)], dtype = torch.float32)
+            formantShift = torch.tensor([0], dtype = torch.float32)
+            breathiness = torch.tensor([0], dtype = torch.float32)
+            specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            srcPitch_ptr = ctypes.cast(srcPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            tgtPitch_ptr = ctypes.cast(tgtPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            formantShift_ptr = ctypes.cast(formantShift.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            breathiness_ptr = ctypes.cast(breathiness.data_ptr(), ctypes.POINTER(ctypes.c_float))
+            C_Bridge.esper.pitchShift(specharm_ptr, srcPitch_ptr, tgtPitch_ptr, formantShift_ptr, breathiness_ptr, ctypes.c_int(1), global_consts.config)
             result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
@@ -2066,7 +2073,6 @@ class BrightnessNode(NodeBase):
             length = ctypes.c_int(1)
             C_Bridge.esper.applyBrightness(specharm_ptr, brightness_ptr, length, global_consts.config)
             result = torch.cat((result, Audio[global_consts.frameSize:]), 0)
-            print(result.isnan().any())
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
