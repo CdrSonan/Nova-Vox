@@ -49,7 +49,7 @@ class InputNode(NodeBase):
                    "Vibrato_Strengh": self.vibratoStrengh,
                    "Vibrato_Speed": self.vibratoSpeed,}
         super().__init__(inputs, outputs, func, True, **kwargs)
-        self.audio = torch.zeros([global_consts.frameSize + global_consts.tripleBatchSize + 3,])
+        self.audio = torch.zeros([global_consts.frameSize + 1,])
         self.phoneme = ("_0", "_0", 0.5)
         self.pitch = 100.
         self.transition = 0.
@@ -96,7 +96,7 @@ class OutputNode(NodeBase):
             self.audio = Audio
             return {}
         super().__init__(inputs, outputs, func, False, **kwargs)
-        self.audio = torch.empty([global_consts.frameSize + global_consts.tripleBatchSize + 3])
+        self.audio = torch.empty([global_consts.frameSize + 1,])
     
     @staticmethod
     def name() -> str:
@@ -1079,6 +1079,7 @@ class AddAudioNode(NodeBase):
             #TODO: implement SLERP for phase portion of ESPERAudio
             result = A + B
             result[global_consts.halfHarms:global_consts.nHarmonics + 2] = A[global_consts.halfHarms:global_consts.nHarmonics + 2]
+            result[-1] = A[-1]
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1098,7 +1099,6 @@ class MixAudioNode(NodeBase):
             mix = 0.5 * Mix + 0.5
             #TODO: implement SLERP for phase portion of ESPERAudio
             result = A * (1. - mix) + B * mix
-            result[global_consts.halfHarms:global_consts.nHarmonics + 2] = A[global_consts.halfHarms:global_consts.nHarmonics + 2]
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1117,6 +1117,7 @@ class SubtractAudioNode(NodeBase):
         def func(self, A, B):
             result = torch.max(A - B, torch.zeros_like(A))
             result[global_consts.halfHarms:global_consts.nHarmonics + 2] = A[global_consts.halfHarms:global_consts.nHarmonics + 2]
+            result[-1] = A[-1]
             return {"Result": result}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -1157,6 +1158,7 @@ class SeparateVoicedUnvoicedNode(NodeBase):
             voiced[:global_consts.nHarmonics + 2] = Audio[:global_consts.nHarmonics + 2]
             voiced[-1] = Audio[-1]
             unvoiced[global_consts.nHarmonics + 2:] = Audio[global_consts.nHarmonics + 2:]
+            unvoiced[-1] = Audio[-1]
             return {"Voiced": voiced, "Unvoiced": unvoiced}
         super().__init__(inputs, outputs, func, False, **kwargs)
     
@@ -2066,7 +2068,6 @@ class BrightnessNode(NodeBase):
         outputs = {"Result": "ESPERAudio"}
         def func(self, Audio, Brightness):
             result = Audio[:global_consts.frameSize].clone()
-            #TODO: extract specharm from Audio tensor, then recombine after ESPER call
             specharm_ptr = ctypes.cast(result.data_ptr(), ctypes.POINTER(ctypes.c_float))
             brightness = torch.tensor([Brightness], dtype = torch.float32)
             brightness_ptr = ctypes.cast(brightness.data_ptr(), ctypes.POINTER(ctypes.c_float))

@@ -29,7 +29,7 @@ from Backend.ESPER.SpectralCalculator import asyncProcess
 from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
-input_dim = global_consts.halfTripleBatchSize + halfHarms + 1
+input_dim = global_consts.frameSize
 
 def dataLoader_collate(data):
     return data[0]
@@ -258,54 +258,22 @@ class DataGenerator(IterableDataset):
     def crfWrapper(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int):
         self.crfAi.eval()
         self.crfAi.requires_grad_(False)
-        phase1 = specharm1[halfHarms:2 * halfHarms]
-        phase2 = specharm2[halfHarms:2 * halfHarms]
-        phase3 = specharm3[halfHarms:2 * halfHarms]
-        phase4 = specharm4[halfHarms:2 * halfHarms]
-        spectrum1 = specharm1[2 * halfHarms:]
-        spectrum2 = specharm2[2 * halfHarms:]
-        spectrum3 = specharm3[2 * halfHarms:]
-        spectrum4 = specharm4[2 * halfHarms:]
-        harm1 = specharm1[:halfHarms]
-        harm2 = specharm2[:halfHarms]
-        harm3 = specharm3[:halfHarms]
-        harm4 = specharm4[:halfHarms]
         factor = log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.crfAi.device), factor)
         embedding1 = dec2bin(torch.tensor(embedding1, device = self.crfAi.device), 32)
         embedding2 = dec2bin(torch.tensor(embedding2, device = self.crfAi.device), 32)
-        spectrum = torch.squeeze(self.crfAi(spectrum1, spectrum2, spectrum3, spectrum4, embedding1, embedding2, factor)).transpose(0, 1)
-        #for i in self.defectiveCrfBins:
-        #    spectrum[:, i] = torch.mean(torch.cat((spectrum[:, i - 1].unsqueeze(1), spectrum[:, i + 1].unsqueeze(1)), 1), 1)
+        specharm = torch.squeeze(self.crfAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor)).transpose(0, 1)
+        for i in self.defectiveCrfBins:
+            specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
         borderRange = torch.zeros((outputSize,), device = self.crfAi.device)
         borderLimit = min(global_consts.crfBorderAbs, ceil(outputSize * global_consts.crfBorderRel))
         borderRange[:borderLimit] = torch.linspace(1, 0, borderLimit, device = self.crfAi.device)
-        spectrum *= (1. - borderRange.unsqueeze(1))
-        spectrum += torch.matmul(borderRange.unsqueeze(1), ((spectrum1 + spectrum2) / 2).unsqueeze(0))
+        specharm *= (1. - borderRange.unsqueeze(1))
+        specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm1 + specharm2) / 2).unsqueeze(0))
         borderRange = torch.flip(borderRange, (0,))
-        spectrum *= (1. - borderRange.unsqueeze(1))
-        spectrum += torch.matmul(borderRange.unsqueeze(1), ((spectrum3 + spectrum4) / 2).unsqueeze(0))
-        phases = torch.empty(outputSize, phase1.size()[0], device = self.crfAi.device)
-        nativePitch = ceil(global_consts.tripleBatchSize / pitchCurve[0])
-        originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1, device = self.crfAi.device), torch.tensor([global_consts.halfTripleBatchSize,], device = self.crfAi.device))
-        factors = interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = self.crfAi.device), (spectrum1 + spectrum2) / 2, originSpace)
-        harmsStart = (harm1 + harm2) * 0.5 / factors
-        nativePitch = ceil(global_consts.tripleBatchSize / pitchCurve[-1])
-        originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1, device = self.crfAi.device), torch.tensor([global_consts.halfTripleBatchSize,], device = self.crfAi.device))
-        factors = interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = self.crfAi.device), (spectrum3 + spectrum4) / 2, originSpace)
-        harmsEnd = (harm3 + harm4) * 0.5 / factors
-        harms = torch.empty((outputSize, halfHarms), device = self.crfAi.device)
-        harmLimit = torch.max(torch.cat((harm1.unsqueeze(1), harm2.unsqueeze(1), harm3.unsqueeze(1), harm4.unsqueeze(1)), 1))
-        for i in range(outputSize):
-            phases[i] = phaseInterp(phaseInterp(phase1, phase2, 0.5), phaseInterp(phase3, phase4, 0.5), i / (outputSize - 1))
-            nativePitch = ceil(global_consts.tripleBatchSize / pitchCurve[i])
-            originSpace = torch.min(torch.linspace(nativePitch, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1, device = self.crfAi.device), torch.tensor([global_consts.halfTripleBatchSize,], device = self.crfAi.device))
-            factors = interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = self.crfAi.device), spectrum[i], originSpace)
-            harms[i] = ((1. - (i + 1) / (outputSize + 1)) * harmsStart + (i + 1) / (outputSize + 1) * harmsEnd) * factors
-            harms[i] = torch.min(harms[i], harmLimit)
-            harms[i] = torch.max(harms[i], torch.tensor([0.,], device = self.crfAi.device))
-        output = torch.cat((harms, phases, spectrum), 1)
-        return output
+        specharm *= (1. - borderRange.unsqueeze(1))
+        specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm3 + specharm4) / 2).unsqueeze(0))
+        return specharm
     
     
     

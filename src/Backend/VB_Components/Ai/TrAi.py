@@ -58,19 +58,19 @@ class TrAi(nn.Module):
             
             
         super(TrAi, self).__init__()
-        self.layerStart1a = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, batch_first = True, device = device)
-        self.layerStart1b = nn.RNN(input_size = 3 * global_consts.halfTripleBatchSize + 3, hidden_size = 2 * global_consts.halfTripleBatchSize + 2, num_layers = 1, batch_first = True, device = device)
+        self.layerStart1a = nn.RNN(input_size = 3 * global_consts.frameSize, hidden_size = 2 * global_consts.frameSize, num_layers = 1, batch_first = True, device = device)
+        self.layerStart1b = nn.RNN(input_size = 3 * global_consts.frameSize, hidden_size = 2 * global_consts.frameSize, num_layers = 1, batch_first = True, device = device)
         self.ReLuStart1 = nn.ReLU()
-        self.layerStart2 = torch.nn.Linear(4 * global_consts.halfTripleBatchSize + 4, hiddenLayerSize, device = device, bias = False)
+        self.layerStart2 = torch.nn.Linear(4 * global_consts.frameSize, hiddenLayerSize, device = device, bias = False)
         self.ReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
             hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(hiddenLayerSize, hiddenLayerSize, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd1 = torch.nn.Linear(hiddenLayerSize, int(hiddenLayerSize / 2 + global_consts.halfTripleBatchSize / 2), device = device)
+        self.layerEnd1 = torch.nn.Linear(hiddenLayerSize, int(hiddenLayerSize / 2 + global_consts.frameSize / 2), device = device)
         self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(int(hiddenLayerSize / 2 + global_consts.halfTripleBatchSize / 2), global_consts.halfTripleBatchSize + 1, device = device)
+        self.layerEnd2 = torch.nn.Linear(int(hiddenLayerSize / 2 + global_consts.frameSize / 2), global_consts.frameSize, device = device)
         self.ReLuEnd2 = nn.ReLU()
         
         self.threshold = torch.nn.Threshold(0.001, 0.001)
@@ -102,7 +102,7 @@ class TrAi(nn.Module):
             Tensor object representing the NN output"""
         
         outputSize = factor.size()[0]
-        factor = torch.tile(factor.unsqueeze(-1).unsqueeze(-1), (1, 1, global_consts.halfTripleBatchSize + 1))
+        factor = torch.tile(factor.unsqueeze(-1).unsqueeze(-1), (1, 1, global_consts.frameSize))
         spectrum1 = torch.unsqueeze(spectrum1.to(self.device), 0)
         spectrum2 = torch.unsqueeze(spectrum2.to(self.device), 0)
         spectrum3 = torch.unsqueeze(spectrum3.to(self.device), 0)
@@ -112,15 +112,15 @@ class TrAi(nn.Module):
         spectrum1tile = torch.tile(spectrum1.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum2tile = torch.tile(spectrum2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum3tile = torch.tile(spectrum3.unsqueeze(0), (outputSize, 1, 1)) * factor
-        spectrum4tile = torch.tile(spectrum4.unsqueeze(0), (outputSize, 1, 1)) * factor#outputSize, 5, hTBS
-        embedding = torch.cat((factor[:, :, :global_consts.halfTripleBatchSize + 1 - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
+        spectrum4tile = torch.tile(spectrum4.unsqueeze(0), (outputSize, 1, 1)) * factor
+        embedding = torch.cat((factor[:, :, :global_consts.frameSize - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
         x = torch.cat((spectrum3tile, spectrum4tile, embedding), dim = 1)
         x = x.float()
         x = torch.flatten(x, 1)
         x = x.unsqueeze(0)
         state = torch.flatten(torch.cat((spectrum1, spectrum2), 1), 1).unsqueeze(0)
         x, state = self.layerStart1a(x, state)
-        embedding = torch.cat((1. - factor[:, :, :global_consts.halfTripleBatchSize + 1 - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
+        embedding = torch.cat((1. - factor[:, :, :global_consts.frameSize - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
         y = torch.cat((spectrum1tile, spectrum2tile, embedding), dim = 1)
         y = y.float()
         y = torch.flatten(y, 1)
