@@ -1,4 +1,4 @@
-#Copyright 2022 Contributors to the Nova-Vox project
+#Copyright 2022, 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -6,7 +6,7 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 import torch
-from Backend.NV_Multiprocessing.Interface import SequenceStatusControl
+from Backend.Node.NodeBaseLib import getNodeCls, OutputNode
 
 def trimSequence(index:int, position:int, delta:int, inputList:list, statusControl:list) -> tuple([list, list]):
     """Function used for adding to or removing phonemes from a VocalSequence. Automatically updates control structures and schedules updates as required
@@ -87,3 +87,35 @@ def posToSegment(index:int, pos1:float, pos2:float, inputList:list) -> tuple([in
             pos2Out = max(i, 0)
             break
     return (pos1Out, pos2Out)
+
+class NodeParam:
+    def __init__(self, value, enabled = True):
+        self._value = value
+        self.enabled = enabled
+
+def unpackNodes(nodeList:list, paramList:list) -> list:
+    """Function used to unpack a list of Node objects into a list of dictionaries, for serialization and transmission to the rendering process.
+    
+    Arguments:
+        nodeList: list of Node objects to be unpacked.
+    
+    Returns:
+        a List of NodeBase objects, representing the graph structure of the nodes in nodeList.
+    """
+    
+    nodes = []
+    for nodeInfo in nodeList:
+        nodes.append(getNodeCls(nodeInfo["type"])())
+    for node, nodeInfo in zip(nodes, nodeList):
+        for key, i in nodeInfo["inputs"].items():
+            node.inputs[key]._value = i[1]
+            if i[0]:
+                node.inputs[key].attachedTo = nodes[i[2]].outputs[i[3]]
+        for key, i in nodeInfo["outputs"].items():
+            node.outputs[key]._value = i
+        for key, i in nodeInfo["auxData"].items():
+            node.auxData[key] = i
+    for node in nodes:
+        if isinstance(node, OutputNode):
+            node.checkStatic()
+    return nodes, {key: NodeParam(*value) for key, value in paramList.items()}

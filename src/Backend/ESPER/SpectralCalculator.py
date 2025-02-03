@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -7,15 +7,13 @@
 
 import torch
 from math import floor
-import ctypes
-from time import sleep
 
 import C_Bridge
 import global_consts
 from Backend.DataHandler.AudioSample import AudioSample
-from Backend.ESPER.SpecCalcComponents import finalizeSpectra, separateVoicedUnvoiced, lowRangeSmooth, highRangeSmooth, averageSpectra
+from Backend.ESPER.PitchCalculator import calculatePitch
 
-def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
+def calculateSpectra(audioSample:AudioSample, useVariance:bool = True, allow_oop:bool = True) -> None:
     """Method for calculating spectral data based on the previously set attributes filterWidth, voicedFilter and unvoicedIterations.
         
     Arguments:
@@ -39,30 +37,30 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
 
 
     batches = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
+    #audioSample.waveform = torch.sin(torch.linspace(0, 2 * 3.14159265358979323846 * audioSample.waveform.size()[0] / 200, audioSample.waveform.size()[0], device = audioSample.waveform.device)) + 0.95
     audioSample.excitation = torch.zeros([2 * batches * (global_consts.halfTripleBatchSize + 1)], dtype = torch.float)
     audioSample.specharm = torch.zeros([batches, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3], dtype = torch.float)
     audioSample.avgSpecharm = torch.zeros([int(global_consts.nHarmonics / 2) + global_consts.halfTripleBatchSize + 2], dtype = torch.float)
-    cSample = C_Bridge.makeCSample(audioSample, useVariance)
+    cSample = C_Bridge.makeCSample(audioSample, useVariance, allow_oop)
     C_Bridge.esper.specCalc(cSample, global_consts.config)
     audioSample.excitation = torch.complex(audioSample.excitation[:batches * (global_consts.halfTripleBatchSize + 1)], audioSample.excitation[batches * (global_consts.halfTripleBatchSize + 1):])
     audioSample.excitation = audioSample.excitation.reshape((batches, global_consts.halfTripleBatchSize + 1))
-    """extSpecharm = audioSample.specharm.clone()
-    extAvgSpecharm = audioSample.avgSpecharm.clone()
-    extExcitation = audioSample.excitation.clone()
-    calculateSpectra_legacy(audioSample, useVariance)
-    audioSample.specharm -= extSpecharm
-    audioSample.avgSpecharm -= extAvgSpecharm
-    audioSample.excitation -= extExcitation"""
 
-def calculateSpectra(audioSample:AudioSample, useVariance:bool = True) -> None:
-    length = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
-    audioSample.excitation = torch.zeros((length, global_consts.halfTripleBatchSize + 1), dtype = torch.complex64, device = audioSample.waveform.device)
-    audioSample.specharm = torch.zeros((length, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3), device = audioSample.waveform.device)
-    signalsAbs = torch.stft(audioSample.waveform, global_consts.tripleBatchSize, global_consts.batchSize, global_consts.tripleBatchSize, torch.hann_window(global_consts.tripleBatchSize, device = audioSample.waveform.device), return_complex = True)
-    signalsAbs = torch.sqrt(signalsAbs.transpose(0, 1).abs())
-    lowSpectra = lowRangeSmooth(audioSample, signalsAbs)
-    highSpectra = highRangeSmooth(audioSample, signalsAbs)
-    audioSample = finalizeSpectra(audioSample, lowSpectra, highSpectra)
-    audioSample = separateVoicedUnvoiced(audioSample)
-    audioSample = averageSpectra(audioSample, useVariance)
-    #audioSample.avgSpecharm = torch.zeros_like(audioSample.avgSpecharm)
+def processWorker(input, output, useVariance, allow_oop):
+    while True:
+        sample = input.get()
+        if sample is None:
+            break
+        calculatePitch(sample)
+        calculateSpectra(sample, useVariance, allow_oop)
+        output.put(sample)
+
+def asyncProcess(useVariance, allow_oop):
+    inputQueue = torch.multiprocessing.Queue()
+    outputQueue = torch.multiprocessing.Queue()
+    processes = []
+    for _ in range(torch.multiprocessing.cpu_count()):
+        p = torch.multiprocessing.Process(target = processWorker, args = (inputQueue, outputQueue, useVariance, allow_oop))
+        p.start()
+        processes.append(p)
+    return inputQueue, outputQueue, processes

@@ -1,4 +1,4 @@
-# Copyright 2022, 2023 Contributors to the Nova-Vox project
+# Copyright 2022-2024 Contributors to the Nova-Vox project
 
 # This file is part of Nova-Vox.
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -9,7 +9,9 @@ from copy import copy
 
 from MiddleLayer.DataHandlers import Note, NoteContext
 import global_consts
+from API.Addon import override
 
+@override
 def calculateBorders(note:Note, context:NoteContext) -> None:
     phonemes = copy(note.phonemes)
         #handle delegate logic
@@ -40,7 +42,10 @@ def calculateBorders(note:Note, context:NoteContext) -> None:
     if context.preutterance:
         mainBorders.insert(0, context.start - context.preutterance)
         leadingBorders.insert(0, context.start - min(global_consts.refTransitionLength, context.preutterance * global_consts.refTransitionFrac))
-        trailingBorders.insert(0, context.start - context.preutterance + min(global_consts.refTransitionLength, context.preutterance * global_consts.refTransitionFrac))
+        if len(phonemes) > 0:
+            trailingBorders.insert(0, context.start - context.preutterance + min(global_consts.refTransitionLength, context.preutterance * global_consts.refTransitionFrac))
+        else:
+            trailingBorders.insert(0, context.end - context.preutterance + global_consts.refTransitionLength)
     if context.trailingAutopause:
         mainBorders.append(context.trailingAutopause)
         leadingBorders.append(context.trailingAutopause - min(global_consts.refTransitionLength, (context.trailingAutopause - context.end) * global_consts.refTransitionFrac))

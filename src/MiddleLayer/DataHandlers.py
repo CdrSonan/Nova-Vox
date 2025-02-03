@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -15,23 +15,35 @@ from Util import ensureTensorLength, noteToPitch
 class Nodegraph():
     def __init__(self) -> None:
         self.nodes = []
-        #self.nodes[1].connect()#TODO:finish
         self.params = dict()
+    
+    def addNode(self, node):
+        self.nodes.append(node)
+    
+    def removeNode(self, node):
+        for i in node.inputs.values():
+            i.detach()
+        for i in node.outputs.values():
+            i.detach()
+        self.nodes.remove(node)
 
     def pack(self):
+        packedNodes = []
+        bases = [k.base for k in self.nodes]
         for i in self.nodes:
-            i.pack()
-
-    def unpack(self):
-        for i in self.nodes:
-            i.unpack()
-
-class Parameter():
-    """class for holding and managing a parameter curve as seen by the main process. Exact layout will change with node tree implementation."""
-
-    def __init__(self, path:str) -> None:
-        self.curve = torch.full([5000], 0)
-        self.enabled = True
+            packedNodes.append(dict())
+            packedNodes[-1]["type"] = i.base.__class__.__name__
+            packedNodes[-1]["auxData"] = i.base.auxData
+            packedNodes[-1]["inputs"] = dict()
+            for j in i.inputs.keys():
+                if i.inputs[j].base.attachedTo is None:
+                    packedNodes[-1]["inputs"][j] = (False, i.inputs[j].base._value)
+                else:
+                    packedNodes[-1]["inputs"][j] = (True, i.inputs[j].base._value, bases.index(i.inputs[j].base.attachedTo.node), i.inputs[j].base.attachedTo.name)
+            packedNodes[-1]["outputs"] = dict()
+            for j in i.outputs.keys():
+                packedNodes[-1]["outputs"][j] = i.outputs[j].base._value
+        return packedNodes, {i: (j.curve, j.enabled) for i, j in self.params.items()}
 
 class Track():
     """class for holding and managing a vocal track as seen by the main process. Contains all settings required for processing on the main process.
@@ -60,6 +72,7 @@ class Track():
         self.breathiness = torch.full((5000,), 0, dtype = torch.half)
         self.steadiness = torch.full((5000,), 0, dtype = torch.half)
         self.aiBalance = torch.full((5000,), 0, dtype = torch.half)
+        self.genderFactor = torch.full((5000,), 0, dtype = torch.half)
         self.loopOverlap = LoopProxy(self, "overlap")
         self.loopOffset = LoopProxy(self, "offset")
         self.vibratoSpeed = torch.full((5000,), 0, dtype = torch.half)
@@ -68,19 +81,22 @@ class Track():
         self.useBreathiness = True
         self.useSteadiness = True
         self.useAIBalance = True
+        self.useGenderFactor = True
         self.useVibratoSpeed = True
         self.useVibratoStrength = True
         self.pauseThreshold = 100
+        self.unvoicedShift = 0
         self.mixinVB = None
         self.nodegraph = Nodegraph()
         self.borders = BorderProxy(self)
         self.offsets = []
         self.length = 5000
         self.phonemeLengths = dict()
-        tmpVb = LiteVoicebank(self.vbPath)
-        for i in tmpVb.phonemeDict.keys():
-            if tmpVb.phonemeDict[i][0].isPlosive:
-                self.phonemeLengths[i] = tmpVb.phonemeDict[i][0].specharm.size()[0]
+        tmpVb = LiteVoicebank(None)
+        tmpVb.loadPhonemeDict(self.vbPath, False)
+        for i in tmpVb.phonemeDict.keys:
+            if tmpVb.phonemeDict.fetch(i, True)[0].isPlosive:
+                self.phonemeLengths[i] = tmpVb.phonemeDict.fetch(i, True)[0].specharm.size()[0]
             else:
                 self.phonemeLengths[i] = None
             self.wordDict = tmpVb.wordDict
@@ -96,17 +112,20 @@ class Track():
             self.breathiness.size()[0],
             self.steadiness.size()[0],
             self.aiBalance.size()[0],
+            self.genderFactor.size()[0],
             self.vibratoSpeed.size()[0],
             self.vibratoStrength.size()[0]
         )
         self.volume = max(self.volume, 0.)
         self.volume = min(self.volume, 1.2)
         self.pauseThreshold = max(self.pauseThreshold, 0)
+        self.unvoicedShift = min(max(self.unvoicedShift, 0), 1)
         self.pitch = ensureTensorLength(self.pitch, self.length, -1)
         self.basePitch = ensureTensorLength(self.basePitch, self.length, -1)
         self.breathiness = ensureTensorLength(self.breathiness, self.length, 0)
         self.steadiness = ensureTensorLength(self.steadiness, self.length, 0)
         self.aiBalance = ensureTensorLength(self.aiBalance, self.length, 0)
+        self.genderFactor = ensureTensorLength(self.genderFactor, self.length, 0)
         self.vibratoSpeed = ensureTensorLength(self.vibratoSpeed, self.length, 0)
         self.vibratoStrength = ensureTensorLength(self.vibratoStrength, self.length, 0)
         for i in range(1, len(self.borders)):
@@ -145,9 +164,28 @@ class Track():
         borders = []
         for i in self.borders:
             borders.append(int(i))
-        sequence = VocalSequence(self.length, borders, self.phonemes(), self.loopOffset(), self.loopOverlap(), pitch, self.steadiness, self.breathiness, self.aiBalance, self.vibratoSpeed, self.vibratoStrength, self.useBreathiness, self.useSteadiness, self.useAIBalance, self.useVibratoSpeed, self.useVibratoStrength, [], None)
-        return self.vbPath, None, sequence#None object is placeholder for wrapped NodeGraph
-        #TODO: add node wrapping
+        sequence = VocalSequence(self.length,
+                                 borders,
+                                 self.phonemes(),
+                                 self.loopOffset(),
+                                 self.loopOverlap(),
+                                 pitch,
+                                 self.steadiness,
+                                 self.breathiness,
+                                 self.aiBalance,
+                                 self.genderFactor,
+                                 self.vibratoSpeed,
+                                 self.vibratoStrength,
+                                 self.useBreathiness,
+                                 self.useSteadiness,
+                                 self.useAIBalance,
+                                 self.useGenderFactor,
+                                 self.useVibratoSpeed,
+                                 self.useVibratoStrength, 
+                                 self.unvoicedShift,
+                                 [],
+                                 None)
+        return self.vbPath, self.nodegraph.pack(), sequence
 
 class NoteContext():
     
@@ -209,7 +247,7 @@ class Note():
     
     def makeContext(self, keepStart:bool = False):
         if keepStart and len(self.phonemes) > 0:
-            if self.track.phonemeLengths[self.phonemes[0]] == None:
+            if self.track.phonemeLengths[self.phonemes[0]] == None or len(self.phonemes) == 1:
                 start = self.borders[0]
             else:
                 start = self.borders[3]

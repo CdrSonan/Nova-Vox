@@ -39,7 +39,7 @@ def getPerNoteData(arrayFormat:str = "list", useNominalTimings:bool = False) -> 
         Unless otherwise specified above, all arrays contain one element per engine tick, or 4ms, and all elements are between -1 and 1 (inclusive)."""
     
     global middleLayer
-    from UI.code.editor.Main import middleLayer
+    from UI.editor.Main import middleLayer
     tracks = []
     for track in middleLayer.trackList:
         notes = []
@@ -68,6 +68,7 @@ def getPerNoteData(arrayFormat:str = "list", useNominalTimings:bool = False) -> 
                           "breathiness": convertFormat(track.breathiness[start:end], arrayFormat),
                           "steadiness": convertFormat(track.steadiness[start:end], arrayFormat),
                           "aiBalance": convertFormat(track.aiBalance[start:end], arrayFormat),
+                          "genderFactor": convertFormat(track.genderFactor[start:end], arrayFormat),
                           "loopOverlap": convertFormat(track.loopOverlap[start_p:end_p], arrayFormat),
                           "loopOffset": convertFormat(track.loopOffset[start_p:end_p], arrayFormat),
                           "vibratoSpeed": convertFormat(track.vibratoSpeed[start:end], arrayFormat),
@@ -85,7 +86,7 @@ def importFromPerNoteData(tracks:list, wipe:bool = False, useNominalTimings:bool
     If useNominalTimings is True, the nominal timings of the notes will be used for array/curve alignment instead of the actual timing markers."""
     
     global middleLayer
-    from UI.code.editor.Main import middleLayer
+    from UI.editor.Main import middleLayer
     if wipe:
         while len(middleLayer.trackList) > 0:
             API.Ops.DeleteTrack(0)()
@@ -115,6 +116,7 @@ def importFromPerNoteData(tracks:list, wipe:bool = False, useNominalTimings:bool
             interpolation(convertFormat(note["breathiness"], "torch"), middleLayer.trackList[-1].breathiness[start:end])
             interpolation(convertFormat(note["steadiness"], "torch"), middleLayer.trackList[-1].steadiness[start:end])
             interpolation(convertFormat(note["aiBalance"], "torch"), middleLayer.trackList[-1].aiBalance[start:end])
+            interpolation(convertFormat(note["genderFactor"], "torch"), middleLayer.trackList[-1].genderFactor[start:end])
             interpolation(convertFormat(note["vibratoSpeed"], "torch"), middleLayer.trackList[-1].vibratoSpeed[start:end])
             interpolation(convertFormat(note["vibratoStrength"], "torch"), middleLayer.trackList[-1].vibratoStrength[start:end])
     middleLayer.validate()

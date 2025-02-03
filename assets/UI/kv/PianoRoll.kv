@@ -7,7 +7,7 @@
 #Nova-Vox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
-#:import fullRoot UI.code.editor.Util.fullRoot
+#:import fullRoot UI.editor.Util.fullRoot
 
 <PianoRollOctaveBackground>:
     size_hint: (None, 0.125)
@@ -238,7 +238,7 @@
         Color:
             rgba: (0., 1., 0., 1)
         Line:
-            points: (self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y, self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y + self.parent.height)
+            points: (self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y, self.parent.x + self.parent.parent.playbackPos * self.parent.parent.xScale, self.parent.y + self.parent.height * 1000)
 
 <TimingLabel>:
     #timing label on the top bar and corresponding vertical timing marker

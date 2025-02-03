@@ -1,4 +1,4 @@
-# Copyright 2023 Contributors to the Nova-Vox project
+# Copyright 2023, 2024 Contributors to the Nova-Vox project
 
 # This file is part of Nova-Vox.
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -12,23 +12,28 @@ import os
 
 import torch
 
+import h5py
+
 from io import BytesIO
 from kivy.core.image import Image as CoreImage
 
-from UI.code.editor.Main import middleLayer
+from UI.editor.Main import middleLayer
 from MiddleLayer.IniParser import readSettings
-from MiddleLayer.FileIO import validateTrackData
-from MiddleLayer.DataHandlers import Note, Track
+from MiddleLayer.DataHandlers import Note, Track, Nodegraph
 from MiddleLayer.UndoRedo import enqueueUndo, enqueueRedo, clearRedoStack
 
 from Backend.VB_Components.Voicebank import LiteVoicebank
+from Backend.DataHandler.HDF5 import MetadataStorage
+import Backend.Node.NodeBaseLib
 
 from Util import noteToPitch, convertFormat
 
 import global_consts
 
-from UI.code.editor.Headers import SingerPanel, ParamPanel
-from UI.code.editor.PianoRoll import PhonemeSelector, Note as UiNote
+from UI.editor.Headers import SingerPanel, ParamPanel
+from UI.editor.PianoRoll import PhonemeSelector, Note as UiNote
+
+from API.Addon import override
 
 class UnifiedAction:
     def __init__(self, action, *args, undo = False, redo = False, immediate = False, uiCallback = True, **kwargs):
@@ -50,7 +55,7 @@ class UnifiedAction:
     def merge(self, other):
         return None
 
-    def __call__(self):
+    def __call__(self, *args, **kwargs):
         if middleLayer.undoActive:
             with NoUndo():
                 inverse = self.inverseAction()
@@ -175,6 +180,7 @@ def _importVoicebankNoSubmit(path:str, name:str, inImage) -> None:
 
 class ImportVoicebank(UnifiedAction):
     def __init__(self, file, *args, **kwargs):
+        @override
         def action(file, name, image):
             track = Track(file)
             middleLayer.trackList.append(track)
@@ -187,7 +193,8 @@ class ImportVoicebank(UnifiedAction):
             middleLayer.audioBuffer.append(torch.zeros([track.length * global_consts.batchSize,]))
             middleLayer.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
             middleLayer.submitAddTrack(middleLayer.trackList[-1])
-        data = torch.load(os.path.join(readSettings()["datadir"], "Voices", file), map_location = torch.device("cpu"))["metadata"]
+        with h5py.File(os.path.join(readSettings()["datadir"], "Voices", file), "r") as f:
+            data = MetadataStorage(f).toMetadata()
         super().__init__(action, file, data.name, data.image, *args, **kwargs)
 
     def inverseAction(self):
@@ -195,6 +202,7 @@ class ImportVoicebank(UnifiedAction):
 
 class ChangeTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
+        @override
         def action(index):
             middleLayer.activeTrack = index
             middleLayer.ui.updateParamPanel()
@@ -206,6 +214,7 @@ class ChangeTrack(UnifiedAction):
 
 class CopyTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
+        @override
         def action(index, name, image):
             data = BytesIO()
             image.save(data, format='png')
@@ -230,6 +239,7 @@ class CopyTrack(UnifiedAction):
             middleLayer.trackList[-1].breathiness = reference.breathiness.clone()
             middleLayer.trackList[-1].steadiness = reference.steadiness.clone()
             middleLayer.trackList[-1].aiBalance = reference.aiBalance.clone()
+            middleLayer.trackList[-1].genderFactor = reference.genderFactor.clone()
             middleLayer.trackList[-1].loopOverlap = reference.loopOverlap.clone()
             middleLayer.trackList[-1].loopOffset = reference.loopOffset.clone()
             middleLayer.trackList[-1].vibratoSpeed = reference.vibratoSpeed.clone()
@@ -238,19 +248,22 @@ class CopyTrack(UnifiedAction):
             middleLayer.trackList[-1].useBreathiness = copy(reference.useBreathiness)
             middleLayer.trackList[-1].useSteadiness = copy(reference.useSteadiness)
             middleLayer.trackList[-1].useAIBalance = copy(reference.useAIBalance)
+            middleLayer.trackList[-1].useGenderFactor = copy(reference.useGenderFactor)
             middleLayer.trackList[-1].useVibratoSpeed = copy(reference.useVibratoSpeed)
             middleLayer.trackList[-1].useVibratoStrength = copy(reference.useVibratoStrength)
             middleLayer.trackList[-1].nodegraph = copy(reference.nodegraph)
             middleLayer.trackList[-1].length = copy(reference.length)
             middleLayer.trackList[-1].mixinVB = copy(reference.mixinVB)
             middleLayer.trackList[-1].pauseThreshold = copy(reference.pauseThreshold)
+            middleLayer.trackList[-1].unvoicedShift = copy(reference.unvoicedShift)
             middleLayer.trackList[-1].borders.wrappingBorders = deepcopy(reference.borders.wrappingBorders)
             middleLayer.trackList[-1].buildPhonemeIndices()
             middleLayer.ids["singerList"].add_widget(SingerPanel(name = name, image = image, index = len(middleLayer.trackList) - 1))
             middleLayer.audioBuffer.append(deepcopy(middleLayer.audioBuffer[index]))
             middleLayer.ids["singerList"].children[0].children[0].trigger_action(duration = 0)
             middleLayer.submitDuplicateTrack(index)
-        data = torch.load(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[index].vbPath), map_location = torch.device("cpu"))["metadata"]
+        with h5py.File(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[index].vbPath), "r") as f:
+            data = MetadataStorage(f).toMetadata()
         super().__init__(action, index, data.name, data.image, *args, **kwargs)
 
     def inverseAction(self):
@@ -258,6 +271,7 @@ class CopyTrack(UnifiedAction):
 
 class DeleteTrack(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
+        @override
         def action(index):
             if index < 0:
                 index += len(middleLayer.trackList)
@@ -289,8 +303,10 @@ class DeleteTrack(UnifiedAction):
 
 class _ReinsertTrack(UnifiedAction):
     def __init__(self, track, index, *args, **kwargs):
+        @override
         def action(track, index):
-            metadata = torch.load(os.path.join(readSettings()["datadir"], "Voices", track.vbPath), map_location = torch.device("cpu"))["metadata"]
+            with h5py.File(os.path.join(readSettings()["datadir"], "Voices", track.vbPath), "r") as f:
+                metadata = MetadataStorage(f).toMetadata()
             middleLayer.trackList.insert(index, track)
             data = BytesIO()
             metadata.image.save(data, format='png')
@@ -314,8 +330,10 @@ class _ReinsertTrack(UnifiedAction):
 
 class AddParam(UnifiedAction):
     def __init__(self, param, name, *args, **kwargs):
+        @override
         def action(param, name):
-            pass
+            middleLayer.trackList[self.activeTrack].nodegraph.addParam(param, name)
+            middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.activeTrack].nodegraph)
         super().__init__(action, param, name, *args, **kwargs)
 
     def inverseAction(self):
@@ -323,14 +341,15 @@ class AddParam(UnifiedAction):
 
 class RemoveParam(UnifiedAction):
     def __init__(self, name, *args, **kwargs):
+        @override
         def action(name):
-            middleLayer.trackList[self.activeTrack].nodegraph.delete(name)
+            middleLayer.trackList[self.activeTrack].nodegraph.deleteParam(name)
             if name == self.activeParam:
                 middleLayer.changeParam(self.activeParam - 1)
             for i in middleLayer.ids["paramList"].children:
                 if i.name == name:
                     i.parent.remove_widget(i)
-        middleLayer.submitNodegraphUpdate
+            middleLayer.submitNodegraphUpdate(middleLayer.trackList[self.activeTrack].nodegraph)
         super().__init__(action, name, *args, **kwargs)
         self.name = name
 
@@ -339,6 +358,7 @@ class RemoveParam(UnifiedAction):
 
 class EnableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
+        @override
         def action(name):
             if name == "steadiness":
                 middleLayer.trackList[middleLayer.activeTrack].useSteadiness = True
@@ -346,6 +366,8 @@ class EnableParam(UnifiedAction):
                 middleLayer.trackList[middleLayer.activeTrack].useBreathiness = True
             elif name == "AI balance":
                 middleLayer.trackList[middleLayer.activeTrack].useAIBalance = True
+            elif name == "gender factor":
+                middleLayer.trackList[middleLayer.activeTrack].useGenderFactor = True
             elif name == "vibrato speed":
                 middleLayer.trackList[middleLayer.activeTrack].useVibratoSpeed = True
             elif name == "vibrato strength":
@@ -366,6 +388,7 @@ class EnableParam(UnifiedAction):
 
 class DisableParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
+        @override
         def action(name):
             if name == "steadiness":
                 middleLayer.trackList[middleLayer.activeTrack].useSteadiness = False
@@ -373,6 +396,8 @@ class DisableParam(UnifiedAction):
                 middleLayer.trackList[middleLayer.activeTrack].useBreathiness = False
             elif name == "AI balance":
                 middleLayer.trackList[middleLayer.activeTrack].useAIBalance = False
+            elif name == "gender factor":
+                middleLayer.trackList[middleLayer.activeTrack].useGenderFactor = False
             elif name == "vibrato speed":
                 middleLayer.trackList[middleLayer.activeTrack].useVibratoSpeed = False
             elif name == "vibrato strength":
@@ -393,14 +418,14 @@ class DisableParam(UnifiedAction):
 
 class MoveParam(UnifiedAction):
     def __init__(self, index, delta, *args, **kwargs):
+        @override
         def action(index, delta):
             for i in middleLayer.ids["paramList"].children:
                 if i.index == index:
                     param = middleLayer.trackList[middleLayer.activeTrack].nodegraph.params[i.name]
                     i.parent.remove_widget(i)
                     break
-            middleLayer.ids["paramList"].add_widget(ParamPanel(name = param.name, switchable = param.switchable, sortable = param.sortable, deletable = param.deletable, index = index), index = index + delta, switchState = param.switchState)
-            middleLayer.changeParam(index + delta)
+            middleLayer.ids["paramList"].add_widget(ParamPanel(name = i.name, switchable = True, sortable = True, deletable = False, index = index), index = index + delta, switchState = param.enabled)
         super().__init__(action, index, delta, *args, **kwargs)
         self.index = index
         self.delta = delta
@@ -410,6 +435,7 @@ class MoveParam(UnifiedAction):
 
 class SwitchParam(UnifiedAction):
     def __init__(self, param, *args, **kwargs):
+        @override
         def action(name):
             if name == "loop overlap" or name == "loop offset":
                 middleLayer.activeParam = "loop"
@@ -439,6 +465,7 @@ class SwitchParam(UnifiedAction):
 
 class ChangeParam(UnifiedAction):
     def __init__(self, data, start, section = None, *args, **kwargs):
+        @override
         def action(data, start, section):
             if middleLayer.activeParam == "steadiness":
                 middleLayer.trackList[middleLayer.activeTrack].steadiness[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
@@ -449,6 +476,9 @@ class ChangeParam(UnifiedAction):
             elif middleLayer.activeParam == "AI balance":
                 middleLayer.trackList[middleLayer.activeTrack].aiBalance[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                 middleLayer.submitNamedParamChange(True, "aiBalance", start, torch.tensor(data, dtype = torch.half))
+            elif middleLayer.activeParam == "gender factor":
+                middleLayer.trackList[middleLayer.activeTrack].genderFactor[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
+                middleLayer.submitNamedParamChange(True, "genderFactor", start, torch.tensor(data, dtype = torch.half))
             elif middleLayer.activeParam == "loop":
                 if section:
                     middleLayer.trackList[middleLayer.activeTrack].loopOverlap[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
@@ -464,7 +494,7 @@ class ChangeParam(UnifiedAction):
                     middleLayer.trackList[middleLayer.activeTrack].vibratoStrength[start:start + len(data)] = torch.tensor(data, dtype = torch.half)
                     middleLayer.submitNamedParamChange(True, "vibratoStrength", start, torch.tensor(data, dtype = torch.half))
                 for i in range(*middleLayer.posToNote(start, start + len(data))):
-                    middleLayer.recalculateBasePitch(i, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[i].xPos + middleLayer.trackList[middleLayer.activeTrack].notes[i].length)
+                    middleLayer.recalculateBasePitch(i)
                 middleLayer.ids["pianoRoll"].redrawPitch()
                 middleLayer.submitFinalize()
             else:
@@ -482,6 +512,8 @@ class ChangeParam(UnifiedAction):
             oldData = middleLayer.trackList[middleLayer.activeTrack].breathiness[self.start:self.start + self.length]
         elif middleLayer.activeParam == "AI balance":
             oldData = middleLayer.trackList[middleLayer.activeTrack].aiBalance[self.start:self.start + self.length]
+        elif middleLayer.activeParam == "gender factor":
+            oldData = middleLayer.trackList[middleLayer.activeTrack].genderFactor[self.start:self.start + self.length]
         elif middleLayer.activeParam == "loop":
             if self.section:
                 oldData = middleLayer.trackList[middleLayer.activeTrack].loopOverlap[self.start:self.start + self.length]
@@ -501,6 +533,7 @@ class ChangeParam(UnifiedAction):
 
 class ChangePitch(UnifiedAction):
     def __init__(self, data, start, *args, **kwargs):
+        @override
         def action(data, start):
             if type(data) == list:
                 data = torch.tensor(data, dtype = torch.half)
@@ -523,14 +556,17 @@ class ChangePitch(UnifiedAction):
 
 class AddNote(UnifiedAction):
     def __init__(self, index, x, y, reference, *args, **kwargs):
+        @override
         def action(index, x, y, reference):
             if middleLayer.activeTrack == None:
                 return
             if index == len(middleLayer.trackList[middleLayer.activeTrack].notes):
                 middleLayer.trackList[middleLayer.activeTrack].notes.append(Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
+                reference.reference = middleLayer.trackList[middleLayer.activeTrack].notes[-1]
             else:
                 middleLayer.trackList[middleLayer.activeTrack].notes.insert(index, Note(x, y, middleLayer.trackList[middleLayer.activeTrack], reference))
-            middleLayer.adjustNote(index, 100, None, False, True)
+                reference.reference = middleLayer.trackList[middleLayer.activeTrack].notes[index]
+            middleLayer.adjustNote(index, None, None, False, True)
             middleLayer.submitFinalize()
         super().__init__(action, index, x, y, reference, *args, **kwargs)
         self.index = index
@@ -539,20 +575,15 @@ class AddNote(UnifiedAction):
         
     def inverseAction(self):
         return RemoveNote(self.index)
-    
-    #def uiCallback(self):
-    #    newNote = Note(index = self.index, xPos = self.x, yPos = self.y, length = 100, height = middleLayer.ids["pianoRoll"].yScale)
-    #    middleLayer.ids["pianoRoll"].add_widget(newNote, index = 5)
-    #    middleLayer.ids["pianoRoll"].notes.append(newNote)
 
 class _ReinsertNote(UnifiedAction):
     def __init__(self, index, note, *args, **kwargs):
         def action(index, note):
-            returnValue = AddNote(index, note.xPos, note.yPos, note.reference)()
-            ChangeNoteLength(index, note.xPos, note.length)()
             newNote = UiNote(index = index, xPos = note.xPos, yPos = note.yPos, length = 100, height = middleLayer.ids["pianoRoll"].yScale)
+            returnValue = AddNote(index, note.xPos, note.yPos, newNote)()
             middleLayer.ids["pianoRoll"].children[0].add_widget(newNote, index = 5)
             middleLayer.ids["pianoRoll"].notes.append(newNote)
+            ChangeNoteLength(index, note.xPos, note.length)()
             ChangeLyrics(index, note.content, None)()
             return returnValue
         super().__init__(action, index, note, *args, **kwargs)
@@ -561,56 +592,54 @@ class _ReinsertNote(UnifiedAction):
     
     def inverseAction(self):
         return RemoveNote(self.index)
-    
-    #def uiCallback(self):
-    #    middleLayer.ids["pianoRoll"].add_widget(Note(index = self.index, xPos = self.note.xPos, yPos = self.note.yPos, length = self.note.length, height = middleLayer.ids["pianoRoll"].yScale))
 
 class RemoveNote(UnifiedAction):
     def __init__(self, index, *args, **kwargs):
+        @override
         def action(index):
             if index == 0:
                 middleLayer.offsetPhonemes(index, -middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
             else:
                 middleLayer.offsetPhonemes(index, middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1] - middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index])
+            if middleLayer.trackList[middleLayer.activeTrack].notes[index].reference:
+                middleLayer.ids["pianoRoll"].children[0].remove_widget(middleLayer.trackList[middleLayer.activeTrack].notes[index].reference)
+                del middleLayer.trackList[middleLayer.activeTrack].notes[index].reference
             middleLayer.trackList[middleLayer.activeTrack].notes.pop(index)
             if index < len(middleLayer.trackList[middleLayer.activeTrack].notes):
                 middleLayer.adjustNote(index, None, None, False, True)
                 middleLayer.submitFinalize()
-        super().__init__(action, index, *args, **kwargs)
         self.index = index
+        super().__init__(action, index, *args, **kwargs)
     
     def inverseAction(self):
         return _ReinsertNote(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index])
-    
-    #def uiCallback(self):
-    #    middleLayer.ids["pianoRoll"].remove_widget(middleLayer.ids["pianoRoll"].notes[self.index])
-    #    del middleLayer.ids["pianoRoll"].notes[self.index]
 
 class ChangeNoteLength(UnifiedAction):
     def __init__(self, index, x, length, *args, **kwargs):
+        @override
         def action(index, x, length):
-            oldLength = middleLayer.trackList[middleLayer.activeTrack].notes[index].length
-            oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].length = length
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
-            switch = middleLayer.adjustNote(index, oldLength = oldLength, oldPos = oldPos, adjustPrevious = True)
+            if index == 0:
+                oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[0])
+            else:
+                oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[3 * middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1]])
+            if index == len(middleLayer.trackList[middleLayer.activeTrack].notes) - 1 or middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1] == middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index]:
+                oldEnd = int(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
+            else:
+                oldEnd = int(middleLayer.trackList[middleLayer.activeTrack].borders[3 * middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index] + 2])
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].length = max(length, 1)
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
+            switch = middleLayer.adjustNote(index, oldStart, oldEnd, adjustPrevious = True)
             middleLayer.submitFinalize()
             return switch
         super().__init__(action, index, x, length, *args, **kwargs)
         self.index = index
-        self.x = x
-        self.length = length
+        self.length = max(length, 1)
+        self.x = max(x, 0)
     
     def inverseAction(self):
         return ChangeNoteLength(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].length)
     
     def uiCallback(self):
-        #for i in middleLayer.ids["pianoRoll"].notes:
-        #    if i.index == self.index:
-        #        i.length = self.length
-        #        i.x = self.x
-        #        i.redraw()
-        #        break
         if middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference:
             middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.length = self.length
             middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.x = self.x
@@ -618,21 +647,29 @@ class ChangeNoteLength(UnifiedAction):
     
     def merge(self, other):
         if type(other) == ChangeNoteLength and self.index == other.index:
-            return ChangeNoteLength(self.index, self.x, self.length)
+            return self
         return None
 
 class MoveNote(UnifiedAction):
     def __init__(self, index, x, y, *args, **kwargs):
+        @override
         def action(index, x, y):
-            oldPos = middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos
-            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = x
+            if index == 0:
+                oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[0])
+            else:
+                oldStart = int(middleLayer.trackList[middleLayer.activeTrack].borders[3 * middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1]])
+            if index == len(middleLayer.trackList[middleLayer.activeTrack].notes) - 1 or middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index - 1] == middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index]:
+                oldEnd = int(middleLayer.trackList[middleLayer.activeTrack].borders[-1])
+            else:
+                oldEnd = int(middleLayer.trackList[middleLayer.activeTrack].borders[3 * middleLayer.trackList[middleLayer.activeTrack].phonemeIndices[index] + 2])
+            middleLayer.trackList[middleLayer.activeTrack].notes[index].xPos = max(x, 0)
             middleLayer.trackList[middleLayer.activeTrack].notes[index].yPos = y
-            switch = middleLayer.adjustNote(index, oldPos = oldPos, adjustPrevious = True)
+            switch = middleLayer.adjustNote(index, oldStart, oldEnd, adjustPrevious = True)
             middleLayer.submitFinalize()
             return switch
         super().__init__(action, index, x, y, *args, **kwargs)
         self.index = index
-        self.x = x
+        self.x = max(x, 0)
         self.y = y
     
     def inverseAction(self):
@@ -640,20 +677,18 @@ class MoveNote(UnifiedAction):
     
     def uiCallback(self):
         if middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference:
-            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
-            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.xPos = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
+            middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.yPos = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
             middleLayer.trackList[middleLayer.activeTrack].notes[self.index].reference.redraw()
-        #middleLayer.ids["pianoRoll"].notes[self.index].x = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].xPos
-        #middleLayer.ids["pianoRoll"].notes[self.index].y = middleLayer.trackList[middleLayer.activeTrack].notes[self.index].yPos
-        #middleLayer.ids["pianoRoll"].notes[self.index].redraw()
     
     def merge(self, other):
         if type(other) == MoveNote and self.index == other.index:
-            return MoveNote(self.index, self.x, self.y)
+            return self
         return None
 
 class ChangeLyrics(UnifiedAction):
     def __init__(self, index, inputText, pronuncIndex = None, *args, **kwargs):
+        @override
         def action(index, inputText, pronuncIndex):
             middleLayer.trackList[middleLayer.activeTrack].notes[index].content = inputText
             middleLayer.trackList[middleLayer.activeTrack].notes[index].pronuncIndex = pronuncIndex
@@ -732,6 +767,7 @@ class ChangeLyrics(UnifiedAction):
 
 class MoveBorder(UnifiedAction):
     def __init__(self, border, pos, *args, **kwargs):
+        @override
         def action(border, pos):
             middleLayer.trackList[middleLayer.activeTrack].borders[border] = pos
             if middleLayer.mode == "timing":
@@ -751,11 +787,12 @@ class MoveBorder(UnifiedAction):
     
     def merge(self, other):
         if type(other) == MoveBorder and self.border == other.border:
-            return MoveBorder(self.border, self.pos)
+            return self
         return None
 
 class ChangeVoicebank(UnifiedAction):
     def __init__(self, index, path, *args, **kwargs):
+        @override
         def action(index, path):
             middleLayer.trackList[middleLayer.activeTrack].phonemeLengths = dict()
             tmpVb = LiteVoicebank(path)
@@ -774,7 +811,8 @@ class ChangeVoicebank(UnifiedAction):
         return ChangeVoicebank(self.index, middleLayer.trackList[middleLayer.activeTrack].vbPath)
     
     def uiCallback(self):
-        data = torch.load(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[self.index].vbPath), map_location = torch.device("cpu"))["metadata"]
+        with h5py.File(os.path.join(readSettings()["datadir"], "Voices", middleLayer.trackList[self.index].vbPath), "r") as f:
+            data = MetadataStorage(f).toMetadata()
         for i in middleLayer.ids["singerList"].children:
             if i.index == self.index:
                 i.name = data.name
@@ -786,13 +824,36 @@ class ChangeVoicebank(UnifiedAction):
                 i.image = im.texture
                 break
 
+class ChangeTrackSettings(UnifiedAction):
+    def __init__(self, index, key, value, *args, **kwargs):
+        @override
+        def action(index, key, value):
+            if key == "unvoicedShift":
+                middleLayer.trackList[index].unvoicedShift = min(max(value, 0), 1)
+            elif key == "mixinVB":
+                middleLayer.trackList[index].mixinVB = value
+            else:
+                raise ValueError("Invalid track settings key")
+            middleLayer.submitTrackSettingsChange(True, index, key, value)
+        super().__init__(action, index, key, value, *args, **kwargs)
+        self.index = index
+        self.key = key
+    
+    def inverseAction(self):
+        if self.key == "unvoicedShift":
+            return ChangeTrackSettings(self.index, self.key, middleLayer.trackList[self.index].unvoicedShift)
+        elif self.key == "mixinVB":
+            return ChangeTrackSettings(self.index, self.key, middleLayer.trackList[self.index].mixinVB)
+        else:
+            raise ValueError("Invalid track settings key")
+
 class ChangeVolume(UnifiedAction):
     def __init__(self, index, volume, *args, **kwargs):
+        @override
         def action(index, volume):
             middleLayer.trackList[index].volume = volume
         super().__init__(action, index, volume, *args, **kwargs)
         self.index = index
-        self.volume = volume
     
     def inverseAction(self):
         return ChangeVolume(self.index, middleLayer.trackList[middleLayer.activeTrack].volume)
@@ -805,63 +866,98 @@ class ChangeVolume(UnifiedAction):
     
     def merge(self, other):
         if type(other) == ChangeVolume and self.index == other.index:
-            return ChangeVolume(self.index, self.volume)
+            return self
         return None
+
+def deserialize_nodegraph(group):
+    nodegraph = Nodegraph()
+    for node_group in group["nodes"].values():
+        nodegraph.addNode(Backend.Node.NodeBaseLib.getNodeCls(node_group.attrs["type"])())
+        nodegraph.nodes[-1].pos = node_group.attrs["pos"].split(" ")
+        nodegraph.nodes[-1].size = node_group.attrs["size"].split(" ")
+    for i, node_group in enumerate(group["nodes"].values()):
+        for input in node_group["inputs"].attrs.items():
+            if input[0] not in nodegraph.nodes[i].inputs:
+                continue
+            if input[1].startswith("attachedTo"):
+                target_idx, target_output = input[1].split(" ")[1:]
+                nodegraph.nodes[i].inputs[input[0]].attach(nodegraph.nodes[int(target_idx)].outputs[target_output])
+            else:
+                nodegraph.nodes[i].inputs[input[0]].set(input[1])
+            
+    return nodegraph
 
 class LoadNVX(UnifiedAction):
     def __init__(self, path, *args, **kwargs):
+        @override
         def action(path):
             if path == "":
                 return
-            data = torch.load(path, map_location = torch.device("cpu"))
-            tracks = data["tracks"]
             for i in range(len(middleLayer.trackList)):
                 DeleteTrack(0)()
-            for trackData in tracks:
-                track = validateTrackData(trackData)
-                vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
-                _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
-                middleLayer.trackList[-1].volume = track["volume"]
-                for note in track["notes"]:
-                    middleLayer.trackList[-1].notes.append(Note(note["xPos"], note["yPos"], middleLayer.trackList[-1], None))
-                    middleLayer.trackList[-1].notes[-1].length = note["length"]
-                    middleLayer.trackList[-1].notes[-1].phonemeMode = note["phonemeMode"]
-                    middleLayer.trackList[-1].notes[-1].content = note["content"]
-                    middleLayer.trackList[-1].notes[-1].pronuncIndex = note["pronuncIndex"]
-                    middleLayer.trackList[-1].notes[-1].phonemes = note["phonemes"]
-                    middleLayer.trackList[-1].notes[-1].autopause = note["autopause"]
-                    middleLayer.trackList[-1].notes[-1].borders = note["borders"]
-                    middleLayer.trackList[-1].notes[-1].carryOver = note["carryOver"]
-                    middleLayer.trackList[-1].notes[-1].loopOverlap = note["loopOverlap"]
-                    middleLayer.trackList[-1].notes[-1].loopOffset = note["loopOffset"]
-                middleLayer.trackList[-1].pitch = track["pitch"]
-                middleLayer.trackList[-1].basePitch = track["basePitch"]
-                middleLayer.trackList[-1].breathiness = track["breathiness"]
-                middleLayer.trackList[-1].steadiness = track["steadiness"]
-                middleLayer.trackList[-1].aiBalance = track["aiBalance"]
-                middleLayer.trackList[-1].vibratoSpeed = track["vibratoSpeed"]
-                middleLayer.trackList[-1].vibratoStrength = track["vibratoStrength"]
-                middleLayer.trackList[-1].usePitch = track["usePitch"]
-                middleLayer.trackList[-1].useBreathiness = track["useBreathiness"]
-                middleLayer.trackList[-1].useSteadiness = track["useSteadiness"]
-                middleLayer.trackList[-1].useAIBalance = track["useAIBalance"]
-                middleLayer.trackList[-1].useVibratoSpeed = track["useVibratoSpeed"]
-                middleLayer.trackList[-1].useVibratoStrength = track["useVibratoStrength"]
-                middleLayer.trackList[-1].nodegraph = track["nodegraph"]
-                middleLayer.trackList[-1].length = track["length"]
-                middleLayer.trackList[-1].mixinVB = track["mixinVB"]
-                middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
+            file = h5py.File(path, "r")
+            for group in file.values():
+                with h5py.File(group.attrs["vbPath"], "r") as f:
+                    vbData = MetadataStorage(f).toMetadata()
+                _importVoicebankNoSubmit(group.attrs["vbPath"], vbData.name, vbData.image)
+                middleLayer.trackList[-1].volume = group.attrs["volume"]
+                for xPos, yPos, length, phonemeMode, content, pronuncIndex, phonemes, autopause, carryOver in zip(
+                    group["xPos"], group["yPos"], group["lengths"], group["phonemeMode"], group["content"], group["pronuncIndex"], group["phonemes"], group["autopause"], group["carryOver"]
+                ):
+                    middleLayer.trackList[-1].notes.append(Note(int(xPos), int(yPos), middleLayer.trackList[-1], None))
+                    middleLayer.trackList[-1].notes[-1].length = int(length)
+                    middleLayer.trackList[-1].notes[-1].phonemeMode = bool(phonemeMode)
+                    middleLayer.trackList[-1].notes[-1].content = content.decode("utf-8")
+                    if pronuncIndex == -1:
+                        pronuncIndex = None
+                    else:
+                        pronuncIndex = int(pronuncIndex)
+                    middleLayer.trackList[-1].notes[-1].pronuncIndex = pronuncIndex
+                    middleLayer.trackList[-1].notes[-1].phonemes = phonemes.decode("utf-8").split(" ")
+                    middleLayer.trackList[-1].notes[-1].loopOffset = [0 for _ in range(len(middleLayer.trackList[-1].notes[-1].phonemes))]
+                    middleLayer.trackList[-1].notes[-1].loopOverlap = [0 for _ in range(len(middleLayer.trackList[-1].notes[-1].phonemes))]
+                    middleLayer.trackList[-1].notes[-1].autopause = bool(autopause)
+                    middleLayer.trackList[-1].notes[-1].borders = [0 for _ in range(3 * len(phonemes))]
+                    middleLayer.trackList[-1].notes[-1].carryOver = bool(carryOver)
+                middleLayer.trackList[-1].pitch = torch.tensor(group["pitch"][:])
+                middleLayer.trackList[-1].basePitch = torch.tensor(group["basePitch"][:])
+                middleLayer.trackList[-1].breathiness = torch.tensor(group["breathiness"][:])
+                middleLayer.trackList[-1].steadiness = torch.tensor(group["steadiness"][:])
+                middleLayer.trackList[-1].aiBalance = torch.tensor(group["aiBalance"][:])
+                middleLayer.trackList[-1].genderFactor = torch.tensor(group["genderFactor"][:])
+                middleLayer.trackList[-1].vibratoSpeed = torch.tensor(group["vibratoSpeed"][:])
+                middleLayer.trackList[-1].vibratoStrength = torch.tensor(group["vibratoStrength"][:])
+                middleLayer.trackList[-1].usePitch = bool(group.attrs["usePitch"])
+                middleLayer.trackList[-1].useBreathiness = bool(group.attrs["useBreathiness"])
+                middleLayer.trackList[-1].useSteadiness = bool(group.attrs["useSteadiness"])
+                middleLayer.trackList[-1].useAIBalance = bool(group.attrs["useAIBalance"])
+                middleLayer.trackList[-1].useGenderFactor = bool(group.attrs["useGenderFactor"])
+                middleLayer.trackList[-1].useVibratoSpeed = bool(group.attrs["useVibratoSpeed"])
+                middleLayer.trackList[-1].useVibratoStrength = bool(group.attrs["useVibratoStrength"])
+                middleLayer.trackList[-1].nodegraph = deserialize_nodegraph(group["nodegraph"])
+                middleLayer.trackList[-1].length = int(group.attrs["length"])
+                if group.attrs["mixinVB"] == "":
+                    middleLayer.trackList[-1].mixinVB = None
+                else:
+                    middleLayer.trackList[-1].mixinVB = group.attrs["mixinVB"]
+                middleLayer.trackList[-1].pauseThreshold = int(group.attrs["pauseThreshold"])
+                middleLayer.trackList[-1].unvoicedShift = float(group.attrs["unvoicedShift"])
                 middleLayer.trackList[-1].buildPhonemeIndices()
+                for i in range(len(middleLayer.trackList[-1].borders)):
+                    middleLayer.trackList[-1].borders[i] = int(group["borders"][i])
+                for i in range(len(middleLayer.trackList[-1].phonemes)):
+                    middleLayer.trackList[-1].loopOffset[i] = float(group["loopOffset"][i])
+                    middleLayer.trackList[-1].loopOverlap[i] = float(group["loopOverlap"][i])
             middleLayer.validate()
-        super().__init__(action, path, middleLayer, *args, **kwargs)
+        super().__init__(action, path, *args, **kwargs)
     
     def inverseAction(self):
         def restoreTrackList(tracks:list):
             for i in range(len(middleLayer.trackList)):
                 middleLayer.deleteTrack(0)
-            for trackData in tracks:
-                track = validateTrackData(trackData)
-                vbData = torch.load(track["vbPath"], map_location = torch.device("cpu"))["metadata"]
+            for track in tracks:
+                with h5py.File(track["vbPath"], "r") as f:
+                    vbData = MetadataStorage(f).toMetadata()
                 _importVoicebankNoSubmit(track["vbPath"], vbData.name, vbData.image)
                 middleLayer.trackList[-1].volume = track["volume"]
                 for note in track["notes"]:
@@ -875,6 +971,7 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].breathiness = track["breathiness"]
                 middleLayer.trackList[-1].steadiness = track["steadiness"]
                 middleLayer.trackList[-1].aiBalance = track["aiBalance"]
+                middleLayer.trackList[-1].genderFactor = track["genderFactor"]
                 middleLayer.trackList[-1].loopOverlap = track["loopOverlap"]
                 middleLayer.trackList[-1].loopOffset = track["loopOffset"]
                 middleLayer.trackList[-1].vibratoSpeed = track["vibratoSpeed"]
@@ -883,6 +980,7 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].useBreathiness = track["useBreathiness"]
                 middleLayer.trackList[-1].useSteadiness = track["useSteadiness"]
                 middleLayer.trackList[-1].useAIBalance = track["useAIBalance"]
+                middleLayer.trackList[-1].useGenderFactor = track["useGenderFactor"]
                 middleLayer.trackList[-1].useVibratoSpeed = track["useVibratoSpeed"]
                 middleLayer.trackList[-1].useVibratoStrength = track["useVibratoStrength"]
                 middleLayer.trackList[-1].nodegraph = track["nodegraph"]
@@ -890,4 +988,5 @@ class LoadNVX(UnifiedAction):
                 middleLayer.trackList[-1].length = track["length"]
                 middleLayer.trackList[-1].mixinVB = track["mixinVB"]
                 middleLayer.trackList[-1].pauseThreshold = track["pauseThreshold"]
+                middleLayer.trackList[-1].unvoicedShift = track["unvoicedShift"]
         return UnifiedAction(restoreTrackList, middleLayer.trackList)

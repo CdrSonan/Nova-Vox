@@ -1,6 +1,6 @@
 #:kivy 2.0.0
 
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022-2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -267,14 +267,32 @@
             text: app.root.loc["import"]
             on_press: root.importParam(self.parent.parent.filepaths[self.parent.parent.selectedIndex], self.parent.parent.parameters[self.parent.parent.selectedIndex].name)
 
+<AddonSelector>:
+    Label:
+        size_hint_y: None
+        height: 30 * app.root.uiScale
+        text: self.parent.text if self.parent else ""
+    ImageToggleButton:
+        size_hint_x: None
+        size_hint_y: None
+        width: 30 * app.root.uiScale
+        height: 30 * app.root.uiScale
+        source: "assets/UI/Toolbar/Adaptive07new.png"
+        on_press: self.parent.switch() if self.parent else None
+        state: "down" if self.parent and self.parent.state else "normal"
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+
 <ScriptingSidePanel>:
     size_hint: (min(0.5, 0.4 * app.root.uiScale), None)
     pos_hint:{"x": 1 - min(0.5, 0.4 * app.root.uiScale) - (50 / app.root.width * app.root.uiScale), "y": 0}
     height: app.root.height - 50 * app.root.uiScale
     background: "assets/UI/Toolbar/overlay.png"
     overlay_color: [0, 0, 0, 0]
-    on_open: self.loadCache()
-    on_pre_dismiss: self.saveCache()
+    on_open: self.onOpen()
+    on_pre_dismiss: self.onClose()
     BoxLayout:
         orientation: "vertical"
         padding: 10
@@ -291,6 +309,14 @@
             height: 30 * app.root.uiScale
             text: app.root.loc["SDK_open"]
             on_press: self.parent.parent.openDevkit()
+        ScrollView:
+            do_scroll: (False, True)
+            scroll_type: ["bars"]
+            bar_width: 10
+            BoxLayout:
+                id: addon_list
+                orientation: "vertical"
+                spacing: 2
 
 <SettingsSidePanel>:
     size_hint: (min(0.5, 0.4 * app.root.uiScale), None)
@@ -300,199 +326,205 @@
     overlay_color: [0, 0, 0, 0]
     on_open: self.readSettings()
     on_pre_dismiss: self.writeSettings()
-    GridLayout:
-        cols: 2
-        orientation: "lr-tb"
-        padding: 10
-        spacing: 10
-        Label:
+    ScrollView:
+        do_scroll: (False, True)
+        scroll_type: ["bars"]
+        bar_width: 10
+        GridLayout:
             size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["language"]
-        ManagedSpinner:
-            #language dropdown menu
-            id: settings_lang
-            sync_height: True
-            text_autoupdate: True
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            values: ["en", "jp"]
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["accelerator"]
-        ManagedSpinner:
-            #accelerator dropdown menu
-            id: settings_accel
-            sync_height: True
-            text_autoupdate: True
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            values: ["CPU", "GPU"]
-            on_text: self.parent.parent.restartRenderProcess()
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["TPU"]
-        ManagedSpinner:
-            #tensor core dropdown menu
-            id: settings_tcores
-            sync_height: True
-            text_autoupdate: True
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            values: [app.root.loc["disabled"], app.root.loc["enabled"]]
-            on_text: self.parent.parent.restartRenderProcess()
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["lowspec_mode"]
-        ManagedSpinner:
-            #performance mode dropdown menu
-            id: settings_lowSpecMode
-            sync_height: True
-            text_autoupdate: True
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            values: [app.root.loc["disabled"], app.root.loc["enabled"]]
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["caching_mode"]
-        ManagedSpinner:
-            #caching mode dropdown menu
-            id: settings_cachingMode
-            sync_height: True
-            text_autoupdate: True
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            values: [app.root.loc["save_ram"], app.root.loc["default"], app.root.loc["render_speed"]]
-            on_text: self.parent.parent.restartRenderProcess()
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["audio_api"]
-        ManagedSpinner:
-            #audio driver dropdown menu
-            id: settings_audioApi
-            sync_height: True
-            text_autoupdate: True
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            values: self.parent.parent.audioApiNames
-            on_text: self.parent.parent.refreshAudioDevices(self.text)
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["audio_device"]
-        ManagedSpinner:
-            #audio device dropdown menu
-            id: settings_audioDevice
-            sync_height: True
-            text_autoupdate: True
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            values: self.parent.parent.audioDeviceNames
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["tgt_audio_lat"]
-        FloatInput:
-            #audio latency input
-            id: settings_audioLatency
-            size_hint_y: None
-            height: max(30 * app.root.uiScale, self.minimum_height)
-            background_normal: "assets/UI/Toolbar/Adaptive07new.png"
-            background_active: "assets/UI/Toolbar/Adaptive07new.png"
-            background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
-            foreground_color: (1., 1., 1., 1.)
-            halign: "center"
-            multiline: False
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["undo_limit"]
-        IntInput:
-            #undo limit input
-            id: settings_undoLimit
-            size_hint_y: None
-            height: max(30 * app.root.uiScale, self.minimum_height)
-            background_normal: "assets/UI/Toolbar/Adaptive07new.png"
-            background_active: "assets/UI/Toolbar/Adaptive07new.png"
-            background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
-            foreground_color: (1., 1., 1., 1.)
-            halign: "center"
-            multiline: False
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["loglevel"]
-        ManagedSpinner:
-            #logging level dropdown menu
-            id: settings_loglevel
-            sync_height: True
-            text_autoupdate: True
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            values: ["debug", "info", "warning", "error", "critical"]
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["datadir"]
-        ManagedButton:
-            #data directory selection button
-            id: settings_datadir
-            sync_height: True
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: ""
-            on_press: self.parent.parent.changeDataDir()
-        Label:
-            size_hint_y: None
-            height: 30 * app.root.uiScale
-            text: app.root.loc["uiscale"]
-        FloatInput:
-            #UI scale input
-            id: settings_uiScale
-            size_hint_y: None
-            height: max(30 * app.root.uiScale, self.minimum_height)
-            on_text_validate: self.parent.parent.applyColors()
-            background_normal: "assets/UI/Toolbar/Adaptive07new.png"
-            background_active: "assets/UI/Toolbar/Adaptive07new.png"
-            background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
-            foreground_color: (1., 1., 1., 1.)
-            halign: "center"
-            multiline: False
-        Label:
-            size_hint_y: None
-            height: 200 * app.root.uiScale
-            valign: "middle"
-            text: app.root.loc["tool_color"]
-        ColorWheel:
-            #tool bar color wheel
-            id: settings_toolColor
-            size_hint_y: None
-            height: 200 * app.root.uiScale
-            on_color: self.parent.parent.applyColors()
-        Label:
-            size_hint_y: None
-            height: 200 * app.root.uiScale
-            valign: "middle"
-            text: app.root.loc["acc_color"]
-        ColorWheel:
-            #accent color wheel
-            id: settings_accColor
-            size_hint_y: None
-            height: 200 * app.root.uiScale
-            on_color: self.parent.parent.applyColors()
-        Label:
-            size_hint_y: None
-            height: 200 * app.root.uiScale
-            valign: "middle"
-            text: app.root.loc["bg_color"]
-        ColorWheel:
-            #background color wheel
-            id: settings_bgColor
-            size_hint_y: None
-            height: 200 * app.root.uiScale
-            on_color: self.parent.parent.applyColors()
+            height: self.minimum_height
+            cols: 2
+            orientation: "lr-tb"
+            padding: 10
+            spacing: 10
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["language"]
+            ManagedSpinner:
+                #language dropdown menu
+                id: settings_lang
+                sync_height: True
+                text_autoupdate: True
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                values: ["en", "jp"]
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["accelerator"]
+            ManagedSpinner:
+                #accelerator dropdown menu
+                id: settings_accel
+                sync_height: True
+                text_autoupdate: True
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                values: ["CPU", "GPU"]
+                on_text: self.parent.parent.parent.restartRenderProcess()
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["TPU"]
+            ManagedSpinner:
+                #tensor core dropdown menu
+                id: settings_tcores
+                sync_height: True
+                text_autoupdate: True
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                values: [app.root.loc["disabled"], app.root.loc["enabled"]]
+                on_text: self.parent.parent.parent.restartRenderProcess()
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["lowspec_mode"]
+            ManagedSpinner:
+                #performance mode dropdown menu
+                id: settings_lowSpecMode
+                sync_height: True
+                text_autoupdate: True
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                values: [app.root.loc["disabled"], app.root.loc["enabled"]]
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["caching_mode"]
+            ManagedSpinner:
+                #caching mode dropdown menu
+                id: settings_cachingMode
+                sync_height: True
+                text_autoupdate: True
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                values: [app.root.loc["save_ram"], app.root.loc["default"], app.root.loc["render_speed"]]
+                on_text: self.parent.parent.parent.restartRenderProcess()
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["audio_api"]
+            ManagedSpinner:
+                #audio driver dropdown menu
+                id: settings_audioApi
+                sync_height: True
+                text_autoupdate: True
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                values: self.parent.parent.parent.audioApiNames
+                on_text: self.parent.parent.parent.refreshAudioDevices(self.text)
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["audio_device"]
+            ManagedSpinner:
+                #audio device dropdown menu
+                id: settings_audioDevice
+                sync_height: True
+                text_autoupdate: True
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                values: self.parent.parent.parent.audioDeviceNames
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["tgt_audio_lat"]
+            FloatInput:
+                #audio latency input
+                id: settings_audioLatency
+                size_hint_y: None
+                height: max(30 * app.root.uiScale, self.minimum_height)
+                background_normal: "assets/UI/Toolbar/Adaptive07new.png"
+                background_active: "assets/UI/Toolbar/Adaptive07new.png"
+                background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
+                foreground_color: (1., 1., 1., 1.)
+                halign: "center"
+                multiline: False
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["undo_limit"]
+            IntInput:
+                #undo limit input
+                id: settings_undoLimit
+                size_hint_y: None
+                height: max(30 * app.root.uiScale, self.minimum_height)
+                background_normal: "assets/UI/Toolbar/Adaptive07new.png"
+                background_active: "assets/UI/Toolbar/Adaptive07new.png"
+                background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
+                foreground_color: (1., 1., 1., 1.)
+                halign: "center"
+                multiline: False
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["loglevel"]
+            ManagedSpinner:
+                #logging level dropdown menu
+                id: settings_loglevel
+                sync_height: True
+                text_autoupdate: True
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                values: ["debug", "info", "warning", "error", "critical"]
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["datadir"]
+            ManagedButton:
+                #data directory selection button
+                id: settings_datadir
+                sync_height: True
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: ""
+                on_press: self.parent.parent.parent.changeDataDir()
+            Label:
+                size_hint_y: None
+                height: 30 * app.root.uiScale
+                text: app.root.loc["uiscale"]
+            FloatInput:
+                #UI scale input
+                id: settings_uiScale
+                size_hint_y: None
+                height: max(30 * app.root.uiScale, self.minimum_height)
+                on_text_validate: self.parent.parent.parent.applyColors()
+                background_normal: "assets/UI/Toolbar/Adaptive07new.png"
+                background_active: "assets/UI/Toolbar/Adaptive07new.png"
+                background_color: app.root.accColor if self.focus else (1., 1., 1., 1.)
+                foreground_color: (1., 1., 1., 1.)
+                halign: "center"
+                multiline: False
+            Label:
+                size_hint_y: None
+                height: 200 * app.root.uiScale
+                valign: "middle"
+                text: app.root.loc["tool_color"]
+            ColorWheel:
+                #tool bar color wheel
+                id: settings_toolColor
+                size_hint_y: None
+                height: 200 * app.root.uiScale
+                on_color: self.parent.parent.parent.applyColors()
+            Label:
+                size_hint_y: None
+                height: 200 * app.root.uiScale
+                valign: "middle"
+                text: app.root.loc["acc_color"]
+            ColorWheel:
+                #accent color wheel
+                id: settings_accColor
+                size_hint_y: None
+                height: 200 * app.root.uiScale
+                on_color: self.parent.parent.parent.applyColors()
+            Label:
+                size_hint_y: None
+                height: 200 * app.root.uiScale
+                valign: "middle"
+                text: app.root.loc["bg_color"]
+            ColorWheel:
+                #background color wheel
+                id: settings_bgColor
+                size_hint_y: None
+                height: 200 * app.root.uiScale
+                on_color: self.parent.parent.parent.applyColors()

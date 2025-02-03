@@ -23,23 +23,23 @@ halfTripleBatchSize = 288
 LSTMBatchSize = 250000
 
 #analysis spectral processing
-filterBSMult = 2
+filterBSMult = 4
 DIOBias = 0.4
 DIOBias2 = 0.2
 DIOTolerance = 0.2
 DIOLastWinTolerance = 0.9
 filterTEEMult = 32
 filterHRSSMult = 4
-nFormants = 50
-nHarmonics = 128
-halfHarms = 65
+nHarmonics = 64
+halfHarms = 33
 ampContThreshold = 10
+frameSize = nHarmonics + halfTripleBatchSize + 3
+reducedFrameSize = halfHarms + halfTripleBatchSize + 1
 
 #synthesis spectral processing
 spectralRolloff1 = 144
 spectralRolloff2 = 192
-pitchShiftSpectralRolloff = 4
-breCompPremul = 0.6
+breCompPremul = 0.1
 crfBorderAbs = 7
 crfBorderRel = 0.1
 maxVibratoSpeed = 0.15
@@ -55,8 +55,8 @@ pitchDipWidth = 40
 pitchDipHeight = 0.2
 
 #border synthesis
-refPhonemeLength = 30
-refTransitionLength = 10
+refPhonemeLength = 10
+refTransitionLength = 4
 refTransitionFrac = 0.2
 
 #editor UI
@@ -64,7 +64,7 @@ octaves = 4
 
 #self-identification
 language = "en"
-version = "0.10.0"
+version = "0.11.0"
 
 #devkit default values
 defaultExpectedPitch = 249.
@@ -76,7 +76,7 @@ defaultTempWidth = 2
 defaultTempDepth = 10
 
 #oto.ini parser
-consonantEndOffset = 15
+consonantEndOffset = 30
 
 #control/reserved phoneme list
 controlPhonemes = (
@@ -96,16 +96,7 @@ config = engineCfg(sampleRate = sampleRate,
                    batchSize = batchSize,
                    tripleBatchSize = tripleBatchSize,
                    halfTripleBatchSize = halfTripleBatchSize,
-                   filterBSMult = filterBSMult,
-                   DIOBias = DIOBias,
-                   DIOBias2 = DIOBias2,
-                   DIOTolerance = DIOTolerance,
-                   DIOLastWinTolerance = DIOLastWinTolerance,
-                   filterTEEMult = filterTEEMult,
-                   filterHRSSMult = filterHRSSMult,
                    nHarmonics = nHarmonics,
                    halfHarmonics = int(nHarmonics / 2) + 1,
-                   frameSize = nHarmonics + halfTripleBatchSize + 3,
-                   ampContThreshold = ampContThreshold,
-                   spectralRolloff1 = spectralRolloff1,
-                   spectralRolloff2 = spectralRolloff2)
+                   frameSize = frameSize,
+                   breCompPremul = breCompPremul)

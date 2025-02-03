@@ -1,4 +1,4 @@
-# Copyright 2023 Contributors to the Nova-Vox project
+# Copyright 2023, 2024 Contributors to the Nova-Vox project
 
 # This file is part of Nova-Vox.
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -6,10 +6,17 @@
 # You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Any
+from inspect import getframeinfo
+from sys import _getframe
 from bisect import bisect_left, bisect_right
+from os import path
 from kivy.lang import Builder
-global middleLayer
-from UI.code.editor.Main import middleLayer
+from MiddleLayer.IniParser import readSettings
+import Backend.Node.NodeBaseLib
+
+global overrides, UIExtensions
+overrides = dict()
+UIExtensions = {"addonPanel": [], "filePanel": [], "noteContextMenu": []}
 
 class Override():
     def __init__(self, type:str, callback:callable, priority:int = 0) -> None:
@@ -22,47 +29,68 @@ class Override():
     
     def __eq__(self, __value: object) -> bool:
         return self.priority == __value
+    
+class UIExtension():
+    def __init__(self, instance:Any, addon: str, priority:int = 0) -> None:
+        self.instance = instance
+        self.addon = addon
+        self.priority = priority
         
+    def __eq__(self, __value: object) -> bool:
+        return self.priority == __value
 
 def override(func:callable):
     def wrapper(*args, **kwargs):
-        funcID = "".join(func.__module__, ".", func.__name__)
-        if funcID in middleLayer.overrides:
-            for override in middleLayer.overrides[funcID]["prepends"]:
-                override(*args, **kwargs)
-            if "override" in middleLayer.overrides[funcID].keys():
-                returnVal = middleLayer.overrides[funcID]["override"](*args, **kwargs)
+        funcID = ".".join([func.__module__, func.__qualname__])
+        if funcID in overrides.keys():
+            for override in overrides[funcID]["prepends"]:
+                args, kwargs = override(*args, **kwargs)
+            if "override" in overrides[funcID].keys():
+                returnVal = overrides[funcID]["override"](*args, **kwargs)
             else:
                 returnVal = func(*args, **kwargs)
-            for override in middleLayer.overrides[funcID]["appends"]:
-                override(*args, **kwargs)
+            for override in overrides[funcID]["appends"]:
+                returnVal, args, kwargs = override(returnVal, *args, **kwargs)
             return returnVal
+        return func(*args, **kwargs)
     return wrapper
 
 def registerOverride(target:callable, type:str, callback:callable, priority:int = 0) -> None:
     if type not in ("prepend", "append", "override"):
         raise ValueError("invalid override type")
-    if target not in middleLayer.overrides:
-        middleLayer.overrides[target] = {"prepends":[], "appends": []}
+    if target not in overrides:
+        overrides[target] = {"prepends":[], "appends": []}
     override = Override(type, callback, priority)
     if type == "override":
-        middleLayer.overrides[target]["override"] = callback
+        overrides[target]["override"] = callback
     elif type == "prepend":
-        index = bisect_left(middleLayer.overrides[target]["prepends"], override)
-        middleLayer.overrides[target]["prepends"].insert(index, override)
+        index = bisect_left(overrides[target]["prepends"], override)
+        overrides[target]["prepends"].insert(index, override)
     elif type == "append":
-        index = bisect_right(middleLayer.overrides[target]["appends"], override)
-        middleLayer.overrides[target]["appends"].insert(index, override)
+        index = bisect_right(overrides[target]["appends"], override)
+        overrides[target]["appends"].insert(index, override)
 
 def registerKV(rule:str) -> None:
     Builder.load_string(rule)
 
-def registerUIElement(instance:Any, location:str, priority:int = 0):
-    if location not in middleLayer.UIExtensions.keys():
+def getAddon(level:int = 2) -> str:
+    file = getframeinfo(_getframe(level))[0]
+    addonPath = path.join(readSettings()["datadir"], "addons")
+    addon = None
+    while not path.samefile(addonPath, file):
+        file, addon = path.split(file)
+        if addon == "":
+            return None
+    return str(addon)
+
+def registerUIElement(instance:Any, location:str, priority:int = 0, addon:str = None):
+    if location not in UIExtensions.keys():
         raise ValueError("invalid UI element location")
+    if addon == None:
+        addon = getAddon()
+    extension = UIExtension(instance, addon, priority)
+    index = bisect_left(UIExtensions[location], priority)
+    UIExtensions[location].insert(index, extension)
 
-def registerNode():
-    pass
-
-def registerNodeDType():
-    pass
+def registerNode(nodeClass:Any):
+    Backend.Node.NodeBaseLib.additionalNodes.append(nodeClass)

@@ -1,4 +1,4 @@
-#Copyright 2022, 2023 Contributors to the Nova-Vox project
+#Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -11,7 +11,7 @@ from kivy.clock import mainthread
 
 import torch
 import math
-from bisect import bisect_left
+from bisect import bisect_right
 
 import sounddevice
 
@@ -24,6 +24,8 @@ from Util import ensureTensorLength, noteToPitch
 
 from Localization.editor_localization import getLanguage
 loc = getLanguage()
+
+from API.Addon import override
 
 class MiddleLayer(Widget):
     """Central class of the program. Contains data handlers for all data on the main process, and callbacks for modifying it, which are triggered from the UI.
@@ -43,6 +45,7 @@ class MiddleLayer(Widget):
         from Backend.NV_Multiprocessing.Manager import RenderManager
         self.manager = RenderManager(self.trackList)
         self.unsavedChanges = False
+        self.activePanel = None
         self.activeTrack = None
         self.activeParam = "steadiness"
         self.mode = OptionProperty("notes", options = ["notes", "timing", "pitch"])
@@ -70,8 +73,7 @@ class MiddleLayer(Widget):
                 device = i["name"] + ", " + settings["audioapi"]
         self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback, latency = float(settings["audiolatency"]))
         self.scriptCache = ""
-        self.overrides = dict()
-        self.UIExtensions = {"addonPanel": [], "filePanel": [], "noteContextMenu": []}
+        self.addonModules = []
         
     def setUI(self, ui) -> None:
         """sets the ui and id list references of the main UI. Functionality related to such UI updates may be moved to a dedicated class in the future, deprecating this function."""
@@ -80,13 +82,16 @@ class MiddleLayer(Widget):
         self.ids = ui.ids
 
     def addParam(self, param, name) -> None:
-        pass #TODO: implement
+        self.trackList[self.activeTrack].nodegraph.addParam(param, name)
+        self.submitNodegraphUpdate(self.trackList[self.activeTrack].nodegraph)
 
+    @override
     def updatePianoRoll(self) -> None:
         """updates the piano roll UI after a track or mode change"""
 
         self.ids["pianoRoll"].updateTrack()
 
+    @override
     def changePianoRollMode(self) -> None:
         """helper function for piano roll UI updates when changing modes"""
         self.ids["pianoRoll"].changeMode()
@@ -141,14 +146,11 @@ class MiddleLayer(Widget):
     def switchNote(self, index:int) -> None:
         """Switches the places of the notes at positions index and index + 1 or the active track. Does currently not clean up timing markers afterwards, so doing so manually or by prompting a call of offsetPhonemes is currently required."""
 
+        print("switching notes", index)
         note = self.trackList[self.activeTrack].notes.pop(index + 1)
         self.trackList[self.activeTrack].notes.insert(index, note)
         self.adjustNote(index + 1, None, None, False, False)
         self.adjustNote(index, None, None, False, True)
-        print(self.trackList[self.activeTrack].notes[index].reference.index, index)
-        self.trackList[self.activeTrack].notes[index].reference.index = index
-        print(self.trackList[self.activeTrack].notes[index + 1].reference.index, index + 1)
-        self.trackList[self.activeTrack].notes[index + 1].reference.index = index + 1
         if index == 0:
             start = 0
             borderStart = 0
@@ -166,13 +168,23 @@ class MiddleLayer(Widget):
         self.submitNamedPhonParamChange(False, "phonemes", start, self.trackList[self.activeTrack].phonemes[start:end])
         self.submitNamedPhonParamChange(False, "borders", start, self.trackList[self.activeTrack].borders[borderStart:borderEnd])
     
-    def adjustNote(self, index:int, oldLength:int = None, oldPos:int = None, keepStart:bool = False, adjustPrevious:bool = False) -> None:
+    def adjustNote(self, index:int, oldStart:int = None, oldEnd:int = None, keepStart:bool = False, adjustPrevious:bool = False) -> None:
         """Adjusts a note's attributes after it has been moved or scaled with respect to its surrounding notes. The current position and length are read from its UI representation, the old one must be given as arguments."""
 
-        if oldLength == None:
-            oldLength = self.trackList[self.activeTrack].notes[index].length
-        if oldPos == None:
-            oldPos = self.trackList[self.activeTrack].notes[index].xPos
+        print("adjust note ", index)
+        if oldStart == None:
+            if index == 0:
+                oldStart = int(self.trackList[self.activeTrack].borders[0])
+            else:
+                oldStart = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]])
+            print("old start override to ", oldStart)
+        if oldEnd == None:
+            if index == len(self.trackList[self.activeTrack].notes) - 1 or self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
+                oldEnd = int(self.trackList[self.activeTrack].borders[-1])
+            else:
+                oldEnd = int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2])
+            print("old end override to ", oldEnd)
+        print("old start: ", oldStart, " old end: ", oldEnd)
         switch = None
         if index > 0 and self.trackList[self.activeTrack].notes[index - 1].xPos > self.trackList[self.activeTrack].notes[index].xPos:
             self.switchNote(index - 1)
@@ -209,12 +221,14 @@ class MiddleLayer(Widget):
         else:
             end = self.trackList[self.activeTrack].phonemeIndices[index] * 3 + 1
         self.submitNamedPhonParamChange(False, "borders", start, list(self.trackList[self.activeTrack].borders[start:end]))
+        self.trackList[self.activeTrack].basePitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
+        self.trackList[self.activeTrack].pitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
         if index > 0:
-            self.recalculateBasePitch(index - 1, self.trackList[self.activeTrack].notes[index - 1].xPos, max(min(oldPos, self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length), 1))
-        self.recalculateBasePitch(index, oldPos, oldPos + oldLength)
+            self.recalculateBasePitch(index - 1)
+        self.recalculateBasePitch(index)
         if index + 1 < len(self.trackList[self.activeTrack].notes):
-            self.recalculateBasePitch(index + 1, oldPos + oldLength, oldPos + oldLength + self.trackList[self.activeTrack].notes[index - 1].length)
-        if (self.trackList[self.activeTrack].notes[index].xPos != oldPos or adjustPrevious) and index > 0:
+            self.recalculateBasePitch(index + 1)
+        if (self.trackList[self.activeTrack].borders[start] != oldStart or adjustPrevious) and index > 0:
             self.adjustNote(index - 1, None, None, True, False)
             if index == 0:
                 start = 0
@@ -270,12 +284,16 @@ class MiddleLayer(Widget):
         self.trackList[self.activeTrack].breathiness = ensureTensorLength(self.trackList[self.activeTrack].breathiness, length, 0)
         self.trackList[self.activeTrack].steadiness = ensureTensorLength(self.trackList[self.activeTrack].steadiness, length, 0)
         self.trackList[self.activeTrack].aiBalance = ensureTensorLength(self.trackList[self.activeTrack].aiBalance, length, 0)
+        self.trackList[self.activeTrack].genderFactor = ensureTensorLength(self.trackList[self.activeTrack].genderFactor, length, 0)
         self.trackList[self.activeTrack].vibratoSpeed = ensureTensorLength(self.trackList[self.activeTrack].vibratoSpeed, length, 0)
         self.trackList[self.activeTrack].vibratoStrength = ensureTensorLength(self.trackList[self.activeTrack].vibratoStrength, length, 0)
         self.audioBuffer[self.activeTrack] = ensureTensorLength(self.audioBuffer[self.activeTrack], length * global_consts.batchSize, 0)
+        for key in self.trackList[self.activeTrack].nodegraph.params.keys():
+            self.trackList[self.activeTrack].nodegraph.params[key].curve = ensureTensorLength(self.trackList[self.activeTrack].nodegraph.params[key].curve, length, 0)
         self.ids["adaptiveSpace"].applyLength(length)
         self.submitChangeLength(True, length)
 
+    @override
     def validate(self) -> None:
         """validates the data held by the middle layer, fixes any errors encountered, and restarts the renderer"""
 
@@ -302,9 +320,8 @@ class MiddleLayer(Widget):
     def submitChangeVB(self, index:int, path:str) -> None:
         self.manager.sendChange("changeVB", False, index, path)
     
-    def submitNodegraphUpdate(self) -> None:
-        #placeholder until NodeGraph is fully implemented
-        self.manager.sendChange("nodeUpdate", True, self.activeTrack, None)
+    def submitNodegraphUpdate(self, nodegraph) -> None:
+        self.manager.sendChange("changeNodegraph", True, self.activeTrack, nodegraph.pack())
     
     def submitEnableParam(self, name:str) -> None:
         self.manager.sendChange("enableParam", True, self.activeTrack, name)
@@ -324,6 +341,9 @@ class MiddleLayer(Widget):
     def submitParamChange(self, final:bool, param, index:int, data) -> None:
         self.manager.sendChange("changeInput", final, self.activeTrack, param, index, data)
     
+    def submitTrackSettingsChange(self, final:bool, index:int, key:str, value) -> None:
+        self.manager.sendChange("changeTrackSettings", final, index, key, value)
+    
     def submitOffset(self, final:bool, index:int, offset:int) -> None:
         self.manager.sendChange("offset", final, self.activeTrack, index, offset)
 
@@ -333,6 +353,7 @@ class MiddleLayer(Widget):
     def submitFinalize(self) -> None:
         self.manager.sendChange("finalize", True)
     
+    @override
     def updateRenderStatus(self, track:int, index:int, value:int) -> None:
         """updates the visual representation of the rendering progress of the note at index index of track track"""
 
@@ -344,8 +365,8 @@ class MiddleLayer(Widget):
         for i in self.trackList[track].offsets:
             if i[0] <= index:
                 index += i[1]
-        noteIndex = bisect_left(self.trackList[track].phonemeIndices, index)
-        while (self.trackList[track].phonemeIndices[noteIndex] == self.trackList[track].phonemeIndices[noteIndex - 1]) and (noteIndex > 0):
+        noteIndex = bisect_right(self.trackList[track].phonemeIndices, index)
+        while (self.trackList[track].phonemeIndices[noteIndex] == self.trackList[track].phonemeIndices[noteIndex - 1]) and (noteIndex > 0): #noteIndex out of range here, presumably after _autopause
             noteIndex -= 1
         if noteIndex > 0:
             if (index - self.trackList[track].phonemeIndices[noteIndex]) >= len(self.trackList[track].notes[noteIndex].phonemes):
@@ -356,6 +377,7 @@ class MiddleLayer(Widget):
         if self.trackList[track].notes[noteIndex].reference:
             self.trackList[track].notes[noteIndex].reference.updateStatus(index, value)
     
+    @override
     def updateAudioBuffer(self, track:int, index:int, data:torch.Tensor) -> None:
         """updates the audio buffer. The data of the track at position track of the trackList is updated with the tensor Data, starting from position index"""
 
@@ -372,6 +394,7 @@ class MiddleLayer(Widget):
 
         self.ids["pianoRoll"].changePlaybackPos(position)
     
+    @override
     def play(self, state:bool = None) -> None:
         """starts or stops audio playback.
         If state is true, starts playback, if state is false, stops playback. If state is None or not given, starts playback if it is not already in progress, and stops playback if it is."""
@@ -406,6 +429,11 @@ class MiddleLayer(Widget):
             buffer = torch.zeros([global_consts.audioBufferSize, 2], dtype = torch.float32).expand(-1, 2).numpy()
             self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
         outdata[:] = buffer.copy()
+    
+    def delete(self):
+        """broadcasts a deletion event to all relevant UI elements"""
+        
+        self.activePanel.processDelete()
 
     def posToNote(self, pos1:int, pos2:int) -> tuple:
         pos1Out = 0
@@ -420,9 +448,11 @@ class MiddleLayer(Widget):
                 break
         return (pos1Out, pos2Out)
 
-    def recalculateBasePitch(self, index:int, oldStart:float, oldEnd:float) -> None:
+    @override
+    def recalculateBasePitch(self, index:int) -> None:
         """recalculates the base pitch curve after the note at position index of the active track has been modified. oldStart and oldEnd are the start and end of the note before the transformation leading to the function call."""
 
+        print("recalculating base pitch for note ", index)
         dipWidth = global_consts.pitchDipWidth
         dipHeight = global_consts.pitchDipHeight
         transitionLength1 = min(global_consts.pitchTransitionLength, int(self.trackList[self.activeTrack].notes[index].length))
@@ -432,14 +462,8 @@ class MiddleLayer(Widget):
         transitionPoint2 = self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length
         if index == 0:
             previousHeight = None
-        elif len(self.trackList[self.activeTrack].notes[index]) == 0:
+        elif self.trackList[self.activeTrack].notes[index - 1].autopause:
             previousHeight = None
-        elif self.trackList[self.activeTrack].notes[index].autopause:
-            previousHeight = None
-            if index == 0:
-                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[0]))
-            else:
-                oldStart = min(oldStart, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]]))
         else:
             previousHeight = self.trackList[self.activeTrack].notes[index - 1].yPos
             transitionLength1 = min(transitionLength1, self.trackList[self.activeTrack].notes[index - 1].length)
@@ -448,11 +472,10 @@ class MiddleLayer(Widget):
                 transitionPoint1 = (transitionPoint1 + self.trackList[self.activeTrack].notes[index - 1].xPos + self.trackList[self.activeTrack].notes[index - 1].length) / 2
         if index == len(self.trackList[self.activeTrack].notes) - 1:
             nextHeight = None
-        elif self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
-            nextHeight = None
+        #elif self.trackList[self.activeTrack].phonemeIndices[index - 1] == self.trackList[self.activeTrack].phonemeIndices[index]:
+            #nextHeight = None
         elif self.trackList[self.activeTrack].notes[index].autopause:
             nextHeight = None
-            oldEnd = max(oldEnd, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2]))
         else:
             transitionPoint2 = self.trackList[self.activeTrack].notes[index + 1].xPos
             nextHeight = self.trackList[self.activeTrack].notes[index + 1].yPos
@@ -461,6 +484,7 @@ class MiddleLayer(Widget):
                 transitionLength2 += transitionPoint2 - self.trackList[self.activeTrack].notes[index].xPos - self.trackList[self.activeTrack].notes[index].length
                 transitionPoint2 = (transitionPoint2 + self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length) / 2
         scalingFactor = min(self.trackList[self.activeTrack].notes[index].length / 2 / dipWidth, 1.)
+        print(previousHeight, nextHeight)
         dipWidth *= scalingFactor
         dipHeight *= scalingFactor
         start = int(transitionPoint1 - math.ceil(transitionLength1 / 2))
@@ -474,10 +498,12 @@ class MiddleLayer(Widget):
             else:
                 start = min(start, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index - 1]]))
         if nextHeight == None:
-            end = max(self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2]))
+            if self.trackList[self.activeTrack].notes[index].autopause:
+                end = max(self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] - 1]))
+            else:
+                end = max(self.trackList[self.activeTrack].notes[index].xPos + self.trackList[self.activeTrack].notes[index].length, int(self.trackList[self.activeTrack].borders[3 * self.trackList[self.activeTrack].phonemeIndices[index] + 2]))
         pitchDelta = (self.trackList[self.activeTrack].pitch[start:end] - self.trackList[self.activeTrack].basePitch[start:end]) * torch.heaviside(self.trackList[self.activeTrack].basePitch[start:end], torch.ones_like(self.trackList[self.activeTrack].basePitch[start:end]))
-        self.trackList[self.activeTrack].basePitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
-        self.trackList[self.activeTrack].pitch[oldStart:oldEnd] = torch.full_like(self.trackList[self.activeTrack].basePitch[oldStart:oldEnd], -1.)
+
         self.trackList[self.activeTrack].basePitch[start:end] = torch.full_like(self.trackList[self.activeTrack].basePitch[start:end], currentHeight)
         if previousHeight != None:
             self.trackList[self.activeTrack].basePitch[transitionPoint1 - math.ceil(transitionLength1 / 2):transitionPoint1 + math.ceil(transitionLength1 / 2)] = torch.pow(torch.cos(torch.linspace(0, math.pi / 2, 2 * math.ceil(transitionLength1 / 2))), 2) * (previousHeight - currentHeight) + torch.full([2 * math.ceil(transitionLength1 / 2),], currentHeight)

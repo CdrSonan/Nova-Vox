@@ -1,4 +1,4 @@
-;Copyright 2022, 2023 Contributors to the Nova-Vox project
+;Copyright 2022 - 2024 Contributors to the Nova-Vox project
 
 ;This file is part of Nova-Vox.
 ;Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -23,8 +23,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{680531A2-5B3C-47B5-8380-CA6D7033BF13}
 AppName="Nova-Vox"
-AppVersion="0.10.0"
-AppVerName="Nova-Vox 0.10.0"
+AppVersion="0.11.0"
+AppVerName="Nova-Vox 0.11.0"
 AppPublisher="Nova-Vox development team"
 AppPublisherURL="https://nova-vox.org/"
 AppSupportURL="https://nova-vox.org/"
@@ -54,10 +54,10 @@ Name: "main"; Description: "Nova-Vox Editor and Dependencies"; Types: full minim
 Name: "devkit"; Description: "Devkit Executable"; Types: full custom
 Name: "devkit\phontables"; Description: "Phonetic tables for Devkit"; Types: full custom
 Name: "voices"; Description: "Default Voicebanks"; Types: full custom
-;Name: "voices\Test"; Description: "RIP test Voicebank"; Types: full custom
-;Name: "voices\Arachne"; Description: "Arachne Japanese UTAU port"; Types: full custom
+Name: "voices\TYC"; Description: "Tsukuyomi-chan demo Voicebank"; Types: full custom
+Name: "voices\Arachne"; Description: "Arachne Japanese UTAU port"; Types: full custom
 ;Name: "params"; Description: "Default Parameters"; Types: full custom
-Name: "voices\Barrels"; Description: "Barrels test Voicebank"; Types: full custom
+;Name: "voices\Barrels"; Description: "Barrels test Voicebank"; Types: full custom
 
 [Tasks]
 Name: "desktopiconeditor"; Description: "{cm:CreateDesktopIcon} (Editor)"; GroupDescription: "{cm:AdditionalIcons}"
@@ -71,12 +71,25 @@ Name: "{code:GetDataDir}\Addons"; Flags: uninsneveruninstall
 Name: "{code:GetDataDir}\Devkit_Phonetics\IPAConversions"; Components: devkit
 Name: "{code:GetDataDir}\Devkit_Phonetics\Lists"; Components: devkit
 Name: "{code:GetDataDir}\Devkit_Phonetics\UtauConversions"; Components: devkit
+Name: "{code:GetDataDir}\Devkit_Presets\Dictionaries"; Components: devkit
+Name: "{code:GetDataDir}\Devkit_Presets\TrAis"; Components: devkit
+Name: "{code:GetDataDir}\Devkit_Presets\MainAis"; Components: devkit
 Name: "{userappdata}\Nova-Vox\Logs"
 
 
 [Code]
 var
   DataDirPage: TInputDirWizardPage;
+var
+  DownloadPage: TDownloadWizardPage;
+
+function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
+begin
+  if Progress = ProgressMax then
+    Log(Format('Successfully downloaded file to {tmp}: %s', [FileName]));
+  Result := True;
+end;
+
 procedure InitializeWizard;
 begin
   DataDirPage := CreateInputDirPage(wpSelectDir,
@@ -85,6 +98,7 @@ begin
     False, '');
   DataDirPage.Add('');
   DataDirPage.Values[0] := ExpandConstant('{commondocs}\Nova-Vox');
+  DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
 end;
 
 function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo, MemoTypeInfo,
@@ -108,18 +122,50 @@ begin
   Result := DataDirPage.Values[0];
 end;
 
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+  if CurPageID = wpReady then begin
+    DownloadPage.Clear;
+    // Use AddEx to specify a username and password
+    if WizardIsComponentSelected('voices\TYC') then
+      DownloadPage.Add('https://dl.nova-vox.org/TYC-1.0.1.nvvb', 'TYC-1.0.1.nvvb', '');
+    if WizardIsComponentSelected('voices\Arachne') then
+      DownloadPage.Add('https://dl.nova-vox.org/Arachne-1.0.1.nvvb', 'Arachne-1.0.1.nvvb', '');
+    DownloadPage.Show;
+    try
+      try
+        DownloadPage.Download; // This downloads the files to {tmp}
+        Result := True;
+      except
+        if DownloadPage.AbortedByUser then
+          Log('Aborted by user.')
+        else
+          SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+        Result := False;
+      end;
+    finally
+      DownloadPage.Hide;
+    end;
+  end else
+    Result := True;
+end;
+
+
 [Files]
 Source: "..\dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\assets\settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
 Source: "..\dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
-Source: "..\assets\Voices\Barrels.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Barrels; Flags: ignoreversion uninsneveruninstall
+Source: "{tmp}\TYC-1.0.1.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\TYC; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\Arachne-1.0.1.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Arachne; Flags: ignoreversion uninsneveruninstall external
 ;Source: "Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion uninsneveruninstall
 ;Source: "Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
 Source: "..\assets\Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
 
+
 [INI]
 Filename: "{userappdata}\Nova-Vox\settings.ini"; Section: "Dirs"
 Filename: "{userappdata}\Nova-Vox\settings.ini"; Section: "Dirs"; Key: "dataDir"; String: "{code:GetDataDir}"
+
 
 [Icons]
 Name: "{group}\Nova-Vox\Nova-Vox Editor"; Filename: "{app}\Nova-Vox Editor.exe"
@@ -127,9 +173,11 @@ Name: "{autodesktop}\Nova-Vox Editor"; Filename: "{app}\Nova-Vox Editor.exe"; Ta
 Name: "{group}\Nova-Vox\Nova-Vox Devkit"; Filename: "{app}\Nova-Vox Devkit.exe"
 Name: "{autodesktop}\Nova-Vox Devkit"; Filename: "{app}\Nova-Vox Devkit.exe"; Tasks: desktopicondevkit
 
+
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
+
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#nvxAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#nvxAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
@@ -163,8 +211,10 @@ Root: HKA; Subkey: "Software\Classes\{#nvvbAssocKeyDK}\shell\open\command"; Valu
 ;Root: HKA; Subkey: "Software\Classes\{#nvprAssocKeyDK}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Nova-Vox Editor.exe,0"; Components: devkit
 ;Root: HKA; Subkey: "Software\Classes\{#nvprAssocKeyDK}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Nova-Vox Devkit.exe"" ""%1"""; Components: devkit
 
+
 [Run]
 Filename: "{app}\Nova-Vox Editor.exe"; Description: "{cm:LaunchProgram,{#StringChange("Nova-Vox", '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{userappdata}\Nova-Vox\Logs"

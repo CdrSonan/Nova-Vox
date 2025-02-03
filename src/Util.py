@@ -1,4 +1,4 @@
-#Copyright 2023 Contributors to the Nova-Vox project
+#Copyright 2023, 2024 Contributors to the Nova-Vox project
 
 #This file is part of Nova-Vox.
 #Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -25,6 +25,45 @@ def noteToPitch(data:torch.Tensor) -> torch.Tensor:
 
     #return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69)) / torch.full_like(data, 12)) * 440)
     return torch.full_like(data, global_consts.sampleRate) / (torch.pow(2, (data - torch.full_like(data, 69 - 12)) / torch.full_like(data, 12)) * 440)
+
+def freqBinToHarmonic(freqBin:torch.Tensor, pitch:float) -> torch.Tensor:
+    """Utility function for converting a frequency bin to a harmonic number, given the pitch of the note."""
+
+    #xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
+    #harmScale = torch.linspace(0, global_consts.nHarmonics / 2 * global_consts.sampleRate / pitch, int(global_consts.nHarmonics / 2) + 1)
+    #freqBinStep = global_consts.sampleRate / global_consts.tripleBatchSize
+    #harmStep = global_consts.sampleRate / pitch
+    return freqBin * global_consts.tripleBatchSize / pitch
+
+def harmonicToFreqBin(harmonic:torch.Tensor, pitch:float) -> torch.Tensor:
+    """Utility function for converting a harmonic number to a frequency bin, given the pitch of the note."""
+
+    #freq = harmonic * sampleRate / pitch
+    return harmonic * global_consts.tripleBatchSize / pitch
+
+def freqToFreqBin(freq:torch.Tensor) -> torch.Tensor:
+    """Utility function for converting a frequency to a frequency bin."""
+
+    return freq * global_consts.tripleBatchSize / global_consts.sampleRate
+
+def amplitudeToDecibels(amplitude:torch.Tensor) -> torch.Tensor:
+    """Utility function for converting an amplitude to decibels."""
+
+    return 20 * torch.log10(amplitude)
+
+def decibelsToAmplitude(decibels:torch.Tensor) -> torch.Tensor:
+    """Utility function for converting decibels to an amplitude."""
+
+    return 10 ** (decibels / 20)
+
+def rebaseHarmonics(harmonics:torch.Tensor, pitchFactor:float) -> torch.Tensor:
+    """Utility function for rebasing harmonics to a different pitch."""
+
+    srcSpace = torch.linspace(0, global_consts.halfHarms - 1, global_consts.halfHarms)
+    tgtSpace = torch.linspace(0, (global_consts.halfHarms - 1) * pitchFactor, global_consts.halfHarms)
+    input = torch.polar(harmonics[:global_consts.halfHarms], harmonics[global_consts.halfHarms:])
+    output = torch.sum(input.unsqueeze(-1) * torch.sinc(srcSpace.unsqueeze(0) - tgtSpace.unsqueeze(1)), 0) #check if this is correct
+    return torch.cat((output.real, output.imag), 0)
 
 def binarySearch(array, expression, length) -> int:
     """performs a binary search across array, returning the index of the first element where expression evaluates to True.
@@ -82,3 +121,13 @@ class SecureDict(dict):
     
     def __getitem__(self, __key):
         return super().__getitem__(__key) if __key in self else (self.default if self.default is not None else __key)
+
+def classesinmodule(module):
+    """utility function for getting all classes in a Python module"""
+
+    md = module.__dict__
+    return [
+        md[c] for c in md if (
+            isinstance(md[c], type) and md[c].__module__ == module.__name__
+        )
+    ]
