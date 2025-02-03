@@ -1,5 +1,5 @@
 altgraph==0.17.4
-certifi==2023.7.22
+certifi==2024.7.4
 cffi==1.16.0
 charset-normalizer==3.3.1
 colorama==0.4.6
@@ -10,8 +10,8 @@ filelock==3.9.0
 fonttools==4.43.1
 fsspec==2023.4.0
 h5py==3.10.0
-idna==3.4
-Jinja2==3.1.2
+idna==3.7
+Jinja2==3.1.4
 Kivy==2.2.1
 kivy-deps.angle==0.3.3
 kivy-deps.glew==0.3.1
@@ -25,7 +25,7 @@ networkx==3.0
 numpy==1.26.1
 packaging==23.2
 pefile==2023.2.7
-Pillow==10.1.0
+Pillow==10.3.0
 pycparser==2.21
 Pygments==2.16.1
 pyinstaller==6.1.0
@@ -35,14 +35,14 @@ pypiwin32==223
 python-dateutil==2.8.2
 pywin32==306
 pywin32-ctypes==0.2.2
-requests==2.31.0
+requests==2.32.0
 six==1.16.0
 sounddevice==0.4.6
 soundfile==0.12.1
 sympy==1.12
 torch==2.1.0+cu118
 torchaudio==2.1.0+cu118
-tqdm==4.66.1
+tqdm==4.66.3
 ttkthemes==3.2.2
 typing_extensions==4.4.0
 urllib3==2.0.7
