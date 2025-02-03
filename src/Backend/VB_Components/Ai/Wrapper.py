@@ -25,8 +25,7 @@ halfHarms = int(global_consts.nHarmonics / 2) + 1
 
 def dataLoader_collate(data):
     return data[0]
-    """This is exactly as dumb as it looks. This function is only here to work around DataLoader default collation being active even when there is nothing to collate, with no way to turn it off.
-    Also, it needs to be defined here because the Pickle pipes used by DataLoader can't send it to a worker process when it is defined in the scope it would normally belong in."""
+    """This is exactly as dumb as it looks."""
 
 class AIWrapper():
     """Wrapper class for the mandatory AI components of a Voicebank. Controls data pre- and postprocessing, state loading and saving, Hyperparameters, and both training and inference."""

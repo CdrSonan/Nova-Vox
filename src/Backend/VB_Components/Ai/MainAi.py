@@ -33,8 +33,7 @@ input_dim = global_consts.halfTripleBatchSize + halfHarms + 1
 
 def dataLoader_collate(data):
     return data[0]
-    """This is exactly as dumb as it looks. This function is only here to work around DataLoader default collation being active even when there is nothing to collate, with no way to turn it off.
-    Also, it needs to be defined here because the Pickle pipes used by DataLoader can't send it to a worker process when it is defined in the scope it would normally belong in."""
+    """This is exactly as dumb as it looks."""
 
 class DataGenerator(IterableDataset):
     """generates synthetic data for the discriminator to train on"""
@@ -111,8 +110,8 @@ class DataGenerator(IterableDataset):
                                                             bool(group.attrs["useAIBalance"]),
                                                             bool(group.attrs["useGenderFactor"]),
                                                             bool(group.attrs["useVibratoSpeed"]),
-                                                            float(group.attrs["unvoicedShift"]),
                                                             bool(group.attrs["useVibratoStrength"]),
+                                                            float(group.attrs["unvoicedShift"]),
                                                             [],
                                                             None))   
         elif self.mode == "reclist (strict vowels)":

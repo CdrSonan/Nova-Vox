@@ -842,6 +842,8 @@ class ChangeTrackSettings(UnifiedAction):
     def inverseAction(self):
         if self.key == "unvoicedShift":
             return ChangeTrackSettings(self.index, self.key, middleLayer.trackList[self.index].unvoicedShift)
+        elif self.key == "mixinVB":
+            return ChangeTrackSettings(self.index, self.key, middleLayer.trackList[self.index].mixinVB)
         else:
             raise ValueError("Invalid track settings key")
 

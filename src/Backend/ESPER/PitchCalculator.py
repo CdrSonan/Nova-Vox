@@ -7,48 +7,9 @@
 
 import math
 import torch
-from torchaudio.functional import detect_pitch_frequency
 import C_Bridge
 from Backend.DataHandler.AudioSample import AudioSample
 import global_consts
-from Backend.Resampler.CubicSplineInter import interp
-
-def calculatePitch(audioSample:AudioSample, limiter:bool = True) -> None:
-    """current method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.
-    
-    Arguments:
-        audioSample: The AudioSample object the operation is to be performed on
-        
-    Returns:
-        None
-        
-    This method of pitch calculation uses the detect_pitch_frequency method implemented in TorchAudio. It does not reliably work for values of searchRange below 0.33. This means a rather large search range is required, 
-    introducing the risk of the pitch being detected as a whole multiple or fraction of its real value. For this reason, the pitch is multiplied or divided by a compensation factor if it is too far off the expected value.
-    In case the pitch detection fails in spite of the correctly set search range, it uses a fallback."""
-
-    try:
-        pitchDeltas = global_consts.sampleRate / detect_pitch_frequency(audioSample.waveform, global_consts.sampleRate, 1. / global_consts.tickRate, 30, audioSample.expectedPitch * (1 - audioSample.searchRange), audioSample.expectedPitch * (1 + audioSample.searchRange))
-    except RuntimeError as e:
-        #tqdm.write("nonfatal pitch calculation error:")
-        #tqdm.write(repr(e))
-        #tqdm.write("using fallback method for current sample")
-        calculatePitchFallback_legacy(audioSample)
-        pitchDeltas = audioSample.pitchDeltas
-    if pitchDeltas.size()[0] < 2:
-        calculatePitchFallback_legacy(audioSample)
-        pitchDeltas = audioSample.pitchDeltas
-    if limiter:
-        mul1 = torch.maximum(torch.floor(pitchDeltas * audioSample.expectedPitch / global_consts.sampleRate + 0.5), torch.ones([1,], device = audioSample.pitchDeltas.device))
-        mul2 = torch.maximum(torch.floor(global_consts.sampleRate / audioSample.expectedPitch / pitchDeltas + 0.5), torch.ones([1,], device = audioSample.pitchDeltas.device))
-        pitchDeltas /= mul1
-        pitchDeltas *= mul2
-    audioSample.pitch = torch.mean(pitchDeltas).to(torch.int)
-    length = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize)
-    if (pitchDeltas.size()[0] < 1):
-        pitchDeltas = torch.tensor([audioSample.expectedPitch,], device = audioSample.pitchDeltas.device)
-    if (pitchDeltas.size()[0] > 1):
-        pitchDeltas = interp(torch.linspace(0., 1., pitchDeltas.size()[0], device = audioSample.pitchDeltas.device), pitchDeltas, torch.linspace(0., 1., length, device = audioSample.pitchDeltas.device))
-    audioSample.pitchDeltas = pitchDeltas.to(torch.int)
 
 def calculatePitch(audioSample:AudioSample) -> None:
     """Fallback method for calculating pitch data for an AudioSample object based on the previously set attributes expectedPitch and searchRange.
@@ -67,85 +28,10 @@ def calculatePitch(audioSample:AudioSample) -> None:
     batches = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
     audioSample.pitchDeltas = torch.zeros([batches,], dtype = torch.int)
     audioSample.pitchMarkers = torch.zeros([audioSample.waveform.size()[0],], dtype = torch.int)
+    audioSample.pitchMarkerValidity = torch.zeros([audioSample.waveform.size()[0],], dtype = torch.int8)
     audioSample.excitation = torch.zeros([2 * batches * (global_consts.halfTripleBatchSize + 1)], dtype = torch.float)
     cSample = C_Bridge.makeCSample(audioSample, False, False)
     C_Bridge.esper.pitchCalcFallback(cSample, global_consts.config)
     audioSample.pitchDeltas = audioSample.pitchDeltas[audioSample.pitchDeltas.nonzero()].flatten()
     audioSample.pitchMarkers = audioSample.pitchMarkers[audioSample.pitchMarkers.nonzero()].flatten()
     audioSample.pitch = torch.median(audioSample.pitchDeltas)
-
-def calculatePitchFallback_legacy(audioSample:AudioSample) -> None:
-    batchSize = math.floor((1. + audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
-    lowerSearchLimit = math.floor((1. - audioSample.searchRange) * global_consts.sampleRate / audioSample.expectedPitch)
-    batchStart = 0
-    while batchStart + batchSize <= audioSample.waveform.size()[0] - batchSize:
-        sample = torch.index_select(audioSample.waveform, 0, torch.linspace(batchStart, batchStart + batchSize, batchSize, dtype = int))
-        zeroTransitions = torch.tensor([], dtype = int)
-        for i in range(lowerSearchLimit, batchSize):
-            if (sample[i-1] < 0) and (sample[i] > 0):
-                zeroTransitions = torch.cat([zeroTransitions, torch.tensor([i])], 0)
-        error = math.inf
-        delta = math.floor(global_consts.sampleRate / audioSample.expectedPitch)
-        for i in zeroTransitions:
-            shiftedSample = torch.index_select(audioSample.waveform, 0, torch.linspace(batchStart + i.item(), batchStart + batchSize + i.item(), batchSize, dtype = int))
-            bias = torch.abs(i - math.floor(global_consts.sampleRate / audioSample.expectedPitch))
-            newError = torch.sum(torch.pow(sample - shiftedSample, 2)) * bias + 1
-            if error > newError:
-                delta = i.item()
-                error = newError
-        audioSample.pitchDeltas = torch.cat([audioSample.pitchDeltas, torch.tensor([delta])])
-        batchStart += delta
-    audioSample.pitch = torch.mean(audioSample.pitchDeltas.float()).int()
-
-    #map sequence of pitchDeltas to sampling interval
-    cursor = 0
-    cursor2 = 0
-    pitchDeltas = torch.empty(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize))
-    for i in range(math.floor(audioSample.pitchDeltas.sum() / global_consts.batchSize)):
-        while cursor2 >= audioSample.pitchDeltas[cursor]:
-            if cursor < audioSample.pitchDeltas.size()[0] - 1:
-                cursor += 1
-            cursor2 -= audioSample.pitchDeltas[cursor]
-        cursor2 += global_consts.batchSize
-        pitchDeltas[i] = audioSample.pitchDeltas[cursor]
-    audioSample.pitchDeltas = pitchDeltas
-
-def calculatePhases(audioSample:AudioSample) -> None:
-    """legacy method for calculating phase information for an AudioSample object. Was originally called after pitch calculation.
-    
-    Arguments:
-        audioSample: The AudioSample object the operation is to be performed on
-        
-    Returns:
-        None
-        
-    This method fits a sine and cosine curve of the f0 frequency to the waveform. The phase is then determined by reinterpreting the premul factors of the two curves as real and imaginary part of a complex exponential function, and extracting its phase.
-    The result was then written to a phase attribute of the AudioSample class, which is now deprecated."""
-
-
-    audioSample.phases = torch.empty_like(audioSample.pitchDeltas)
-    previousLimit = 0
-    previousPhase = 0
-    for i in range(audioSample.pitchDeltas.size()[0]):
-        limit = math.floor(global_consts.batchSize / audioSample.pitchDeltas[i])
-        func = audioSample.waveform[i * global_consts.batchSize:i * global_consts.batchSize + limit * audioSample.pitchDeltas[i].to(torch.int64)]
-        funcspace = torch.linspace(0, (limit * audioSample.pitchDeltas[i] - 1) * 2 * math.pi / audioSample.pitchDeltas[i], limit * audioSample.pitchDeltas[i])
-        func = audioSample.waveform[i * global_consts.batchSize:(i + 1) * global_consts.batchSize]
-        funcspace = torch.linspace(0, global_consts.batchSize * 2 * math.pi / audioSample.pitchDeltas[i], global_consts.batchSize)
-
-        sine = torch.sin(funcspace)
-        cosine = torch.cos(funcspace)
-        sine *= func
-        cosine *= func
-        sine = torch.sum(sine)# / pi (would be required for normalization, but amplitude is irrelevant here, so normalization is not required)
-        cosine = torch.sum(cosine)# / pi
-        phase = torch.complex(sine, cosine).angle()
-        if phase < 0:
-            phase += 2 * math.pi
-        offset = previousLimit
-        if phase < previousPhase % (2 * math.pi):
-            offset += 1
-        phase += 2 * math.pi * offset
-        audioSample.phases[i] = phase
-        previousLimit = limit + offset
-        previousPhase = phase

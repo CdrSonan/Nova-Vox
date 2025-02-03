@@ -34,6 +34,8 @@ class SampleStorage:
             self.group.create_dataset("pitchDeltasIdxs", (0,), maxshape=(None,), dtype="int64")
         if "pitchMarkers" not in self.group:
             self.group.create_dataset("pitchMarkers", (0,), maxshape=(None,), dtype="int32", compression="gzip")
+        if "pitchMarkerValidity" not in self.group:
+            self.group.create_dataset("pitchMarkerValidity", (0,), maxshape=(None,), dtype="int8", compression="gzip")
         if "pitchMarkersIdxs" not in self.group:
             self.group.create_dataset("pitchMarkersIdxs", (0,), maxshape=(None,), dtype="int64")
         if "pitch" not in self.group:
@@ -44,8 +46,6 @@ class SampleStorage:
             self.group.create_dataset("specharmIdxs", (0,), maxshape=(None,), dtype="int64")
         if "avgSpecharm" not in self.group:
             self.group.create_dataset("avgSpecharm", (0, gc.reducedFrameSize), maxshape=(None, gc.reducedFrameSize), dtype="float32")
-        if "excitation" not in self.group:
-            self.group.create_dataset("excitation", (0, gc.halfTripleBatchSize + 1, 2), maxshape=(None, gc.halfTripleBatchSize + 1, 2), dtype="float32", compression="gzip")
         if "filepaths" not in self.group:
             self.group.create_dataset("filepaths", (0,), maxshape=(None,), dtype=h5py.string_dtype(encoding="utf-8"))
         if "keys" not in self.group:
@@ -53,12 +53,12 @@ class SampleStorage:
         if "flags" not in self.group:
             self.group.create_dataset("flags", (0, 2), maxshape=(None, 2), dtype="bool")
         if "floatCfg" not in self.group:
-            self.group.create_dataset("floatCfg", (0, 3), maxshape=(None, 3), dtype="float32")
+            self.group.create_dataset("floatCfg", (0, 2), maxshape=(None, 2), dtype="float32")
         if "intCfg" not in self.group:
             if isTransition:
-                self.group.create_dataset("intCfg", (0, 6), maxshape=(None, 6), dtype="int64")
+                self.group.create_dataset("intCfg", (0, 2), maxshape=(None, 2), dtype="int64")
             else:
-                self.group.create_dataset("intCfg", (0, 5), maxshape=(None, 5), dtype="int64")
+                self.group.create_dataset("intCfg", (0, 1), maxshape=(None, 1), dtype="int64")
         if "length" not in self.group.attrs:
             self.group.attrs["length"] = 0
         if "isTransition" not in self.group.attrs:
@@ -88,14 +88,13 @@ class SampleStorage:
             sample.waveform = torch.tensor(self.group["audio"][:self.group["audioIdxs"][idx]], dtype=torch.float32)
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.pitchMarkers = torch.tensor(self.group["pitchMarkers"][:self.group["pitchMarkersIdxs"][idx]], dtype=torch.int)
+            sample.pitchMarkerValidity = torch.tensor(self.group["pitchMarkerValidity"][:self.group["pitchMarkersIdxs"][idx]], dtype=torch.int8)
             sample.specharm = torch.tensor(self.group["specharm"][:self.group["specharmIdxs"][idx]], dtype=torch.float32)
-            sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][:self.group["specharmIdxs"][idx]], dtype=torch.float32))
         else:
             sample.waveform = torch.tensor(self.group["audio"][self.group["audioIdxs"][idx - 1]:self.group["audioIdxs"][idx]], dtype=torch.float32)
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][self.group["pitchDeltasIdxs"][idx - 1]:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.pitchMarkers = torch.tensor(self.group["pitchMarkers"][self.group["pitchMarkersIdxs"][idx - 1]:self.group["pitchMarkersIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32)
-            sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32))
         sample.pitch = self.group["pitch"][idx].item()
         sample.avgSpecharm = torch.tensor(self.group["avgSpecharm"][idx], dtype=torch.float32)
         sample.filepath = self.group["filepaths"][idx].decode("utf-8")
@@ -106,15 +105,10 @@ class SampleStorage:
         sample.isPlosive = self.group["flags"][idx][1].item()
         sample.expectedPitch = self.group["floatCfg"][idx][0].item()
         sample.searchRange = self.group["floatCfg"][idx][1].item()
-        sample.voicedThrh = self.group["floatCfg"][idx][2].item()
-        sample.specWidth = self.group["intCfg"][idx][0].item()
-        sample.specDepth = self.group["intCfg"][idx][1].item()
-        sample.tempWidth = self.group["intCfg"][idx][2].item()
-        sample.tempDepth = self.group["intCfg"][idx][3].item()
         if self.group.attrs["isTransition"]:
-            sample.embedding = (self.group["intCfg"][idx][4].item(), self.group["intCfg"][idx][5].item())
+            sample.embedding = (self.group["intCfg"][idx][0].item(), self.group["intCfg"][idx][1].item())
         else:
-            sample.embedding = self.group["intCfg"][idx][4].item()
+            sample.embedding = self.group["intCfg"][idx][0].item()
         return sample
     
     def fetchAI(self, idx:int):
@@ -131,15 +125,10 @@ class SampleStorage:
         sample.isPlosive = self.group["flags"][idx][1].item()
         sample.expectedPitch = self.group["floatCfg"][idx][0].item()
         sample.searchRange = self.group["floatCfg"][idx][1].item()
-        sample.voicedThrh = self.group["floatCfg"][idx][2].item()
-        sample.specWidth = self.group["intCfg"][idx][0].item()
-        sample.specDepth = self.group["intCfg"][idx][1].item()
-        sample.tempWidth = self.group["intCfg"][idx][2].item()
-        sample.tempDepth = self.group["intCfg"][idx][3].item()
         if self.group.attrs["isTransition"]:
-            sample.embedding = (self.group["intCfg"][idx][4].item(), self.group["intCfg"][idx][5].item())
+            sample.embedding = (self.group["intCfg"][idx][0].item(), self.group["intCfg"][idx][1].item())
         else:
-            sample.embedding = self.group["intCfg"][idx][4].item()
+            sample.embedding = self.group["intCfg"][idx][0].item()
         return sample
     
     def fetchLite(self, key:str, byKey:bool = False):
@@ -151,11 +140,9 @@ class SampleStorage:
         if idx == 0:
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][:self.group["specharmIdxs"][idx]], dtype=torch.float32)
-            sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][:self.group["specharmIdxs"][idx]], dtype=torch.float32))
         else:
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][self.group["pitchDeltasIdxs"][idx - 1]:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.specharm = torch.tensor(self.group["specharm"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32)
-            sample.excitation = torch.view_as_complex(torch.tensor(self.group["excitation"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32))
         sample.pitch = self.group["pitch"][idx].item()
         sample.avgSpecharm = torch.tensor(self.group["avgSpecharm"][idx], dtype=torch.float32)
         sample.key = self.group["keys"][idx].decode("utf-8")
@@ -164,9 +151,9 @@ class SampleStorage:
         sample.isVoiced = self.group["flags"][idx][0].item()
         sample.isPlosive = self.group["flags"][idx][1].item()
         if self.group.attrs["isTransition"]:
-            sample.embedding = (self.group["intCfg"][idx][4], self.group["intCfg"][idx][5])
+            sample.embedding = (self.group["intCfg"][idx][0], self.group["intCfg"][idx][1])
         else:
-            sample.embedding = self.group["intCfg"][idx][4]
+            sample.embedding = self.group["intCfg"][idx][0]
         return sample
     
     def append(self, sample):
@@ -192,6 +179,8 @@ class SampleStorage:
             self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltasIdxs"][-2] + sample.pitchDeltas.shape[0]
         self.group["pitchMarkers"].resize(self.group["pitchMarkers"].shape[0] + sample.pitchMarkers.shape[0], axis=0)
         self.group["pitchMarkers"][-sample.pitchMarkers.shape[0]:] = sample.pitchMarkers
+        self.group["pitchMarkerValidity"].resize(self.group["pitchMarkerValidity"].shape[0] + sample.pitchMarkerValidity.shape[0], axis=0)
+        self.group["pitchMarkerValidity"][-sample.pitchMarkerValidity.shape[0]:] = sample.pitchMarkerValidity
         self.group["pitchMarkersIdxs"].resize(self.group["pitchMarkersIdxs"].shape[0] + 1, axis=0)
         if self.group["pitchMarkersIdxs"].shape[0] == 1:
             self.group["pitchMarkersIdxs"][-1] = self.group["pitchMarkers"].shape[0]
@@ -208,8 +197,6 @@ class SampleStorage:
             self.group["specharmIdxs"][-1] = self.group["specharmIdxs"][-2] + sample.specharm.shape[0]
         self.group["avgSpecharm"].resize(self.group["avgSpecharm"].shape[0] + 1, axis=0)
         self.group["avgSpecharm"][-1] = sample.avgSpecharm
-        self.group["excitation"].resize(self.group["excitation"].shape[0] + sample.excitation.shape[0], axis=0)
-        self.group["excitation"][-sample.excitation.shape[0]:] = torch.view_as_real(sample.excitation)
         self.group["filepaths"].resize(self.group["filepaths"].shape[0] + 1, axis=0)
         self.group["filepaths"][-1] = sample.filepath.encode("utf-8")
         self.group["keys"].resize(self.group["keys"].shape[0] + 1, axis=0)
@@ -220,12 +207,12 @@ class SampleStorage:
         self.group["flags"].resize(self.group["flags"].shape[0] + 1, axis=0)
         self.group["flags"][-1] = [sample.isVoiced, sample.isPlosive]
         self.group["floatCfg"].resize(self.group["floatCfg"].shape[0] + 1, axis=0)
-        self.group["floatCfg"][-1] = [sample.expectedPitch, sample.searchRange, sample.voicedThrh]
+        self.group["floatCfg"][-1] = [sample.expectedPitch, sample.searchRange]
         self.group["intCfg"].resize(self.group["intCfg"].shape[0] + 1, axis=0)
         if self.group.attrs["isTransition"]:
-            self.group["intCfg"][-1] = [sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding[0], sample.embedding[1]]
+            self.group["intCfg"][-1] = [sample.embedding[0], sample.embedding[1]]
         else:
-            self.group["intCfg"][-1] = [sample.specWidth, sample.specDepth, sample.tempWidth, sample.tempDepth, sample.embedding]
+            self.group["intCfg"][-1] = [sample.embedding,]
         self.group.attrs["length"] += 1
         
     def delete(self, idx:int):
@@ -239,12 +226,12 @@ class SampleStorage:
             self.group["pitchDeltas"] = torch.cat((self.group["pitchDeltas"][:self.group["pitchDeltasIdxs"][i]], self.group["pitchDeltas"][self.group["pitchDeltasIdxs"][i + 1]:]), dim=0)
             self.group["pitchDeltasIdxs"] = torch.cat((self.group["pitchDeltasIdxs"][:i], self.group["pitchDeltasIdxs"][i + 1:]), dim=0)
             self.group["pitchMarkers"] = torch.cat((self.group["pitchMarkers"][:self.group["pitchMarkersIdxs"][i]], self.group["pitchMarkers"][self.group["pitchMarkersIdxs"][i + 1]:]), dim=0)
+            self.group["pitchMarkerValidity"] = torch.cat((self.group["pitchMarkerValidity"][:self.group["pitchMarkersIdxs"][i]], self.group["pitchMarkerValidity"][self.group["pitchMarkersIdxs"][i + 1]:]), dim=0)
             self.group["pitchMarkersIdxs"] = torch.cat((self.group["pitchMarkersIdxs"][:i], self.group["pitchMarkersIdxs"][i + 1:]), dim=0)
             self.group["pitch"] = torch.cat((self.group["pitch"][:i], self.group["pitch"][i + 1:]), dim=0)
             self.group["specharm"] = torch.cat((self.group["specharm"][:self.group["specharmIdxs"][i]], self.group["specharm"][self.group["specharmIdxs"][i + 1]:]), dim=0)
             self.group["specharmIdxs"] = torch.cat((self.group["specharmIdxs"][:i], self.group["specharmIdxs"][i + 1:]), dim=0)
             self.group["avgSpecharm"] = torch.cat((self.group["avgSpecharm"][:i], self.group["avgSpecharm"][i + 1:]), dim=0)
-            self.group["excitation"] = torch.cat((self.group["excitation"][:i], self.group["excitation"][i + 1:]), dim=0)
             self.group["filepaths"] = torch.cat((self.group["filepaths"][:i], self.group["filepaths"][i + 1:]), dim=0)
             self.group["keys"] = torch.cat((self.group["keys"][:i], self.group["keys"][i + 1:]), dim=0)
             self.group["flags"] = torch.cat((self.group["flags"][:i], self.group["flags"][i + 1:]), dim=0)
