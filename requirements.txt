@@ -40,7 +40,7 @@ six==1.16.0
 sounddevice==0.4.6
 soundfile==0.12.1
 sympy==1.12
-torch==2.1.0+cu118
+torch==2.2.0
 torchaudio==2.1.0+cu118
 tqdm==4.66.3
 ttkthemes==3.2.2
