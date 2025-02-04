@@ -87,44 +87,6 @@ class MainaiUi(Frame):
         self.sideBar.pBroadcastButton["command"] = self.onPitBrdcPress
         self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        self.sideBar.voicedThrh = Frame(self.sideBar)
-        self.sideBar.voicedThrh.variable = tkinter.DoubleVar(self.sideBar.voicedThrh, global_consts.defaultVoicedThrh)
-        self.sideBar.voicedThrh.entry = Spinbox(self.sideBar.voicedThrh, from_ = 0.35, to = 0.95, increment = 0.05)
-        self.sideBar.voicedThrh.entry["textvariable"] = self.sideBar.voicedThrh.variable
-        self.sideBar.voicedThrh.entry.pack(side = "right", fill = "x")
-        self.sideBar.voicedThrh.display = Label(self.sideBar.voicedThrh)
-        self.sideBar.voicedThrh.display["text"] = loc["voicedThrh"]
-        self.sideBar.voicedThrh.display.pack(side = "right", fill = "x")
-        self.sideBar.voicedThrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.sideBar.specSmooth = Frame(self.sideBar)
-        self.sideBar.specSmooth.widthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecWidth)
-        self.sideBar.specSmooth.widthEntry = Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
-        self.sideBar.specSmooth.widthEntry["textvariable"] = self.sideBar.specSmooth.widthVariable
-        self.sideBar.specSmooth.widthEntry.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.depthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecDepth)
-        self.sideBar.specSmooth.depthEntry = Spinbox(self.sideBar.specSmooth, from_ = 0, to = 100)
-        self.sideBar.specSmooth.depthEntry["textvariable"] = self.sideBar.specSmooth.depthVariable
-        self.sideBar.specSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.display = Label(self.sideBar.specSmooth)
-        self.sideBar.specSmooth.display["text"] = loc["specSmooth"]
-        self.sideBar.specSmooth.display.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.sideBar.tempSmooth = Frame(self.sideBar)
-        self.sideBar.tempSmooth.widthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempWidth)
-        self.sideBar.tempSmooth.widthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 1, to = 100)
-        self.sideBar.tempSmooth.widthEntry["textvariable"] = self.sideBar.tempSmooth.widthVariable
-        self.sideBar.tempSmooth.widthEntry.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.depthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempDepth)
-        self.sideBar.tempSmooth.depthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 0, to = 100)
-        self.sideBar.tempSmooth.depthEntry["textvariable"] = self.sideBar.tempSmooth.depthVariable
-        self.sideBar.tempSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.display = Label(self.sideBar.tempSmooth)
-        self.sideBar.tempSmooth.display["text"] = loc["tempSmooth"]
-        self.sideBar.tempSmooth.display.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
         self.sideBar.sBroadcastButton = Button(self.sideBar)
         self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
         self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
@@ -231,11 +193,6 @@ class MainaiUi(Frame):
             index = self.phonemeList.list.lastFocusedIndex
             self.sideBar.expPitch.variable.set(loadedVB.stagedMainTrainSamples[index].expectedPitch)
             self.sideBar.pSearchRange.variable.set(loadedVB.stagedMainTrainSamples[index].searchRange)
-            self.sideBar.voicedThrh.variable.set(loadedVB.stagedMainTrainSamples[index].voicedThrh)
-            self.sideBar.specSmooth.widthVariable.set(loadedVB.stagedMainTrainSamples[index].specWidth)
-            self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedMainTrainSamples[index].specDepth)
-            self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedMainTrainSamples[index].tempWidth)
-            self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedMainTrainSamples[index].tempDepth)
             self.sideBar.exprKey.variable.set(loadedVB.stagedMainTrainSamples[index].key)
             
     def onListFocusOut(self, event) -> None:
@@ -253,11 +210,6 @@ class MainaiUi(Frame):
         index = self.phonemeList.list.lastFocusedIndex
         loadedVB.stagedMainTrainSamples[index].expectedPitch = self.sideBar.expPitch.variable.get()
         loadedVB.stagedMainTrainSamples[index].searchRange = self.sideBar.pSearchRange.variable.get()
-        loadedVB.stagedMainTrainSamples[index].voicedThrh =  self.sideBar.voicedThrh.variable.get()
-        loadedVB.stagedMainTrainSamples[index].specWidth = self.sideBar.specSmooth.widthVariable.get()
-        loadedVB.stagedMainTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
-        loadedVB.stagedMainTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
-        loadedVB.stagedMainTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
         loadedVB.stagedMainTrainSamples[index].key = self.sideBar.exprKey.variable.get()
 
     def onPitBrdcPress(self) -> None:
@@ -272,19 +224,7 @@ class MainaiUi(Frame):
     def onSpecBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the spectral filtering & analysis settings of the currently selected sample to all samples"""
 
-        newValues = [
-            self.sideBar.voicedThrh.variable.get(),
-            self.sideBar.specSmooth.widthVariable.get(),
-            self.sideBar.specSmooth.depthVariable.get(),
-            self.sideBar.tempSmooth.widthVariable.get(),
-            self.sideBar.tempSmooth.depthVariable.get(),
-        ]
-        for i in loadedVB.stagedMainTrainSamples:
-            i.voicedThrh = newValues[0]
-            i.specWidth = newValues[1]
-            i.specDepth = newValues[2]
-            i.tempWidth = newValues[3]
-            i.tempDepth = newValues[4]
+        pass
     
     def onAddPress(self) -> None:
         """UI Frontend function for adding a new transition sample to the list of staged AI training samples"""
@@ -361,11 +301,6 @@ class MainaiUi(Frame):
     def disableButtons(self) -> None:
         """Utility function for disabling the AI settings buttons"""
 
-        self.sideBar.voicedThrh.entry["state"] = "disabled"
-        self.sideBar.specSmooth.widthEntry["state"] = "disabled"
-        self.sideBar.specSmooth.depthEntry["state"] = "disabled"
-        self.sideBar.tempSmooth.widthEntry["state"] = "disabled"
-        self.sideBar.tempSmooth.depthEntry["state"] = "disabled"
         self.sideBar.exprKey.entry["state"] = "disabled"
         self.sideBar.epochs.entry["state"] = "disabled"
         self.sideBar.trainButton["state"] = "disabled"
@@ -374,11 +309,6 @@ class MainaiUi(Frame):
     def enableButtons(self) -> None:
         """Utility function for enabling the AI settings buttons"""
 
-        self.sideBar.voicedThrh.entry["state"] = "normal"
-        self.sideBar.specSmooth.widthEntry["state"] = "normal"
-        self.sideBar.specSmooth.depthEntry["state"] = "normal"
-        self.sideBar.tempSmooth.widthEntry["state"] = "normal"
-        self.sideBar.tempSmooth.depthEntry["state"] = "normal"
         self.sideBar.exprKey.entry["state"] = "normal"
         self.sideBar.epochs.entry["state"] = "normal"
         self.sideBar.trainButton["state"] = "normal"

@@ -544,7 +544,10 @@ class MetadataStorage:
         self.group.attrs["version"] = metadata.version
         self.group.attrs["description"] = metadata.description
         self.group.attrs["license"] = metadata.license
-        self.group["image"][:, :, :] = np.array(metadata.image)
+        imageArray = np.array(metadata.image)
+        if imageArray.shape[-1] == 3:
+            imageArray = np.concatenate((imageArray, np.full(imageArray.shape[:-1] + (1,), 255, dtype=np.uint8)), axis=-1)
+        self.group["image"][:, :, :] = imageArray
     
     def toMetadata(self):
         metadata = VbMetadata()

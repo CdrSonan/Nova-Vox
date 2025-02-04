@@ -143,54 +143,6 @@ class PhonemedictUi(Frame):
         self.sideBar.pBroadcastButton["command"] = self.onPitBrdcPress
         self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        self.sideBar.voicedThrh = Frame(self.sideBar)
-        self.sideBar.voicedThrh.variable = tkinter.DoubleVar(self.sideBar.voicedThrh, global_consts.defaultVoicedThrh)
-        self.sideBar.voicedThrh.entry = Spinbox(self.sideBar.voicedThrh, from_ = 0.35, to = 0.95, increment = 0.05)
-        self.sideBar.voicedThrh.entry["textvariable"] = self.sideBar.voicedThrh.variable
-        self.sideBar.voicedThrh.entry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
-        self.sideBar.voicedThrh.entry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
-        self.sideBar.voicedThrh.entry.pack(side = "right", fill = "x")
-        self.sideBar.voicedThrh.display = Label(self.sideBar.voicedThrh)
-        self.sideBar.voicedThrh.display["text"] = loc["voicedThrh"]
-        self.sideBar.voicedThrh.display.pack(side = "right", fill = "x")
-        self.sideBar.voicedThrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.sideBar.specSmooth = Frame(self.sideBar)
-        self.sideBar.specSmooth.widthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecWidth)
-        self.sideBar.specSmooth.widthEntry = Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
-        self.sideBar.specSmooth.widthEntry["textvariable"] = self.sideBar.specSmooth.widthVariable
-        self.sideBar.specSmooth.widthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
-        self.sideBar.specSmooth.widthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
-        self.sideBar.specSmooth.widthEntry.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.depthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecDepth)
-        self.sideBar.specSmooth.depthEntry = Spinbox(self.sideBar.specSmooth, from_ = 0, to = 100)
-        self.sideBar.specSmooth.depthEntry["textvariable"] = self.sideBar.specSmooth.depthVariable
-        self.sideBar.specSmooth.depthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
-        self.sideBar.specSmooth.depthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
-        self.sideBar.specSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.display = Label(self.sideBar.specSmooth)
-        self.sideBar.specSmooth.display["text"] = loc["specSmooth"]
-        self.sideBar.specSmooth.display.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.sideBar.tempSmooth = Frame(self.sideBar)
-        self.sideBar.tempSmooth.widthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempWidth)
-        self.sideBar.tempSmooth.widthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 1, to = 100)
-        self.sideBar.tempSmooth.widthEntry["textvariable"] = self.sideBar.tempSmooth.widthVariable
-        self.sideBar.tempSmooth.widthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
-        self.sideBar.tempSmooth.widthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
-        self.sideBar.tempSmooth.widthEntry.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.depthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempDepth)
-        self.sideBar.tempSmooth.depthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 0, to = 100)
-        self.sideBar.tempSmooth.depthEntry["textvariable"] = self.sideBar.tempSmooth.depthVariable
-        self.sideBar.tempSmooth.depthEntry.bind("<FocusOut>", self.onSpectralUpdateTrigger)
-        self.sideBar.tempSmooth.depthEntry.bind("<KeyRelease-Return>", self.onSpectralUpdateTrigger)
-        self.sideBar.tempSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.display = Label(self.sideBar.tempSmooth)
-        self.sideBar.tempSmooth.display["text"] = loc["tempSmooth"]
-        self.sideBar.tempSmooth.display.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
         self.sideBar.sBroadcastButton = Button(self.sideBar)
         self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
         self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
@@ -296,11 +248,6 @@ class PhonemedictUi(Frame):
                 if type(loadedVB.phonemeDict[key][sample]).__name__ == "AudioSample":
                     self.sideBar.expPitch.variable.set(loadedVB.phonemeDict[key][sample].expectedPitch)
                     self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key][sample].searchRange)
-                    self.sideBar.voicedThrh.variable.set(loadedVB.phonemeDict[key][sample].voicedThrh)
-                    self.sideBar.specSmooth.widthVariable.set(loadedVB.phonemeDict[key][sample].specWidth)
-                    self.sideBar.specSmooth.depthVariable.set(loadedVB.phonemeDict[key][sample].specDepth)
-                    self.sideBar.tempSmooth.widthVariable.set(loadedVB.phonemeDict[key][sample].tempWidth)
-                    self.sideBar.tempSmooth.depthVariable.set(loadedVB.phonemeDict[key][sample].tempDepth)
                     self.sideBar.isVoiced.variable.set(loadedVB.phonemeDict[key][sample].isVoiced)
                     self.sideBar.isPlosive.variable.set(loadedVB.phonemeDict[key][sample].isPlosive)
                     self.sideBar.embedding.variable.set(hex(loadedVB.phonemeDict[key][sample].embedding)[2:])
@@ -308,11 +255,6 @@ class PhonemedictUi(Frame):
                 else:
                     self.sideBar.expPitch.variable.set(None)
                     self.sideBar.pSearchRange.variable.set(None)
-                    self.sideBar.voicedThrh.variable.set(None)
-                    self.sideBar.specSmooth.widthVariable.set(None)
-                    self.sideBar.specSmooth.depthVariable.set(None)
-                    self.sideBar.tempSmooth.widthVariable.set(None)
-                    self.sideBar.tempSmooth.depthVariable.set(None)
                     self.sideBar.isVoiced.variable.set(False)
                     self.sideBar.isPlosive.variable.set(False)
                     self.sideBar.embedding.variable.set("00000000")
@@ -343,11 +285,6 @@ class PhonemedictUi(Frame):
 
         self.sideBar.expPitch.entry["state"] = "disabled"
         self.sideBar.pSearchRange.entry["state"] = "disabled"
-        self.sideBar.voicedThrh.entry["state"] = "disabled"
-        self.sideBar.specSmooth.widthEntry["state"] = "disabled"
-        self.sideBar.specSmooth.depthEntry["state"] = "disabled"
-        self.sideBar.tempSmooth.widthEntry["state"] = "disabled"
-        self.sideBar.tempSmooth.depthEntry["state"] = "disabled"
         self.sideBar.fileButton["state"] = "disabled"
         self.sideBar.finalizeButton["state"] = "disabled"
         self.sideBar.isVoiced.entry["state"] = "disabled"
@@ -359,11 +296,6 @@ class PhonemedictUi(Frame):
 
         self.sideBar.expPitch.entry["state"] = "normal"
         self.sideBar.pSearchRange.entry["state"] = "normal"
-        self.sideBar.voicedThrh.entry["state"] = "normal"
-        self.sideBar.specSmooth.widthEntry["state"] = "normal"
-        self.sideBar.specSmooth.depthEntry["state"] = "normal"
-        self.sideBar.tempSmooth.widthEntry["state"] = "normal"
-        self.sideBar.tempSmooth.depthEntry["state"] = "normal"
         self.sideBar.fileButton["state"] = "normal"
         self.sideBar.finalizeButton["state"] = "normal"
         self.sideBar.isVoiced.entry["state"] = "normal"
@@ -440,12 +372,10 @@ class PhonemedictUi(Frame):
         sample = self.sampleList.list.lastFocusedIndex
         spectrum = loadedVB.phonemeDict[key][sample].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + loadedVB.phonemeDict[key][sample].specharm[value, global_consts.nHarmonics + 2:]
         harmonics = loadedVB.phonemeDict[key][sample].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1] + loadedVB.phonemeDict[key][sample].specharm[value, :int(global_consts.nHarmonics / 2) + 1]
-        excitation = torch.abs(loadedVB.phonemeDict[key][sample].excitation[value]) * spectrum
         xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
         harmScale = torch.linspace(0, global_consts.nHarmonics / 2 * global_consts.sampleRate / loadedVB.phonemeDict[key][sample].pitchDeltas[value], int(global_consts.nHarmonics / 2) + 1)
-        self.diagram.ax.plot(xScale, torch.sqrt(excitation.cpu()), label = loc["excitation"], color = "red")
         self.diagram.ax.vlines(harmScale, 0., torch.sqrt(harmonics).cpu(), label = loc["vExcitation"], color = "blue")
-        self.diagram.ax.plot(xScale, torch.sqrt(spectrum.cpu()), label = loc["spectrum"], color = "orange")
+        self.diagram.ax.plot(xScale, torch.sqrt(spectrum.cpu()), label = loc["spectrum"], color = "red")
         self.diagram.ax.set_xlim([0, global_consts.sampleRate / 2])
         self.diagram.ax.set_xlabel(loc["freq_lbl"], fontsize = 8)
         self.diagram.ax.set_ylabel(loc["amp_lbl"], fontsize = 8)
@@ -497,37 +427,7 @@ class PhonemedictUi(Frame):
     def onSpecBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the spectral filtering & analysis settings of the currently selected sample to all samples"""
 
-        newValues = [
-            self.sideBar.voicedThrh.variable.get(),
-            self.sideBar.specSmooth.widthVariable.get(),
-            self.sideBar.specSmooth.depthVariable.get(),
-            self.sideBar.tempSmooth.widthVariable.get(),
-            self.sideBar.tempSmooth.depthVariable.get(),
-        ]
-        for i in loadedVB.phonemeDict:
-            phoneme = loadedVB.phonemeDict[i]
-            for j in phoneme:
-                oldValues = [
-                    j.voicedThrh,
-                    j.specWidth,
-                    j.specDepth,
-                    j.tempWidth,
-                    j.tempDepth
-                ]
-                reset = False
-                if type(j).__name__ == "AudioSample":
-                    for old, new in zip(oldValues, newValues):
-                        if old != new:
-                            reset = True
-                            break
-                if reset:
-                    j.voicedThrh = newValues[0]
-                    j.specWidth = newValues[1]
-                    j.specDepth = newValues[2]
-                    j.tempWidth = newValues[3]
-                    j.tempDepth = newValues[4]
-                    calculateSpectra(j, True)
-        self.onSliderMove(self.diagram.timeSlider.get())
+        pass
         
     def onPitchUpdateTrigger(self, event) -> None:
         """Updates the pitch and phase data of a phoneme"""
@@ -586,39 +486,7 @@ class PhonemedictUi(Frame):
     def onSpectralUpdateTrigger(self, event) -> None:
         """updates the spectral and excitation data of a phoneme"""
 
-        logging.info("Phonemedict spectral update callback")
-        global loadedVB
-        index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)
-        sample = self.sampleList.list.lastFocusedIndex
-        newValues = [
-            self.sideBar.voicedThrh.variable.get(),
-            self.sideBar.specSmooth.widthVariable.get(),
-            self.sideBar.specSmooth.depthVariable.get(),
-            self.sideBar.tempSmooth.widthVariable.get(),
-            self.sideBar.tempSmooth.depthVariable.get(),
-        ]
-        phoneme = loadedVB.phonemeDict[key][sample]
-        oldValues = [
-            phoneme.voicedThrh,
-            phoneme.specWidth,
-            phoneme.specDepth,
-            phoneme.tempWidth,
-            phoneme.tempDepth
-        ]
-        reset = False
-        if type(phoneme).__name__ == "AudioSample":
-            for i, j in zip(oldValues, newValues):
-                if i != j:
-                    reset = True
-                    break
-        if reset:
-            phoneme.voicedThrh = newValues[0]
-            phoneme.specWidth = newValues[1]
-            phoneme.specDepth = newValues[2]
-            phoneme.tempWidth = newValues[3]
-            phoneme.tempDepth = newValues[4]
-            calculateSpectra(phoneme, True)
+        pass
         self.onSliderMove(self.diagram.timeSlider.get())
         
     def onFilechangePress(self, event) -> None:
@@ -648,11 +516,6 @@ class PhonemedictUi(Frame):
         loadedVB.finalizePhoneme(key)
         self.sideBar.expPitch.variable.set(None)
         self.sideBar.pSearchRange.variable.set(None)
-        self.sideBar.voicedThrh.variable.set(None)
-        self.sideBar.specSmooth.widthVariable.set(None)
-        self.sideBar.specSmooth.depthVariable.set(None)
-        self.sideBar.tempSmooth.widthVariable.set(None)
-        self.sideBar.tempSmooth.depthVariable.set(None)
         self.disableButtons()
         
     def onOkPress(self) -> None:

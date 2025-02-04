@@ -87,34 +87,6 @@ class CrfaiUi(Frame):
         self.sideBar.pBroadcastButton["command"] = self.onPitBrdcPress
         self.sideBar.pBroadcastButton.pack(side = "top", fill = "x", expand = True, padx = 5)
 
-        self.sideBar.specSmooth = Frame(self.sideBar)
-        self.sideBar.specSmooth.widthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecWidth)
-        self.sideBar.specSmooth.widthEntry = Spinbox(self.sideBar.specSmooth, from_ = 1, to = 100)
-        self.sideBar.specSmooth.widthEntry["textvariable"] = self.sideBar.specSmooth.widthVariable
-        self.sideBar.specSmooth.widthEntry.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.depthVariable = tkinter.IntVar(self.sideBar.specSmooth, global_consts.defaultSpecDepth)
-        self.sideBar.specSmooth.depthEntry = Spinbox(self.sideBar.specSmooth, from_ = 0, to = 100)
-        self.sideBar.specSmooth.depthEntry["textvariable"] = self.sideBar.specSmooth.depthVariable
-        self.sideBar.specSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.display = Label(self.sideBar.specSmooth)
-        self.sideBar.specSmooth.display["text"] = loc["specSmooth"]
-        self.sideBar.specSmooth.display.pack(side = "right", fill = "x")
-        self.sideBar.specSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.sideBar.tempSmooth = Frame(self.sideBar)
-        self.sideBar.tempSmooth.widthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempWidth)
-        self.sideBar.tempSmooth.widthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 1, to = 100)
-        self.sideBar.tempSmooth.widthEntry["textvariable"] = self.sideBar.tempSmooth.widthVariable
-        self.sideBar.tempSmooth.widthEntry.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.depthVariable = tkinter.IntVar(self.sideBar.tempSmooth, global_consts.defaultTempDepth)
-        self.sideBar.tempSmooth.depthEntry = Spinbox(self.sideBar.tempSmooth, from_ = 0, to = 100)
-        self.sideBar.tempSmooth.depthEntry["textvariable"] = self.sideBar.tempSmooth.depthVariable
-        self.sideBar.tempSmooth.depthEntry.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.display = Label(self.sideBar.tempSmooth)
-        self.sideBar.tempSmooth.display["text"] = loc["tempSmooth"]
-        self.sideBar.tempSmooth.display.pack(side = "right", fill = "x")
-        self.sideBar.tempSmooth.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
         self.sideBar.sBroadcastButton = Button(self.sideBar)
         self.sideBar.sBroadcastButton["text"] = loc["spec_brdc"]
         self.sideBar.sBroadcastButton["command"] = self.onSpecBrdcPress
@@ -244,10 +216,6 @@ class CrfaiUi(Frame):
             index = self.phonemeList.list.lastFocusedIndex
             self.sideBar.expPitch.variable.set(loadedVB.stagedTrTrainSamples[index].expectedPitch)
             self.sideBar.pSearchRange.variable.set(loadedVB.stagedTrTrainSamples[index].searchRange)
-            self.sideBar.specSmooth.widthVariable.set(loadedVB.stagedTrTrainSamples[index].specWidth)
-            self.sideBar.specSmooth.depthVariable.set(loadedVB.stagedTrTrainSamples[index].specDepth)
-            self.sideBar.tempSmooth.widthVariable.set(loadedVB.stagedTrTrainSamples[index].tempWidth)
-            self.sideBar.tempSmooth.depthVariable.set(loadedVB.stagedTrTrainSamples[index].tempDepth)
             self.sideBar.embedding1.variable.set(hex(loadedVB.stagedTrTrainSamples[index].embedding[0])[2:])
             self.sideBar.embedding2.variable.set(hex(loadedVB.stagedTrTrainSamples[index].embedding[1])[2:])
             self.sideBar.exprKey.variable.set(loadedVB.stagedTrTrainSamples[index].key)
@@ -267,10 +235,6 @@ class CrfaiUi(Frame):
         index = self.phonemeList.list.lastFocusedIndex
         loadedVB.stagedTrTrainSamples[index].expectedPitch = self.sideBar.expPitch.variable.get()
         loadedVB.stagedTrTrainSamples[index].searchRange = self.sideBar.pSearchRange.variable.get()
-        loadedVB.stagedTrTrainSamples[index].specWidth = self.sideBar.specSmooth.widthVariable.get()
-        loadedVB.stagedTrTrainSamples[index].specDepth = self.sideBar.specSmooth.depthVariable.get()
-        loadedVB.stagedTrTrainSamples[index].tempWidth = self.sideBar.tempSmooth.widthVariable.get()
-        loadedVB.stagedTrTrainSamples[index].tempDepth = self.sideBar.tempSmooth.depthVariable.get()
         loadedVB.stagedTrTrainSamples[index].key = self.sideBar.exprKey.variable.get()
 
     def onEmbeddingUpdateTrigger(self, event) -> None:
@@ -290,19 +254,7 @@ class CrfaiUi(Frame):
     def onSpecBrdcPress(self) -> None:
         """UI Frontend function for applying/broadcasting the spectral filtering & analysis settings of the currently selected sample to all samples"""
 
-        newValues = [
-            self.sideBar.voicedThrh.variable.get(),
-            self.sideBar.specSmooth.widthVariable.get(),
-            self.sideBar.specSmooth.depthVariable.get(),
-            self.sideBar.tempSmooth.widthVariable.get(),
-            self.sideBar.tempSmooth.depthVariable.get(),
-        ]
-        for i in loadedVB.stagedTrTrainSamples:
-            i.voicedThrh = newValues[0]
-            i.specWidth = newValues[1]
-            i.specDepth = newValues[2]
-            i.tempWidth = newValues[3]
-            i.tempDepth = newValues[4]
+        pass
     
     def onAddPress(self) -> None:
         """UI Frontend function for adding a new transition sample to the list of staged AI training samples"""
@@ -378,10 +330,6 @@ class CrfaiUi(Frame):
     def disableButtons(self) -> None:
         """Utility function for disabling the AI settings buttons"""
 
-        self.sideBar.specSmooth.widthEntry["state"] = "disabled"
-        self.sideBar.specSmooth.depthEntry["state"] = "disabled"
-        self.sideBar.tempSmooth.widthEntry["state"] = "disabled"
-        self.sideBar.tempSmooth.depthEntry["state"] = "disabled"
         self.sideBar.exprKey.entry["state"] = "disabled"
         self.sideBar.epochs.entry["state"] = "disabled"
         self.sideBar.trainButton["state"] = "disabled"
@@ -390,10 +338,6 @@ class CrfaiUi(Frame):
     def enableButtons(self) -> None:
         """Utility function for enabling the AI settings buttons"""
 
-        self.sideBar.specSmooth.widthEntry["state"] = "normal"
-        self.sideBar.specSmooth.depthEntry["state"] = "normal"
-        self.sideBar.tempSmooth.widthEntry["state"] = "normal"
-        self.sideBar.tempSmooth.depthEntry["state"] = "normal"
         self.sideBar.exprKey.entry["state"] = "normal"
         self.sideBar.epochs.entry["state"] = "normal"
         self.sideBar.trainButton["state"] = "normal"

@@ -309,7 +309,7 @@ class AIWrapper():
                 writer.writerow(results)
         if writer != None:
             csvFile.close()
-        criterion = torch.zeros((global_consts.halfTripleBatchSize + 1,), device = self.device)
+        criterion = torch.zeros((global_consts.frameSize,), device = self.device)
         criterionSteps = 0
         with torch.no_grad():
             for data in loader:

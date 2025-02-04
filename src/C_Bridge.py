@@ -67,7 +67,7 @@ def makeCSample(sample, useVariance:bool, allow_oop:bool = False) -> cSample:
                         useVariance = int(useVariance),
                         expectedPitch = sample.expectedPitch,
                         searchRange = sample.searchRange,
-                        tempWidth = sample.tempWidth)
+                        tempWidth = global_consts.defaultTempWidth)
     if allow_oop:
         sample.waveform = sample.waveform.to(torch.float).contiguous()
         sample.pitchDeltas = sample.pitchDeltas.to(torch.int).contiguous()
