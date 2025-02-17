@@ -310,8 +310,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     if settings["cachingmode"] == "best rendering speed":
         spectrumCache = []
         processedSpectrumCache = []
-        excitationCache = []
-        processedExcitationCache = []
         pitchCache = []
         processedPitchCache = []
         for i in range(len(statusControl)):
@@ -443,13 +441,10 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                     #move data to prepare for next sample
                     logging.info("shifting internal data backwards")
                     previousSpectrum = currentSpectrum
-                    previousExcitation = currentExcitation
                     previousPitch = currentPitch
                     currentSpectrum = nextSpectrum
-                    currentExcitation = nextExcitation
                     currentPitch = nextPitch
                     nextSpectrum = None
-                    nextExcitation = None
                     nextPitch = None
 
                     #perform resampling if required

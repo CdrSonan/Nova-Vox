@@ -29,7 +29,6 @@ def calculatePitch(audioSample:AudioSample) -> None:
     audioSample.pitchDeltas = torch.zeros([batches,], dtype = torch.int)
     audioSample.pitchMarkers = torch.zeros([audioSample.waveform.size()[0],], dtype = torch.int)
     audioSample.pitchMarkerValidity = torch.zeros([audioSample.waveform.size()[0],], dtype = torch.int8)
-    audioSample.excitation = torch.zeros([2 * batches * (global_consts.halfTripleBatchSize + 1)], dtype = torch.float)
     cSample = C_Bridge.makeCSample(audioSample, False, False)
     C_Bridge.esper.pitchCalcFallback(cSample, global_consts.config)
     audioSample.pitchDeltas = audioSample.pitchDeltas[audioSample.pitchDeltas.nonzero()].flatten()

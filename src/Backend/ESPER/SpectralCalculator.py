@@ -38,21 +38,23 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True, allow_oop
 
     batches = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
     #audioSample.waveform = torch.sin(torch.linspace(0, 2 * 3.14159265358979323846 * audioSample.waveform.size()[0] / 200, audioSample.waveform.size()[0], device = audioSample.waveform.device)) + 0.95
-    audioSample.excitation = torch.zeros([2 * batches * (global_consts.halfTripleBatchSize + 1)], dtype = torch.float)
     audioSample.specharm = torch.zeros([batches, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3], dtype = torch.float)
     audioSample.avgSpecharm = torch.zeros([int(global_consts.nHarmonics / 2) + global_consts.halfTripleBatchSize + 2], dtype = torch.float)
     cSample = C_Bridge.makeCSample(audioSample, useVariance, allow_oop)
     C_Bridge.esper.specCalc(cSample, global_consts.config)
-    audioSample.excitation = torch.complex(audioSample.excitation[:batches * (global_consts.halfTripleBatchSize + 1)], audioSample.excitation[batches * (global_consts.halfTripleBatchSize + 1):])
-    audioSample.excitation = audioSample.excitation.reshape((batches, global_consts.halfTripleBatchSize + 1))
 
 def processWorker(input, output, useVariance, allow_oop):
     while True:
         sample = input.get()
         if sample is None:
             break
-        calculatePitch(sample)
-        calculateSpectra(sample, useVariance, allow_oop)
+        try:
+            calculatePitch(sample)
+            calculateSpectra(sample, useVariance, allow_oop)
+        except Exception as e:
+            print(e)
+            output.put(None)
+            continue
         output.put(sample)
 
 def asyncProcess(useVariance, allow_oop):

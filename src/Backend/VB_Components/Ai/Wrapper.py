@@ -282,11 +282,17 @@ class AIWrapper():
                 embedding2 = dec2bin(data.embedding[1].to(self.device), 32)
                 data = (avgSpecharm + data.specharm).to(device = self.device)
                 data = torch.squeeze(data)
+                if torch.isnan(data).any():
+                    print("nan in data")
+                    continue
                 specharm1 = data[0, :]
                 specharm2 = data[1, :]
                 specharm3 = data[-2, :]
                 specharm4 = data[-1, :]
                 outputSize = data.size()[0] - 2
+                if outputSize < 2:
+                    print("output size too small")
+                    continue
                 factor = torch.linspace(0, 1, outputSize, device = self.device)
                 output = self.trAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor).transpose(0, 1)
                 target = data[1:-1, :]
@@ -295,6 +301,7 @@ class AIWrapper():
                 loss.backward()
                 self.trAiOptimizer.step()
             tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
+            self.trAiOptimizer.lr = self.trAi.learningRate * (1 - epoch / epochs)
             self.trAi.sampleCount += len(indata)
             reportedLoss = (reportedLoss * 99 + loss.data) / 100
             if writer != None:
