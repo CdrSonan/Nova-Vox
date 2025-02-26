@@ -264,8 +264,8 @@ class DataGenerator(IterableDataset):
         embedding1 = dec2bin(torch.tensor(embedding1, device = self.crfAi.device), 32)
         embedding2 = dec2bin(torch.tensor(embedding2, device = self.crfAi.device), 32)
         specharm = torch.squeeze(self.crfAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor)).transpose(0, 1)
-        for i in self.defectiveCrfBins:
-            specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
+        #for i in self.voicebank.defectiveCrfBins:
+        #    specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
         borderRange = torch.zeros((outputSize,), device = self.crfAi.device)
         borderLimit = min(global_consts.crfBorderAbs, ceil(outputSize * global_consts.crfBorderRel))
         borderRange[:borderLimit] = torch.linspace(1, 0, borderLimit, device = self.crfAi.device)

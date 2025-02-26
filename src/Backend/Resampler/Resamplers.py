@@ -66,14 +66,18 @@ def getSpecharm(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
     for i in range(vocalSegment.pitch.size()[0]):
         avgSpecharm += (ratio[i] * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][upperPitchIndices[i]].avgSpecharm + (1 - ratio[i]) * vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey][lowerPitchIndices[i]].avgSpecharm).to(device)
     avgSpecharm /= vocalSegment.pitch.size()[0]
-    C_Bridge.esper.resampleSpecharm(ctypes.cast(avgSpecharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
-                               ctypes.cast(phoneme.specharm.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
+    avgSpecharm = avgSpecharm.contiguous()
+    phoneme.specharm = phoneme.specharm.contiguous()
+    vocalSegment.steadiness = vocalSegment.steadiness.contiguous()
+    output = output.contiguous()
+    C_Bridge.esper.resampleSpecharm(ctypes.cast(avgSpecharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+                               ctypes.cast(phoneme.specharm.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                int(phoneme.specharm.size()[0]),
-                               ctypes.cast(vocalSegment.steadiness.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
+                               ctypes.cast(vocalSegment.steadiness.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                ctypes.c_float(vocalSegment.repetititionSpacing),
                                int(vocalSegment.startCap),
                                int(vocalSegment.endCap),
-                               ctypes.cast(output.contiguous().data_ptr(), ctypes.POINTER(ctypes.c_float)),
+                               ctypes.cast(output.data_ptr(), ctypes.POINTER(ctypes.c_float)),
                                timings,
                                global_consts.config)
     return output
@@ -83,7 +87,8 @@ def getPitch(vocalSegment:VocalSegment, device:torch.device) -> torch.Tensor:
         return torch.zeros([(vocalSegment.end3 - vocalSegment.start1) * global_consts.batchSize,], device = device)
     phoneme = getClosestSample(vocalSegment.vb.phonemeDict[vocalSegment.phonemeKey], torch.mean(vocalSegment.pitch))
     requiredSize = math.ceil(torch.max(phoneme.pitchDeltas) / torch.min(vocalSegment.pitch)) * (vocalSegment.end3 - vocalSegment.start1)
-    output = torch.zeros([requiredSize,], device = device, dtype = torch.float32)
+    output = torch.zeros([requiredSize,], device = device, dtype = torch.float32).contiguous()
+    phoneme.pitchDeltas = phoneme.pitchDeltas.contiguous()
     timings = C_Bridge.segmentTiming(start1 = vocalSegment.start1,
                                      start2 = vocalSegment.start2,
                                      start3 = vocalSegment.start3,

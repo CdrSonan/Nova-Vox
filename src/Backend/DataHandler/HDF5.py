@@ -177,10 +177,11 @@ class SampleStorage:
             self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltas"].shape[0]
         else:
             self.group["pitchDeltasIdxs"][-1] = self.group["pitchDeltasIdxs"][-2] + sample.pitchDeltas.shape[0]
-        self.group["pitchMarkers"].resize(self.group["pitchMarkers"].shape[0] + sample.pitchMarkers.shape[0], axis=0)
-        self.group["pitchMarkers"][-sample.pitchMarkers.shape[0]:] = sample.pitchMarkers
-        self.group["pitchMarkerValidity"].resize(self.group["pitchMarkerValidity"].shape[0] + sample.pitchMarkerValidity.shape[0], axis=0)
-        self.group["pitchMarkerValidity"][-sample.pitchMarkerValidity.shape[0]:] = sample.pitchMarkerValidity
+        if sample.pitchMarkers.shape[0] > 0:
+            self.group["pitchMarkers"].resize(self.group["pitchMarkers"].shape[0] + sample.pitchMarkers.shape[0], axis=0)
+            self.group["pitchMarkers"][-sample.pitchMarkers.shape[0]:] = sample.pitchMarkers
+            self.group["pitchMarkerValidity"].resize(self.group["pitchMarkerValidity"].shape[0] + sample.pitchMarkerValidity.shape[0], axis=0)
+            self.group["pitchMarkerValidity"][-sample.pitchMarkerValidity.shape[0]:] = sample.pitchMarkerValidity
         self.group["pitchMarkersIdxs"].resize(self.group["pitchMarkersIdxs"].shape[0] + 1, axis=0)
         if self.group["pitchMarkersIdxs"].shape[0] == 1:
             self.group["pitchMarkersIdxs"][-1] = self.group["pitchMarkers"].shape[0]

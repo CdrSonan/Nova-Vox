@@ -56,8 +56,8 @@ class GuideRelLoss(nn.Module):
         Returns:
             Relative error value calculated from the difference between input and target Tensor as Float"""
         
-        error = (torch.pow(inputs - targets, self.exponent) + 0.001) / (targets + 0.001)
-        out = torch.sum(torch.max(error - self.threshold, torch.tensor([0,], device = self.threshold.device))) * self.weight
+        error = torch.pow(inputs - targets, self.exponent) / (targets + 0.01)
+        out = torch.mean(torch.max(error - self.threshold, torch.tensor([0,], device = self.threshold.device))) * self.weight
         return out
 
 def gradientPenalty(model, real, fake, phase, embedding, device):

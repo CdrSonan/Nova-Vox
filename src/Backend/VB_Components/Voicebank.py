@@ -375,7 +375,7 @@ class Voicebank():
         sampleCount = len(self.stagedMainTrainSamples)
         mainTrainSamples = LiteSampleCollection()
         
-        inputQueue, outputQueue, processes = asyncProcess(False, True)
+        """inputQueue, outputQueue, processes = asyncProcess(False, True)
         expectedSamples = 0
         for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
             samples = self.stagedMainTrainSamples[i].convert(True)
@@ -388,7 +388,18 @@ class Voicebank():
         for _ in processes:
             inputQueue.put(None)
         for process in processes:
-            process.join()
+            process.join()"""
+        
+        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
+            samples = self.stagedMainTrainSamples[i].convert(True)
+            for sample in samples:
+                try:
+                    calculatePitch(sample)
+                    calculateSpectra(sample, False, True)
+                    mainTrainSamples.append(sample)
+                except Exception as e:
+                    print(e)
+        self.stagedMainTrainSamples.__init__()
         
         print("sample preprocessing complete")
         print("AI training started")

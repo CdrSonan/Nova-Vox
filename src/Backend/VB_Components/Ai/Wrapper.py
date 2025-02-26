@@ -200,17 +200,22 @@ class AIWrapper():
         self.trAi.requires_grad_(False)
         factor = math.log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.device), factor)
+        specharm1 /= self.deskewingPremul
+        specharm2 /= self.deskewingPremul
+        specharm3 /= self.deskewingPremul
+        specharm4 /= self.deskewingPremul
         specharm = torch.squeeze(self.trAi(specharm1, specharm2, specharm3, specharm4, dec2bin(embedding1.to(self.device), 32), dec2bin(embedding2.to(self.device), 32), factor)).transpose(0, 1)
+        specharm *= self.deskewingPremul
         for i in self.defectiveTrBins:
             specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
-        borderRange = torch.zeros((outputSize,), device = self.device)
-        borderLimit = min(global_consts.crfBorderAbs, math.ceil(outputSize * global_consts.crfBorderRel))
-        borderRange[:borderLimit] = torch.linspace(1, 0, borderLimit, device = self.device)
-        specharm *= (1. - borderRange.unsqueeze(1))
-        specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm1 + specharm2) / 2).unsqueeze(0))
-        borderRange = torch.flip(borderRange, (0,))
-        specharm *= (1. - borderRange.unsqueeze(1))
-        specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm3 + specharm4) / 2).unsqueeze(0))
+        #borderRange = torch.zeros((outputSize,), device = self.device)
+        #borderLimit = min(global_consts.crfBorderAbs, math.ceil(outputSize * global_consts.crfBorderRel))
+        #borderRange[:borderLimit] = torch.linspace(1, 0, borderLimit, device = self.device)
+        #specharm *= (1. - borderRange.unsqueeze(1))
+        #specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm1 + specharm2) / 2).unsqueeze(0))
+        #borderRange = torch.flip(borderRange, (0,))
+        #specharm *= (1. - borderRange.unsqueeze(1))
+        #specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm3 + specharm4) / 2).unsqueeze(0))
         if expression1 == expression2:
             expression = expression1
         else:
@@ -268,12 +273,19 @@ class AIWrapper():
             writer = DictWriter(csvFile, fieldnames)
         else:
             writer = None
-
         if (self.trAi.epoch == 0) or self.trAi.epoch == epochs:
             self.trAi.epoch = epochs
         else:
             self.trAi.epoch = None
         reportedLoss = 0.
+        
+        self.deskewingPremul = torch.full((global_consts.frameSize,), 0.01, device = self.device)
+        for key in self.voicebank.phonemeDict.keys():
+            for phoneme in self.voicebank.phonemeDict[key]:
+                if torch.isnan(phoneme.avgSpecharm).any() or torch.isnan(phoneme.specharm).any():
+                    continue
+                self.deskewingPremul = torch.max(self.deskewingPremul, torch.cat((phoneme.avgSpecharm.to(self.device)[:global_consts.halfHarms], torch.ones([global_consts.halfHarms,]).to(self.device), phoneme.avgSpecharm.to(self.device)[global_consts.halfHarms:]), 0))
+        
         loader = self.dataLoader(indata)
         for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
             for data in tqdm(loader, desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
@@ -282,6 +294,7 @@ class AIWrapper():
                 embedding2 = dec2bin(data.embedding[1].to(self.device), 32)
                 data = (avgSpecharm + data.specharm).to(device = self.device)
                 data = torch.squeeze(data)
+                data /= self.deskewingPremul
                 if torch.isnan(data).any():
                     print("nan in data")
                     continue
@@ -296,7 +309,9 @@ class AIWrapper():
                 factor = torch.linspace(0, 1, outputSize, device = self.device)
                 output = self.trAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor).transpose(0, 1)
                 target = data[1:-1, :]
-                loss = self.criterion(output, target)
+                outputNoPhase = torch.cat((output[:, :halfHarms], output[:, global_consts.nHarmonics + 2:]), 1)
+                targetNoPhase = torch.cat((target[:, :halfHarms], target[:, global_consts.nHarmonics + 2:]), 1)
+                loss = self.criterion(outputNoPhase, targetNoPhase)
                 self.trAiOptimizer.zero_grad()
                 loss.backward()
                 self.trAiOptimizer.step()
@@ -383,7 +398,9 @@ class AIWrapper():
         self.deskewingPremul = torch.full((global_consts.frameSize,), 0.01, device = self.device)
         for key in self.voicebank.phonemeDict.keys():
             for phoneme in self.voicebank.phonemeDict[key]:
-                self.deskewingPremul = torch.max(self.deskewingPremul, torch.cat((phoneme.avgSpecharm.to(self.device)[:global_consts.halfHarms], torch.zeros([global_consts.halfHarms,]).to(self.device), phoneme.avgSpecharm.to(self.device)[global_consts.halfHarms:]), 0))
+                if torch.isnan(phoneme.avgSpecharm).any() or torch.isnan(phoneme.specharm).any():
+                    continue
+                self.deskewingPremul = torch.max(self.deskewingPremul, torch.cat((phoneme.avgSpecharm.to(self.device)[:global_consts.halfHarms], torch.ones([global_consts.halfHarms,]).to(self.device), phoneme.avgSpecharm.to(self.device)[global_consts.halfHarms:]), 0))
                 total += 1
             expression = key.split("_")
             if len(expression) == 1:
@@ -409,6 +426,9 @@ class AIWrapper():
                     avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
                     key = data.key
                     data = (avgSpecharm + data.specharm).to(device = self.device)
+                    if torch.isnan(data).any():
+                        print("nan in data")
+                        continue
                     if index % self.hparams["fargan_interval"] == self.hparams["fargan_interval"] - 1:
                         embedding = fargan_embedding
                         expression = fargan_expression

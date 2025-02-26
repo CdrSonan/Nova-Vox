@@ -229,22 +229,30 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         return torch.cat((newHarmonics, phases, inputSpectrum), 0), previousShift
     
     def pitchAdjust(specharm, j, start, end, internalInputs, voicebank, pitchOffset):
-        specharm_cpy = specharm.clone()
+        specharm_cpy = specharm.clone().contiguous()
         if internalInputs.phonemes[j] in ("_autopause", "pau"):
             return specharm_cpy
         steadiness = torch.pow(1. - internalInputs.steadiness[start:end], 2)
         srcPitch = voicebank.phonemeDict.fetch(internalInputs.phonemes[j], True)[0].pitch + pitchOffset * steadiness
         tgtPitch = internalInputs.pitch[start:end] + pitchOffset * steadiness
+        srcPitch = torch.max(srcPitch, torch.tensor([10.,])).contiguous()
+        tgtPitch = torch.max(tgtPitch, torch.tensor([10.,])).contiguous()
         genderFactor = internalInputs.genderFactor[start:end]
         tgtPitch = torch.where(genderFactor > 0., tgtPitch * (1. + genderFactor), tgtPitch / (1. - genderFactor))
-        breathiness = internalInputs.breathiness[start:end]
-        formantShift = torch.tensor([internalInputs.unvoicedShift,])
+        breathiness = internalInputs.breathiness[start:end].to(torch.float32).contiguous()
+        formantShift = torch.tensor([internalInputs.unvoicedShift,]).contiguous()
         specharm_ptr = ctypes.cast(specharm_cpy.data_ptr(), ctypes.POINTER(ctypes.c_float))
         srcPitch_ptr = ctypes.cast(srcPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
         tgtPitch_ptr = ctypes.cast(tgtPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
         formantShift_ptr = ctypes.cast(formantShift.data_ptr(), ctypes.POINTER(ctypes.c_float))
         breathiness_ptr = ctypes.cast(breathiness.data_ptr(), ctypes.POINTER(ctypes.c_float))
         esper.pitchShift(specharm_ptr, srcPitch_ptr, tgtPitch_ptr, formantShift_ptr, breathiness_ptr, end - start, global_consts.config)
+        print(torch.isnan(specharm).any(), torch.isnan(specharm_cpy).any())
+        import matplotlib.pyplot as plt
+        plt.imshow(specharm.cpu().numpy().T, aspect = "auto", origin = "lower")
+        plt.show()
+        plt.imshow(specharm_cpy.cpu().numpy().T, aspect = "auto", origin = "lower")
+        plt.show()
         return specharm_cpy
     
     def processNodegraph(earlyBorders, spectrum, pitch, internalInputs, j, nodeGraph, nodeInputs, nodeParams, nodeParamData, nodeOutput):
@@ -303,7 +311,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         renderTarget_ptr = ctypes.cast(renderTarget.data_ptr(), ctypes.POINTER(ctypes.c_float))
         phase = torch.tensor([0.], device = device)
         phase_ptr = ctypes.cast(phase.data_ptr(), ctypes.POINTER(ctypes.c_float))
-        esper.render(specharm_ptr, pitch_ptr, 1, phase_ptr, renderTarget_ptr, length, global_consts.config)
+        esper.render(specharm_ptr, pitch_ptr, phase_ptr, renderTarget_ptr, length, global_consts.config)
         return renderTarget
 
     #setting up caching and other required data that is independent of each individual rendering iteration

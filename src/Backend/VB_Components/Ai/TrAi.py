@@ -6,8 +6,11 @@
 #You should have received a copy of the GNU General Public License along with Nova-Vox. If not, see <https://www.gnu.org/licenses/>.
 
 from typing import OrderedDict
+from math import pi
 import torch
 import torch.nn as nn
+
+from Backend.Resampler.PhaseShift import phaseInterp
 import global_consts
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
@@ -58,19 +61,19 @@ class TrAi(nn.Module):
             
             
         super(TrAi, self).__init__()
-        self.layerStart1a = nn.RNN(input_size = 3 * global_consts.frameSize, hidden_size = 2 * global_consts.frameSize, num_layers = 1, batch_first = True, device = device)
-        self.layerStart1b = nn.RNN(input_size = 3 * global_consts.frameSize, hidden_size = 2 * global_consts.frameSize, num_layers = 1, batch_first = True, device = device)
+        self.layerStart1a = nn.RNN(input_size = 3 * global_consts.reducedFrameSize, hidden_size = 2 * global_consts.reducedFrameSize, num_layers = 1, batch_first = True, device = device)
+        self.layerStart1b = nn.RNN(input_size = 3 * global_consts.reducedFrameSize, hidden_size = 2 * global_consts.reducedFrameSize, num_layers = 1, batch_first = True, device = device)
         self.ReLuStart1 = nn.ReLU()
-        self.layerStart2 = torch.nn.Linear(4 * global_consts.frameSize, hiddenLayerSize, device = device, bias = False)
+        self.layerStart2 = torch.nn.Linear(4 * global_consts.reducedFrameSize, hiddenLayerSize, device = device, bias = False)
         self.ReLuStart2 = nn.ReLU()
         hiddenLayerDict = OrderedDict([])
         for i in range(hiddenLayerCount):
             hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(hiddenLayerSize, hiddenLayerSize, device = device)
             hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
         self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd1 = torch.nn.Linear(hiddenLayerSize, int(hiddenLayerSize / 2 + global_consts.frameSize / 2), device = device)
+        self.layerEnd1 = torch.nn.Linear(hiddenLayerSize, int(hiddenLayerSize / 2 + global_consts.reducedFrameSize / 2), device = device)
         self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(int(hiddenLayerSize / 2 + global_consts.frameSize / 2), global_consts.frameSize, device = device)
+        self.layerEnd2 = torch.nn.Linear(int(hiddenLayerSize / 2 + global_consts.reducedFrameSize / 2), global_consts.reducedFrameSize, device = device)
         self.ReLuEnd2 = nn.ReLU()
         
         self.threshold = torch.nn.Threshold(0.001, 0.001)
@@ -89,7 +92,7 @@ class TrAi(nn.Module):
             instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
         return instance
         
-    def forward(self, spectrum1:torch.Tensor, spectrum2:torch.Tensor, spectrum3:torch.Tensor, spectrum4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, factor:torch.Tensor) -> torch.Tensor:
+    def forward(self, spectrum1in:torch.Tensor, spectrum2in:torch.Tensor, spectrum3in:torch.Tensor, spectrum4in:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, factorIn:torch.Tensor) -> torch.Tensor:
         """Forward NN pass.
         
         Arguments:
@@ -101,8 +104,12 @@ class TrAi(nn.Module):
         Returns:
             Tensor object representing the NN output"""
         
-        outputSize = factor.size()[0]
-        factor = torch.tile(factor.unsqueeze(-1).unsqueeze(-1), (1, 1, global_consts.frameSize))
+        outputSize = factorIn.size()[0]
+        spectrum1 = torch.cat((spectrum1in[:global_consts.halfHarms], spectrum1in[global_consts.nHarmonics + 2:]), dim = 0)
+        spectrum2 = torch.cat((spectrum2in[:global_consts.halfHarms], spectrum2in[global_consts.nHarmonics + 2:]), dim = 0)
+        spectrum3 = torch.cat((spectrum3in[:global_consts.halfHarms], spectrum3in[global_consts.nHarmonics + 2:]), dim = 0)
+        spectrum4 = torch.cat((spectrum4in[:global_consts.halfHarms], spectrum4in[global_consts.nHarmonics + 2:]), dim = 0)
+        factor = torch.tile(factorIn.unsqueeze(-1).unsqueeze(-1), (1, 1, global_consts.reducedFrameSize))
         spectrum1 = torch.unsqueeze(spectrum1.to(self.device), 0)
         spectrum2 = torch.unsqueeze(spectrum2.to(self.device), 0)
         spectrum3 = torch.unsqueeze(spectrum3.to(self.device), 0)
@@ -113,14 +120,14 @@ class TrAi(nn.Module):
         spectrum2tile = torch.tile(spectrum2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum3tile = torch.tile(spectrum3.unsqueeze(0), (outputSize, 1, 1)) * factor
         spectrum4tile = torch.tile(spectrum4.unsqueeze(0), (outputSize, 1, 1)) * factor
-        embedding = torch.cat((factor[:, :, :global_consts.frameSize - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
+        embedding = torch.cat((factor[:, :, :global_consts.reducedFrameSize - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
         x = torch.cat((spectrum3tile, spectrum4tile, embedding), dim = 1)
         x = x.float()
         x = torch.flatten(x, 1)
         x = x.unsqueeze(0)
         state = torch.flatten(torch.cat((spectrum1, spectrum2), 1), 1).unsqueeze(0)
         x, state = self.layerStart1a(x, state)
-        embedding = torch.cat((1. - factor[:, :, :global_consts.frameSize - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
+        embedding = torch.cat((1. - factor[:, :, :global_consts.reducedFrameSize - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
         y = torch.cat((spectrum1tile, spectrum2tile, embedding), dim = 1)
         y = y.float()
         y = torch.flatten(y, 1)
@@ -146,4 +153,14 @@ class TrAi(nn.Module):
         x = torch.fft.irfft(cutoffWindow * x, dim = 1, n = global_consts.halfTripleBatchSize + 1)"""
         x = self.threshold(x).transpose(0, 1)
         
-        return x
+        phases1 = spectrum1in[global_consts.halfHarms:global_consts.nHarmonics + 2]
+        phases2 = spectrum2in[global_consts.halfHarms:global_consts.nHarmonics + 2]
+        phases3 = spectrum3in[global_consts.halfHarms:global_consts.nHarmonics + 2]
+        phases4 = spectrum4in[global_consts.halfHarms:global_consts.nHarmonics + 2]
+        phasesLeft = torch.tile((phases1 + phases2) / 2, (outputSize, 1))
+        phasesRight = torch.tile((phases3 + phases4) / 2, (outputSize, 1))
+        factorPhases = torch.tile(factorIn.unsqueeze(-1), (1, global_consts.halfHarms))
+        phases = phaseInterp(phasesLeft, phasesRight, factorPhases)
+        phases = torch.where(phases > pi, phases - 2 * pi, phases)
+        
+        return torch.cat((x[:global_consts.halfHarms, :], phases.transpose(0, 1), x[global_consts.halfHarms:, :]), dim = 0)
