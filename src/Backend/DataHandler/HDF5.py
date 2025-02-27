@@ -94,6 +94,7 @@ class SampleStorage:
             sample.waveform = torch.tensor(self.group["audio"][self.group["audioIdxs"][idx - 1]:self.group["audioIdxs"][idx]], dtype=torch.float32)
             sample.pitchDeltas = torch.tensor(self.group["pitchDeltas"][self.group["pitchDeltasIdxs"][idx - 1]:self.group["pitchDeltasIdxs"][idx]], dtype=torch.int)
             sample.pitchMarkers = torch.tensor(self.group["pitchMarkers"][self.group["pitchMarkersIdxs"][idx - 1]:self.group["pitchMarkersIdxs"][idx]], dtype=torch.int)
+            sample.pitchMarkerValidity = torch.tensor(self.group["pitchMarkerValidity"][self.group["pitchMarkersIdxs"][idx - 1]:self.group["pitchMarkersIdxs"][idx]], dtype=torch.int8)
             sample.specharm = torch.tensor(self.group["specharm"][self.group["specharmIdxs"][idx - 1]:self.group["specharmIdxs"][idx]], dtype=torch.float32)
         sample.pitch = self.group["pitch"][idx].item()
         sample.avgSpecharm = torch.tensor(self.group["avgSpecharm"][idx], dtype=torch.float32)

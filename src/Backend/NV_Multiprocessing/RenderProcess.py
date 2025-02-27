@@ -247,12 +247,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         formantShift_ptr = ctypes.cast(formantShift.data_ptr(), ctypes.POINTER(ctypes.c_float))
         breathiness_ptr = ctypes.cast(breathiness.data_ptr(), ctypes.POINTER(ctypes.c_float))
         esper.pitchShift(specharm_ptr, srcPitch_ptr, tgtPitch_ptr, formantShift_ptr, breathiness_ptr, end - start, global_consts.config)
-        print(torch.isnan(specharm).any(), torch.isnan(specharm_cpy).any())
-        import matplotlib.pyplot as plt
-        plt.imshow(specharm.cpu().numpy().T, aspect = "auto", origin = "lower")
-        plt.show()
-        plt.imshow(specharm_cpy.cpu().numpy().T, aspect = "auto", origin = "lower")
-        plt.show()
         return specharm_cpy
     
     def processNodegraph(earlyBorders, spectrum, pitch, internalInputs, j, nodeGraph, nodeInputs, nodeParams, nodeParamData, nodeOutput):
@@ -527,9 +521,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 windowEnd = internalInputs.borders[3 * j + 5]
                             else:
                                 windowEnd = internalInputs.borders[3 * j + 3]
-                            aiSpec = torch.roll(currentSpectrum, (-1,), (0,))
-                            aiSpec[0] = currentSpectrum[0]
-                            aiSpec = torch.squeeze(voicebank.ai.refine(aiSpec.to(device = device_ai), expression)).to(device = device_rs)
+                            aiSpec = torch.squeeze(voicebank.ai.refine(currentSpectrum.to(device = device_ai), expression)).to(device = device_rs)
                             aiBalance = internalInputs.aiBalance[windowStart:windowEnd].unsqueeze(1).to(device = device_rs)
                             aiSpec = (0.5 - 0.5 * aiBalance) * currentSpectrum + (0.5 + 0.5 * aiBalance) * aiSpec
                             pitchOffset = currentPitch[windowStart - internalInputs.borders[3 * j]:windowEnd - internalInputs.borders[3 * j]]

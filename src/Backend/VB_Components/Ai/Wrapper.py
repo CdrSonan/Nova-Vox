@@ -234,6 +234,8 @@ class AIWrapper():
         if expression not in self.mainEmbedding.keys():
             expression = ""
         refined = self.mainAi(latent, 4, self.mainEmbedding[expression])
+        refined[:, halfHarms:2 * halfHarms] = torch.remainder(refined[:, halfHarms:2 * halfHarms], 2 * math.pi)
+        refined[:, halfHarms:2 * halfHarms] = torch.where(refined[:, halfHarms:2 * halfHarms] > math.pi, refined[:, halfHarms:2 * halfHarms] - 2 * math.pi, refined[:, halfHarms:2 * halfHarms])
         return torch.squeeze(refined) * self.deskewingPremul
 
     def reset(self) -> None:
