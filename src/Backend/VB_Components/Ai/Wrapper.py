@@ -37,8 +37,8 @@ class AIWrapper():
         self.hparams = {
             "tr_lr": 0.000055,
             "tr_reg": 0.,
-            "tr_hlc": 1,
-            "tr_hls": 4000,
+            "tr_hlc": 4,
+            "tr_hls": 256,
             "tr_def_thrh" : 0.05,
             "latent_dim": 256,
             "main_blkA": [256, 192],
@@ -54,7 +54,7 @@ class AIWrapper():
             "crt_lr": 0.0008,
             "crt_reg": 0.001,
             "crt_drp":0.5,
-            "gan_guide_wgt": 0.1,
+            "gan_guide_wgt": 0.25,
             "gan_train_asym": 1,
             "fargan_interval": 10,
             "embeddingDim": 8,
@@ -83,8 +83,8 @@ class AIWrapper():
                                         torch.optim.AdamW([*self.mainCritic.encoderC.parameters(), *self.mainCritic.decoderC.parameters()], lr=self.mainCritic.learningRate * 16, weight_decay=self.mainCritic.regularization)]"""
             self.mainAiOptimizer = torch.optim.NAdam([*self.mainAi.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
             self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
-            self.criterion = nn.L1Loss()
-            self.guideCriterion = GuideRelLoss(device = self.device, threshold = 0.6)
+            self.criterion = nn.MSELoss()
+            self.guideCriterion = GuideRelLoss(device = self.device, threshold = 0.3)
         self.deskewingPremul = torch.full((global_consts.frameSize,), 0.01, device = self.device)
     
     @staticmethod
@@ -204,7 +204,26 @@ class AIWrapper():
         specharm2 /= self.deskewingPremul
         specharm3 /= self.deskewingPremul
         specharm4 /= self.deskewingPremul
-        specharm = torch.squeeze(self.trAi(specharm1, specharm2, specharm3, specharm4, dec2bin(embedding1.to(self.device), 32), dec2bin(embedding2.to(self.device), 32), factor)).transpose(0, 1)
+        """specharm1[:global_consts.halfHarms] = torch.max(specharm1[:global_consts.halfHarms], torch.zeros_like(specharm1[:global_consts.halfHarms]))
+        specharm2[:global_consts.halfHarms] = torch.max(specharm2[:global_consts.halfHarms], torch.zeros_like(specharm2[:global_consts.halfHarms]))
+        specharm3[:global_consts.halfHarms] = torch.max(specharm3[:global_consts.halfHarms], torch.zeros_like(specharm3[:global_consts.halfHarms]))
+        specharm4[:global_consts.halfHarms] = torch.max(specharm4[:global_consts.halfHarms], torch.zeros_like(specharm4[:global_consts.halfHarms]))
+        specharm1[:global_consts.halfHarms] = torch.log(specharm1[:global_consts.halfHarms] + 0.001)
+        specharm2[:global_consts.halfHarms] = torch.log(specharm2[:global_consts.halfHarms] + 0.001)
+        specharm3[:global_consts.halfHarms] = torch.log(specharm3[:global_consts.halfHarms] + 0.001)
+        specharm4[:global_consts.halfHarms] = torch.log(specharm4[:global_consts.halfHarms] + 0.001)
+        specharm1[global_consts.nHarmonics + 2:] = torch.max(specharm1[global_consts.nHarmonics + 2:], torch.zeros_like(specharm1[global_consts.nHarmonics + 2:]))
+        specharm2[global_consts.nHarmonics + 2:] = torch.max(specharm2[global_consts.nHarmonics + 2:], torch.zeros_like(specharm2[global_consts.nHarmonics + 2:]))
+        specharm3[global_consts.nHarmonics + 2:] = torch.max(specharm3[global_consts.nHarmonics + 2:], torch.zeros_like(specharm3[global_consts.nHarmonics + 2:]))
+        specharm4[global_consts.nHarmonics + 2:] = torch.max(specharm4[global_consts.nHarmonics + 2:], torch.zeros_like(specharm4[global_consts.nHarmonics + 2:]))
+        specharm1[global_consts.nHarmonics + 2:] = torch.log(specharm1[global_consts.nHarmonics + 2:] + 0.001)
+        specharm2[global_consts.nHarmonics + 2:] = torch.log(specharm2[global_consts.nHarmonics + 2:] + 0.001)
+        specharm3[global_consts.nHarmonics + 2:] = torch.log(specharm3[global_consts.nHarmonics + 2:] + 0.001)
+        specharm4[global_consts.nHarmonics + 2:] = torch.log(specharm4[global_consts.nHarmonics + 2:] + 0.001)"""
+        
+        specharm = torch.squeeze(self.trAi(specharm1, specharm2, specharm3, specharm4, dec2bin(embedding1.to(self.device), 32), dec2bin(embedding2.to(self.device), 32), factor)).to(self.device)
+        """specharm[:, :global_consts.halfHarms] = torch.max(torch.exp(specharm[:, :global_consts.halfHarms]) - 0.001, torch.zeros_like(specharm[:, :global_consts.halfHarms]))
+        specharm[:, global_consts.nHarmonics + 2:] = torch.max(torch.exp(specharm[:, global_consts.nHarmonics + 2:]) - 0.001, torch.zeros_like(specharm[:, global_consts.nHarmonics + 2:]))"""
         specharm *= self.deskewingPremul
         for i in self.defectiveTrBins:
             specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
@@ -297,6 +316,10 @@ class AIWrapper():
                 data = (avgSpecharm + data.specharm).to(device = self.device)
                 data = torch.squeeze(data)
                 data /= self.deskewingPremul
+                data[:global_consts.halfHarms] = torch.max(data[:global_consts.halfHarms], torch.zeros_like(data[:global_consts.halfHarms]))
+                data[global_consts.nHarmonics + 2:] = torch.max(data[global_consts.nHarmonics + 2:], torch.zeros_like(data[global_consts.nHarmonics + 2:]))
+                data[:global_consts.halfHarms] = torch.log(data[:global_consts.halfHarms] + 0.001)
+                data[global_consts.nHarmonics + 2:] = torch.log(data[global_consts.nHarmonics + 2:] + 0.001)
                 if torch.isnan(data).any():
                     print("nan in data")
                     continue
@@ -309,7 +332,7 @@ class AIWrapper():
                     print("output size too small")
                     continue
                 factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.trAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor).transpose(0, 1)
+                output = self.trAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor)
                 target = data[1:-1, :]
                 outputNoPhase = torch.cat((output[:, :halfHarms], output[:, global_consts.nHarmonics + 2:]), 1)
                 targetNoPhase = torch.cat((target[:, :halfHarms], target[:, global_consts.nHarmonics + 2:]), 1)
@@ -317,8 +340,8 @@ class AIWrapper():
                 self.trAiOptimizer.zero_grad()
                 loss.backward()
                 self.trAiOptimizer.step()
-            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss.data))
-            self.trAiOptimizer.lr = self.trAi.learningRate * (1 - epoch / epochs)
+            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss))
+            self.trAiOptimizer.lr = self.trAi.learningRate * math.sqrt(1 - epoch / epochs)
             self.trAi.sampleCount += len(indata)
             reportedLoss = (reportedLoss * 99 + loss.data) / 100
             if writer != None:
@@ -336,7 +359,7 @@ class AIWrapper():
         criterion = torch.zeros((global_consts.frameSize,), device = self.device)
         criterionSteps = 0
         with torch.no_grad():
-            for data in loader:
+            for data in tqdm(loader, desc = "checking for defective frequency bins...", position = 1, total = len(indata), unit = "samples"):
                 avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
                 embedding1 = dec2bin(data.embedding[0].clone().to(self.device), 32)
                 embedding2 = dec2bin(data.embedding[1].clone().to(self.device), 32)
@@ -348,12 +371,13 @@ class AIWrapper():
                 specharm4 = data[-1, :]
                 outputSize = data.size()[0] - 2
                 factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.trAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor).transpose(0, 1)
+                output = self.trAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor)
                 criterionA = torch.cat((torch.ones((outputSize, 1), device = self.device), output[:, 1:] / output[:, :-1]), 1)
                 criterionB = torch.cat((output[:, :-1] / output[:, 1:], torch.ones((outputSize, 1), device = self.device)), 1)
                 criterion += torch.mean(criterionA + criterionB, dim = 0)
                 criterionSteps += 1
             criterion /= criterionSteps
+            criterion[global_consts.halfHarms:global_consts.nHarmonics + 2] = torch.ones_like(criterion[global_consts.halfHarms:global_consts.nHarmonics + 2])
             criterion = torch.less(criterion, torch.tensor([self.hparams["tr_def_thrh"],], device = self.device))
         self.defectiveTrBins = criterion.to_sparse().coalesce().indices()
         print("defective Tr. frequency bins:", self.defectiveTrBins)
@@ -429,7 +453,7 @@ class AIWrapper():
                     key = data.key
                     data = (avgSpecharm + data.specharm).to(device = self.device)
                     if torch.isnan(data).any():
-                        print("nan in data")
+                        tqdm.write("NaN in data")
                         continue
                     if index % self.hparams["fargan_interval"] == self.hparams["fargan_interval"] - 1:
                         embedding = fargan_embedding
@@ -444,7 +468,7 @@ class AIWrapper():
                             expression = expression[-1]
                         if expression not in self.mainEmbedding.keys():
                             expression = ""
-                        embedding = self.mainEmbedding[expression]
+                        embedding = torch.zeros_like(self.mainEmbedding[expression])
                         data = torch.squeeze(data)
                         data /= self.deskewingPremul
                     self.reset()
@@ -452,13 +476,9 @@ class AIWrapper():
                     synthBase /= self.deskewingPremul
                     self.mainAi.resetState()
                     if synthBase.isnan().any():
-                        print("NaN encountered in synthetic sample")
+                        tqdm.write("NaN encountered in synthetic sample")
                         synthBase = torch.where(synthBase.isnan(), torch.zeros_like(synthBase), synthBase)
                     synthInput = self.mainAi(synthBase, phase[0], embedding)
-                    print(torch.mean(data), torch.max(data))
-                    print(torch.mean(synthBase), torch.max(synthBase))
-                    print(torch.mean(synthInput), torch.max(synthInput))
-                    print("\n\n\n")
                     
                     if phase[1] == "pretrain":
                         self.mainAi.zero_grad()

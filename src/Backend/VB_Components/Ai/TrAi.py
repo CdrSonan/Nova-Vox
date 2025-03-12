@@ -61,22 +61,14 @@ class TrAi(nn.Module):
             
             
         super(TrAi, self).__init__()
-        self.layerStart1a = nn.RNN(input_size = 3 * global_consts.reducedFrameSize, hidden_size = 2 * global_consts.reducedFrameSize, num_layers = 1, batch_first = True, device = device)
-        self.layerStart1b = nn.RNN(input_size = 3 * global_consts.reducedFrameSize, hidden_size = 2 * global_consts.reducedFrameSize, num_layers = 1, batch_first = True, device = device)
-        self.ReLuStart1 = nn.ReLU()
-        self.layerStart2 = torch.nn.Linear(4 * global_consts.reducedFrameSize, hiddenLayerSize, device = device, bias = False)
-        self.ReLuStart2 = nn.ReLU()
-        hiddenLayerDict = OrderedDict([])
-        for i in range(hiddenLayerCount):
-            hiddenLayerDict["layer" + str(i)] = torch.nn.Linear(hiddenLayerSize, hiddenLayerSize, device = device)
-            hiddenLayerDict["ReLu" + str(i)] = nn.ReLU()
-        self.hiddenLayers = nn.Sequential(hiddenLayerDict)
-        self.layerEnd1 = torch.nn.Linear(hiddenLayerSize, int(hiddenLayerSize / 2 + global_consts.reducedFrameSize / 2), device = device)
-        self.ReLuEnd1 = nn.ReLU()
-        self.layerEnd2 = torch.nn.Linear(int(hiddenLayerSize / 2 + global_consts.reducedFrameSize / 2), global_consts.reducedFrameSize, device = device)
-        self.ReLuEnd2 = nn.ReLU()
-        
-        self.threshold = torch.nn.Threshold(0.001, 0.001)
+        self.stateGenerator = nn.Sequential(
+            nn.Linear(4 * global_consts.reducedFrameSize + 64, 4 * global_consts.reducedFrameSize + 64, device = device),
+            nn.Tanh(),
+            nn.Linear(4 * global_consts.reducedFrameSize + 64, 2 * hiddenLayerCount * hiddenLayerSize, device = device),
+            nn.Tanh(),
+        )
+        self.hiddenLayers = nn.RNN(input_size = global_consts.reducedFrameSize, hidden_size = hiddenLayerSize, num_layers = hiddenLayerCount, bidirectional = True, device = device)
+        self.outputLayer = nn.Linear(2 * hiddenLayerSize, global_consts.reducedFrameSize, device = device)
 
         self.device = device
         self.learningRate = learningRate
@@ -104,6 +96,14 @@ class TrAi(nn.Module):
         Returns:
             Tensor object representing the NN output"""
         
+        #plain interpolation for debugging
+        #space = torch.linspace(1, 0, length)
+        #result = torch.zeros((length, global_consts.frameSize))
+        #for i in range(length):
+        #    result[i] = spectrum1in * space[i] + spectrum4in * (1 - space[i])
+        #return result
+        
+        
         outputSize = factorIn.size()[0]
         spectrum1 = torch.cat((spectrum1in[:global_consts.halfHarms], spectrum1in[global_consts.nHarmonics + 2:]), dim = 0)
         spectrum2 = torch.cat((spectrum2in[:global_consts.halfHarms], spectrum2in[global_consts.nHarmonics + 2:]), dim = 0)
@@ -120,38 +120,17 @@ class TrAi(nn.Module):
         spectrum2tile = torch.tile(spectrum2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum3tile = torch.tile(spectrum3.unsqueeze(0), (outputSize, 1, 1)) * factor
         spectrum4tile = torch.tile(spectrum4.unsqueeze(0), (outputSize, 1, 1)) * factor
-        embedding = torch.cat((factor[:, :, :global_consts.reducedFrameSize - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
-        x = torch.cat((spectrum3tile, spectrum4tile, embedding), dim = 1)
-        x = x.float()
-        x = torch.flatten(x, 1)
-        x = x.unsqueeze(0)
-        state = torch.flatten(torch.cat((spectrum1, spectrum2), 1), 1).unsqueeze(0)
-        x, state = self.layerStart1a(x, state)
-        embedding = torch.cat((1. - factor[:, :, :global_consts.reducedFrameSize - 64], torch.tile(embedding1[None, :], (outputSize, 1, 1)), torch.tile(embedding2[None, :], (outputSize, 1, 1))), dim = 2)
-        y = torch.cat((spectrum1tile, spectrum2tile, embedding), dim = 1)
-        y = y.float()
-        y = torch.flatten(y, 1)
-        y = y.unsqueeze(0)
-        state = torch.flatten(torch.cat((spectrum3, spectrum4), 1), 1).unsqueeze(0)
-        y, state = self.layerStart1b(y, state)
-        x = torch.squeeze(torch.cat((x, y), 2))
-        x = self.ReLuStart1(x)
-        x = self.layerStart2(x)
-        x = self.ReLuStart2(x)
-        x = self.hiddenLayers(x)
-        x = self.layerEnd1(x)
-        x = self.ReLuEnd1(x)
-        x = self.layerEnd2(x)
-        x = self.ReLuEnd2(x)
-        x = torch.minimum(x, limit)
-
-        """spectralFilterWidth = 3 * global_consts.filterTEEMult
-        x = torch.fft.rfft(x, dim = 1)
-        cutoffWindow = torch.zeros_like(x)
-        cutoffWindow[:, 0:int(spectralFilterWidth / 2)] = 1.
-        cutoffWindow[:, int(spectralFilterWidth / 2):spectralFilterWidth] = torch.linspace(1, 0, spectralFilterWidth - int(spectralFilterWidth / 2))
-        x = torch.fft.irfft(cutoffWindow * x, dim = 1, n = global_consts.halfTripleBatchSize + 1)"""
-        x = self.threshold(x).transpose(0, 1)
+        
+        x = spectrum1tile + spectrum2tile + spectrum3tile + spectrum4tile
+        
+        x *= 0.5
+        
+        #state = self.stateGenerator(torch.cat((spectrum1.squeeze(), spectrum2.squeeze(), spectrum3.squeeze(), spectrum4.squeeze(), embedding1.squeeze(), embedding2.squeeze()), dim = 0))
+        #state = state.view(2 * self.hiddenLayerCount, 1, self.hiddenLayerSize)
+        #x, _ = self.hiddenLayers(x, state)
+        #x = self.outputLayer(x)
+        
+        x = torch.minimum(x, limit).squeeze()
         
         phases1 = spectrum1in[global_consts.halfHarms:global_consts.nHarmonics + 2]
         phases2 = spectrum2in[global_consts.halfHarms:global_consts.nHarmonics + 2]
@@ -163,4 +142,4 @@ class TrAi(nn.Module):
         phases = phaseInterp(phasesLeft, phasesRight, factorPhases)
         phases = torch.where(phases > pi, phases - 2 * pi, phases)
         
-        return torch.cat((x[:global_consts.halfHarms, :], phases.transpose(0, 1), x[global_consts.halfHarms:, :]), dim = 0)
+        return torch.cat((x[:, :global_consts.halfHarms], phases, x[:, global_consts.halfHarms:]), dim = 1)

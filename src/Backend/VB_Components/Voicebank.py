@@ -9,6 +9,7 @@ import logging
 import torch
 from tqdm.auto import tqdm
 import h5py
+import random
 
 from Backend.VB_Components.VbMetadata import VbMetadata
 from Backend.VB_Components.Ai.Wrapper import AIWrapper
@@ -331,9 +332,21 @@ class Voicebank():
         
         for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
             sample = self.stagedTrTrainSamples[i].convert(False)
+            sample.expectedPitch = 0.
             try:
                 calculatePitch(sample)
                 calculateSpectra(sample, False, True)
+                
+                #sample random sections of the sample
+                #for _ in range(20):
+                #    sectionLength = random.randint(10, 100)
+                #    start = random.randint(0, sample.specharm.size()[0] - sectionLength)
+                #    sectionSample = LiteAudioSample(sample)
+                #    sectionSample.specharm = sample.specharm[start:start + sectionLength]
+                #    sectionSample.pitchDeltas = sample.pitchDeltas[start:start + sectionLength]
+                #    sectionSample.embedding = [sectionSample.embedding, sectionSample.embedding]
+                #    trTrainSamples.append(sectionSample)
+                
                 trTrainSamples.append(sample)
             except Exception as e:
                 print(e)

@@ -296,6 +296,10 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             
     
     def finalRender(specharm:torch.Tensor, pitch:torch.Tensor, length:int, device:torch.device) -> torch.Tensor:
+        import matplotlib.pyplot as plt
+        plt.imshow(torch.log(specharm[:, :] + 0.001).cpu())
+        plt.show()
+        
         renderTarget = torch.zeros([length * global_consts.batchSize,], device = device)
         specharm = specharm.contiguous()
         specharm_ptr = ctypes.cast(specharm.data_ptr(), ctypes.POINTER(ctypes.c_float))
@@ -579,17 +583,18 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             endPoint = internalInputs.borders[3 * lastPoint + 5]
                             
                             if internalInputs.useBreathiness:
-                                breathiness = internalInputs.breathiness[startPoint:endPoint].to(device = device_rs)
+                                breathiness = internalInputs.breathiness[startPoint:endPoint].to(device = device_rs).to(torch.float32).contiguous()
                             else:
-                                breathiness = torch.zeros([endPoint - startPoint,], device = device_rs)
-                            
-                            #esper.applyBreathiness(breathiness.data_ptr(), breathiness.size()[0], global_consts.config)...
+                                breathiness = torch.zeros([endPoint - startPoint,], device = device_rs).contiguous()
                             
                             steadiness = torch.pow(1. - internalInputs.steadiness[startPoint:endPoint], 2)
                             pitchOffset = processedPitch.read(startPoint, endPoint)
                             pitchOffset = internalInputs.pitch[startPoint:endPoint] + pitchOffset * steadiness
                             
-                            specharm = processedSpectrum.read(startPoint, endPoint)
+                            specharm = processedSpectrum.read(startPoint, endPoint).clone().contiguous()
+                            specharm_ptr = ctypes.cast(specharm.data_ptr(), ctypes.POINTER(ctypes.c_float))
+                            breathiness_ptr = ctypes.cast(breathiness.data_ptr(), ctypes.POINTER(ctypes.c_float))
+                            esper.applyBreathiness(specharm_ptr, breathiness_ptr, endPoint - startPoint, global_consts.config)
                             output = finalRender(specharm, pitchOffset, endPoint - startPoint, device_rs)
                             
                             remoteConnection.put(StatusChange(i, startPoint*global_consts.batchSize, output, "updateAudio"))

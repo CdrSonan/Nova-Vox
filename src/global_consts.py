@@ -67,7 +67,7 @@ language = "en"
 version = "0.11.0"
 
 #devkit default values
-defaultExpectedPitch = 249.
+defaultExpectedPitch = 0.
 defaultSearchRange = 0.55
 defaultVoicedThrh = 1.
 defaultSpecWidth = 2
