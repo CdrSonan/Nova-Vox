@@ -115,7 +115,7 @@ class DataGenerator(IterableDataset):
                                                             [],
                                                             None))   
         elif self.mode == "reclist (strict vowels)":
-            self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive and value[0].isVoiced]
+            self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive and value[0].isVoiced]
             self.pool["short"] = [key for key, value in self.voicebank.phonemeDict.items() if value[0].isPlosive or not value[0].isVoiced]
         else:
             self.pool["long"] = [key for key, value in self.voicebank.phonemeDict.items() if not value[0].isPlosive]
@@ -186,17 +186,17 @@ class DataGenerator(IterableDataset):
         else:
             shortMultiplier = longMultiplier = targetLength / sum([self.voicebank.phonemeDict[phoneme][idx[i]].specharm.size()[0] for i, phoneme in enumerate(phonemeSequence)])
         phonemes = [self.voicebank.phonemeDict[phoneme][idx[i]] for i, phoneme in enumerate(phonemeSequence)]
-        borders = [0, 25]
+        borders = [0, 10]
         for i, phoneme in enumerate(phonemes):
             if phonemeSequence[i] in self.pool["short"]:
                 length = phoneme.specharm.size()[0] * shortMultiplier
             else:
                 length = phoneme.specharm.size()[0] * longMultiplier
-            borders.append(borders[-1] + min(0.2 * length, 25))
-            borders.append(borders[-2] + max(0.8 * length, length - 25))
+            borders.append(borders[-1] + min(0.1 * length, 10))
+            borders.append(borders[-2] + max(0.9 * length, length - 10))
             borders.append(borders[-3] + length)
         borders.append(borders[-1] + 25)
-        borders = [i + random.normalvariate(0, noise[0] * 25) for i in borders]
+        borders = [i + random.normalvariate(0, noise[0] * 5) for i in borders]
         borders = [int(i * targetLength / borders[-1]) for i in borders]
         if borders[0] < 0:
             borders[0] = 0
@@ -245,15 +245,15 @@ class DataGenerator(IterableDataset):
         output[sequence.borders[-4]:sequence.borders[-1]] = getSpecharm(VocalSegment(sequence, self.voicebank, sequence.phonemeLength - 1, torch.device("cpu")), torch.device("cpu"))
         output = output.to(self.crfAi.device)
         for i in range(1, sequence.phonemeLength):
-            output[sequence.borders[3*i]:sequence.borders[3*i+2]] = self.crfWrapper(output[sequence.borders[3*i] - 1],
-                                                                               output[sequence.borders[3*i]],
+            output[sequence.borders[3*i]-1:sequence.borders[3*i+2]] = self.crfWrapper(output[sequence.borders[3*i] - 3],
+                                                                               output[sequence.borders[3*i] - 2],
                                                                                output[sequence.borders[3*i+2]],
-                                                                               output[sequence.borders[3*i+2]+1],
+                                                                               output[sequence.borders[3*i+2] + 1],
                                                                                embeddings[i - 1],
                                                                                embeddings[i],
-                                                                               sequence.borders[3*i+2] - sequence.borders[3*i],
-                                                                               sequence.pitch[sequence.borders[3*i]:sequence.borders[3*i+2]],
-                                                                               (sequence.borders[3*i+1] - sequence.borders[3*i])/(sequence.borders[3*i+2] - sequence.borders[3*i]))
+                                                                               sequence.borders[3*i+2] - sequence.borders[3*i] + 1,
+                                                                               sequence.pitch[sequence.borders[3*i]-1:sequence.borders[3*i+2]],
+                                                                               (sequence.borders[3*i+1] - sequence.borders[3*i]))
         return output
     
     def crfWrapper(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int):
@@ -266,14 +266,6 @@ class DataGenerator(IterableDataset):
         specharm = torch.squeeze(self.crfAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor))
         #for i in self.voicebank.defectiveCrfBins:
         #    specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
-        borderRange = torch.zeros((outputSize,), device = self.crfAi.device)
-        borderLimit = min(global_consts.crfBorderAbs, ceil(outputSize * global_consts.crfBorderRel))
-        borderRange[:borderLimit] = torch.linspace(1, 0, borderLimit, device = self.crfAi.device)
-        specharm *= (1. - borderRange.unsqueeze(1))
-        specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm1 + specharm2) / 2).unsqueeze(0))
-        borderRange = torch.flip(borderRange, (0,))
-        specharm *= (1. - borderRange.unsqueeze(1))
-        specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm3 + specharm4) / 2).unsqueeze(0))
         return specharm
     
     
@@ -449,7 +441,7 @@ class MainAi(nn.Module):
         y = self.decoderB(y + b, lengthB)
         y = self.decoderA(y + a, lengthA)
         x = self.postNet(x + y)
-        return input * (1. + 0.9 * x)
+        return input + 3. * x
     def resetState(self) -> None:
         pass
     def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):

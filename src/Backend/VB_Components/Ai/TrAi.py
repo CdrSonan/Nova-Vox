@@ -97,11 +97,12 @@ class TrAi(nn.Module):
             Tensor object representing the NN output"""
         
         #plain interpolation for debugging
-        #space = torch.linspace(1, 0, length)
-        #result = torch.zeros((length, global_consts.frameSize))
-        #for i in range(length):
-        #    result[i] = spectrum1in * space[i] + spectrum4in * (1 - space[i])
-        #return result
+        """length = factorIn.size()[0]
+        space = torch.linspace(1, 0, length)
+        result = torch.zeros((length, global_consts.frameSize))
+        for i in range(length):
+            result[i] = spectrum1in * space[i] + spectrum4in * (1 - space[i])
+        return result"""
         
         
         outputSize = factorIn.size()[0]
@@ -120,7 +121,6 @@ class TrAi(nn.Module):
         spectrum2tile = torch.tile(spectrum2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum3tile = torch.tile(spectrum3.unsqueeze(0), (outputSize, 1, 1)) * factor
         spectrum4tile = torch.tile(spectrum4.unsqueeze(0), (outputSize, 1, 1)) * factor
-        
         x = spectrum1tile + spectrum2tile + spectrum3tile + spectrum4tile
         
         x *= 0.5
@@ -130,7 +130,8 @@ class TrAi(nn.Module):
         #x, _ = self.hiddenLayers(x, state)
         #x = self.outputLayer(x)
         
-        x = torch.minimum(x, limit).squeeze()
+        #x = torch.minimum(x, limit)
+        x = x.squeeze()
         
         phases1 = spectrum1in[global_consts.halfHarms:global_consts.nHarmonics + 2]
         phases2 = spectrum2in[global_consts.halfHarms:global_consts.nHarmonics + 2]

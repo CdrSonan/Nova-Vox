@@ -269,7 +269,10 @@ class MainaiUi(Frame):
         filepath = tkinter.filedialog.askopenfilename(filetypes = ((loc["all_files_desc"], "*"), ), multiple = False)
         with h5py.File(filepath, "r") as f:
             storage = SampleStorage(f, [], False)
-            loadedVB.stagedMainTrainSamples = storage.toCollection("AI")
+            for i in range(len(storage)):
+                sample = storage.fetch(i, "AI")
+                loadedVB.stagedMainTrainSamples.append(sample)
+            #loadedVB.stagedMainTrainSamples = storage.toCollection("AI")
                 
     def onTrainPress(self) -> None:
         """UI Frontend function for training the AI with the specified settings and samples"""

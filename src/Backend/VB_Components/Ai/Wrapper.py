@@ -44,14 +44,14 @@ class AIWrapper():
             "main_blkA": [256, 192],
             "main_blkB": [256, 256],
             "main_blkC": [256, 256],
-            "main_lr": 0.0012,
+            "main_lr": 0.01,
             "main_reg": 0.,
             "main_drp":0.5,
             "crt_blkA": [256, 192],
             "crt_blkB": [256, 256],
             "crt_blkC": [256, 256],
             "crt_out_wgt": 0.1,
-            "crt_lr": 0.0008,
+            "crt_lr": 0.01,
             "crt_reg": 0.001,
             "crt_drp":0.5,
             "gan_guide_wgt": 0.25,
@@ -84,7 +84,7 @@ class AIWrapper():
             self.mainAiOptimizer = torch.optim.NAdam([*self.mainAi.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
             self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
             self.criterion = nn.MSELoss()
-            self.guideCriterion = GuideRelLoss(device = self.device, threshold = 0.3)
+            self.guideCriterion = GuideRelLoss(device = self.device)
         self.deskewingPremul = torch.full((global_consts.frameSize,), 0.01, device = self.device)
     
     @staticmethod
@@ -200,10 +200,14 @@ class AIWrapper():
         self.trAi.requires_grad_(False)
         factor = math.log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.device), factor)
-        specharm1 /= self.deskewingPremul
-        specharm2 /= self.deskewingPremul
-        specharm3 /= self.deskewingPremul
-        specharm4 /= self.deskewingPremul
+        #specharm1 /= self.deskewingPremul
+        #specharm2 /= self.deskewingPremul
+        #specharm3 /= self.deskewingPremul
+        #specharm4 /= self.deskewingPremul
+        specharm1 = torch.clone(specharm1) / self.deskewingPremul
+        specharm2 = torch.clone(specharm2) / self.deskewingPremul
+        specharm3 = torch.clone(specharm3) / self.deskewingPremul
+        specharm4 = torch.clone(specharm4) / self.deskewingPremul
         """specharm1[:global_consts.halfHarms] = torch.max(specharm1[:global_consts.halfHarms], torch.zeros_like(specharm1[:global_consts.halfHarms]))
         specharm2[:global_consts.halfHarms] = torch.max(specharm2[:global_consts.halfHarms], torch.zeros_like(specharm2[:global_consts.halfHarms]))
         specharm3[:global_consts.halfHarms] = torch.max(specharm3[:global_consts.halfHarms], torch.zeros_like(specharm3[:global_consts.halfHarms]))
@@ -225,8 +229,9 @@ class AIWrapper():
         """specharm[:, :global_consts.halfHarms] = torch.max(torch.exp(specharm[:, :global_consts.halfHarms]) - 0.001, torch.zeros_like(specharm[:, :global_consts.halfHarms]))
         specharm[:, global_consts.nHarmonics + 2:] = torch.max(torch.exp(specharm[:, global_consts.nHarmonics + 2:]) - 0.001, torch.zeros_like(specharm[:, global_consts.nHarmonics + 2:]))"""
         specharm *= self.deskewingPremul
-        for i in self.defectiveTrBins:
-            specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
+        #specharm *= self.deskewingPremul
+        #for i in self.defectiveTrBins:
+        #    specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
         #borderRange = torch.zeros((outputSize,), device = self.device)
         #borderLimit = min(global_consts.crfBorderAbs, math.ceil(outputSize * global_consts.crfBorderRel))
         #borderRange[:borderLimit] = torch.linspace(1, 0, borderLimit, device = self.device)
@@ -252,6 +257,9 @@ class AIWrapper():
             latent = latent.unsqueeze(0)
         if expression not in self.mainEmbedding.keys():
             expression = ""
+        import matplotlib.pyplot as plt
+        plt.imshow(torch.log(latent + 0.001).cpu(), cmap = "hot", aspect = "auto")
+        plt.show()
         refined = self.mainAi(latent, 4, self.mainEmbedding[expression])
         refined[:, halfHarms:2 * halfHarms] = torch.remainder(refined[:, halfHarms:2 * halfHarms], 2 * math.pi)
         refined[:, halfHarms:2 * halfHarms] = torch.where(refined[:, halfHarms:2 * halfHarms] > math.pi, refined[:, halfHarms:2 * halfHarms] - 2 * math.pi, refined[:, halfHarms:2 * halfHarms])
@@ -471,14 +479,35 @@ class AIWrapper():
                         embedding = torch.zeros_like(self.mainEmbedding[expression])
                         data = torch.squeeze(data)
                         data /= self.deskewingPremul
+                        data[:, :global_consts.halfHarms] = torch.max(data[:, :global_consts.halfHarms], torch.zeros_like(data[:, :global_consts.halfHarms]))
+                        data[:, :global_consts.halfHarms] = torch.log(data[:, :global_consts.halfHarms] + 0.001)
+                        data[:, global_consts.nHarmonics + 2:] = torch.max(data[:, global_consts.nHarmonics + 2:], torch.zeros_like(data[:, global_consts.nHarmonics + 2:]))
+                        data[:, global_consts.nHarmonics + 2:] = torch.log(data[:, global_consts.nHarmonics + 2:] + 0.001)
                     self.reset()
-                    synthBase = self.mainGenerator.synthesize([0.1, 0., 0., 0.], data.size()[0], 14, expression)
+                    synthBase = self.mainGenerator.synthesize([0.5, 0.25, 0.2, 0.1], data.size()[0], 10, expression)
                     synthBase /= self.deskewingPremul
+                    synthBase[:, :global_consts.halfHarms] = torch.max(synthBase[:, :global_consts.halfHarms], torch.zeros_like(synthBase[:, :global_consts.halfHarms]))
+                    synthBase[:, :global_consts.halfHarms] = torch.log(synthBase[:, :global_consts.halfHarms] + 0.001)
+                    synthBase[:, global_consts.nHarmonics + 2:] = torch.max(synthBase[:, global_consts.nHarmonics + 2:], torch.zeros_like(synthBase[:, global_consts.nHarmonics + 2:]))
+                    synthBase[:, global_consts.nHarmonics + 2:] = torch.log(synthBase[:, global_consts.nHarmonics + 2:] + 0.001)
                     self.mainAi.resetState()
                     if synthBase.isnan().any():
                         tqdm.write("NaN encountered in synthetic sample")
                         synthBase = torch.where(synthBase.isnan(), torch.zeros_like(synthBase), synthBase)
                     synthInput = self.mainAi(synthBase, phase[0], embedding)
+                    
+                    import matplotlib.pyplot as plt
+                    #plt.imshow(torch.log(data + 0.001).cpu(), cmap = "hot", aspect = "auto")
+                    #plt.imshow(data.cpu(), cmap = "hot", aspect = "auto")
+                    plt.show()
+                    import matplotlib.pyplot as plt
+                    #plt.imshow(torch.log(synthBase + 0.001).cpu(), cmap = "hot", aspect = "auto")
+                    #plt.imshow(synthBase.cpu(), cmap = "hot", aspect = "auto")
+                    plt.show()
+                    import matplotlib.pyplot as plt
+                    #plt.imshow(torch.log(synthInput + 0.001).detach().cpu(), cmap = "hot", aspect = "auto")
+                    #plt.imshow(synthInput.detach().cpu(), cmap = "hot", aspect = "auto")
+                    plt.show()
                     
                     if phase[1] == "pretrain":
                         self.mainAi.zero_grad()
