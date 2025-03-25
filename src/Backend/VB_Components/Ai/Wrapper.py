@@ -44,19 +44,19 @@ class AIWrapper():
             "main_blkA": [256, 192],
             "main_blkB": [256, 256],
             "main_blkC": [256, 256],
-            "main_lr": 0.01,
-            "main_reg": 0.,
+            "main_lr": 0.0001,
+            "main_reg": 0.0,
             "main_drp":0.5,
             "crt_blkA": [256, 192],
             "crt_blkB": [256, 256],
             "crt_blkC": [256, 256],
             "crt_out_wgt": 0.1,
-            "crt_lr": 0.01,
-            "crt_reg": 0.001,
-            "crt_drp":0.5,
-            "gan_guide_wgt": 0.25,
-            "gan_train_asym": 1,
-            "fargan_interval": 10,
+            "crt_lr": 0.0005,
+            "crt_reg": 0.00001,
+            "crt_drp":0.2,
+            "gan_guide_wgt": 0.02,
+            "gan_train_asym": 2,
+            "fargan_interval": 1000,
             "embeddingDim": 8,
         }
         if hparams:
@@ -255,12 +255,18 @@ class AIWrapper():
         latent = specharm / self.deskewingPremul
         if latent.dim() == 1:
             latent = latent.unsqueeze(0)
+        latent[:, :halfHarms] = torch.max(latent[:, :halfHarms], torch.zeros_like(latent[:, :halfHarms]))
+        latent[:, :halfHarms] = torch.log(latent[:, :halfHarms] + 0.001)
+        latent[:, 2 * halfHarms:] = torch.max(latent[:, 2 * halfHarms:], torch.zeros_like(latent[:, 2 * halfHarms:]))
+        latent[:, 2 * halfHarms:] = torch.log(latent[:, 2 * halfHarms:] + 0.001)
         if expression not in self.mainEmbedding.keys():
             expression = ""
-        import matplotlib.pyplot as plt
-        plt.imshow(torch.log(latent + 0.001).cpu(), cmap = "hot", aspect = "auto")
-        plt.show()
         refined = self.mainAi(latent, 4, self.mainEmbedding[expression])
+        refined[:, :halfHarms] = torch.exp(refined[:, :halfHarms]) - 0.001
+        refined[:, :halfHarms] = torch.max(refined[:, :halfHarms], torch.zeros_like(refined[:, :halfHarms]))
+        refined[:, 2 * halfHarms:] = torch.exp(refined[:, 2 * halfHarms:]) - 0.001
+        refined[:, 2 * halfHarms:] = torch.max(refined[:, 2 * halfHarms:], torch.zeros_like(refined[:, 2 * halfHarms:]))
+        
         refined[:, halfHarms:2 * halfHarms] = torch.remainder(refined[:, halfHarms:2 * halfHarms], 2 * math.pi)
         refined[:, halfHarms:2 * halfHarms] = torch.where(refined[:, halfHarms:2 * halfHarms] > math.pi, refined[:, halfHarms:2 * halfHarms] - 2 * math.pi, refined[:, halfHarms:2 * halfHarms])
         return torch.squeeze(refined) * self.deskewingPremul
@@ -484,7 +490,7 @@ class AIWrapper():
                         data[:, global_consts.nHarmonics + 2:] = torch.max(data[:, global_consts.nHarmonics + 2:], torch.zeros_like(data[:, global_consts.nHarmonics + 2:]))
                         data[:, global_consts.nHarmonics + 2:] = torch.log(data[:, global_consts.nHarmonics + 2:] + 0.001)
                     self.reset()
-                    synthBase = self.mainGenerator.synthesize([0.5, 0.25, 0.2, 0.1], data.size()[0], 10, expression)
+                    synthBase = self.mainGenerator.synthesize([0.25, 0., 0., 0.], data.size()[0], 10, expression)
                     synthBase /= self.deskewingPremul
                     synthBase[:, :global_consts.halfHarms] = torch.max(synthBase[:, :global_consts.halfHarms], torch.zeros_like(synthBase[:, :global_consts.halfHarms]))
                     synthBase[:, :global_consts.halfHarms] = torch.log(synthBase[:, :global_consts.halfHarms] + 0.001)
@@ -495,19 +501,6 @@ class AIWrapper():
                         tqdm.write("NaN encountered in synthetic sample")
                         synthBase = torch.where(synthBase.isnan(), torch.zeros_like(synthBase), synthBase)
                     synthInput = self.mainAi(synthBase, phase[0], embedding)
-                    
-                    import matplotlib.pyplot as plt
-                    #plt.imshow(torch.log(data + 0.001).cpu(), cmap = "hot", aspect = "auto")
-                    #plt.imshow(data.cpu(), cmap = "hot", aspect = "auto")
-                    plt.show()
-                    import matplotlib.pyplot as plt
-                    #plt.imshow(torch.log(synthBase + 0.001).cpu(), cmap = "hot", aspect = "auto")
-                    #plt.imshow(synthBase.cpu(), cmap = "hot", aspect = "auto")
-                    plt.show()
-                    import matplotlib.pyplot as plt
-                    #plt.imshow(torch.log(synthInput + 0.001).detach().cpu(), cmap = "hot", aspect = "auto")
-                    #plt.imshow(synthInput.detach().cpu(), cmap = "hot", aspect = "auto")
-                    plt.show()
                     
                     if phase[1] == "pretrain":
                         self.mainAi.zero_grad()
