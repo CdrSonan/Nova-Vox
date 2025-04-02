@@ -413,7 +413,7 @@ class InceptionModule1d(nn.Module):
         self.device = device
         self.paths = nn.ModuleList([nn.Sequential(
             nn.Conv1d(inDim, effectiveOutDim, 1, device = device),
-            nn.LeakyReLU(0.01),
+            nn.LeakyReLU(0.1),
             nn.Conv1d(effectiveOutDim, effectiveOutDim, kernelSize, padding = dilation * (kernelSize - 1) // 2, dilation = dilation, device = device),
         ) for kernelSize, dilation in zip(kernelSizes, dilations)])
         self.poolPath = nn.Sequential(
@@ -432,7 +432,7 @@ class InceptionBlock(nn.Module):
     def __init__(self, dim:int, kernelSizes:tuple, dilations:tuple, poolSize:int, device:torch.device = None) -> None:
         super().__init__()
         self.inception = InceptionModule1d(dim, dim, kernelSizes, dilations, poolSize, device = device)
-        self.nla = nn.LeakyReLU(0.01)
+        self.nla = nn.LeakyReLU(0.1)
         self.norm = nn.LayerNorm(dim, device = device)
     
     def forward(self, input:torch.Tensor) -> torch.Tensor:
@@ -460,10 +460,10 @@ class MainAi(nn.Module):
         self.sampleCount = 0
         self.inputHead = nn.Sequential(
             nn.Linear(input_dim + embedDim, dim, device = device),
-            nn.LeakyReLU(0.01),
+            nn.LeakyReLU(0.1),
             nn.LayerNorm(dim, device = device),
         )
-        self.blocks = nn.Sequential(*[InceptionBlock(dim, (3, 5, 7), (1, 2, 3), 5, device = device) for _ in range(6)])
+        self.blocks = nn.Sequential(*[InceptionBlock(dim, (3, 5, 7), (1, 1, 1), 3, device = device) for _ in range(16)])
         self.outputHead = nn.Sequential(
             nn.Dropout(dropout),
             nn.Linear(dim, input_dim, device = device),
@@ -494,18 +494,25 @@ class MainCritic(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
         self.inputHead = nn.Sequential(
-            nn.Dropout(dropout),
             nn.Linear(input_dim + embedDim, dim, device = device),
-            nn.LeakyReLU(0.01),
+            nn.Dropout(dropout),
+            nn.LeakyReLU(0.1),
             nn.LayerNorm(dim, device = device),
         )
-        self.blocks = nn.Sequential(*[InceptionBlock(dim, (3, 5, 7), (1, 2, 3), 5, device = device) for _ in range(8)])
+        self.blocks = nn.Sequential(*[InceptionBlock(dim, (3, 5, 7), (1, 1, 1), 3, device = device) for _ in range(16)])
         self.outputHead = nn.Sequential(
-            nn.Dropout(dropout),
             nn.Linear(dim, 1, device = device),
         )
     
     def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
+        """perturbation = torch.normal(0, 0.2, input.size(), device = self.device)
+        crosstalk = (
+            torch.normal(0, 0.1, input.size(), device = self.device) * torch.roll(input, (0, 1), (0, 1)) +
+            torch.normal(0, 0.1, input.size(), device = self.device) * torch.roll(input, (0, -1), (0, 1)) +
+            torch.normal(0, 0.1, input.size(), device = self.device) * torch.roll(input, (1, 0), (1, 0)) +
+            torch.normal(0, 0.1, input.size(), device = self.device) * torch.roll(input, (-1, 0), (1, 0))
+        )
+        input = input + perturbation + crosstalk"""
         x = torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1)
         x = self.inputHead(x)
         x = self.blocks(x)

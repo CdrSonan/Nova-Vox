@@ -246,7 +246,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         tgtPitch_ptr = ctypes.cast(tgtPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
         formantShift_ptr = ctypes.cast(formantShift.data_ptr(), ctypes.POINTER(ctypes.c_float))
         breathiness_ptr = ctypes.cast(breathiness.data_ptr(), ctypes.POINTER(ctypes.c_float))
-        esper.pitchShift(specharm_ptr, srcPitch_ptr, tgtPitch_ptr, formantShift_ptr, breathiness_ptr, end - start, global_consts.config)
+        #esper.pitchShift(specharm_ptr, srcPitch_ptr, tgtPitch_ptr, formantShift_ptr, breathiness_ptr, end - start, global_consts.config)
         return specharm_cpy
     
     def processNodegraph(earlyBorders, spectrum, pitch, internalInputs, j, nodeGraph, nodeInputs, nodeParams, nodeParamData, nodeOutput):
@@ -298,6 +298,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     def finalRender(specharm:torch.Tensor, pitch:torch.Tensor, length:int, device:torch.device) -> torch.Tensor:
         import matplotlib.pyplot as plt
         plt.imshow(torch.log(specharm[:, :] + 0.001).cpu())
+        #plt.imshow(specharm[:, :].cpu())
         plt.show()
         
         renderTarget = torch.zeros([length * global_consts.batchSize,], device = device)
@@ -494,32 +495,36 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                             else:
                                 windowStart = internalInputs.borders[3 * j + 2]
                                 windowStartEx = internalInputs.borders[3 * j + 1]
-                                if previousSpectrum.size()[0] == 1:
+                                if previousSpectrum.size()[0] < 3:
                                     specA = previousSpectrum[-1]
+                                    specB = previousSpectrum[-1]
                                 else:
-                                    specA = previousSpectrum[-2]
-                                if currentSpectrum.size()[0] == 1:
-                                    specB = currentSpectrum[0]
+                                    specA = previousSpectrum[-3]
+                                    specB = previousSpectrum[-2]
+                                if currentSpectrum.size()[0] < 3:
+                                    specC = currentSpectrum[0]
+                                    specD = currentSpectrum[0]
                                 else:
-                                    specB = currentSpectrum[1]
+                                    specC = currentSpectrum[0]
+                                    specD = currentSpectrum[1]
                                 aiSpec = voicebank.ai.interpolate(
                                     specA.to(device = device_ai),
-                                    previousSpectrum[-1].to(device = device_ai),
-                                    currentSpectrum[0].to(device = device_ai),
                                     specB.to(device = device_ai),
+                                    specC.to(device = device_ai),
+                                    specD.to(device = device_ai),
                                     voicebank.phonemeDict.fetch(internalInputs.phonemes[j - 1], True)[0].embedding,
                                     voicebank.phonemeDict.fetch(internalInputs.phonemes[j], True)[0].embedding,
                                     previousExpression,
                                     expression,
-                                    internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j],
-                                    internalInputs.pitch[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]],
+                                    internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j] + 1,
+                                    internalInputs.pitch[internalInputs.borders[3 * j] - 1:internalInputs.borders[3 * j + 2]],
                                     internalInputs.borders[3 * j + 1] - internalInputs.borders[3 * j]
                                 )
-                                aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j]:internalInputs.borders[3 * j + 2]].unsqueeze(1).to(device = device_rs)
+                                aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j] - 1:internalInputs.borders[3 * j + 2]].unsqueeze(1).to(device = device_rs)
                                 aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0].to(device = device_rs) + (0.5 + 0.5 * aiBalance) * aiSpec[1].to(device = device_rs)
                                 pitchOffset = previousPitch[internalInputs.borders[3 * j] - internalInputs.borders[3 * j + 2]:] + currentPitch[:internalInputs.borders[3 * j + 2] - internalInputs.borders[3 * j]]
                                 aiSpecOut = pitchAdjust(aiSpec, j, internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2], internalInputs, voicebank, pitchOffset)
-                                spectrum.write(aiSpecOut.to(device_rs), internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2])
+                                spectrum.write(aiSpecOut.to(device_rs), internalInputs.borders[3 * j] - 1, internalInputs.borders[3 * j + 2])
                                 pitch.write(pitchOffset.to(device_rs), internalInputs.borders[3 * j], internalInputs.borders[3 * j + 2])
                             if j + 1 == len(internalStatusControl.ai) or internalInputs.phonemes[j + 1] in ("pau", "_autopause"):
                                 windowEnd = internalInputs.borders[3 * j + 5]
@@ -551,15 +556,15 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                     voicebank.phonemeDict.fetch(internalInputs.phonemes[j + 1], True)[0].embedding,
                                     expression,
                                     nextExpression,
-                                    internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3],
-                                    internalInputs.pitch[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]],
+                                    internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3] + 1,
+                                    internalInputs.pitch[internalInputs.borders[3 * j + 3] - 1:internalInputs.borders[3 * j + 5]],
                                     internalInputs.borders[3 * j + 4] - internalInputs.borders[3 * j + 3]
                                 )
-                                aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j + 3]:internalInputs.borders[3 * j + 5]].unsqueeze(1).to(device = device_rs)
+                                aiBalance = internalInputs.aiBalance[internalInputs.borders[3 * j + 3] - 1:internalInputs.borders[3 * j + 5]].unsqueeze(1).to(device = device_rs)
                                 aiSpec = (0.5 - 0.5 * aiBalance) * aiSpec[0].to(device = device_rs) + (0.5 + 0.5 * aiBalance) * aiSpec[1].to(device = device_rs)
                                 pitchOffset = currentPitch[internalInputs.borders[3 * j + 3] - internalInputs.borders[3 * j + 5]:] + nextPitch[:internalInputs.borders[3 * j + 5] - internalInputs.borders[3 * j + 3]]
                                 aiSpecOut = pitchAdjust(aiSpec, j, internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5], internalInputs, voicebank, pitchOffset)
-                                spectrum.write(aiSpecOut.to(device_rs), internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5])
+                                spectrum.write(aiSpecOut.to(device_rs), internalInputs.borders[3 * j + 3] - 1, internalInputs.borders[3 * j + 5])
                                 pitch.write(pitchOffset.to(device_rs), internalInputs.borders[3 * j + 3], internalInputs.borders[3 * j + 5])
                             
                             #TODO: implement crfai skipping if transition was already calculated in the previous frame

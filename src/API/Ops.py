@@ -796,7 +796,7 @@ class ChangeVoicebank(UnifiedAction):
         def action(index, path):
             middleLayer.trackList[middleLayer.activeTrack].phonemeLengths = dict()
             tmpVb = LiteVoicebank(path)
-            for i in tmpVb.phonemeDict.keys():
+            for i in tmpVb.phonemeDict.keys:
                 if tmpVb.phonemeDict[i][0].isPlosive:
                     middleLayer.trackList[middleLayer.activeTrack].phonemeLengths[i] = tmpVb.phonemeDict[i][0].specharm.size()[0]
                 else:

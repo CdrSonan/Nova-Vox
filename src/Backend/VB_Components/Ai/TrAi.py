@@ -121,7 +121,7 @@ class TrAi(nn.Module):
         spectrum2tile = torch.tile(spectrum2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum3tile = torch.tile(spectrum3.unsqueeze(0), (outputSize, 1, 1)) * factor
         spectrum4tile = torch.tile(spectrum4.unsqueeze(0), (outputSize, 1, 1)) * factor
-        x = spectrum1tile + spectrum2tile + spectrum3tile + spectrum4tile
+        x = spectrum2tile + spectrum2tile + spectrum3tile + spectrum4tile
         
         x *= 0.5
         
