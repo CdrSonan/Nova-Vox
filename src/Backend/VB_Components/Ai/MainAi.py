@@ -8,6 +8,7 @@
 import random
 from math import floor, ceil, log
 from copy import copy
+import ctypes
 from tkinter import Tk, filedialog
 from tqdm.auto import tqdm
 import h5py
@@ -17,15 +18,13 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, IterableDataset
 import global_consts
 from Backend.VB_Components.Ai.TrAi import TrAi
-from Backend.VB_Components.Ai.Util import SReLU
 from Backend.DataHandler.VocalSequence import VocalSequence
 from Backend.DataHandler.VocalSegment import VocalSegment
 from Backend.DataHandler.AudioSample import LiteSampleCollection
 from Backend.DataHandler.HDF5 import SampleStorage
 from Backend.Resampler.Resamplers import getSpecharm
-from Backend.Resampler.CubicSplineInter import interp
-from Backend.Resampler.PhaseShift import phaseInterp
 from Backend.ESPER.SpectralCalculator import asyncProcess
+from C_Bridge import esper
 from Util import dec2bin
 
 halfHarms = int(global_consts.nHarmonics / 2) + 1
@@ -254,156 +253,44 @@ class DataGenerator(IterableDataset):
                                                                                sequence.borders[3*i+2] - sequence.borders[3*i] + 1,
                                                                                sequence.pitch[sequence.borders[3*i]-1:sequence.borders[3*i+2]],
                                                                                (sequence.borders[3*i+1] - sequence.borders[3*i]))
-        return output
+        return self.augment(output)
     
     def crfWrapper(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int):
-        self.crfAi.eval()
-        self.crfAi.requires_grad_(False)
         factor = log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.crfAi.device), factor)
         embedding1 = dec2bin(torch.tensor(embedding1, device = self.crfAi.device), 32)
         embedding2 = dec2bin(torch.tensor(embedding2, device = self.crfAi.device), 32)
         specharm = torch.squeeze(self.crfAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor))
-        #for i in self.voicebank.defectiveCrfBins:
-        #    specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
         return specharm
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-class PseudoSSM(nn.Module):
-    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, specnorm:bool = False) -> None:
-        super().__init__()
-        self.srcDim = srcDim
-        self.tgtDim = tgtDim
-        self.stateDim = stateDim
-        self.device = device
-        self.recurrent = nn.RNN(srcDim, stateDim, nonlinearity = "relu", batch_first = True, bias = False, device = device)
-        self.howb = nn.Linear(stateDim, tgtDim, device = device)
-        self.iowb = nn.Linear(srcDim, tgtDim, device = device)
-        self.ib = nn.Parameter(torch.zeros((srcDim,), device = device))
-        self.initialState = nn.Parameter(torch.zeros((stateDim,), device = device))
-        nn.init.orthogonal_(self.recurrent.weight_ih_l0)
-        nn.init.orthogonal_(self.recurrent.weight_hh_l0)
-        nn.init.orthogonal_(self.howb.weight)
-        nn.init.orthogonal_(self.iowb.weight)
-        nn.init.zeros_(self.howb.bias)
-        nn.init.zeros_(self.iowb.bias)
-        if specnorm:
-            self.recurrent = nn.utils.parametrizations.spectral_norm(self.recurrent, name = "weight_hh_l0")
-            self.recurrent = nn.utils.parametrizations.spectral_norm(self.recurrent, name = "weight_ih_l0")
-            self.howb = nn.utils.parametrizations.spectral_norm(self.howb)
-            self.iowb = nn.utils.parametrizations.spectral_norm(self.iowb)
-    def forward(self, input:torch.Tensor) -> torch.Tensor:
-        skip = self.iowb(input)
-        x = input + self.ib
-        x = self.recurrent(x, self.initialState.unsqueeze(0))[0]
-        x = self.howb(x)
-        return x + skip
+    def augment(self, input:torch.Tensor) -> torch.Tensor:
+        device = input.device
+        input = input.to(torch.device("cpu"))
+        input[:, :global_consts.halfHarms] = torch.clamp(input[:, :global_consts.halfHarms], 0.001, 1)
+        input[:, 2*global_consts.halfHarms:] = torch.clamp(input[:, 2*global_consts.halfHarms:], 0.001, 1)
+        input = input.contiguous()
+        input_ptr = ctypes.cast(input.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        length = input.size()[0]
+        c_length = ctypes.c_int(length)
+        pitch = torch.full((length,), 300.5, dtype = torch.float32).contiguous()
+        pitch_ptr = ctypes.cast(pitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        
+        dynamics = torch.full((length,), random.uniform(-0.8, 0.8), dtype = torch.float32).contiguous()
+        dynamics_ptr = ctypes.cast(dynamics.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        esper.applyDynamics(input_ptr, dynamics_ptr, pitch_ptr, c_length, global_consts.config)
+        breathiness = torch.full((length,), random.uniform(-0.8, 0.8), dtype = torch.float32).contiguous()
+        breathiness_ptr = ctypes.cast(breathiness.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        esper.applyBreathiness(input_ptr, breathiness_ptr, c_length, global_consts.config)
+        
+        pitchTgt = torch.full((length,), 300.5 + random.uniform(-80., 80.), dtype = torch.float32).contiguous()
+        pitchTgt_ptr = ctypes.cast(pitchTgt.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        formantShift = torch.full((length,), random.uniform(0., 0.5), dtype = torch.float32).contiguous()
+        formantShift_ptr = ctypes.cast(formantShift.data_ptr(), ctypes.POINTER(ctypes.c_float))
+        esper.pitchShift(input_ptr, pitch_ptr, pitchTgt_ptr, formantShift_ptr, breathiness_ptr, c_length, global_consts.config)
+        
+        input = input.to(device)
+        return input
 
-class EncoderBlock(nn.Module):
-    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, dropout:float = 0., specnorm:bool = False) -> None:
-        super().__init__()
-        self.srcDim = srcDim
-        self.tgtDim = tgtDim
-        self.stateDim = stateDim
-        self.device = device
-        self.specnorm = specnorm
-        self.ssm = PseudoSSM(tgtDim, tgtDim, stateDim, device = device, specnorm = specnorm)
-        self.projection = nn.Conv1d(srcDim, tgtDim, 4, 2, 3, device = device)
-        self.norm = nn.LayerNorm(tgtDim, device = device)
-        self.nl1 = nn.LeakyReLU()
-        self.nl2 = nn.LeakyReLU()
-        self.dropout = nn.Dropout(dropout)
-        nn.init.orthogonal_(self.projection.weight)
-        nn.init.zeros_(self.projection.bias)
-        if specnorm:
-            self.projection = nn.utils.parametrizations.spectral_norm(self.projection)
-    def forward(self, input:torch.Tensor) -> torch.Tensor:
-        x = self.projection(input.transpose(-1, -2)).transpose(-1, -2)
-        x = self.nl1(x)
-        x = self.ssm(x)
-        x = self.nl2(x)
-        x = self.norm(x)
-        x = self.dropout(x)
-        return x, input.size()[-2]
-
-class DecoderBlock(nn.Module):
-    def __init__(self, srcDim:int, tgtDim, stateDim:int, device:torch.device = None, dropout:float = 0., specnorm:bool = False) -> None:
-        super().__init__()
-        self.srcDim = srcDim
-        self.tgtDim = tgtDim
-        self.stateDim = stateDim
-        self.device = device
-        self.specnorm = specnorm
-        self.ssm = PseudoSSM(tgtDim, tgtDim, stateDim, device = device, specnorm = specnorm)
-        self.projection = nn.ConvTranspose1d(srcDim, tgtDim, 4, 2, device = device)
-        self.norm = nn.LayerNorm(tgtDim, device = device)
-        self.nl1 = nn.LeakyReLU()
-        self.nl2 = nn.LeakyReLU()
-        self.dropout = nn.Dropout(dropout)
-        nn.init.orthogonal_(self.projection.weight)
-        nn.init.zeros_(self.projection.bias)
-        if specnorm:
-            self.projection = nn.utils.parametrizations.spectral_norm(self.projection)
-    def forward(self, input:torch.Tensor, targetLength:int) -> torch.Tensor:
-        x = self.projection(input.transpose(-1, -2)).transpose(-1, -2)
-        x = self.nl1(x)
-        x = self.ssm(x)
-        x = self.nl2(x)
-        x = self.norm(x)
-        x = self.dropout(x)
-        return x[3:targetLength + 3]
-
-class MainCritic(nn.Module):
-    
-    def __init__(self, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = True) -> None:
-        super().__init__()
-        self.preNet = nn.Sequential(
-            nn.utils.parametrizations.spectral_norm(nn.Linear(input_dim + embedDim, dim, device = device)),
-            nn.LeakyReLU(),
-        )
-        self.encoderA = EncoderBlock(dim, blockA[1], blockA[0], device = device, dropout = dropout, specnorm = True)
-        self.encoderB = EncoderBlock(blockA[1], blockB[1], blockB[0], device = device, dropout = dropout, specnorm = True)
-        self.encoderC = EncoderBlock(blockB[1], blockC[1], blockC[0], device = device, dropout = dropout, specnorm = True)
-        self.decoderC = DecoderBlock(blockC[1], blockB[1], blockC[0], device = device, dropout = dropout, specnorm = True)
-        self.decoderB = DecoderBlock(blockB[1], blockA[1], blockB[0], device = device, dropout = dropout, specnorm = True)
-        self.decoderA = DecoderBlock(blockA[1], dim, blockA[0], device = device, dropout = dropout, specnorm = True)
-        self.postNet = nn.utils.parametrizations.spectral_norm(nn.Linear(dim, 1, device = device))
-        self.device = device
-        self.learningRate = learningRate
-        self.dim = dim
-        self.blockAHParams = blockA
-        self.blockBHParams = blockB
-        self.blockCHParams = blockC
-        self.regularization = regularization
-        self.outputWeight = outputWeight
-        self.epoch = 0
-        self.sampleCount = 0
-    def forward(self, input:torch.Tensor, level:int, embedding:torch.Tensor) -> torch.Tensor:
-        latent = torch.cat((input, embedding.unsqueeze(0).tile((input.size()[0], 1))), 1)
-        x = self.preNet(latent)
-        a, lengthA = self.encoderA(x)
-        b, lengthB = self.encoderB(a)
-        c, lengthC = self.encoderC(b)
-        y = self.decoderC(c, lengthC)
-        y = self.decoderB(y + b, lengthB)
-        y = self.decoderA(y + a, lengthA)
-        x = self.postNet(x + y)
-        return self.outputWeight * x[-1] + (1 - self.outputWeight) * torch.mean(x)
-    def resetState(self) -> None:
-        pass
-    def __new__(cls, dim:int, embedDim:int, blockA:list, blockB:list, blockC:list, outputWeight:int = 0.9, device:torch.device = None, learningRate:float=5e-5, regularization:float=1e-5, dropout:float=0.05, compile:bool = False):
-        instance = super().__new__(cls)
-        if compile:
-            instance = torch.compile(instance, dynamic = True, mode = "reduce-overhead")
-        return instance
 
 class InceptionModule1d(nn.Module):
     
@@ -433,15 +320,15 @@ class InceptionBlock(nn.Module):
         super().__init__()
         self.inception = InceptionModule1d(dim, dim, kernelSizes, dilations, poolSize, device = device)
         self.nla = nn.LeakyReLU(0.1)
-        self.norm = nn.LayerNorm(dim, device = device)
+        self.norm = nn.LayerNorm(dim, bias = False, device = device)
     
     def forward(self, input:torch.Tensor) -> torch.Tensor:
         x = torch.adjoint(input)
         x = self.inception(x)
         x = torch.adjoint(x)
         x = self.nla(x)
-        x = x + input
         x = self.norm(x)
+        x = x + input
         return x
     
 
@@ -463,9 +350,11 @@ class MainAi(nn.Module):
             nn.LeakyReLU(0.1),
             nn.LayerNorm(dim, device = device),
         )
-        self.blocks = nn.Sequential(*[InceptionBlock(dim, (3, 5, 7), (1, 1, 1), 3, device = device) for _ in range(16)])
+        self.blocks = nn.Sequential(*[InceptionBlock(dim, (3, 5, 7), (1, 1, 1), 3, device = device) for _ in range(24)])
         self.outputHead = nn.Sequential(
-            nn.Dropout(dropout),
+            nn.Unflatten(1, (dim, 1)),
+            nn.Dropout1d(dropout),
+            nn.Flatten(1, 2),
             nn.Linear(dim, input_dim, device = device),
             nn.Tanh(),
         )
@@ -475,6 +364,10 @@ class MainAi(nn.Module):
         x = self.inputHead(x)
         x = self.blocks(x)
         x = self.outputHead(x)
+        if True:
+            x = torch.cat((x[:, :, None], x.roll(1, 0)[:, :, None], x.roll(-1, 0)[:, :, None], x.roll(2, 0)[:, :, None], x.roll(-2, 0)[:, :, None]), dim = 2)
+            x = torch.median(x, 2)[0]
+            x[:, halfHarms:2 * halfHarms] *= 0.
         return 3 * x + input
     
     def resetState(self) -> None:
@@ -494,12 +387,14 @@ class MainCritic(nn.Module):
         self.epoch = 0
         self.sampleCount = 0
         self.inputHead = nn.Sequential(
+            nn.Unflatten(1, (input_dim + embedDim, 1)),
+            nn.Dropout1d(dropout),
+            nn.Flatten(1, 2),
             nn.Linear(input_dim + embedDim, dim, device = device),
-            nn.Dropout(dropout),
             nn.LeakyReLU(0.1),
             nn.LayerNorm(dim, device = device),
         )
-        self.blocks = nn.Sequential(*[InceptionBlock(dim, (3, 5, 7), (1, 1, 1), 3, device = device) for _ in range(16)])
+        self.blocks = nn.Sequential(*[InceptionBlock(dim, (3, 5, 7), (1, 1, 1), 3, device = device) for _ in range(24)])
         self.outputHead = nn.Sequential(
             nn.Linear(dim, 1, device = device),
         )

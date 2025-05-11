@@ -35,26 +35,21 @@ class AIWrapper():
 
         self.inferOnly = inferOnly
         self.hparams = {
-            "tr_lr": 0.000055,
-            "tr_reg": 0.,
-            "tr_hlc": 4,
-            "tr_hls": 256,
-            "tr_def_thrh" : 0.05,
-            "latent_dim": 256,
+            "latent_dim": 512,
             "main_blkA": [256, 192],
             "main_blkB": [256, 256],
             "main_blkC": [256, 256],
-            "main_lr": 0.0001,#try: apply modulo to phases in synthInput, sqrt of real data
-            "main_reg": 0.0,
-            "main_drp":0.25,
+            "main_lr": 0.0001,
+            "main_reg": 0., #prev. 0.00001.
+            "main_drp":0.5,
             "crt_blkA": [256, 192],
             "crt_blkB": [256, 256],
             "crt_blkC": [256, 256],
             "crt_out_wgt": 0.1,
-            "crt_lr": 0.0005,
-            "crt_reg": 0.00005,
-            "crt_drp":0.,
-            "gan_guide_wgt": 0.08,
+            "crt_lr": 0.0001,
+            "crt_reg": 0., #prev. 0.00001,
+            "crt_drp":0.1,
+            "gan_guide_wgt": 0.2,
             "gan_train_asym": 1,
             "fargan_interval": 50,
             "embeddingDim": 8,
@@ -81,8 +76,8 @@ class AIWrapper():
                                         torch.optim.AdamW([*self.mainCritic.encoderA.parameters(), *self.mainCritic.decoderA.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization),
                                         torch.optim.AdamW([*self.mainCritic.encoderB.parameters(), *self.mainCritic.decoderB.parameters()], lr=self.mainCritic.learningRate * 4, weight_decay=self.mainCritic.regularization),
                                         torch.optim.AdamW([*self.mainCritic.encoderC.parameters(), *self.mainCritic.decoderC.parameters()], lr=self.mainCritic.learningRate * 16, weight_decay=self.mainCritic.regularization)]"""
-            self.mainAiOptimizer = torch.optim.NAdam([*self.mainAi.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
-            self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+            self.mainAiOptimizer = torch.optim.NAdam([*self.mainAi.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization, betas = (0.96, 0.999))
+            self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, betas = (0.96, 0.999))
             self.criterion = nn.MSELoss()
             self.guideCriterion = GuideRelLoss(device = self.device)
         self.deskewingPremul = torch.full((global_consts.frameSize,), 0.01, device = self.device)
@@ -109,22 +104,16 @@ class AIWrapper():
             Dictionary containing the NN's epoch attribute (epoch), weights (state dict), optimizer state (optimizer state dict) and sample count attribute (sampleCount)"""
             
         if self.final:
-            aiState = {'trAi_epoch': self.trAi.epoch,
-                'trAi_model_state_dict': self.trAi.state_dict(),
-                'trAi_sampleCount': self.trAi.sampleCount,
+            aiState = {
                 'mainAi_epoch': self.mainAi.epoch,
                 'mainAi_model_state_dict': self.mainAi.state_dict(),
                 'mainAi_sampleCount': self.mainAi.sampleCount,
                 'mainAI_embedding': self.mainEmbedding,
                 'deskew_premul': self.deskewingPremul,
-                'defective_tr_bins': self.defectiveTrBins,
                 'final': True
             }
         else:
-            aiState = {'trAi_epoch': self.trAi.epoch,
-                'trAi_model_state_dict': self.trAi.state_dict(),
-                'trAi_optimizer_state_dict': self.trAiOptimizer.state_dict(),
-                'trAi_sampleCount': self.trAi.sampleCount,
+            aiState = {
                 'mainAi_epoch': self.mainAi.epoch,
                 'mainAi_model_state_dict': self.mainAi.state_dict(),
                 'mainCritic_model_state_dict': self.mainCritic.state_dict(),
@@ -133,7 +122,6 @@ class AIWrapper():
                 'mainAi_sampleCount': self.mainAi.sampleCount,
                 'mainAI_embedding': self.mainEmbedding,
                 'deskew_premul': self.deskewingPremul,
-                'defective_tr_bins': self.defectiveTrBins,
                 'final': False
             }
         return aiState
@@ -148,35 +136,23 @@ class AIWrapper():
             
             reset: indicates whether the NNs and their optimizers should be reset before applying changed weights to them. Must be True when the dictionary contains weights
             for a NN using different hyperparameters than the currently active one."""
-        if (mode == None) or (mode == "tr"):
-            if reset:
-                self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
-                if not aiState["final"] and not self.inferOnly:
-                    self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
-            self.trAi.epoch = aiState['trAi_epoch']
-            self.trAi.sampleCount = aiState["trAi_sampleCount"]
-            self.trAi.load_state_dict(aiState['trAi_model_state_dict'])
+        if reset:
+            self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
             if not aiState["final"] and not self.inferOnly:
-                self.trAiOptimizer.load_state_dict(aiState['trAi_optimizer_state_dict'])
-            self.defectiveTrBins = aiState["defective_tr_bins"]
-        if (mode == None) or (mode == "main"):
-            if reset:
-                self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
-                if not aiState["final"] and not self.inferOnly:
-                    self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
-                    self.mainAiOptimizer = torch.optim.NAdam([*self.mainAi.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
-                    self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
-            self.mainAi.epoch = aiState["mainAi_epoch"]
-            self.mainAi.sampleCount = aiState["mainAi_sampleCount"]
-            self.mainAi.load_state_dict(aiState['mainAi_model_state_dict'])
-            self.mainEmbedding = aiState["mainAI_embedding"]
-            for i in self.mainEmbedding.keys():
-                self.mainEmbedding[i] = self.mainEmbedding[i].to(self.device)
-            self.deskewingPremul = aiState["deskew_premul"]
-            if not aiState["final"] and not self.inferOnly:
-                self.mainCritic.load_state_dict(aiState['mainCritic_model_state_dict'])
-                #self.mainAiOptimizer.load_state_dict(aiState['mainAi_optimizer_state_dict'])
-                #self.mainCriticOptimizer.load_state_dict(aiState['mainCritic_optimizer_state_dict'])
+                self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
+                self.mainAiOptimizer = torch.optim.NAdam([*self.mainAi.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization, betas = (0.96, 0.999))
+                self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, betas = (0.96, 0.999))
+        self.mainAi.epoch = aiState["mainAi_epoch"]
+        self.mainAi.sampleCount = aiState["mainAi_sampleCount"]
+        self.mainAi.load_state_dict(aiState['mainAi_model_state_dict'])
+        self.mainEmbedding = aiState["mainAI_embedding"]
+        for i in self.mainEmbedding.keys():
+            self.mainEmbedding[i] = self.mainEmbedding[i].to(self.device)
+        self.deskewingPremul = aiState["deskew_premul"]
+        if not aiState["final"] and not self.inferOnly:
+            self.mainCritic.load_state_dict(aiState['mainCritic_model_state_dict'])
+            #self.mainAiOptimizer.load_state_dict(aiState['mainAi_optimizer_state_dict'])
+            #self.mainCriticOptimizer.load_state_dict(aiState['mainCritic_optimizer_state_dict'])
         self.trAi.eval()
         self.mainAi.eval()
 
@@ -196,50 +172,14 @@ class AIWrapper():
             tuple of two Tensor objects, containing the interpolated audio spectrum without and with the main Ai applied to it, respectively."""
 
         
-        self.trAi.eval()
-        self.trAi.requires_grad_(False)
         factor = math.log(0.5, slopeFactor / outputSize)
         factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.device), factor)
-        #specharm1 /= self.deskewingPremul
-        #specharm2 /= self.deskewingPremul
-        #specharm3 /= self.deskewingPremul
-        #specharm4 /= self.deskewingPremul
         specharm1 = torch.clone(specharm1) / self.deskewingPremul
         specharm2 = torch.clone(specharm2) / self.deskewingPremul
         specharm3 = torch.clone(specharm3) / self.deskewingPremul
         specharm4 = torch.clone(specharm4) / self.deskewingPremul
-        """specharm1[:global_consts.halfHarms] = torch.max(specharm1[:global_consts.halfHarms], torch.zeros_like(specharm1[:global_consts.halfHarms]))
-        specharm2[:global_consts.halfHarms] = torch.max(specharm2[:global_consts.halfHarms], torch.zeros_like(specharm2[:global_consts.halfHarms]))
-        specharm3[:global_consts.halfHarms] = torch.max(specharm3[:global_consts.halfHarms], torch.zeros_like(specharm3[:global_consts.halfHarms]))
-        specharm4[:global_consts.halfHarms] = torch.max(specharm4[:global_consts.halfHarms], torch.zeros_like(specharm4[:global_consts.halfHarms]))
-        specharm1[:global_consts.halfHarms] = torch.log(specharm1[:global_consts.halfHarms] + 0.001)
-        specharm2[:global_consts.halfHarms] = torch.log(specharm2[:global_consts.halfHarms] + 0.001)
-        specharm3[:global_consts.halfHarms] = torch.log(specharm3[:global_consts.halfHarms] + 0.001)
-        specharm4[:global_consts.halfHarms] = torch.log(specharm4[:global_consts.halfHarms] + 0.001)
-        specharm1[global_consts.nHarmonics + 2:] = torch.max(specharm1[global_consts.nHarmonics + 2:], torch.zeros_like(specharm1[global_consts.nHarmonics + 2:]))
-        specharm2[global_consts.nHarmonics + 2:] = torch.max(specharm2[global_consts.nHarmonics + 2:], torch.zeros_like(specharm2[global_consts.nHarmonics + 2:]))
-        specharm3[global_consts.nHarmonics + 2:] = torch.max(specharm3[global_consts.nHarmonics + 2:], torch.zeros_like(specharm3[global_consts.nHarmonics + 2:]))
-        specharm4[global_consts.nHarmonics + 2:] = torch.max(specharm4[global_consts.nHarmonics + 2:], torch.zeros_like(specharm4[global_consts.nHarmonics + 2:]))
-        specharm1[global_consts.nHarmonics + 2:] = torch.log(specharm1[global_consts.nHarmonics + 2:] + 0.001)
-        specharm2[global_consts.nHarmonics + 2:] = torch.log(specharm2[global_consts.nHarmonics + 2:] + 0.001)
-        specharm3[global_consts.nHarmonics + 2:] = torch.log(specharm3[global_consts.nHarmonics + 2:] + 0.001)
-        specharm4[global_consts.nHarmonics + 2:] = torch.log(specharm4[global_consts.nHarmonics + 2:] + 0.001)"""
-        
         specharm = torch.squeeze(self.trAi(specharm1, specharm2, specharm3, specharm4, dec2bin(embedding1.to(self.device), 32), dec2bin(embedding2.to(self.device), 32), factor)).to(self.device)
-        """specharm[:, :global_consts.halfHarms] = torch.max(torch.exp(specharm[:, :global_consts.halfHarms]) - 0.001, torch.zeros_like(specharm[:, :global_consts.halfHarms]))
-        specharm[:, global_consts.nHarmonics + 2:] = torch.max(torch.exp(specharm[:, global_consts.nHarmonics + 2:]) - 0.001, torch.zeros_like(specharm[:, global_consts.nHarmonics + 2:]))"""
         specharm *= self.deskewingPremul
-        #specharm *= self.deskewingPremul
-        #for i in self.defectiveTrBins:
-        #    specharm[:, i] = torch.mean(torch.cat((specharm[:, i - 1].unsqueeze(1), specharm[:, i + 1].unsqueeze(1)), 1), 1)
-        #borderRange = torch.zeros((outputSize,), device = self.device)
-        #borderLimit = min(global_consts.crfBorderAbs, math.ceil(outputSize * global_consts.crfBorderRel))
-        #borderRange[:borderLimit] = torch.linspace(1, 0, borderLimit, device = self.device)
-        #specharm *= (1. - borderRange.unsqueeze(1))
-        #specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm1 + specharm2) / 2).unsqueeze(0))
-        #borderRange = torch.flip(borderRange, (0,))
-        #specharm *= (1. - borderRange.unsqueeze(1))
-        #specharm += torch.matmul(borderRange.unsqueeze(1), ((specharm3 + specharm4) / 2).unsqueeze(0))
         if expression1 == expression2:
             expression = expression1
         else:
@@ -280,121 +220,6 @@ class AIWrapper():
 
     def finalize(self):
         self.final = True
-
-    def trainTr(self, indata, epochs:int=1, logging:bool = False, reset:bool = False) -> None:
-        """NN training with forward and backward passes, loss criterion and optimizer runs based on a dataset of spectral transition samples.
-        
-        Arguments:
-            indata: Tensor, List or other Iterable containing sets of specharm data. Each element should represent a phoneme transition.
-            
-            epochs: number of epochs to use for training as Integer.
-
-            logging: Flag indicating whether to write telemetry to a .csv log
-
-            reset: Flag indicating whether the Ai should be reset before training
-            
-        Returns:
-            None"""
-        
-        if self.inferOnly:
-            raise Exception("Cannot start training since wrapper was initialized in inference-only mode")
-        if reset:
-            self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
-            self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
-        self.trAi.train()
-        if logging:
-            csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_tr.csv"), 'w', newline='')
-            fieldnames = ["epochs", "learning rate", "hidden layer count", "loss", "acc. sample count", "wtd. train loss"]
-            writer = DictWriter(csvFile, fieldnames)
-        else:
-            writer = None
-        if (self.trAi.epoch == 0) or self.trAi.epoch == epochs:
-            self.trAi.epoch = epochs
-        else:
-            self.trAi.epoch = None
-        reportedLoss = 0.
-        
-        self.deskewingPremul = torch.full((global_consts.frameSize,), 0.01, device = self.device)
-        for key in self.voicebank.phonemeDict.keys():
-            for phoneme in self.voicebank.phonemeDict[key]:
-                if torch.isnan(phoneme.avgSpecharm).any() or torch.isnan(phoneme.specharm).any():
-                    continue
-                self.deskewingPremul = torch.max(self.deskewingPremul, torch.cat((phoneme.avgSpecharm.to(self.device)[:global_consts.halfHarms], torch.ones([global_consts.halfHarms,]).to(self.device), phoneme.avgSpecharm.to(self.device)[global_consts.halfHarms:]), 0))
-        
-        loader = self.dataLoader(indata)
-        for epoch in tqdm(range(epochs), desc = "training", position = 0, unit = "epochs"):
-            for data in tqdm(loader, desc = "epoch " + str(epoch), position = 1, total = len(indata), unit = "samples"):
-                avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-                embedding1 = dec2bin(data.embedding[0].to(self.device), 32)
-                embedding2 = dec2bin(data.embedding[1].to(self.device), 32)
-                data = (avgSpecharm + data.specharm).to(device = self.device)
-                data = torch.squeeze(data)
-                data /= self.deskewingPremul
-                data[:global_consts.halfHarms] = torch.max(data[:global_consts.halfHarms], torch.zeros_like(data[:global_consts.halfHarms]))
-                data[global_consts.nHarmonics + 2:] = torch.max(data[global_consts.nHarmonics + 2:], torch.zeros_like(data[global_consts.nHarmonics + 2:]))
-                data[:global_consts.halfHarms] = torch.log(data[:global_consts.halfHarms] + 0.001)
-                data[global_consts.nHarmonics + 2:] = torch.log(data[global_consts.nHarmonics + 2:] + 0.001)
-                if torch.isnan(data).any():
-                    print("nan in data")
-                    continue
-                specharm1 = data[0, :]
-                specharm2 = data[1, :]
-                specharm3 = data[-2, :]
-                specharm4 = data[-1, :]
-                outputSize = data.size()[0] - 2
-                if outputSize < 2:
-                    print("output size too small")
-                    continue
-                factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.trAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor)
-                target = data[1:-1, :]
-                outputNoPhase = torch.cat((output[:, :halfHarms], output[:, global_consts.nHarmonics + 2:]), 1)
-                targetNoPhase = torch.cat((target[:, :halfHarms], target[:, global_consts.nHarmonics + 2:]), 1)
-                loss = self.criterion(outputNoPhase, targetNoPhase)
-                self.trAiOptimizer.zero_grad()
-                loss.backward()
-                self.trAiOptimizer.step()
-            tqdm.write('epoch [{}/{}], loss:{:.4f}'.format(epoch + 1, epochs, loss))
-            self.trAiOptimizer.lr = self.trAi.learningRate * math.sqrt(1 - epoch / epochs)
-            self.trAi.sampleCount += len(indata)
-            reportedLoss = (reportedLoss * 99 + loss.data) / 100
-            if writer != None:
-                results = {
-                    "epochs": epoch,
-                    "learning rate": self.trAi.learningRate,
-                    "hidden layer count": self.trAi.hiddenLayerCount,
-                    "loss": loss.data,
-                    "acc. sample count": self.trAi.sampleCount,
-                    "wtd. train loss": reportedLoss
-                }
-                writer.writerow(results)
-        if writer != None:
-            csvFile.close()
-        criterion = torch.zeros((global_consts.frameSize,), device = self.device)
-        criterionSteps = 0
-        with torch.no_grad():
-            for data in tqdm(loader, desc = "checking for defective frequency bins...", position = 1, total = len(indata), unit = "samples"):
-                avgSpecharm = torch.cat((data.avgSpecharm[:int(global_consts.nHarmonics / 2) + 1], torch.zeros([int(global_consts.nHarmonics / 2) + 1]), data.avgSpecharm[int(global_consts.nHarmonics / 2) + 1:]), 0)
-                embedding1 = dec2bin(data.embedding[0].clone().to(self.device), 32)
-                embedding2 = dec2bin(data.embedding[1].clone().to(self.device), 32)
-                data = (avgSpecharm + data.specharm).to(device = self.device)
-                data = torch.squeeze(data)
-                specharm1 = data[0, :]
-                specharm2 = data[1, :]
-                specharm3 = data[-2, :]
-                specharm4 = data[-1, :]
-                outputSize = data.size()[0] - 2
-                factor = torch.linspace(0, 1, outputSize, device = self.device)
-                output = self.trAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor)
-                criterionA = torch.cat((torch.ones((outputSize, 1), device = self.device), output[:, 1:] / output[:, :-1]), 1)
-                criterionB = torch.cat((output[:, :-1] / output[:, 1:], torch.ones((outputSize, 1), device = self.device)), 1)
-                criterion += torch.mean(criterionA + criterionB, dim = 0)
-                criterionSteps += 1
-            criterion /= criterionSteps
-            criterion[global_consts.halfHarms:global_consts.nHarmonics + 2] = torch.ones_like(criterion[global_consts.halfHarms:global_consts.nHarmonics + 2])
-            criterion = torch.less(criterion, torch.tensor([self.hparams["tr_def_thrh"],], device = self.device))
-        self.defectiveTrBins = criterion.to_sparse().coalesce().indices()
-        print("defective Tr. frequency bins:", self.defectiveTrBins)
     
     def trainMain(self, indata, epochs:int=1, logging:bool = False, reset:bool = False, generatorMode:str = "reclist") -> None:
         """trains the NN based on a dataset of specharm sequences"""
@@ -414,8 +239,8 @@ class AIWrapper():
                                         torch.optim.AdamW([*self.mainCritic.encoderA.parameters(), *self.mainCritic.decoderA.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization),
                                         torch.optim.AdamW([*self.mainCritic.encoderB.parameters(), *self.mainCritic.decoderB.parameters()], lr=self.mainCritic.learningRate * 4, weight_decay=self.mainCritic.regularization),
                                         torch.optim.AdamW([*self.mainCritic.encoderC.parameters(), *self.mainCritic.decoderC.parameters()], lr=self.mainCritic.learningRate * 16, weight_decay=self.mainCritic.regularization)]"""
-            self.mainAiOptimizer = torch.optim.NAdam([*self.mainAi.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization)
-            self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization)
+            self.mainAiOptimizer = torch.optim.NAdam([*self.mainAi.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization, betas = (0.96, 0.999))
+            self.mainCriticOptimizer = torch.optim.NAdam([*self.mainCritic.parameters()], lr=self.mainCritic.learningRate, weight_decay=self.mainCritic.regularization, betas = (0.96, 0.999))
         else:
             if self.mainGenerator.mode != generatorMode:
                 self.mainGenerator.mode = generatorMode
@@ -426,7 +251,7 @@ class AIWrapper():
         self.mainCritic.requires_grad_(True)
         if logging:
             csvFile = open(path.join(getenv("APPDATA"), "Nova-Vox", "Logs", "AI_train_main.csv"), 'w', newline='')
-            fieldnames = ["pos.", "neg.", "disc.", "gen.", "encA", "encB", "encC", "decA", "decB", "decC", "baseEnc", "baseDec", "CEncA", "CEncB", "CEncC", "CDecA", "CDecB", "CDecC", "CBaseEnc", "CBaseDec", "final"]
+            fieldnames = ["pos.", "neg.", "disc.", "gen."]
             writer = DictWriter(csvFile, fieldnames)
         else:
             writer = None
@@ -456,9 +281,6 @@ class AIWrapper():
         fargan_score = math.inf
         
         phases = [(6, "train"),]
-                 #(1, "train"),(1, "train"),(1, "train"),(1, "train"),(1, "train"),(1, "train"),(1, "train"),(1, "train"),(1, "train"),(1, "train"),]
-        
-        #bceloss = nn.BCEWithLogitsLoss()
         
         for phaseIdx, phase in enumerate(phases):
             for epoch in tqdm(range(epochs), desc = "training phase " + str(phaseIdx + 1), position = 1, unit = "epochs"):
@@ -484,6 +306,7 @@ class AIWrapper():
                             expression = ""
                         embedding = torch.zeros_like(self.mainEmbedding[expression])
                         data = torch.squeeze(data)
+                        data = self.mainGenerator.augment(data)
                         data /= self.deskewingPremul
                         data[:, :global_consts.halfHarms] = torch.max(data[:, :global_consts.halfHarms], torch.zeros_like(data[:, :global_consts.halfHarms]))
                         data[:, :global_consts.halfHarms] = torch.log(data[:, :global_consts.halfHarms] + 0.001)
@@ -514,7 +337,6 @@ class AIWrapper():
                         generatorLoss = torch.square(self.mainCritic(synthInput, phase[0], embedding))
                         guideLoss = self.hparams["gan_guide_wgt"] * self.guideCriterion(synthInput, synthBase)
                         (generatorLoss + guideLoss).backward()
-                        #generatorLoss.backward()
                         self.mainAiOptimizer.step()
                     
                     self.mainCritic.zero_grad()
@@ -539,24 +361,7 @@ class AIWrapper():
                             "pos.": posDiscriminatorLoss.data.item(),
                             "neg.": negDiscriminatorLoss.data.item(),
                             "disc.": discriminatorLoss.data.item(), 
-                            "gen.": generatorLoss.data.item(),
-                            "encA": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderA.modules() if isinstance(i, nn.Linear)]) if phase[0] > 0 else 0.,
-                            "encB": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderB.modules() if isinstance(i, nn.Linear)]) if phase[0] > 1 else 0.,
-                            "encC": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.encoderC.modules() if isinstance(i, nn.Linear)]) if phase[0] > 2 else 0.,
-                            "decA": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderA.modules() if isinstance(i, nn.Linear)]) if phase[0] > 3 else 0.,
-                            "decB": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderB.modules() if isinstance(i, nn.Linear)]) if phase[0] > 4 else 0.,
-                            "decC": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.decoderC.modules() if isinstance(i, nn.Linear)]) if phase[0] > 5 else 0.,
-                            "baseEnc": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.preNet.modules() if isinstance(i, nn.Linear)]),
-                            "baseDec": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainAi.postNet.modules() if isinstance(i, nn.Linear)]),
-                            "CEncA": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[0].modules() if isinstance(i, nn.Linear)]) if phase[0] > 0 else 0.,
-                            "CEncB": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[1].modules() if isinstance(i, nn.Linear)]) if phase[0] > 1 else 0.,
-                            "CEncC": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[2].modules() if isinstance(i, nn.Linear)]) if phase[0] > 2 else 0.,
-                            "CDecA": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[3].modules() if isinstance(i, nn.Linear)]) if phase[0] > 3 else 0.,
-                            "CDecB": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[4].modules() if isinstance(i, nn.Linear)]) if phase[0] > 4 else 0.,
-                            "CDecC": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.mainNet[5].modules() if isinstance(i, nn.Linear)]) if phase[0] > 5 else 0.,
-                            "CBaseEnc": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.preNet.modules() if isinstance(i, nn.Linear)]),
-                            "CBaseDec": 0.,#mean([torch.mean(torch.abs(i.weight.grad)).item() for i in self.mainCritic.postNet.modules() if isinstance(i, nn.Linear)]),
-                            "final": 0.,#torch.mean(torch.abs(self.mainCritic.final.parametrizations.weight.original.grad)).item()
+                            "gen.": generatorLoss.data.item()
                         }
                         writer.writerow(results)
                     

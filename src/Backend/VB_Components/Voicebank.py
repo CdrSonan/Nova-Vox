@@ -107,7 +107,6 @@ class Voicebank():
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
-            self.loadTrWeights(self.filepath)
             self.loadMainWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
@@ -156,16 +155,6 @@ class Voicebank():
                     self.phonemeDict[i] = data[i]
         else:
             self.phonemeDict = data
-    
-    def loadTrWeights(self, filepath:str) -> None:
-        """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
-
-        with h5py.File(filepath, "r") as f:
-            #hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
-            #self.ai.hparams = hparamStorage.toDict()
-            aiStorage = DictStorage(f, ["aiState",], self.ai.device)
-            aiState = aiStorage.toDict()
-        self.ai.loadState(aiState, "tr", True)
 
     def loadMainWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""
@@ -266,30 +255,6 @@ class Voicebank():
         for i in range(len(self.phonemeDict[key])):
             self.phonemeDict[key][i] = LiteAudioSample(self.phonemeDict[key][i])
         print("staged phoneme " + key + " finalized")
-    
-    def addTrTrainSample(self, filepath:str) -> None:
-        """stages an audio sample the phoneme crossfade Ai is to be trained with"""
-
-        self.stagedTrTrainSamples.append(AISample(filepath, True))
-
-    def addTrTrainSampleUtau(self, sample:UtauSample) -> None:
-        """stages an audio sample the phoneme crossfade Ai is to be trained with"""
-
-        if (sample.end - sample.start) * global_consts.sampleRate / 1000 > 3 * global_consts.tripleBatchSize:
-            self.stagedTrTrainSamples.append(sample.convert(True))
-        else:
-            logging.warning("skipped one or several samples below the size threshold")
-    
-    def delTrTrainSample(self, index:int) -> None:
-        """removes an audio sample from the list of staged training phonemes"""
-
-        self.stagedTrTrainSamples.delete(index)
-    
-    def changeTrTrainSampleFile(self, index:int, filepath:str) -> None:
-        """currently unused method that changes the file of a staged phoneme crossfade Ai training sample"""
-
-        self.delTrTrainSample(index)
-        self.addTrTrainSample(filepath)
 
     def addMainTrainSample(self, filepath:str) -> None:
         """stages an audio sample the prediction Ai is to be trained with"""
@@ -314,64 +279,6 @@ class Voicebank():
 
         self.delMainTrainSample(index)
         self.addMainTrainSample(filepath)
-    
-    def trainTrAi(self, epochs:int, additive:bool, logging:bool = False) -> None:
-        """initiates the training of the Voicebank's phoneme crossfade Ai using all staged training samples and the Ai's settings.
-        
-        Arguments:
-            epochs: Integer, the number of epochs the training is to be conducted with
-            
-            additive: Bool, whether the training should be conducted in addition to any existing training (True), or replaye it (False)
-            
-            logging: flag indicationg whether to write telemetry data to a .csv log"""
-            
-
-        print("sample preprocessing started")
-        sampleCount = len(self.stagedTrTrainSamples)
-        trTrainSamples = LiteSampleCollection(isTransition = True)
-        
-        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            sample = self.stagedTrTrainSamples[i].convert(False)
-            sample.expectedPitch = 0.
-            try:
-                calculatePitch(sample)
-                calculateSpectra(sample, False, True)
-                
-                #sample random sections of the sample
-                #for _ in range(20):
-                #    sectionLength = random.randint(10, 100)
-                #    start = random.randint(0, sample.specharm.size()[0] - sectionLength)
-                #    sectionSample = LiteAudioSample(sample)
-                #    sectionSample.specharm = sample.specharm[start:start + sectionLength]
-                #    sectionSample.pitchDeltas = sample.pitchDeltas[start:start + sectionLength]
-                #    sectionSample.embedding = [sectionSample.embedding, sectionSample.embedding]
-                #    trTrainSamples.append(sectionSample)
-                
-                trTrainSamples.append(sample)
-            except Exception as e:
-                print(e)
-        self.stagedTrTrainSamples.__init__(None, True)
-        
-        """inputQueue, outputQueue, processes = asyncProcess(False, True)
-        expectedSamples = 0
-        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            sample = self.stagedTrTrainSamples[i].convert(False)
-            inputQueue.put(sample)
-            expectedSamples += 1
-        self.stagedTrTrainSamples.__init__(None, True)
-        for _ in tqdm(range(int(expectedSamples * 0.99)), desc = "processing", unit = "samples"):
-            sample = outputQueue.get()
-            if sample is not None:
-                trTrainSamples.append(sample)
-        for _ in processes:
-            inputQueue.put(None)
-        for process in processes:
-            process.join()"""
-        
-        print("sample preprocessing complete")
-        print("AI training started")
-        self.ai.trainTr(trTrainSamples, epochs = epochs, logging = logging, reset = not additive)
-        print("AI training complete")
 
     def trainMainAi(self, epochs:int, additive:bool, generatorMode:str = "reclist", logging:bool = False) -> None:
         """initiates the training of the Voicebank's prediction Ai using all staged training samples and the Ai's settings.
@@ -387,21 +294,6 @@ class Voicebank():
         print("sample preprocessing started")
         sampleCount = len(self.stagedMainTrainSamples)
         mainTrainSamples = LiteSampleCollection()
-        
-        """inputQueue, outputQueue, processes = asyncProcess(False, True)
-        expectedSamples = 0
-        for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
-            samples = self.stagedMainTrainSamples[i].convert(True)
-            for sample in samples:
-                inputQueue.put(sample)
-                expectedSamples += 1
-        self.stagedMainTrainSamples.__init__()
-        for _ in tqdm(range(expectedSamples), desc = "processing", unit = "samples"):
-            mainTrainSamples.append(outputQueue.get())
-        for _ in processes:
-            inputQueue.put(None)
-        for process in processes:
-            process.join()"""
         
         for i in tqdm(range(sampleCount), desc = "preprocessing", unit = "samples"):
             samples = self.stagedMainTrainSamples[i].convert(True)
@@ -480,7 +372,6 @@ class LiteVoicebank():
         if filepath != None:
             self.loadMetadata(self.filepath)
             self.loadPhonemeDict(self.filepath, False)
-            self.loadTrWeights(self.filepath,)
             self.loadMainWeights(self.filepath)
             self.loadParameters(self.filepath, False)
             self.loadWordDict(self.filepath, False)
@@ -513,16 +404,6 @@ class LiteVoicebank():
                     self.phonemeDict[i] = data[i]
         else:
             self.phonemeDict = data
-    
-    def loadTrWeights(self, filepath:str) -> None:
-        """loads the Ai state saved in a Voicebank file into the loadedVoicebank's phoneme crossfade Ai"""
-
-        with h5py.File(filepath, "r") as f:
-            #hparamStorage = DictStorage(f, ["hparams",], self.ai.device)
-            #self.ai.hparams = hparamStorage.toDict()
-            aiStorage = DictStorage(f, ["aiState",], self.ai.device)
-            aiState = aiStorage.toDict()
-        self.ai.loadState(aiState, "tr", True)
 
     def loadMainWeights(self, filepath:str) -> None:
         """loads the Ai state saved in a Voicebank file into the loadedVoicebank's prediction Ai"""

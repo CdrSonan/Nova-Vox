@@ -75,12 +75,6 @@ class RootUi(Frame):
         self.phonemedictButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.phonemedictButton["state"] = "disabled"
         
-        self.crfaiButton = Button(self)
-        self.crfaiButton["text"] = loc["crfai_btn"]
-        self.crfaiButton["command"] = self.onCrfaiPress
-        self.crfaiButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
-        self.crfaiButton["state"] = "disabled"
-        
         self.predaiButton = Button(self)
         self.predaiButton["text"] = loc["predai_btn"]
         self.predaiButton["command"] = self.onPredaiPress
@@ -98,12 +92,6 @@ class RootUi(Frame):
         self.utauimportButton["command"] = self.onUtauimportPress
         self.utauimportButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
         self.utauimportButton["state"] = "disabled"
-
-        self.advSettingsButton = Button(self)
-        self.advSettingsButton["text"] = loc["advsettings"]
-        self.advSettingsButton["command"] = self.onAdvSettingsPress
-        self.advSettingsButton.pack(side = "top", fill = "x", padx = 10, pady = 5)
-        self.advSettingsButton["state"] = "disabled"
         
         self.saveButton = Button(self)
         self.saveButton["text"] = loc["save_as"]
@@ -137,13 +125,6 @@ class RootUi(Frame):
         self.phonemedictUi = PhonemedictUi(tkinter.Toplevel())
         self.phonemedictUi.mainloop()
     
-    def onCrfaiPress(self) -> None:
-        """opens Phoneme Crossfade AI UI window when Phoneme Crossfade AI button in the main window is pressed"""
-
-        logging.info("Crfai button callback")
-        self.crfaiUi = CrfaiUi(tkinter.Toplevel())
-        self.crfaiUi.mainloop()
-    
     def onPredaiPress(self) -> None:
         """opens Spectral Prediction AI UI window when Spectral Prediction AI button in the main window is pressed"""
         
@@ -162,13 +143,6 @@ class RootUi(Frame):
         logging.info("UTAU import button callback")
         self.utauImportUi = UtauImportUi(tkinter.Toplevel())
         self.utauImportUi.mainloop()
-
-    def onAdvSettingsPress(self) -> None:
-        """opens the UTAU import tool when the UTAU import tool button in the main window is pressed"""
-
-        logging.info("UTAU import button callback")
-        self.advSettingsUi = AdvSettingsUi(tkinter.Toplevel())
-        self.advSettingsUi.mainloop()
 
     def onDestroy(self, event) -> None:
         logging.info("Root UI destroyed")
@@ -198,11 +172,9 @@ class RootUi(Frame):
         loadedVBPath = title
         self.metadataButton["state"] = "normal"
         self.phonemedictButton["state"] = "normal"
-        self.crfaiButton["state"] = "normal"
         self.predaiButton["state"] = "normal"
         self.worddictButton["state"] = "normal"
         self.utauimportButton["state"] = "normal"
-        self.advSettingsButton["state"] = "normal"
         self.saveButton["state"] = "normal"
         self.master.wm_title(title)
         

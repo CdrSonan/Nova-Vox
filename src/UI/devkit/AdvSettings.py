@@ -39,61 +39,6 @@ class AdvSettingsUi(Frame):
         global loadedVB
 
         self.hparams = LabelFrame(self, text = loc["hparams"])
-
-        self.hparams.tr_lr = Frame(self.hparams)
-        self.hparams.tr_lr.variable = tkinter.DoubleVar(self.hparams.tr_lr)
-        self.hparams.tr_lr.variable.set(loadedVB.ai.hparams["tr_lr"])
-        self.hparams.tr_lr.entry = Entry(self.hparams.tr_lr)
-        self.hparams.tr_lr.entry["textvariable"] = self.hparams.tr_lr.variable
-        self.hparams.tr_lr.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.tr_lr.display = Label(self.hparams.tr_lr)
-        self.hparams.tr_lr.display["text"] = loc["tr_lr"]
-        self.hparams.tr_lr.display.pack(side = "right", fill = "x")
-        self.hparams.tr_lr.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.hparams.tr_reg = Frame(self.hparams)
-        self.hparams.tr_reg.variable = tkinter.DoubleVar(self.hparams.tr_reg)
-        self.hparams.tr_reg.variable.set(loadedVB.ai.hparams["tr_reg"])
-        self.hparams.tr_reg.entry = Entry(self.hparams.tr_reg)
-        self.hparams.tr_reg.entry["textvariable"] = self.hparams.tr_reg.variable
-        self.hparams.tr_reg.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.tr_reg.display = Label(self.hparams.tr_reg)
-        self.hparams.tr_reg.display["text"] = loc["tr_reg"]
-        self.hparams.tr_reg.display.pack(side = "right", fill = "x")
-        self.hparams.tr_reg.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.hparams.tr_hlc = Frame(self.hparams)
-        self.hparams.tr_hlc.variable = tkinter.IntVar(self.hparams.tr_hlc)
-        self.hparams.tr_hlc.variable.set(loadedVB.ai.hparams["tr_hlc"])
-        self.hparams.tr_hlc.entry = Spinbox(self.hparams.tr_hlc, from_ = 0, to = 128)
-        self.hparams.tr_hlc.entry["textvariable"] = self.hparams.tr_hlc.variable
-        self.hparams.tr_hlc.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.tr_hlc.display = Label(self.hparams.tr_hlc)
-        self.hparams.tr_hlc.display["text"] = loc["tr_hlc"]
-        self.hparams.tr_hlc.display.pack(side = "right", fill = "x")
-        self.hparams.tr_hlc.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.hparams.tr_hls = Frame(self.hparams)
-        self.hparams.tr_hls.variable = tkinter.IntVar(self.hparams.tr_hls)
-        self.hparams.tr_hls.variable.set(loadedVB.ai.hparams["tr_hls"])
-        self.hparams.tr_hls.entry = Spinbox(self.hparams.tr_hls, from_ = 16, to = 4096)
-        self.hparams.tr_hls.entry["textvariable"] = self.hparams.tr_hls.variable
-        self.hparams.tr_hls.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.tr_hls.display = Label(self.hparams.tr_hls)
-        self.hparams.tr_hls.display["text"] = loc["tr_hls"]
-        self.hparams.tr_hls.display.pack(side = "right", fill = "x")
-        self.hparams.tr_hls.pack(side = "top", fill = "x", padx = 5, pady = 2)
-
-        self.hparams.tr_def_thrh = Frame(self.hparams)
-        self.hparams.tr_def_thrh.variable = tkinter.DoubleVar(self.hparams.tr_def_thrh)
-        self.hparams.tr_def_thrh.variable.set(loadedVB.ai.hparams["tr_def_thrh"])
-        self.hparams.tr_def_thrh.entry = Entry(self.hparams.tr_def_thrh)
-        self.hparams.tr_def_thrh.entry["textvariable"] = self.hparams.tr_def_thrh.variable
-        self.hparams.tr_def_thrh.entry.pack(side = "right", fill = "x", expand = True)
-        self.hparams.tr_def_thrh.display = Label(self.hparams.tr_def_thrh)
-        self.hparams.tr_def_thrh.display["text"] = loc["tr_def_thrh"]
-        self.hparams.tr_def_thrh.display.pack(side = "right", fill = "x")
-        self.hparams.tr_def_thrh.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.hparams.latent_dim = Frame(self.hparams)
         self.hparams.latent_dim.variable = tkinter.IntVar(self.hparams.latent_dim)

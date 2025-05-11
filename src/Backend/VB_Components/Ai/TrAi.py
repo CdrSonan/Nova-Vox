@@ -61,22 +61,6 @@ class TrAi(nn.Module):
             
             
         super(TrAi, self).__init__()
-        self.stateGenerator = nn.Sequential(
-            nn.Linear(4 * global_consts.reducedFrameSize + 64, 4 * global_consts.reducedFrameSize + 64, device = device),
-            nn.Tanh(),
-            nn.Linear(4 * global_consts.reducedFrameSize + 64, 2 * hiddenLayerCount * hiddenLayerSize, device = device),
-            nn.Tanh(),
-        )
-        self.hiddenLayers = nn.RNN(input_size = global_consts.reducedFrameSize, hidden_size = hiddenLayerSize, num_layers = hiddenLayerCount, bidirectional = True, device = device)
-        self.outputLayer = nn.Linear(2 * hiddenLayerSize, global_consts.reducedFrameSize, device = device)
-
-        self.device = device
-        self.learningRate = learningRate
-        self.hiddenLayerCount = hiddenLayerCount
-        self.hiddenLayerSize = hiddenLayerSize
-        self.regularization = regularization
-        self.epoch = 0
-        self.sampleCount = 0
     
     def __new__(cls, device:torch.device = None, learningRate:float=5e-5, hiddenLayerCount:int = 3, hiddenLayerSize:int = 4 * (global_consts.halfTripleBatchSize + halfHarms), regularization:float=1e-5, compile:bool = False):
         instance = super().__new__(cls)
@@ -116,23 +100,13 @@ class TrAi(nn.Module):
         spectrum3 = torch.unsqueeze(spectrum3.to(self.device), 0)
         spectrum4 = torch.unsqueeze(spectrum4.to(self.device), 0)
         spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 0)
-        limit = torch.max(spectra, dim = 0)[0]
         spectrum1tile = torch.tile(spectrum1.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum2tile = torch.tile(spectrum2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum3tile = torch.tile(spectrum3.unsqueeze(0), (outputSize, 1, 1)) * factor
         spectrum4tile = torch.tile(spectrum4.unsqueeze(0), (outputSize, 1, 1)) * factor
-        x = spectrum2tile + spectrum2tile + spectrum3tile + spectrum4tile
-        
+        x = spectrum1tile + spectrum2tile + spectrum3tile + spectrum4tile
         x *= 0.5
-        
-        #state = self.stateGenerator(torch.cat((spectrum1.squeeze(), spectrum2.squeeze(), spectrum3.squeeze(), spectrum4.squeeze(), embedding1.squeeze(), embedding2.squeeze()), dim = 0))
-        #state = state.view(2 * self.hiddenLayerCount, 1, self.hiddenLayerSize)
-        #x, _ = self.hiddenLayers(x, state)
-        #x = self.outputLayer(x)
-        
-        #x = torch.minimum(x, limit)
         x = x.squeeze()
-        
         phases1 = spectrum1in[global_consts.halfHarms:global_consts.nHarmonics + 2]
         phases2 = spectrum2in[global_consts.halfHarms:global_consts.nHarmonics + 2]
         phases3 = spectrum3in[global_consts.halfHarms:global_consts.nHarmonics + 2]

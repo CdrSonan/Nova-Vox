@@ -212,21 +212,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                 return updateFromMain(connection.get_nowait())
             except:
                 return False
-
-    def pitchAdjust_legacy(spectrumInput, j, k, internalInputs, voicebank, previousShift, pitchOffset, device):
-        if internalInputs.phonemes[j] in ("_autopause", "pau"):
-            return spectrumInput, 0.
-        steadiness = torch.pow(1. - internalInputs.steadiness[k], 2)
-        targetPitch = global_consts.tripleBatchSize / (internalInputs.pitch[k] + pitchOffset * steadiness)
-        nativePitch = global_consts.tripleBatchSize / (voicebank.phonemeDict.fetch(internalInputs.phonemes[j], True)[0].pitch + pitchOffset * steadiness)
-        inputSpectrum = spectrumInput[global_consts.nHarmonics + 2:]
-        harmonics = spectrumInput[:int(global_consts.nHarmonics / 2) + 1]
-        originSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * nativePitch, int(global_consts.nHarmonics / 2) + 1, device = device), torch.tensor([global_consts.halfTripleBatchSize - 2,], device = device))
-        newHarmonics = harmonics / interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device), inputSpectrum, originSpace)
-        targetSpace = torch.min(torch.linspace(0, int(global_consts.nHarmonics / 2) * targetPitch, int(global_consts.nHarmonics / 2) + 1, device = device), torch.tensor([global_consts.halfTripleBatchSize - 2,], device = device))
-        newHarmonics *= interp(torch.linspace(0, global_consts.halfTripleBatchSize, global_consts.halfTripleBatchSize + 1, device = device), inputSpectrum, targetSpace)
-        phases = spectrumInput[int(global_consts.nHarmonics / 2) + 1:global_consts.nHarmonics + 2]
-        return torch.cat((newHarmonics, phases, inputSpectrum), 0), previousShift
     
     def pitchAdjust(specharm, j, start, end, internalInputs, voicebank, pitchOffset):
         specharm_cpy = specharm.clone().contiguous()
@@ -246,7 +231,7 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
         tgtPitch_ptr = ctypes.cast(tgtPitch.data_ptr(), ctypes.POINTER(ctypes.c_float))
         formantShift_ptr = ctypes.cast(formantShift.data_ptr(), ctypes.POINTER(ctypes.c_float))
         breathiness_ptr = ctypes.cast(breathiness.data_ptr(), ctypes.POINTER(ctypes.c_float))
-        #esper.pitchShift(specharm_ptr, srcPitch_ptr, tgtPitch_ptr, formantShift_ptr, breathiness_ptr, end - start, global_consts.config)
+        esper.pitchShift(specharm_ptr, srcPitch_ptr, tgtPitch_ptr, formantShift_ptr, breathiness_ptr, end - start, global_consts.config)
         return specharm_cpy
     
     def processNodegraph(earlyBorders, spectrum, pitch, internalInputs, j, nodeGraph, nodeInputs, nodeParams, nodeParamData, nodeOutput):
@@ -491,10 +476,8 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
                                 nextExpression = ""
                             if j == 0 or internalInputs.phonemes[j - 1] in ("pau", "_autopause"):
                                 windowStart = internalInputs.borders[3 * j]
-                                windowStartEx = internalInputs.borders[3 * j]
                             else:
                                 windowStart = internalInputs.borders[3 * j + 2]
-                                windowStartEx = internalInputs.borders[3 * j + 1]
                                 if previousSpectrum.size()[0] < 3:
                                     specA = previousSpectrum[-1]
                                     specB = previousSpectrum[-1]

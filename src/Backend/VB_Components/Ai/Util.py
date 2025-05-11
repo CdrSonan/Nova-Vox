@@ -25,7 +25,7 @@ class GuideRelLoss(nn.Module):
         forward: calculates relative loss based on input and target tensors after successful initialisation."""
     
     
-    def __init__(self, weight=None, size_average=True, threshold = 1.3, device = 'cpu'):
+    def __init__(self, weight=None, size_average=True, threshold = 0.2, device = 'cpu'):
         """basic class constructor.
         
         Arguments:
@@ -57,7 +57,7 @@ class GuideRelLoss(nn.Module):
             Relative error value calculated from the difference between input and target Tensor as Float"""
         
         input = torch.median(inputs, dim = 0).values
-        target = torch.mean(targets, dim = 0)
+        target = torch.median(targets, dim = 0).values
         error = torch.pow(torch.max(torch.abs(input - target) - self.threshold, torch.tensor([0,], device = self.threshold.device)), self.exponent)
         out = torch.mean(error) * self.weight
         return out
