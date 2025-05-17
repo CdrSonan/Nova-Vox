@@ -23,8 +23,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{680531A2-5B3C-47B5-8380-CA6D7033BF13}
 AppName="Nova-Vox"
-AppVersion="0.12.0"
-AppVerName="Nova-Vox 0.12.0"
+AppVersion="0.99.0"
+AppVerName="Nova-Vox 0.99.0"
 AppPublisher="Nova-Vox development team"
 AppPublisherURL="https://nova-vox.org/"
 AppSupportURL="https://nova-vox.org/"
@@ -52,10 +52,11 @@ Name: "custom"; Description: "Custom installation"; Flags: iscustom
 [Components]
 Name: "main"; Description: "Nova-Vox Editor and Dependencies"; Types: full minimal custom; Flags: fixed
 Name: "devkit"; Description: "Devkit Executable"; Types: full custom
-Name: "devkit\phontables"; Description: "Phonetic tables for Devkit"; Types: full custom
+Name: "devkit\phontables"; Description: "Phonetic tables and presets for Devkit"; Types: full custom
+Name: "devkit\aiv1"; Description: "V1 Japanese+English AI base model"; Types: full custom
 Name: "voices"; Description: "Default Voicebanks"; Types: full custom
-Name: "voices\TYC"; Description: "Tsukuyomi-chan demo Voicebank"; Types: full custom
-Name: "voices\Arachne"; Description: "Arachne Japanese UTAU port"; Types: full custom
+;Name: "voices\TYC"; Description: "Tsukuyomi-chan demo Voicebank"; Types: full custom
+;Name: "voices\Arachne"; Description: "Arachne Japanese UTAU port"; Types: full custom
 ;Name: "params"; Description: "Default Parameters"; Types: full custom
 ;Name: "voices\Barrels"; Description: "Barrels test Voicebank"; Types: full custom
 
@@ -72,7 +73,7 @@ Name: "{code:GetDataDir}\Devkit_Phonetics\IPAConversions"; Components: devkit
 Name: "{code:GetDataDir}\Devkit_Phonetics\Lists"; Components: devkit
 Name: "{code:GetDataDir}\Devkit_Phonetics\UtauConversions"; Components: devkit
 Name: "{code:GetDataDir}\Devkit_Presets\Dictionaries"; Components: devkit
-Name: "{code:GetDataDir}\Devkit_Presets\TrAis"; Components: devkit
+:Name: "{code:GetDataDir}\Devkit_Presets\TrAis"; Components: devkit
 Name: "{code:GetDataDir}\Devkit_Presets\MainAis"; Components: devkit
 Name: "{userappdata}\Nova-Vox\Logs"
 
@@ -93,8 +94,8 @@ end;
 procedure InitializeWizard;
 begin
   DataDirPage := CreateInputDirPage(wpSelectDir,
-    'Select Data Directory', 'Where should Voicebanks, Parameters and Addon files be stored?',
-    'Select the folder in which Setup should install Voicebanks, Parameters and Addon files, then click Next. You can change this folder later in the settings panel.',
+    'Select Data Directory', 'Where should Voicebanks and other files be stored?',
+    'Select the folder in which Setup should install Voicebanks, Presets, phoneme tables, AI base models and Addon files, then click Next. You can change this folder later in the settings panel.',
     False, '');
   DataDirPage.Add('');
   DataDirPage.Values[0] := ExpandConstant('{commondocs}\Nova-Vox');
@@ -127,10 +128,8 @@ begin
   if CurPageID = wpReady then begin
     DownloadPage.Clear;
     // Use AddEx to specify a username and password
-    if WizardIsComponentSelected('voices\TYC') then
-      DownloadPage.Add('https://dl.nova-vox.org/TYC-1.0.1.nvvb', 'TYC-1.0.1.nvvb', '');
-    if WizardIsComponentSelected('voices\Arachne') then
-      DownloadPage.Add('https://dl.nova-vox.org/Arachne-1.0.1.nvvb', 'Arachne-1.0.1.nvvb', '');
+    if WizardIsComponentSelected('devkit\aiv1') then
+      DownloadPage.Add('https://dl.nova-vox.org/jp-en-v1.hdf5', 'jp-en-v1.hdf5', '');
     DownloadPage.Show;
     try
       try
@@ -155,11 +154,11 @@ end;
 Source: "..\dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nova-Vox Devkit.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\assets\settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
 Source: "..\dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
-Source: "{tmp}\TYC-1.0.1.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\TYC; Flags: ignoreversion uninsneveruninstall external
-Source: "{tmp}\Arachne-1.0.1.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Arachne; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\jp-en-v1.hdf5"; DestDir: "{code:GetDataDir}\Devkit_Presets\MainAIs"; Components: devkit\aiv1; Flags: ignoreversion uninsneveruninstall external
 ;Source: "Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion uninsneveruninstall
 ;Source: "Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
 Source: "..\assets\Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
+Source: "..\assets\templates\dicts*"; DestDir: "{code:GetDataDir}\Devkit_Presets\Dictionaries"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall 
 
 
 [INI]

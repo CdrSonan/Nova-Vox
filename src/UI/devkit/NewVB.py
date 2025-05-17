@@ -41,7 +41,7 @@ class NewVBUi(Frame):
             self.device = torch.device("cpu")
     
     def createWidgets(self):
-        dictionaries, trAis, mainAis = self.fetchPresets()
+        dictionaries, mainAis = self.fetchPresets()
         
         self.dictionary = Frame(self)
         self.dictionaryVariable = tkinter.StringVar()
@@ -51,15 +51,6 @@ class NewVBUi(Frame):
         self.dictionaryChoice = tkinter.ttk.OptionMenu(self.dictionary, self.dictionaryVariable, "None", *dictionaries)
         self.dictionaryChoice.pack(side = "top", fill = "x", padx = 5, pady = 2)
         self.dictionary.pack(side = "top", fill = "x", padx = 5, pady = 2)
-        
-        self.trAi = Frame(self)
-        self.trAiVariable = tkinter.StringVar()
-        self.trAiLabel = Label(self.trAi)
-        self.trAiLabel["text"] = loc["new_tr_ai"]
-        self.trAiLabel.pack(side = "top", fill = "x", padx = 5, pady = 2)
-        self.trAiChoice = tkinter.ttk.OptionMenu(self.trAi, self.trAiVariable, "None", *trAis)
-        self.trAiChoice.pack(side = "top", fill = "x", padx = 5, pady = 2)
-        self.trAi.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.mainAi = Frame(self)
         self.mainAiVariable = tkinter.StringVar()
@@ -78,6 +69,7 @@ class NewVBUi(Frame):
         self.phonemePHLabel = Label(self.phonemePH)
         self.phonemePHLabel["text"] = loc["new_phoneme_placeholder"]
         self.phonemePHLabel.pack(side = "right", fill = "x")
+        self.phonemePH.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
         self.okButton = Button(self)
         self.okButton["text"] = loc["ok"]
@@ -93,15 +85,12 @@ class NewVBUi(Frame):
     def fetchPresets():
         dataDir = readSettings()["datadir"]
         dictionaries = []
-        trAis = []
         mainAis = []
         for i in os.listdir(os.path.join(dataDir, "Devkit_Presets", "Dictionaries")):
             dictionaries.append(i.split(".")[0])
-        for i in os.listdir(os.path.join(dataDir, "Devkit_Presets", "TrAis")):
-            trAis.append(i.split(".")[0])
         for i in os.listdir(os.path.join(dataDir, "Devkit_Presets", "MainAis")):
             mainAis.append(i.split(".")[0])
-        return dictionaries, trAis, mainAis
+        return dictionaries, mainAis
     
     def close(self):
         logging.info("closing new VB UI")
@@ -111,13 +100,11 @@ class NewVBUi(Frame):
         logging.info("creating new VB")
         loadedVB = Voicebank(None, self.device)
         if self.dictionaryVariable.get() != "None":
-            loadedVB.loadWordDict(os.path.join(readSettings()["dataDir"], "Devkit_Presets", "Dictionaries", self.dictionaryVariable.get() + ".hdf5"), False)
-        if self.trAiVariable.get() != "None":
-            loadedVB.loadTrWeights(os.path.join(readSettings()["dataDir"], "Devkit_Presets", "TrAis", self.trAiVariable.get() + ".hdf5"))
+            loadedVB.loadWordDict(os.path.join(readSettings()["datadir"], "Devkit_Presets", "Dictionaries", self.dictionaryVariable.get() + ".hdf5"), False)
         if self.mainAiVariable.get() != "None":
-            loadedVB.loadMainWeights(os.path.join(readSettings()["dataDir"], "Devkit_Presets", "MainAis", self.mainAiVariable.get() + ".hdf5"))
+            loadedVB.loadMainWeights(os.path.join(readSettings()["datadir"], "Devkit_Presets", "MainAis", self.mainAiVariable.get() + ".hdf5"))
         if self.phonemePHVariable.get() and self.dictionaryVariable.get() != "None":
-            with open(os.path.join(readSettings()["dataDir"], "Devkit_Phonetics", "Lists", self.dictionaryVariable.get()), "r") as f:
+            with open(os.path.join(readSettings()["datadir"], "Devkit_Phonetics", "Lists", self.dictionaryVariable.get() + ".csv"), "r") as f:
                 for line in f:
                     items = line.split(" ")
                     if items[0] in loadedVB.phonemeDict.keys():

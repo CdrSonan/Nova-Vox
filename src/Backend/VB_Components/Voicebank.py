@@ -191,6 +191,8 @@ class Voicebank():
             
         self.phonemeDict[key] = [AudioSample(filepath),]
         self.phonemeDict[key][0].key = key
+        if filepath == None:
+            return
         calculatePitch(self.phonemeDict[key][0])
         calculateSpectra(self.phonemeDict[key][0])
     

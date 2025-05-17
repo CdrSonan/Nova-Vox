@@ -61,13 +61,12 @@ class AIWrapper():
         self.device = device
         self.final = False
         self.defectiveTrBins = []
-        self.trAi = TrAi(device = self.device, learningRate=self.hparams["tr_lr"], regularization=self.hparams["tr_reg"], hiddenLayerCount=int(self.hparams["tr_hlc"]), hiddenLayerSize=int(self.hparams["tr_hls"]))
+        self.trAi = TrAi()
         self.mainAi = MainAi(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["main_blkA"], blockB = self.hparams["main_blkB"], blockC = self.hparams["main_blkC"], learningRate=self.hparams["main_lr"], regularization=self.hparams["main_reg"], dropout = self.hparams["main_drp"])
         self.mainEmbedding = {"": torch.zeros((self.hparams["embeddingDim"],), device = self.device)}
         if not self.inferOnly:
             self.mainCritic = MainCritic(device = self.device, dim = self.hparams["latent_dim"], embedDim = self.hparams["embeddingDim"], blockA = self.hparams["crt_blkA"], blockB = self.hparams["crt_blkB"], blockC = self.hparams["crt_blkC"], outputWeight = self.hparams["crt_out_wgt"], learningRate=self.hparams["crt_lr"], regularization=self.hparams["crt_reg"], dropout = self.hparams["crt_drp"])
             self.mainGenerator = DataGenerator(self.voicebank, self.trAi)
-            self.trAiOptimizer = torch.optim.NAdam(self.trAi.parameters(), lr=self.trAi.learningRate, weight_decay=self.trAi.regularization)
             """self.mainAiOptimizer = [torch.optim.AdamW([*self.mainAi.baseEncoder.parameters(), *self.mainAi.baseDecoder.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
                                     torch.optim.AdamW([*self.mainAi.encoderA.parameters(), *self.mainAi.decoderA.parameters()], lr=self.mainAi.learningRate, weight_decay=self.mainAi.regularization),
                                     torch.optim.AdamW([*self.mainAi.encoderB.parameters(), *self.mainAi.decoderB.parameters()], lr=self.mainAi.learningRate * 4, weight_decay=self.mainAi.regularization),

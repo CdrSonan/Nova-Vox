@@ -46,7 +46,7 @@ class TrAi(nn.Module):
         forward: Forward NN pass with unprocessed in-and outputs"""
         
         
-    def __init__(self, device:torch.device = None, learningRate:float=5e-5, hiddenLayerCount:int = 3, hiddenLayerSize:int = 4 * (global_consts.halfTripleBatchSize + halfHarms), regularization:float=1e-5, compile:bool = True) -> None:
+    def __init__(self) -> None:
         """Constructor initialising NN layers and prerequisite attributes.
         
         Arguments:

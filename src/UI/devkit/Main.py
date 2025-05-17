@@ -19,11 +19,9 @@ loc = getLanguage()
 
 from UI.devkit.Metadata import MetadataUi
 from UI.devkit.PhonemeDict import PhonemedictUi
-from UI.devkit.CrfAi import CrfaiUi
 from UI.devkit.MainAi import MainaiUi
 from UI.devkit.WordDict import WorddictUi
 from UI.devkit.UtauImport import UtauImportUi
-from UI.devkit.AdvSettings import AdvSettingsUi
 from UI.devkit.NewVB import NewVBUi
 from UI.devkit.Widgets import Frame, Label, Button
 

@@ -36,6 +36,8 @@ def calculateSpectra(audioSample:AudioSample, useVariance:bool = True, allow_oop
     """
 
 
+    if audioSample.specharm.size()[0] == 0:
+        return
     batches = floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
     #audioSample.waveform = torch.sin(torch.linspace(0, 2 * 3.14159265358979323846 * audioSample.waveform.size()[0] / 200, audioSample.waveform.size()[0], device = audioSample.waveform.device)) + 0.95
     audioSample.specharm = torch.zeros([batches, global_consts.nHarmonics + global_consts.halfTripleBatchSize + 3], dtype = torch.float)

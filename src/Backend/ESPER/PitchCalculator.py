@@ -24,7 +24,8 @@ def calculatePitch(audioSample:AudioSample) -> None:
     with the range around it being defined by searchRange (should be a value between 0 and 1), which is interpreted as a percentage of the wavelength of expectedPitch.
     The function fills the pitchDeltas and pitch properties. Compared to the non-legacy version, it can be applied to smaller search ranges without the risk of failure, but suffers from a worse
     signal-to-noise ratio."""
-    
+    if audioSample.specharm.size()[0] == 0:
+        return
     batches = math.floor(audioSample.waveform.size()[0] / global_consts.batchSize) + 1
     audioSample.pitchDeltas = torch.zeros([batches,], dtype = torch.int)
     audioSample.pitchMarkers = torch.zeros([audioSample.waveform.size()[0],], dtype = torch.int)

@@ -370,6 +370,8 @@ class PhonemedictUi(Frame):
         index = self.phonemeList.list.lastFocusedIndex
         key = self.phonemeList.list.lb.get(index)
         sample = self.sampleList.list.lastFocusedIndex
+        if loadedVB.phonemeDict[key][sample].specharm.size()[0] == 0:
+            return
         spectrum = loadedVB.phonemeDict[key][sample].avgSpecharm[int(global_consts.nHarmonics / 2) + 1:] + loadedVB.phonemeDict[key][sample].specharm[value, global_consts.nHarmonics + 2:]
         harmonics = loadedVB.phonemeDict[key][sample].avgSpecharm[:int(global_consts.nHarmonics / 2) + 1] + loadedVB.phonemeDict[key][sample].specharm[value, :int(global_consts.nHarmonics / 2) + 1]
         xScale = torch.linspace(0, global_consts.sampleRate / 2, global_consts.halfTripleBatchSize + 1)
