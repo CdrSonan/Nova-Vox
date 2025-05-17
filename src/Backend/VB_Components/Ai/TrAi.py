@@ -95,11 +95,6 @@ class TrAi(nn.Module):
         spectrum3 = torch.cat((spectrum3in[:global_consts.halfHarms], spectrum3in[global_consts.nHarmonics + 2:]), dim = 0)
         spectrum4 = torch.cat((spectrum4in[:global_consts.halfHarms], spectrum4in[global_consts.nHarmonics + 2:]), dim = 0)
         factor = torch.tile(factorIn.unsqueeze(-1).unsqueeze(-1), (1, 1, global_consts.reducedFrameSize))
-        spectrum1 = torch.unsqueeze(spectrum1.to(self.device), 0)
-        spectrum2 = torch.unsqueeze(spectrum2.to(self.device), 0)
-        spectrum3 = torch.unsqueeze(spectrum3.to(self.device), 0)
-        spectrum4 = torch.unsqueeze(spectrum4.to(self.device), 0)
-        spectra = torch.cat((spectrum1, spectrum2, spectrum3, spectrum4), dim = 0)
         spectrum1tile = torch.tile(spectrum1.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum2tile = torch.tile(spectrum2.unsqueeze(0), (outputSize, 1, 1)) * (1. - factor)
         spectrum3tile = torch.tile(spectrum3.unsqueeze(0), (outputSize, 1, 1)) * factor

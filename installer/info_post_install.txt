@@ -1,7 +1,5 @@
 Thank you for installing Nova-Vox!
 
-(Insert note about DFT kernel creation here once persistent DFT kernels are implemented)
-
 To get started, we recommend you to check out our tutorial page (PLACEHOLDER FOR LINK).
 You can also download additional Voices, Plugins and more from our website (PLACEHOLDER FOR LINK).
 

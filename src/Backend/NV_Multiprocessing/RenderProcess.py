@@ -1,4 +1,4 @@
-# Copyright 2022, 2023 Contributors to the Nova-Vox project
+# Copyright 2022, 2023, 2025 Contributors to the Nova-Vox project
 
 # This file is part of Nova-Vox.
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -281,11 +281,6 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
             
     
     def finalRender(specharm:torch.Tensor, pitch:torch.Tensor, length:int, device:torch.device) -> torch.Tensor:
-        import matplotlib.pyplot as plt
-        plt.imshow(torch.log(specharm[:, :] + 0.001).cpu())
-        #plt.imshow(specharm[:, :].cpu())
-        plt.show()
-        
         renderTarget = torch.zeros([length * global_consts.batchSize,], device = device)
         specharm = specharm.contiguous()
         specharm_ptr = ctypes.cast(specharm.data_ptr(), ctypes.POINTER(ctypes.c_float))
