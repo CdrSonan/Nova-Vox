@@ -170,23 +170,6 @@ class PhonemedictUi(Frame):
         self.sideBar.isPlosive.display.pack(side = "right", fill = "x")
         self.sideBar.isPlosive.pack(side = "top", fill = "x", padx = 5, pady = 2)
         
-        self.sideBar.embedding = Frame(self.sideBar)
-        self.sideBar.embedding.variable = tkinter.StringVar(self.sideBar.embedding, "00000000")
-        self.sideBar.embedding.entry = Entry(self.sideBar.embedding)
-        def OnValidateCheckSum(P):
-            valid_hex_char = lambda c: c in 'abcdef0123456789'
-            return (len(P) < 9) and (all(valid_hex_char(z) for z in P.lower()))
-        self.sideBar.embedding.entry["validate"] = "key"
-        self.sideBar.embedding.entry["validatecommand"] = (self.sideBar.embedding.entry.register(OnValidateCheckSum), '%P')
-        self.sideBar.embedding.entry["textvariable"] = self.sideBar.embedding.variable
-        self.sideBar.embedding.entry.bind("<FocusOut>", self.onEmbeddingUpdateTrigger)
-        self.sideBar.embedding.entry.bind("<KeyRelease-Return>", self.onEmbeddingUpdateTrigger)
-        self.sideBar.embedding.entry.pack(side = "right", fill = "x")
-        self.sideBar.embedding.display = Label(self.sideBar.embedding)
-        self.sideBar.embedding.display["text"] = loc["embedding"]
-        self.sideBar.embedding.display.pack(side = "right", fill = "x")
-        self.sideBar.embedding.pack(side = "top", fill = "x", padx = 5, pady = 2)
-        
         self.sideBar.fileButton = Button(self.sideBar)
         self.sideBar.fileButton["text"] = loc["cng_file"]
         self.sideBar.fileButton["command"] = self.onFilechangePress
@@ -250,14 +233,12 @@ class PhonemedictUi(Frame):
                     self.sideBar.pSearchRange.variable.set(loadedVB.phonemeDict[key][sample].searchRange)
                     self.sideBar.isVoiced.variable.set(loadedVB.phonemeDict[key][sample].isVoiced)
                     self.sideBar.isPlosive.variable.set(loadedVB.phonemeDict[key][sample].isPlosive)
-                    self.sideBar.embedding.variable.set(hex(loadedVB.phonemeDict[key][sample].embedding)[2:])
                     self.enableButtons()
                 else:
                     self.sideBar.expPitch.variable.set(None)
                     self.sideBar.pSearchRange.variable.set(None)
                     self.sideBar.isVoiced.variable.set(False)
                     self.sideBar.isPlosive.variable.set(False)
-                    self.sideBar.embedding.variable.set("00000000")
                     self.disableButtons()
                 self.updateSlider()
                 self.onSliderMove(0)
@@ -289,7 +270,6 @@ class PhonemedictUi(Frame):
         self.sideBar.finalizeButton["state"] = "disabled"
         self.sideBar.isVoiced.entry["state"] = "disabled"
         self.sideBar.isPlosive.entry["state"] = "disabled"
-        self.sideBar.embedding.entry["state"] = "disabled"
     
     def enableButtons(self) -> None:
         """Helper function enabling all per-phoneme settings buttons"""
@@ -300,7 +280,6 @@ class PhonemedictUi(Frame):
         self.sideBar.finalizeButton["state"] = "normal"
         self.sideBar.isVoiced.entry["state"] = "normal"
         self.sideBar.isPlosive.entry["state"] = "normal"
-        self.sideBar.embedding.entry["state"] = "normal"
     
     def onPhonAddPress(self) -> None:
         """UI Frontend function for adding a phoneme to the Voicebank"""
@@ -446,15 +425,6 @@ class PhonemedictUi(Frame):
                 calculatePitch(loadedVB.phonemeDict[key][sample])
                 calculateSpectra(loadedVB.phonemeDict[key][sample], True)
 
-    def onEmbeddingUpdateTrigger(self, event) -> None:
-        global loadedVB
-        index = self.phonemeList.list.lastFocusedIndex
-        key = self.phonemeList.list.lb.get(index)
-        sample = self.sampleList.list.lastFocusedIndex
-        if type(loadedVB.phonemeDict[key][sample]).__name__ == "AudioSample":
-            loadedVB.phonemeDict[key][sample].embedding = int(self.sideBar.embedding.variable.get(), 16)
-        
-    
     def onVoicedUpdateTrigger(self) -> None:
         """UI Frontend function for updating the "Voiced" flag of a phoneme"""
 

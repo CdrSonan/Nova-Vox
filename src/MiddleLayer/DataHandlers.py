@@ -99,7 +99,8 @@ class Track():
                 self.phonemeLengths[i] = tmpVb.phonemeDict.fetch(i, True)[0].specharm.size()[0]
             else:
                 self.phonemeLengths[i] = None
-            self.wordDict = tmpVb.wordDict
+        tmpVb.loadWordDict(self.vbPath, False)
+        self.wordDict = tmpVb.wordDict
 
     def validate(self) -> None:
         """validates the data of the track, ensuring there are no inconsistencies capable of causing crashes"""

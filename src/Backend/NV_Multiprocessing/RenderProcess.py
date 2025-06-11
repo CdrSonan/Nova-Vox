@@ -282,7 +282,12 @@ def renderProcess(statusControlIn, voicebankListIn, nodeGraphListIn, inputListIn
     
     def finalRender(specharm:torch.Tensor, pitch:torch.Tensor, length:int, device:torch.device) -> torch.Tensor:
         renderTarget = torch.zeros([length * global_consts.batchSize,], device = device)
-        specharm = specharm.contiguous()
+        # apply running median filter to specharm
+        specharm_adj = specharm.clone()
+        for i in range(specharm.size()[0]):
+            i_adj = ((i if i >= 2 else 2) if i < specharm.size()[0] - 2 else specharm.size()[0] - 3)
+            specharm_adj[i] = torch.median(specharm[i_adj - 2:i_adj + 3], dim=0)[0]
+        specharm = specharm_adj.contiguous()
         specharm_ptr = ctypes.cast(specharm.data_ptr(), ctypes.POINTER(ctypes.c_float))
         pitch = pitch.contiguous()
         pitch_ptr = ctypes.cast(pitch.data_ptr(), ctypes.POINTER(ctypes.c_float))

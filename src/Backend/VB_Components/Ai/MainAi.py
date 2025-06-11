@@ -234,7 +234,7 @@ class DataGenerator(IterableDataset):
         if self.mode == "dataset file":
             sample = next(iter(self.pool["dataset"]))
             sample = sample.specharm + torch.cat((sample.avgSpecharm[:global_consts.halfHarms], torch.zeros((global_consts.halfHarms,), device = sample.avgSpecharm.device), sample.avgSpecharm[global_consts.halfHarms:]), 0)
-            return sample.to(torch.device(self.crfAi.device))
+            return sample
         """noise mappings: [borders, offsets/spacing, steadiness, breathiness]"""
         sequence, embeddings = self.makeSequence(noise, length, phonemeLength, expression)
         output = torch.zeros([sequence.length, global_consts.halfTripleBatchSize + global_consts.nHarmonics + 3], device = torch.device("cpu"))
@@ -242,7 +242,6 @@ class DataGenerator(IterableDataset):
         for i in range(1, sequence.phonemeLength - 1):
             output[sequence.borders[3*i+2]:sequence.borders[3*i+3]] = getSpecharm(VocalSegment(sequence, self.voicebank, i, torch.device("cpu")), torch.device("cpu"))
         output[sequence.borders[-4]:sequence.borders[-1]] = getSpecharm(VocalSegment(sequence, self.voicebank, sequence.phonemeLength - 1, torch.device("cpu")), torch.device("cpu"))
-        output = output.to(self.crfAi.device)
         for i in range(1, sequence.phonemeLength):
             output[sequence.borders[3*i]-1:sequence.borders[3*i+2]] = self.crfWrapper(output[sequence.borders[3*i] - 3],
                                                                                output[sequence.borders[3*i] - 2],
@@ -257,9 +256,9 @@ class DataGenerator(IterableDataset):
     
     def crfWrapper(self, specharm1:torch.Tensor, specharm2:torch.Tensor, specharm3:torch.Tensor, specharm4:torch.Tensor, embedding1:torch.Tensor, embedding2:torch.Tensor, outputSize:int, pitchCurve:torch.Tensor, slopeFactor:int):
         factor = log(0.5, slopeFactor / outputSize)
-        factor = torch.pow(torch.linspace(0, 1, outputSize, device = self.crfAi.device), factor)
-        embedding1 = dec2bin(torch.tensor(embedding1, device = self.crfAi.device), 32)
-        embedding2 = dec2bin(torch.tensor(embedding2, device = self.crfAi.device), 32)
+        factor = torch.pow(torch.linspace(0, 1, outputSize), factor)
+        embedding1 = dec2bin(torch.tensor(embedding1), 32)
+        embedding2 = dec2bin(torch.tensor(embedding2), 32)
         specharm = torch.squeeze(self.crfAi(specharm1, specharm2, specharm3, specharm4, embedding1, embedding2, factor))
         return specharm
     

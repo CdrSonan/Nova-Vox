@@ -246,15 +246,15 @@ class MiddleLayer(Widget):
         """splits a word into syllables using the wordDict of the loaded Voicebank. Returns a list of syllables, or None if the word cannot be split in a valid way."""
         
         for i in range(len(self.trackList[self.activeTrack].wordDict[1])):
-            for j in self.trackList[self.activeTrack].wordDict[1][len(self.trackList[self.activeTrack].wordDict[1]) - i - 1].keys():
-                if word.startswith(j):
-                    if len(word) == len(j):
-                        return [j]
-                    append = self.syllableSplit(word[len(j):])
+            for key, val in self.trackList[self.activeTrack].wordDict[1][len(self.trackList[self.activeTrack].wordDict[1]) - i - 1].items():
+                if word.startswith(key):
+                    if len(word) == len(key):
+                        return val.split(" ")
+                    append = self.syllableSplit(word[len(key):])
                     if append == None:
-                        return None
+                        continue
                     else:
-                        return [j] + append
+                        return val.split(" ") + append
         return None
 
     def repairNotes(self, index:int) -> None:

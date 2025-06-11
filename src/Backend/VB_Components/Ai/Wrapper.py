@@ -312,7 +312,7 @@ class AIWrapper():
                         data[:, global_consts.nHarmonics + 2:] = torch.max(data[:, global_consts.nHarmonics + 2:], torch.zeros_like(data[:, global_consts.nHarmonics + 2:]))
                         data[:, global_consts.nHarmonics + 2:] = torch.log(data[:, global_consts.nHarmonics + 2:] + 0.001)
                     self.reset()
-                    synthBase = self.mainGenerator.synthesize([0.25, 0., 0., 0.], data.size()[0], 10, expression)
+                    synthBase = self.mainGenerator.synthesize([0.25, 0., 0., 0.], data.size()[0], 10, expression).to(device = self.device)
                     synthBase /= self.deskewingPremul
                     synthBase[:, :global_consts.halfHarms] = torch.max(synthBase[:, :global_consts.halfHarms], torch.zeros_like(synthBase[:, :global_consts.halfHarms]))
                     synthBase[:, :global_consts.halfHarms] = torch.log(synthBase[:, :global_consts.halfHarms] + 0.001)

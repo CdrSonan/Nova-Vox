@@ -101,8 +101,6 @@ class UtauImportUi(Frame):
         self.sideBar._type.entry = Frame(self.sideBar._type)
         self.sideBar._type.entry.button1 = Radiobutton(self.sideBar._type.entry, text = loc["smp_phoneme"], value = 0, variable = self.sideBar._type.variable, command = self.onTypeChange)
         self.sideBar._type.entry.button1.pack(side = "right", fill = "x")
-        self.sideBar._type.entry.button2 = Radiobutton(self.sideBar._type.entry, text = loc["smp_transition"], value = 1, variable = self.sideBar._type.variable, command = self.onTypeChange)
-        self.sideBar._type.entry.button2.pack(side = "right", fill = "x")
         self.sideBar._type.entry.button3 = Radiobutton(self.sideBar._type.entry, text = loc["smp_sequence"], value = 2, variable = self.sideBar._type.variable, command = self.onTypeChange)
         self.sideBar._type.entry.button3.pack(side = "right", fill = "x")
         self.sideBar._type.entry.pack(side = "right", fill = "x")
@@ -235,13 +233,6 @@ class UtauImportUi(Frame):
         self.otoSettings.typeSelector.displayPhon = Label(self.otoSettings.typeSelector)
         self.otoSettings.typeSelector.displayPhon["text"] = loc["sample_phoneme"]
         self.otoSettings.typeSelector.displayPhon.pack(side = "right", fill = "x")
-        self.otoSettings.typeSelector.variableTrans = tkinter.BooleanVar(self.otoSettings.typeSelector, True)
-        self.otoSettings.typeSelector.entryTrans = Checkbutton(self.otoSettings.typeSelector)
-        self.otoSettings.typeSelector.entryTrans["variable"] = self.otoSettings.typeSelector.variableTrans
-        self.otoSettings.typeSelector.entryTrans.pack(side = "right", fill = "x")
-        self.otoSettings.typeSelector.displayTrans = Label(self.otoSettings.typeSelector)
-        self.otoSettings.typeSelector.displayTrans["text"] = loc["sample_transition"]
-        self.otoSettings.typeSelector.displayTrans.pack(side = "right", fill = "x")
         self.otoSettings.typeSelector.variableSeq = tkinter.BooleanVar(self.otoSettings.typeSelector, True)
         self.otoSettings.typeSelector.entrySeq = Checkbutton(self.otoSettings.typeSelector)
         self.otoSettings.typeSelector.entrySeq["variable"] = self.otoSettings.typeSelector.variableSeq
@@ -314,7 +305,7 @@ class UtauImportUi(Frame):
         if filepath != "":
             for s in self.sampleList:
                 if filepath == s.audioSample.filepath:
-                    sample = UtauSample(filepath, 1, None, 0, None, s.offset, s.fixed, s.blank, s.preuttr, s.overlap, True, False, 0)
+                    sample = UtauSample(filepath, 1, None, 0, None, s.offset, s.fixed, s.blank, s.preuttr, s.overlap, s.audioSample.expectedPitch, True, False, 0)
                     break
             else:
                 sample = UtauSample(filepath, 1, None, 0, None, 0, 0, 0, 0, 0, True, False, 0)
@@ -397,8 +388,6 @@ class UtauImportUi(Frame):
             loadedVB.addPhonemeUtau(self.sampleList[index])
         elif self.sampleList[0]._type == 2:
             loadedVB.addMainTrainSampleUtau(self.sampleList[index])
-        else:
-            loadedVB.addTrTrainSampleUtau(self.sampleList[index])
         self.sideBar._type.variable.set(0)
         self.sideBar.key.variable.set(None)
         self.sideBar.start.variable.set(None)
@@ -424,8 +413,6 @@ class UtauImportUi(Frame):
                 loadedVB.addPhonemeUtau(self.sampleList[0])
             elif self.sampleList[0]._type == 2:
                 loadedVB.addMainTrainSampleUtau(self.sampleList[0])
-            else:
-                loadedVB.addTrTrainSampleUtau(self.sampleList[0])
             del self.sampleList[0]
             self.phonemeList.list.lb.delete(0)
         self.update()
@@ -489,11 +476,7 @@ class UtauImportUi(Frame):
                                                   conversionPath,
                                                   self.otoSettings.forceJIS.variable.get())
                     for sample in fetchedSamples:
-                        if sample._type == 1 and self.otoSettings.typeSelector.variableTrans.get():
-                            #transition sample
-                            self.sampleList.append(sample)
-                            self.phonemeList.list.lb.insert("end", sample.handle)
-                        elif sample._type == 2 and sample.audioSample.filepath not in samplePaths and self.otoSettings.typeSelector.variableSeq.get():
+                        if sample._type == 2 and sample.audioSample.filepath not in samplePaths and self.otoSettings.typeSelector.variableSeq.get():
                             #sequence sample
                             samplePaths.append(sample.audioSample.filepath)
                             self.sampleList.append(sample)
