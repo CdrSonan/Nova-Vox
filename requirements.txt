@@ -45,4 +45,4 @@ torchaudio==2.1.0+cu118
 tqdm==4.66.3
 ttkthemes==3.2.2
 typing_extensions==4.4.0
-urllib3==2.2.2
+urllib3==2.5.0
