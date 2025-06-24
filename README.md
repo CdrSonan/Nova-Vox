@@ -1,6 +1,25 @@
 # Nova-Vox
 Main repository of the Nova-Vox vocal synthesizer project.
 
+The idea behind this project is to combine the strengths of tranditional and AI-based vocal synthesizers by first performing traditional synthesis, and then enhancing the result with AI.
+Another effect of this approach is that Voicebanks require far fewer recordings than in either a fully traditional, or fully AI engine.
+
+Other features include:
+- A universal phoneme and dictionary system, which can be adapted to (theoretically) any language
+- A node editor for building custom effect pipelines
+- Development kit for creating your own Voicebanks
+- An UTAU import tool for converting UTAU Voicebanks to Nova-Vox Voicebanks
+- Wide file format aud audio device support
+
+A second and improved version is in development under the working name "Mirai".
+
+## Voices
+The installer comes with several downloadable voices. The available selection as well as quality is going to be improved over the course of the coming days.
+
+## Documentation
+Comprehensive documentation is currently WIP.
+
+## Building
 To run the project, run the command "pip install -r requirements.txt" in an environment with access to Python 3.9.
 You may need to install PyTorch from its website separately, since most of its versions are not listed on the Python Package Index.
 Afterwards, execute "editor_runtime.py" or "devkit_runtime.py" for the editor and devkit respectively.
