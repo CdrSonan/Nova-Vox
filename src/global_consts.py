@@ -1,4 +1,4 @@
-# Copyright 2022, 2023 Contributors to the Nova-Vox project
+# Copyright 2022, 2023, 2025 Contributors to the Nova-Vox project
 
 # This file is part of Nova-Vox.
 # Nova-Vox is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -64,7 +64,7 @@ octaves = 4
 
 #self-identification
 language = "en"
-version = "0.99.0"
+version = "1.0.0"
 
 #devkit default values
 defaultExpectedPitch = 0.

@@ -755,8 +755,8 @@ class ChangeLyrics(UnifiedAction):
             middleLayer.trackList[middleLayer.activeTrack].loopOffset[phonemeIndex:phonemeIndex + len(offsets)] = offsets#index out of range (last note?)
             middleLayer.submitNamedPhonParamChange(False, "offsets", phonemeIndex, offsets)
             middleLayer.submitFinalize()
-        super().__init__(action, index, inputText, pronuncIndex, *args, **kwargs)
         self.index = index
+        super().__init__(action, index, inputText, pronuncIndex, *args, **kwargs)
     
     def inverseAction(self):
         return ChangeLyrics(self.index, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].content, middleLayer.trackList[middleLayer.activeTrack].notes[self.index].pronuncIndex)

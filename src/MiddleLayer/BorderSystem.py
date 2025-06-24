@@ -22,14 +22,17 @@ def calculateBorders(note:Note, context:NoteContext) -> None:
     availableSpace = context.end - context.start
     reservedSpace = sum([i for i in phonemeLengths if i])
     numDropinPhonemes = sum([1 for i in phonemeLengths if not i])
-    if len(phonemes) > 0 and availableSpace >= reservedSpace + numDropinPhonemes * global_consts.refPhonemeLength:
-        dropinLength = (availableSpace - reservedSpace) / numDropinPhonemes
+    if numDropinPhonemes == 0:
+        phonemeLengths = [i * availableSpace / reservedSpace for i in phonemeLengths]
     else:
-        dropinLength = global_consts.refPhonemeLength
-    phonemeLengths = [i if i else dropinLength for i in phonemeLengths]
-    if len(phonemes) > 0:
-        compression = availableSpace / sum(phonemeLengths)
-        phonemeLengths = [i * compression for i in phonemeLengths]
+        if len(phonemes) > 0 and availableSpace >= reservedSpace + numDropinPhonemes * global_consts.refPhonemeLength:
+            dropinLength = (availableSpace - reservedSpace) / numDropinPhonemes
+        else:
+            dropinLength = global_consts.refPhonemeLength
+        phonemeLengths = [i if i else dropinLength for i in phonemeLengths]
+        if len(phonemes) > 0:
+            compression = availableSpace / sum(phonemeLengths)
+            phonemeLengths = [i * compression for i in phonemeLengths]
     mainBorders = [context.start,]
     for i in phonemeLengths:
         mainBorders.append(mainBorders[-1] + i)

@@ -23,8 +23,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{680531A2-5B3C-47B5-8380-CA6D7033BF13}
 AppName="Nova-Vox"
-AppVersion="0.99.0"
-AppVerName="Nova-Vox 0.99.0"
+AppVersion="1.0.0"
+AppVerName="Nova-Vox 1.0.0"
 AppPublisher="Nova-Vox development team"
 AppPublisherURL="https://nova-vox.org/"
 AppSupportURL="https://nova-vox.org/"
@@ -55,10 +55,13 @@ Name: "devkit"; Description: "Devkit Executable"; Types: full custom
 Name: "devkit\phontables"; Description: "Phonetic tables and presets for Devkit"; Types: full custom
 Name: "devkit\aiv1"; Description: "V1 Japanese+English AI base model"; Types: full custom
 Name: "voices"; Description: "Default Voicebanks"; Types: full custom
-;Name: "voices\TYC"; Description: "Tsukuyomi-chan demo Voicebank"; Types: full custom
-;Name: "voices\Arachne"; Description: "Arachne Japanese UTAU port"; Types: full custom
+Name: "voices\AndreaMeeka"; Description: "Andrea Meeka Japanese UTAU port"; Types: full custom
+Name: "voices\Arachne"; Description: "Arachne Japanese UTAU port"; Types: full custom
+Name: "voices\AyameHamasaki"; Description: "Ayame Hamasaki Japanese UTAU port"; Types: full custom
+Name: "voices\MerodiOngaku"; Description: "Merodi Ongaku Japanese UTAU port"; Types: full custom
+Name: "voices\RizumuTeion"; Description: "Rizumu Teion Japanese UTAU port"; Types: full custom
+Name: "voices\Barrels"; Description: "Barrels launch Voicebank"; Types: full custom
 ;Name: "params"; Description: "Default Parameters"; Types: full custom
-;Name: "voices\Barrels"; Description: "Barrels test Voicebank"; Types: full custom
 
 [Tasks]
 Name: "desktopiconeditor"; Description: "{cm:CreateDesktopIcon} (Editor)"; GroupDescription: "{cm:AdditionalIcons}"
@@ -130,6 +133,18 @@ begin
     // Use AddEx to specify a username and password
     if WizardIsComponentSelected('devkit\aiv1') then
       DownloadPage.Add('https://dl.nova-vox.org/jp-en-v1.hdf5', 'jp-en-v1.hdf5', '');
+    if WizardIsComponentSelected('voices\AndreaMeeka') then
+      DownloadPage.Add('https://dl.nova-vox.org/Andrea%20Meeka.nvvb', 'Andrea Meeka.nvvb', '');
+    if WizardIsComponentSelected('voices\Arachne') then
+      DownloadPage.Add('https://dl.nova-vox.org/Arachne.nvvb', 'Arachne.nvvb', '');
+    if WizardIsComponentSelected('voices\AyameHamasaki') then
+      DownloadPage.Add('https://dl.nova-vox.org/Ayame%20Hamasaki.nvvb', 'Ayame Hamasaki.nvvb', '');
+    if WizardIsComponentSelected('voices\MerodiOngaku') then
+      DownloadPage.Add('https://dl.nova-vox.org/Merodi%20Ongaku.nvvb', 'Merodi Ongaku.nvvb', '');
+    if WizardIsComponentSelected('voices\RizumuTeion') then
+      DownloadPage.Add('https://dl.nova-vox.org/Rizumu%20Teion.nvvb', 'Rizumu Teion.nvvb', '');
+    if WizardIsComponentSelected('voices\Barrels') then
+      DownloadPage.Add('https://dl.nova-vox.org/Barrels.nvvb', 'Barrels.nvvb', '');
     DownloadPage.Show;
     try
       try
@@ -155,10 +170,16 @@ Source: "..\dist\Nova-Vox\*"; DestDir: "{app}"; Components: main; Excludes: "Nov
 Source: "..\assets\settings.ini"; DestDir: "{userappdata}\Nova-Vox"; Components: main; Flags: ignoreversion
 Source: "..\dist\Nova-Vox\Nova-Vox Devkit.exe"; DestDir: "{app}"; Components: devkit; Flags: ignoreversion
 Source: "{tmp}\jp-en-v1.hdf5"; DestDir: "{code:GetDataDir}\Devkit_Presets\MainAIs"; Components: devkit\aiv1; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\Andrea Meeka.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\AndreaMeeka; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\Arachne.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Arachne; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\Ayame Hamasaki.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\AyameHamasaki; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\Merodi Ongaku.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\MerodiOngaku; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\Rizumu Teion.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\RizumuTeion; Flags: ignoreversion uninsneveruninstall external
+Source: "{tmp}\Barrels.nvvb"; DestDir: "{code:GetDataDir}\Voices"; Components: voices\Barrels; Flags: ignoreversion uninsneveruninstall external
 ;Source: "Params\*"; DestDir: "{code:GetDataDir}\Parameters"; Components: params; Flags: ignoreversion uninsneveruninstall
 ;Source: "Addons\*"; DestDir: "{code:GetDataDir}\Addons"; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
 Source: "..\assets\Devkit_Phonetics\*"; DestDir: "{code:GetDataDir}\Devkit_Phonetics"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
-Source: "..\assets\templates\dicts*"; DestDir: "{code:GetDataDir}\Devkit_Presets\Dictionaries"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall 
+Source: "..\assets\templates\dicts\*"; DestDir: "{code:GetDataDir}\Devkit_Presets\Dictionaries"; Components: devkit\phontables; Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall 
 
 
 [INI]

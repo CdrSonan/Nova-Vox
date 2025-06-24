@@ -205,7 +205,7 @@ class Note():
         self.xPos = xPos
         self.yPos = yPos
         self.track = track
-        self.phonemeMode = True
+        self.phonemeMode = False
         self.content = ""
         self.phonemes = []
         self.borders = []

@@ -69,7 +69,7 @@ class Note(ManagedToggleButton):
     xPos = NumericProperty()
     yPos = NumericProperty()
     length = NumericProperty()
-    inputMode = BooleanProperty()
+    inputMode = BooleanProperty(False)
     statusBars = ListProperty()
     
     def __init__(self, **kwargs):
@@ -187,7 +187,7 @@ class Note(ManagedToggleButton):
         self.inputMode = not self.inputMode
         self.reference.phonemeMode = self.inputMode
         index = middleLayer.trackList[middleLayer.activeTrack].notes.index(self.reference)
-        API.Ops.ChangeLyrics(index, self.children[1].text)
+        API.Ops.ChangeLyrics(index, self.children[1].text, immediate = True)
 
     def delete(self) -> None:
         """deletes the note"""
