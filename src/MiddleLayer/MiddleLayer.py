@@ -66,11 +66,14 @@ class MiddleLayer(Widget):
         self.playing = False
         settings = readSettings()
         self.undoLimit = int(settings["undolimit"])
+        self.channels = 2
         device = None
         devices = sounddevice.query_devices()
         for i in devices:
             if i["name"] == settings["audiodevice"]:
                 device = i["name"] + ", " + settings["audioapi"]
+                self.channels = i["max_output_channels"]
+                break
         self.audioStream = sounddevice.OutputStream(global_consts.sampleRate, global_consts.audioBufferSize, device, callback = self.playCallback, latency = float(settings["audiolatency"]))
         self.scriptCache = ""
         self.addonModules = []
@@ -422,11 +425,11 @@ class MiddleLayer(Widget):
                 volumes.append(buffer.abs().max())
             for i in self.ids["singerList"].children:
                 i.children[0].children[0].children[0].children[0].value = volumes[i.index]
-            buffer = mainAudioBuffer.expand(2, -1).transpose(0, 1).numpy()
+            buffer = mainAudioBuffer.expand(self.channels, -1).transpose(0, 1).numpy()
             self.mainAudioBufferPos = newBufferPos
             self.movePlayhead(int((self.mainAudioBufferPos - self.audioStream.latency * self.audioStream.samplerate) / global_consts.batchSize))
         else:
-            buffer = torch.zeros([global_consts.audioBufferSize, 2], dtype = torch.float32).expand(-1, 2).numpy()
+            buffer = torch.zeros([global_consts.audioBufferSize, self.channels], dtype = torch.float32).expand(-1, self.channels).numpy()
             self.movePlayhead(int(self.mainAudioBufferPos / global_consts.batchSize))
         outdata[:] = buffer.copy()
     
