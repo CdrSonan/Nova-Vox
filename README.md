@@ -30,6 +30,5 @@ The executable will be generated in /dist, along with its dependencies.
 Afterwards, you can compile the executable into a Windows installer by compiling "installer.iss" with Inno-Setup.
 
 ## Known Bugs
-- Only stereo audio devices are supported; playback fails on other devices ([#49](https://github.com/CdrSonan/Nova-Vox/issues/49))
 - Moving a note in a way that it swaps positions with another note sometimes causes a crash or softlock
 - Audio quality of Voicebanks imported from UTAU is lower than expected
