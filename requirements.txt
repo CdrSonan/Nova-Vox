@@ -7,7 +7,7 @@ contourpy==1.1.1
 cycler==0.12.1
 docutils==0.20.1
 filelock==3.9.0
-fonttools==4.43.1
+fonttools==4.61.0
 fsspec==2023.4.0
 h5py==3.10.0
 idna==3.7
